@@ -1,9 +1,9 @@
 using System.Security.Claims;
+using Jordnaer.Server.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using RemindMeApp.Server.Data;
 
-namespace RemindMeApp.Server.Authentication;
+namespace Jordnaer.Server.Authentication;
 
 public static class AuthExtensions
 {

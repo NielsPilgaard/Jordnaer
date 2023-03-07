@@ -1,8 +1,8 @@
-using RemindMeApp.Server.Authentication;
-using RemindMeApp.Server.Authorization;
-using RemindMeApp.Server.Data;
-using RemindMeApp.Server.Extensions;
-using RemindMeApp.Server.Reminders;
+using Jordnaer.Server.Authentication;
+using Jordnaer.Server.Authorization;
+using Jordnaer.Server.Data;
+using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Reminders;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

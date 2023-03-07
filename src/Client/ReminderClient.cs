@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using RemindMeApp.Shared;
+using Jordnaer.Shared;
 
-namespace RemindMeApp.Client;
+namespace Jordnaer.Client;
 
 public class ReminderClient
 {

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace RemindMeApp.Shared;
+namespace Jordnaer.Shared;
 public readonly record struct ClaimDto(string Type, string Value);
 public class CurrentUserDto
 {

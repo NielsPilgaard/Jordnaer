@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace RemindMeApp.Shared;
+namespace Jordnaer.Shared;
 
 public class UserInfo
 {

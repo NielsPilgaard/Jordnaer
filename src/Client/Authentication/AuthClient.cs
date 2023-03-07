@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
-using RemindMeApp.Shared;
+using Jordnaer.Shared;
 
-namespace RemindMeApp.Client.Authentication;
+namespace Jordnaer.Client.Authentication;
 
 public class AuthClient
 {

@@ -1,4 +1,4 @@
-namespace RemindMeApp.Server.Authentication;
+namespace Jordnaer.Server.Authentication;
 
 public class AuthConstants
 {

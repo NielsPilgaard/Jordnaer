@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Client\RemindMeApp.Client.csproj" />
-    <ProjectReference Include="..\Shared\RemindMeApp.Shared.csproj" />
+    <ProjectReference Include="..\Client\Jordnaer.Client.csproj" />
+    <ProjectReference Include="..\Shared\Jordnaer.Shared.csproj" />
   </ItemGroup>
 
 

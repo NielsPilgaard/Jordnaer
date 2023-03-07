@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemindMeApp.Client", "src\Client\RemindMeApp.Client.csproj", "{D81C0086-AC3B-4736-BE10-9449ED876EA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Client", "src\Client\Jordnaer.Client.csproj", "{D81C0086-AC3B-4736-BE10-9449ED876EA2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemindMeApp.Server", "src\Server\RemindMeApp.Server.csproj", "{748EA5ED-50B9-484C-905E-3E705BBF7E9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Server", "src\Server\Jordnaer.Server.csproj", "{748EA5ED-50B9-484C-905E-3E705BBF7E9D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemindMeApp.Shared", "src\Shared\RemindMeApp.Shared.csproj", "{9EACD23A-8E5B-42F0-B13E-EC31415E15D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Shared", "src\Shared\Jordnaer.Shared.csproj", "{9EACD23A-8E5B-42F0-B13E-EC31415E15D4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{04718F38-85FB-4998-B2FF-AA5B8999BA5D}"
 EndProject

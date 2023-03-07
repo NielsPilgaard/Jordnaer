@@ -1,8 +1,8 @@
+using Jordnaer.Server.Reminders;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using RemindMeApp.Server.Reminders;
 
-namespace RemindMeApp.Server.Data;
+namespace Jordnaer.Server.Data;
 
 public class RemindMeDbContext : IdentityDbContext<ApplicationUser>
 {

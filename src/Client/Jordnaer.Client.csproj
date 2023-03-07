@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Shared\RemindMeApp.Shared.csproj" />
+		<ProjectReference Include="..\Shared\Jordnaer.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

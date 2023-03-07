@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace RemindMeApp.Server.Authorization;
+namespace Jordnaer.Server.Authorization;
 
 public static class AuthorizationHandlerExtensions
 {

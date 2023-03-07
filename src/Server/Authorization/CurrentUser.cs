@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using RemindMeApp.Server.Data;
+using Jordnaer.Server.Data;
 
-namespace RemindMeApp.Server.Authorization;
+namespace Jordnaer.Server.Authorization;
 
 // A scoped service that exposes the current user information
 public class CurrentUser

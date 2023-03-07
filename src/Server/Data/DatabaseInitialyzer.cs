@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace RemindMeApp.Server.Data;
+namespace Jordnaer.Server.Data;
 
 public static class DatabaseInitializer
 {

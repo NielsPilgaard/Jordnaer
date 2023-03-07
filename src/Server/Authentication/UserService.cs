@@ -1,8 +1,8 @@
+using Jordnaer.Server.Data;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity;
-using RemindMeApp.Server.Data;
-using RemindMeApp.Shared;
 
-namespace RemindMeApp.Server.Authentication;
+namespace Jordnaer.Server.Authentication;
 
 public interface IUserService
 {

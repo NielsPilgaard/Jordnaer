@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using RemindMeApp.Shared;
+using Jordnaer.Shared;
 
-namespace RemindMeApp.Server.Reminders;
+namespace Jordnaer.Server.Reminders;
 
 public enum NotificationType
 {

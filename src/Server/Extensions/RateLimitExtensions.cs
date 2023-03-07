@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 
-namespace RemindMeApp.Server.Extensions;
+namespace Jordnaer.Server.Extensions;
 
 public static class RateLimitExtensions
 {

@@ -1,8 +1,8 @@
 using System.Security.Claims;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
-using RemindMeApp.Shared;
 
-namespace RemindMeApp.Client.Authentication;
+namespace Jordnaer.Client.Authentication;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {

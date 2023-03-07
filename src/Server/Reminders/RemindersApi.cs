@@ -1,12 +1,12 @@
+using Jordnaer.Server.Authentication;
+using Jordnaer.Server.Data;
+using Jordnaer.Server.Extensions;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RemindMeApp.Server.Authentication;
-using RemindMeApp.Server.Data;
-using RemindMeApp.Server.Extensions;
-using RemindMeApp.Shared;
 
-namespace RemindMeApp.Server.Reminders;
+namespace Jordnaer.Server.Reminders;
 
 internal static class RemindMeApi
 {

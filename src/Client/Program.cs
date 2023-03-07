@@ -1,8 +1,8 @@
+using Jordnaer.Client;
+using Jordnaer.Client.Authentication;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using RemindMeApp.Client;
 using MudBlazor.Services;
-using RemindMeApp.Client.Authentication;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

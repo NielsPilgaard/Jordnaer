@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace RemindMeApp.Server.Data
+namespace Jordnaer.Server.Data
 {
     public class ApplicationUser : IdentityUser
     {

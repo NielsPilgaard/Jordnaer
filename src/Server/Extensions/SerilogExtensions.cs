@@ -1,7 +1,7 @@
 using Serilog;
 using Serilog.Exceptions;
 
-namespace RemindMeApp.Server.Extensions;
+namespace Jordnaer.Server.Extensions;
 
 public static class SerilogExtensions
 {

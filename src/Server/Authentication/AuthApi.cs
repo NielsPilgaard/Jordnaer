@@ -1,11 +1,11 @@
 using System.Security.Claims;
+using Jordnaer.Server.Authorization;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using RemindMeApp.Server.Authorization;
-using RemindMeApp.Shared;
 
-namespace RemindMeApp.Server.Authentication;
+namespace Jordnaer.Server.Authentication;
 
 public static class AuthApi
 {
