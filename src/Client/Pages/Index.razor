@@ -1,0 +1,32 @@
+@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using RemindMeApp.Client.Authentication
+
+@attribute [Authorize]
+
+@inject AuthStateProvider Client
+
+<ul class="nav justify-content-center">
+    <li class="nav-item">
+        <strong>@(_userName is not null ? $"Logged in as {_userName}" : "Not logged in.")</strong>
+        <a class="btn btn-primary" role="button" @onclick="@Logout">Logout</a>
+    </li>
+</ul>
+
+<ReminderList />
+
+
+@code {
+    async Task Logout() => await Client.LogoutAsync();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await Client.GetAuthenticationStateAsync();
+
+        _userName = authState.User.Identity?.Name;
+        await base.OnInitializedAsync();
+    }
+
+    private string? _userName;
+}
+

@@ -1,0 +1,25 @@
+@page "/authentication/login"
+
+<MudTabs  ActivePanelIndex="0" Elevation="2" Rounded="true" Centered="true" Class="" Color="Color.Dark">
+  <MudTabPanel Text="Create">
+    <RegisterForm/>
+  </MudTabPanel>
+  <MudTabPanel Text="Login" >
+    <LoginForm/>
+  </MudTabPanel>
+</MudTabs>
+
+<div class="form-horizontal">
+    @*Put social providers here
+
+    @foreach (var provider in SocialProviders)
+    {
+    <a class="btn btn-secondary m-1" role="button" href="authentication/login/@provider">@provider</a>
+    }
+
+    *@
+</div>
+
+
+@code {
+}
