@@ -1,6 +1,6 @@
 {
-  "name": "Remind Me App",
-  "short_name": "RemindMe",
+  "name": "Fællesskabet Jordnær",
+  "short_name": "Jordnær",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
