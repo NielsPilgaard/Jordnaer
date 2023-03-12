@@ -19,7 +19,7 @@ public class RegistrationModel
     [Required(ErrorMessage = "Adresse er påkrævet")]
     public string? Address { get; set; }
 
-    [Required(ErrorMessage = "Post nr. er påkrævet")]
+    [Required(ErrorMessage = "Postnummer er påkrævet")]
     public string? ZipCode { get; set; }
 
     [Required(ErrorMessage = "By er påkrævet")]
