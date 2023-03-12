@@ -1,0 +1,42 @@
+@using Jordnaer.Client.Authentication
+@using Microsoft.AspNetCore.Components
+
+@inject AuthStateProvider Client
+
+<EditForm Model="@_registrationModel" OnValidSubmit="Create">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+            <MudTextField Label="Firstname"
+                          @bind-Value="_registrationModel.Firstname" For="@(() => _registrationModel.Firstname)" />
+            <MudTextField autocomplete="new-password" Label="Password" Class="mt-3"
+                          @bind-Value="_registrationModel.Password" For="@(() => _registrationModel.Password)" InputType="InputType.Password" />
+            <MudTextField autocomplete="new-password" Label="Repeat Password" Class="mt-3"
+                          @bind-Value="_registrationModel.RepeatPassword" For="@(() => _registrationModel.RepeatPassword)" InputType="InputType.Password" />
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Register</MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+@if (!string.IsNullOrEmpty(_alertMessage))
+{
+    <div class="alert alert-danger">@_alertMessage</div>
+}
+
+@code {
+    string? _alertMessage;
+    private RegistrationModel _registrationModel = new();
+
+    async Task Create()
+    {
+      _alertMessage = string.Empty;
+
+      var registrationCompleted = await Client.CreateUserAsync(_registrationModel.Firstname, _registrationModel.Password);
+      if (registrationCompleted is false)
+      {
+        _alertMessage = ErrorMessages.RegistrationFailed;
+      }
+    }
+
+}
