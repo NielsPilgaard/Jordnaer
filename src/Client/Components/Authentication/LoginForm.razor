@@ -1,7 +1,4 @@
-@using System.ComponentModel.DataAnnotations
-@using System.ComponentModel
 @using Jordnaer.Client.Authentication
-@using Microsoft.AspNetCore.Components
 
 @inject AuthStateProvider Client
 @inject NavigationManager NavigationManager
@@ -10,14 +7,30 @@
     <DataAnnotationsValidator />
     <MudCard>
         <MudCardContent>
-            <MudTextField Label="Firstname" @bind-Value="_loginModel.Email" For="@(() => _loginModel.Email)" />
-            <MudTextField Label="Password" Class="mt-3" @bind-Value="_loginModel.Password" For="@(() => _loginModel.Password)" InputType="InputType.Password" />
+            <MudTextField Label="Email"
+                          @bind-Value="_loginModel.Email"
+                          For="@(() => _loginModel.Email)"
+                          InputType="InputType.Email"
+                          InputMode="InputMode.email" />
+            <MudTextField Label="Kodeord"
+                          Class="mt-3"
+                          @bind-Value="_loginModel.Password"
+                          For="@(() => _loginModel.Password)"
+                          InputType="InputType.Password" />
         </MudCardContent>
-        <MudCardActions>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Success">Login</MudButton>
-        </MudCardActions>
+      <MudCardActions>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Success">Log ind</MudButton>
+      </MudCardActions>
+      <MudStack>
+        <MudButton StartIcon="@Icons.Custom.Brands.Facebook" Class="mt-3" Variant="Variant.Filled" Href="api/auth/login/Facebook" Color="Color.Info">Log ind med Facebook</MudButton>
+        <MudButton StartIcon="@Icons.Custom.Brands.Google" Class="mt-3" Variant="Variant.Filled" Href="api/auth/login/Google" Color="Color.Success">Log ind med Google</MudButton>
+        <MudButton StartIcon="@Icons.Custom.Brands.Microsoft" Class="mt-3" Variant="Variant.Filled" Href="api/auth/login/Microsoft" Color="Color.Primary">Log ind med Microsoft</MudButton>
+      </MudStack>
+
     </MudCard>
 </EditForm>
+
+
 
 @if (!string.IsNullOrEmpty(_alertMessage))
 {
