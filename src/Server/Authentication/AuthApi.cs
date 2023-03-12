@@ -36,12 +36,10 @@ public static class AuthApi
         {
             await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // TODO: Support remote logout
-            // If this is an external login then use it
             var result = await context.AuthenticateAsync();
-            if (result.Properties?.GetExternalProvider() is { } providerName)
+            if (result.Properties?.GetExternalProvider() is not null)
             {
-                await context.SignOutAsync(providerName, new AuthenticationProperties { RedirectUri = "/" });
+                await context.SignOutAsync(AuthConstants.ExternalScheme, new AuthenticationProperties { RedirectUri = "/" });
             }
         })
         .RequireAuthorization();
@@ -52,7 +50,7 @@ public static class AuthApi
             // Trigger the external login flow by issuing a challenge with the provider name.
             // This name maps to the registered authentication scheme names in AuthExtensions.cs
             return Results.Challenge(
-                properties: new AuthenticationProperties { RedirectUri = $"/auth/signin/{provider}" },
+                properties: new AuthenticationProperties { RedirectUri = $"/api/auth/signin/{provider}" },
                 authenticationSchemes: new[] { provider });
         });
 
