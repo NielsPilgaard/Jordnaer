@@ -70,9 +70,6 @@ public static class AuthExtensions
             }
         }
 
-        // Allows the UI to resolve external providers
-        builder.Services.AddSingleton<ExternalProviders>();
-
         builder.Services.AddScoped<IUserService, UserService>();
 
         return builder;
