@@ -8,7 +8,7 @@
         <NotAuthorized>
           @if (context.User.Identity?.IsAuthenticated is not true)
           {
-            Navigation.NavigateToLogin("/authentication/login");
+            Navigation.NavigateToLogin("/auth/login");
           }
           else
           {

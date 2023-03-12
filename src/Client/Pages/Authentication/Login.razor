@@ -1,6 +1,6 @@
-@page "/authentication/login"
+@page "/auth/login"
 
-<MudTabs  ActivePanelIndex="0" Elevation="2" Rounded="true" Centered="true" Class="" Color="Color.Dark">
+<MudTabs ActivePanelIndex="0" Elevation="2" Rounded="true" Centered="true" Color="Color.Dark">
   <MudTabPanel Text="Create">
     <RegisterForm/>
   </MudTabPanel>
@@ -14,7 +14,7 @@
 
     @foreach (var provider in SocialProviders)
     {
-    <a class="btn btn-secondary m-1" role="button" href="authentication/login/@provider">@provider</a>
+    <a class="btn btn-secondary m-1" role="button" href="auth/signin/@provider">@provider</a>
     }
 
     *@

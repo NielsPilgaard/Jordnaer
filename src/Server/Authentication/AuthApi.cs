@@ -11,7 +11,7 @@ public static class AuthApi
 {
     public static RouteGroupBuilder MapAuthentication(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("api/authentication");
+        var group = routes.MapGroup("api/auth");
 
         group.MapPost("register", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
         {
@@ -52,7 +52,7 @@ public static class AuthApi
             // Trigger the external login flow by issuing a challenge with the provider name.
             // This name maps to the registered authentication scheme names in AuthExtensions.cs
             return Results.Challenge(
-                properties: new AuthenticationProperties { RedirectUri = $"/authentication/signin/{provider}" },
+                properties: new AuthenticationProperties { RedirectUri = $"/auth/signin/{provider}" },
                 authenticationSchemes: new[] { provider });
         });
 
@@ -115,6 +115,8 @@ public static class AuthApi
         {
             properties.SetHasExternalToken(true);
         }
+
+        properties.IsPersistent = true;
 
         return Results.SignIn(new ClaimsPrincipal(identity),
             properties: properties,
