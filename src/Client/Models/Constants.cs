@@ -1,4 +1,4 @@
-namespace Jordnaer.Client;
+namespace Jordnaer.Client.Models;
 
 public class ErrorMessages
 {
