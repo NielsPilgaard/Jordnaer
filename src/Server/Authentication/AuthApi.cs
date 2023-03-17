@@ -25,7 +25,7 @@ public static class AuthApi
         group.MapPost("login", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
         {
             // Check whether the user exists
-            bool loginIsValid = await userService.LoginIsValid(userInfo);
+            bool loginIsValid = await userService.IsLoginValidAsync(userInfo);
 
             return loginIsValid
                 ? SignIn(userInfo)
