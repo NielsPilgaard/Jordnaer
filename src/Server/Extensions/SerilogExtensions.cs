@@ -5,8 +5,7 @@ namespace Jordnaer.Server.Extensions;
 
 public static class SerilogExtensions
 {
-    public static WebApplicationBuilder AddSerilog(
-        this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
     {
         builder.Host.UseSerilog((context, loggerConfiguration) =>
         {
