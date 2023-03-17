@@ -5,8 +5,8 @@ namespace Jordnaer.Shared;
 public class UserInfo
 {
     [Required]
-    public string Username { get; set; } = default!;
+    public required string Email { get; set; }
 
     [Required]
-    public string Password { get; set; } = default!;
+    public required string Password { get; set; }
 }

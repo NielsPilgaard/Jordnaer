@@ -5,8 +5,8 @@ namespace Jordnaer.Shared;
 public class ExternalUserInfo
 {
     [Required]
-    public string Username { get; set; } = default!;
+    public required string Username { get; set; }
 
     [Required]
-    public string ProviderKey { get; set; } = default!;
+    public required string ProviderKey { get; set; }
 }
