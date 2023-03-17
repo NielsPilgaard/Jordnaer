@@ -80,8 +80,6 @@ public static class AuthApi
             // Delete the external cookie
             await context.SignOutAsync(AuthConstants.ExternalScheme);
 
-            // TODO: Handle the failure somehow
-
             return Results.Redirect("/");
         });
 
@@ -89,8 +87,8 @@ public static class AuthApi
     }
 
     private static IResult SignIn(UserInfo userInfo)
-        => SignIn(userInfo.Username,
-                userInfo.Username,
+        => SignIn(userInfo.Email,
+                userInfo.Email,
                 providerName: null,
                 authTokens: Enumerable.Empty<AuthenticationToken>());
 
