@@ -2,66 +2,56 @@
 @using Microsoft.AspNetCore.Components
 
 @inject AuthStateProvider Client
-
-<EditForm Model="@_registrationModel" OnValidSubmit="Create">
+<MudPaper Elevation="5" Class="pa-4">
+  <EditForm Model="@_registrationModel" OnValidSubmit="Create">
     <DataAnnotationsValidator />
-    <MudCard>
-        <MudCardContent>
-            <MudTextField Label="Fornavn"
-                          @bind-Value="_registrationModel.Firstname"
-                          For="@(() => _registrationModel.Firstname)"
-                          Class="mt-3"
-                          name="name" />
-            <MudTextField Label="Efternavn"
-                          @bind-Value="_registrationModel.Lastname"
-                          For="@(() => _registrationModel.Lastname)"
-                          Class="mt-3"
-                          name="lastname" />
-            <MudTextField Label="Email"
-                          @bind-Value="_registrationModel.Email"
-                          For="@(() => _registrationModel.Email)"
-                          Class="mt-3"
-                          InputType="InputType.Email"
-                          InputMode="InputMode.email"
-                          name="reg_email__" />
-            <MudTextField Label="Adresse"
-                          @bind-Value="_registrationModel.Address"
-                          For="@(() => _registrationModel.Address)"
-                          Class="mt-3"
-                          name="address" />
-            <MudTextField Label="Postnummer"
-                          @bind-Value="_registrationModel.ZipCode"
-                          For="@(() => _registrationModel.ZipCode)"
-                          Class="mt-3"
-                          InputType="InputType.Number"
-                          InputMode="InputMode.numeric"
-                          name="zipcode" />
-            <MudTextField Label="By"
-                          @bind-Value="_registrationModel.City"
-                          For="@(() => _registrationModel.City)"
-                          Class="mt-3"
-                          name="city" />
-            <MudTextField autocomplete="new-password"
-                          Label="Kodeord"
-                          Class="mt-3"
-                          @bind-Value="_registrationModel.Password"
-                          For="@(() => _registrationModel.Password)"
-                          InputType="InputType.Password"/>
-            <MudTextField autocomplete="new-password"
-                          Label="Gentag kodeord"
-                          Class="mt-3"
-                          @bind-Value="_registrationModel.RepeatPassword"
-                          For="@(() => _registrationModel.RepeatPassword)"
-                          InputType="InputType.Password" />
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Opret Konto</MudButton>
-        </MudCardActions>
-    </MudCard>
-</EditForm>
+    <MudStack Spacing="2">
+      <MudTextField Label="Fornavn"
+                    @bind-Value="_registrationModel.Firstname"
+                    For="@(() => _registrationModel.Firstname)"
+                    name="name" />
+      <MudTextField Label="Efternavn"
+                    @bind-Value="_registrationModel.Lastname"
+                    For="@(() => _registrationModel.Lastname)"
+                    name="lastname" />
+      <MudTextField Label="Email"
+                    @bind-Value="_registrationModel.Email"
+                    For="@(() => _registrationModel.Email)"
+                    InputType="InputType.Email"
+                    InputMode="InputMode.email"
+                    name="reg_email__" />
+      <MudTextField Label="Adresse"
+                    @bind-Value="_registrationModel.Address"
+                    For="@(() => _registrationModel.Address)"
+                    name="address" />
+      <MudTextField Label="Postnummer"
+                    @bind-Value="_registrationModel.ZipCode"
+                    For="@(() => _registrationModel.ZipCode)"
+                    InputType="InputType.Number"
+                    InputMode="InputMode.numeric"
+                    name="zipcode" />
+      <MudTextField Label="By"
+                    @bind-Value="_registrationModel.City"
+                    For="@(() => _registrationModel.City)"
+                    name="city" />
+      <MudTextField autocomplete="new-password"
+                    Label="Kodeord"
+                    @bind-Value="_registrationModel.Password"
+                    For="@(() => _registrationModel.Password)"
+                    InputType="InputType.Password" />
+      <MudTextField autocomplete="new-password"
+                    Label="Gentag kodeord"
+                    @bind-Value="_registrationModel.RepeatPassword"
+                    For="@(() => _registrationModel.RepeatPassword)"
+                    InputType="InputType.Password" />
+      <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Opret Konto</MudButton>
+    </MudStack>
+  </EditForm>
+</MudPaper>
+
 @if (!string.IsNullOrEmpty(_alertMessage))
 {
-    <div class="alert alert-danger">@_alertMessage</div>
+    <MudAlert Severity="Severity.Error" ShowCloseIcon>@_alertMessage</MudAlert>
 }
 
 @code {
@@ -70,13 +60,13 @@
 
     async Task Create()
     {
-      _alertMessage = string.Empty;
+        _alertMessage = string.Empty;
 
-      var registrationCompleted = await Client.CreateUserAsync(_registrationModel.Email, _registrationModel.Password);
-      if (registrationCompleted is false)
-      {
-        _alertMessage = ErrorMessages.RegistrationFailed;
-      }
+        var registrationCompleted = await Client.CreateUserAsync(_registrationModel.Email, _registrationModel.Password);
+        if (registrationCompleted is false)
+        {
+            _alertMessage = ErrorMessages.RegistrationFailed;
+        }
     }
 
 }

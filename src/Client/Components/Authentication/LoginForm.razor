@@ -2,56 +2,37 @@
 
 @inject AuthStateProvider Client
 @inject NavigationManager NavigationManager
+<MudStack>
+    <MudPaper Elevation="5" Class="pa-4" >
+        <LoginCard />
+    </MudPaper>
+    <MudPaper Elevation="5" Class="pa-4">
+          <MudStack >
+            <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
+                       Class="mt-3"
+                       Variant="Variant.Filled"
+                       Href="api/auth/login/Facebook"
+                       Color="Color.Info">
+              Log ind med Facebook
+            </MudButton>
+            <MudButton StartIcon="@Icons.Custom.Brands.Google"
+                       Class="mt-3"
+                       Variant="Variant.Filled"
+                       Href="api/auth/login/Google"
+                       Color="Color.Error">
+              Log ind med Google
+            </MudButton>
+            <MudButton StartIcon="@Icons.Custom.Brands.Microsoft"
+                       Class="mt-3"
+                       Variant="Variant.Filled"
+                       Href="api/auth/login/Microsoft"
+                       Color="Color.Primary">
+              Log ind med Microsoft
+            </MudButton>
+          </MudStack>
+    </MudPaper>
+</MudStack>
 
-<EditForm Model="@_loginModel" OnValidSubmit="Login">
-    <DataAnnotationsValidator />
-    <MudCard>
-        <MudCardContent>
-            <MudTextField Label="Email"
-                          @bind-Value="_loginModel.Email"
-                          For="@(() => _loginModel.Email)"
-                          InputType="InputType.Email"
-                          InputMode="InputMode.email" />
-            <MudTextField Label="Kodeord"
-                          Class="mt-3"
-                          @bind-Value="_loginModel.Password"
-                          For="@(() => _loginModel.Password)"
-                          InputType="InputType.Password" />
-        </MudCardContent>
-      <MudCardActions>
-        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Success">Log ind</MudButton>
-      </MudCardActions>
-      <MudStack>
-        <MudButton StartIcon="@Icons.Custom.Brands.Facebook" Class="mt-3" Variant="Variant.Filled" Href="api/auth/login/Facebook" Color="Color.Info">Log ind med Facebook</MudButton>
-        <MudButton StartIcon="@Icons.Custom.Brands.Google" Class="mt-3" Variant="Variant.Filled" Href="api/auth/login/Google" Color="Color.Success">Log ind med Google</MudButton>
-        <MudButton StartIcon="@Icons.Custom.Brands.Microsoft" Class="mt-3" Variant="Variant.Filled" Href="api/auth/login/Microsoft" Color="Color.Primary">Log ind med Microsoft</MudButton>
-      </MudStack>
-
-    </MudCard>
-</EditForm>
-
-
-
-@if (!string.IsNullOrEmpty(_alertMessage))
-{
-    <div class="alert alert-danger">@_alertMessage</div>
-}
 
 @code {
-    string? _alertMessage;
-
-    private LoginModel _loginModel = new();
-
-    async Task Login()
-    {
-        _alertMessage = string.Empty;
-        if (await Client.LoginAsync(_loginModel.Email, _loginModel.Password))
-        {
-            NavigationManager.NavigateTo("");
-        }
-        else
-        {
-            _alertMessage = ErrorMessages.LoginFailed;
-        }
-    }
 }

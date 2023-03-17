@@ -1,0 +1,52 @@
+@using Jordnaer.Client.Authentication
+
+@inject AuthStateProvider Client
+@inject NavigationManager NavigationManager
+
+<MudStack Spacing="4">
+    <EditForm Model="@_loginModel" OnValidSubmit="Login">
+        <DataAnnotationsValidator />
+        <MudStack>
+            <MudTextField Label="Email"
+                          @bind-Value="_loginModel.Email"
+                          For="@(() => _loginModel.Email)"
+                          InputType="InputType.Email"
+                          InputMode="InputMode.email" />
+            <MudTextField Label="Kodeord"
+                          @bind-Value="_loginModel.Password"
+                          For="@(() => _loginModel.Password)"
+                          InputType="InputType.Password" />
+        </MudStack>
+        <MudButton Class="mt-3"
+                   FullWidth
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Success">
+            Log ind
+        </MudButton>
+    </EditForm>
+</MudStack>
+
+@if (!string.IsNullOrEmpty(_alertMessage))
+{
+    <div class="alert alert-danger">@_alertMessage</div>
+}
+
+@code {
+    string? _alertMessage;
+
+    private LoginModel _loginModel = new();
+
+    async Task Login()
+    {
+        _alertMessage = string.Empty;
+        if (await Client.LoginAsync(_loginModel.Email, _loginModel.Password))
+        {
+            NavigationManager.NavigateTo("");
+        }
+        else
+        {
+            _alertMessage = ErrorMessages.LoginFailed;
+        }
+    }
+}
