@@ -35,7 +35,7 @@ public class AuthClient
         var response = await _client.PostAsJsonAsync("auth/login",
             new UserInfo
             {
-                Username = username,
+                Email = username,
                 Password = password
             });
 
@@ -50,7 +50,7 @@ public class AuthClient
         var response = await _client.PostAsJsonAsync("auth/register",
             new UserInfo
             {
-                Username = username,
+                Email = username,
                 Password = password
             });
 
