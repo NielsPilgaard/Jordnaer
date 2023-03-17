@@ -59,3 +59,5 @@ app.MapFallbackToFile("index.html");
 await app.InitializeDatabaseAsync();
 
 app.Run();
+
+public partial class Program { }
