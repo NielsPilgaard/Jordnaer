@@ -2,37 +2,49 @@
 
 @inject AuthStateProvider Client
 @inject NavigationManager NavigationManager
-<MudStack>
-    <MudPaper Elevation="5" Class="pa-4" >
-        <LoginCard />
-    </MudPaper>
-    <MudPaper Elevation="5" Class="pa-4">
-          <MudStack >
-            <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
-                       Class="mt-3"
-                       Variant="Variant.Filled"
-                       Href="api/auth/login/Facebook"
-                       Color="Color.Info">
-              Log ind med Facebook
-            </MudButton>
-            <MudButton StartIcon="@Icons.Custom.Brands.Google"
-                       Class="mt-3"
-                       Variant="Variant.Filled"
-                       Href="api/auth/login/Google"
-                       Color="Color.Error">
-              Log ind med Google
-            </MudButton>
-            <MudButton StartIcon="@Icons.Custom.Brands.Microsoft"
-                       Class="mt-3"
-                       Variant="Variant.Filled"
-                       Href="api/auth/login/Microsoft"
-                       Color="Color.Primary">
-              Log ind med Microsoft
-            </MudButton>
-          </MudStack>
-    </MudPaper>
-</MudStack>
+@inject ISnackbar Snackbar
 
+<EditForm Model="@_loginModel" OnValidSubmit="Login">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField Label="Email"
+                      @bind-Value="_loginModel.Email"
+                      For="@(() => _loginModel.Email)"
+                      InputType="InputType.Email"
+                      InputMode="InputMode.email" />
+        <MudTextField Label="Kodeord"
+                      @bind-Value="_loginModel.Password"
+                      For="@(() => _loginModel.Password)"
+                      InputType="InputType.Password" />
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Login"
+                   Class="mt-3"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary">
+            Log ind
+        </MudButton>
+    </MudStack>
+</EditForm>
 
 @code {
+    private LoginModel _loginModel = new();
+
+    async Task Login()
+    {
+        if (await Client.LoginAsync(_loginModel.Email, _loginModel.Password))
+        {
+            NavigationManager.NavigateTo("");
+        }
+        else
+        {
+            Snackbar.Add(ErrorMessages.LOGIN_FAILED, Severity.Warning, options =>
+            {
+                options.CloseAfterNavigation = true;
+                options.VisibleStateDuration = 5000;
+                options.ShowTransitionDuration = 500;
+            });
+        }
+
+    }
 }
