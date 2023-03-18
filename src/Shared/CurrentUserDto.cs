@@ -6,8 +6,7 @@ public class CurrentUserDto
 {
     public string? Name { get; set; }
     public string? AuthenticationSchema { get; set; }
-    public bool IsAuthenticated { get; set; }
-    public IEnumerable<ClaimDto>? Claims { get; set; }
+    public IEnumerable<ClaimDto> Claims { get; set; } = Enumerable.Empty<ClaimDto>();
 
     public static CurrentUserDto From(ClaimsPrincipal? claimsPrincipal)
     {
@@ -20,7 +19,6 @@ public class CurrentUserDto
         if (claimsPrincipal.Identity.IsAuthenticated)
         {
             currentUser.AuthenticationSchema = claimsPrincipal.Identity.AuthenticationType;
-            currentUser.IsAuthenticated = true;
         }
 
         currentUser.Claims = claimsPrincipal.Claims.Select(claim => new ClaimDto(claim.Type, claim.Value));
@@ -28,7 +26,7 @@ public class CurrentUserDto
     }
 
     public ClaimsPrincipal ToClaimsPrincipal() =>
-        IsAuthenticated is false || Claims is null
+        Claims.Any() is false
             ? new ClaimsPrincipal()
             : new ClaimsPrincipal(new ClaimsIdentity(claims: Claims.Select(claim => new Claim(claim.Type, claim.Value)), authenticationType: AuthenticationSchema));
 }

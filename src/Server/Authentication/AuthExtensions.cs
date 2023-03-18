@@ -51,8 +51,7 @@ public static class AuthExtensions
         {
             ["Facebook"] = static (builder, configure) => builder.AddFacebook(configure),
             ["Google"] = static (builder, configure) => builder.AddGoogle(configure),
-            ["Microsoft"] = static (builder, configure) => builder.AddMicrosoftAccount(configure),
-            ["GitHub"] = static (builder, configure) => builder.AddGitHub(configure),
+            ["Microsoft"] = static (builder, configure) => builder.AddMicrosoftAccount(configure)
         };
 
         foreach (var (providerName, provider) in externalProviders)
