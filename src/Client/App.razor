@@ -12,11 +12,11 @@
           }
           else
           {
-            <p role="alert">You are not authorized to access this resource.</p>
+            <p role="alert">Du har ikke adgang.</p>
           }
         </NotAuthorized>
         <Authorizing>
-          <p>Logging in...</p>
+          <p>Logger på...</p>
         </Authorizing>
       </AuthorizeRouteView>
       <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -24,7 +24,7 @@
     <NotFound>
       <PageTitle>Not found</PageTitle>
       <LayoutView Layout="@typeof(MainLayout)">
-        <p role="alert">Sorry, there's nothing at this address.</p>
+        <p role="alert">Beklager, det er intet at se her.</p>
       </LayoutView>
     </NotFound>
   </Router>
