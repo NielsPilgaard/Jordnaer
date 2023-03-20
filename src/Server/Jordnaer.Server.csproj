@@ -17,7 +17,7 @@
 
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.4" />
-    <PackageReference Include="MiniValidation" Version="0.7.3" />
+    <PackageReference Include="MiniValidation" Version="0.7.4" />
 
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
