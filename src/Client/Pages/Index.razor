@@ -1,22 +1,2 @@
 @page "/"
-@using Jordnaer.Client.Authentication
-
-@inject AuthStateProvider Client
-
-<AuthorizeView>
-  <Authorized>
-    <MudText Typo="Typo.h4">Logget på som @context.User.Identity?.Name</MudText>
-    <MudButton Class="mb-5" OnClick="@Logout" StartIcon="@Icons.Material.Filled.Logout" Variant="Variant.Filled" Color="Color.Primary">Log af</MudButton>
-
-    <ReminderList />
-
-  </Authorized>
-  <NotAuthorized>
-    <MudText Typo="Typo.h4">Du er ikke logget på.</MudText>
-  </NotAuthorized>
-</AuthorizeView>
-
-@code {
-    async Task Logout() => await Client.LogoutAsync();
-}
 
