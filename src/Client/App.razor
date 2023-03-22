@@ -2,30 +2,30 @@
 @inject NavigationManager Navigation
 
 <CascadingAuthenticationState>
-  <Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-      <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-        <NotAuthorized>
-          @if (context.User.Identity?.IsAuthenticated is not true)
-          {
-            Navigation.NavigateToLogin("/auth/login");
-          }
-          else
-          {
-            <p role="alert">Du har ikke adgang.</p>
-          }
-        </NotAuthorized>
-        <Authorizing>
-          <p>Logger på...</p>
-        </Authorizing>
-      </AuthorizeRouteView>
-      <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-      <PageTitle>Not found</PageTitle>
-      <LayoutView Layout="@typeof(MainLayout)">
-        <p role="alert">Beklager, det er intet at se her.</p>
-      </LayoutView>
-    </NotFound>
-  </Router>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated is not true)
+                    {
+                        Navigation.NavigateToLogin("/auth/login");
+                    }
+                    else
+                    {
+                        <p role="alert">Du har ikke adgang.</p>
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" StrokeWidth="2" />
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Beklager, det er intet at se her.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
 </CascadingAuthenticationState>
