@@ -53,6 +53,7 @@ app.UseAuthorization();
 // Configure the APIs
 app.MapAuthentication();
 app.MapReminders();
+app.MapUsers();
 
 app.MapFallbackToFile("index.html");
 
