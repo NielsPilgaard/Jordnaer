@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <UserSecretsId>d330f5dc-6b2c-408b-bc04-d3b0ff28178b</UserSecretsId>
     <LangVersion>preview</LangVersion>
+    <RootNamespace>Jordnaer.Server</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
