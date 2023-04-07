@@ -1,0 +1,48 @@
+@using Blazored.LocalStorage
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject ILocalStorageService LocalStorage
+
+@code {
+    const string CookieBannerId = "cookie-consent";
+    bool _hideBanner = false;
+    async Task Consent() => await LocalStorage.SetItemAsync(CookieBannerId, true);
+
+    RenderFragment _banner =
+      (@<div>
+        <MudText Typo="Typo.body2">
+            Jordnær anvender cookies for at forbedre din oplevelse og for at hjælpe os med at forstå,
+            hvordan vores hjemmeside bliver brugt.
+        </MudText>
+        <MudText Class="mt-3" Typo="Typo.body2">
+            Du kan læse mere i vores
+            <a href="/privacy" target="_blank">Privatlivspolitik</a> og
+            <a href="/terms" target="_blank">Servicevilkår</a>.
+        </MudText>
+        <MudText Class="mt-3" Typo="Typo.body2">
+            Klik på banneret for at acceptere vores brug af cookies.
+        </MudText>
+    </div>);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hideBanner = await LocalStorage.ContainKeyAsync(CookieBannerId);
+        if (_hideBanner)
+        {
+            return;
+        }
+
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+        Snackbar.Add(
+          message: _banner,
+          severity: Severity.Normal,
+          key: CookieBannerId,
+          configure: options =>
+          {
+              options.CloseAfterNavigation = false;
+              options.RequireInteraction = true;
+              options.HideIcon = true;
+              options.Onclick = async _ => await Consent();
+          });
+    }
+}
