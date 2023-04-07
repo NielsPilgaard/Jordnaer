@@ -13,6 +13,8 @@ public static class DatabaseInitializer
         var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
 
         if (pendingMigrations.Any())
+        {
             await context.Database.MigrateAsync();
+        }
     }
 }
