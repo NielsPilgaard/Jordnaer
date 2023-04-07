@@ -14,10 +14,7 @@ public static class SerilogExtensions
                 .Enrich.FromLogContext()
                 .Enrich.WithExceptionDetails();
 
-            if (builder.Environment.IsDevelopment())
-            {
-                loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
-            }
+            loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
         });
 
         return builder;
