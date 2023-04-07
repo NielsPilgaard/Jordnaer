@@ -32,7 +32,17 @@ public static class AuthApi
                 : Results.Unauthorized();
         });
 
-        group.MapPost("logout", async context => await context.SignOutAsync()).RequireAuthorization();
+        group.MapPost("logout", async (HttpContext context, [FromServices] CurrentUser? currentUser) =>
+        {
+            if (currentUser?.User is null)
+            {
+                return Results.Unauthorized();
+            }
+
+            await context.SignOutAsync();
+
+            return Results.Ok();
+        });
 
         // External login
         group.MapGet("login/{provider}", ([FromRoute] string provider) =>
@@ -60,8 +70,6 @@ public static class AuthApi
 
                 string id = principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-                // TODO: We should have the user pick a user name to complete the external login dance
-                // for now we'll prefer the email address
                 string name = (principal.FindFirstValue(ClaimTypes.Email) ?? principal.Identity?.Name)!;
 
                 await SignIn(id, name, provider, result.Properties.GetTokens()).ExecuteAsync(context);
