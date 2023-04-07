@@ -1,14 +1,14 @@
 @inherits LayoutComponentBase
 
-<ThemeProvider/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <TopBar />
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large">
-            @Body
-        </MudContainer>
-    </MudMainContent>
+    <TopBar/>
+  <MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.Large">
+      @Body
+    </MudContainer>
+  </MudMainContent>
+  <CookieBanner/>
 </MudLayout>

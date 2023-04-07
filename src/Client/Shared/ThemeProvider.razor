@@ -1,9 +1,19 @@
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="CustomTheme" />
-
+<MudToggleIconButton ToggledIcon="@Icons.Material.Filled.DarkMode"
+                     ToggledColor="@Color.Dark"
+                     ToggledTitle="Mørkt tema"
+                     Icon="@Icons.Material.Filled.LightMode"
+                     Color="@Color.Warning"
+                     Title="Lyst tema"
+                     ToggledChanged="SaveThemePreference"
+                     Toggled="_isDarkMode"/>
 @code {
-    private bool _isDarkMode = true;
-
-    private MudThemeProvider _mudThemeProvider = new();
+    bool _isDarkMode = true;
+    const string Key = "dark-mode";
+    MudThemeProvider _mudThemeProvider = new();
 
     static readonly MudTheme CustomTheme = new();
 
@@ -15,16 +25,32 @@
 
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
 
+            var savedMode = await LocalStorage.GetItemAsync<bool?>(Key);
+            if (savedMode.HasValue)
+            {
+                _isDarkMode = savedMode.Value;
+            }
+
             StateHasChanged();
         }
     }
 
-    private Task OnSystemPreferenceChanged(bool newValue)
+    private async Task OnSystemPreferenceChanged(bool isDarkMode)
     {
-        _isDarkMode = newValue;
+        _isDarkMode = isDarkMode;
+
+        await LocalStorage.SetItemAsync(Key, _isDarkMode);
 
         StateHasChanged();
-
-        return Task.CompletedTask;
     }
+
+    private async Task SaveThemePreference(bool isDarkMode)
+    {
+        _isDarkMode = isDarkMode;
+
+        await LocalStorage.SetItemAsync(Key, _isDarkMode);
+
+        StateHasChanged();
+    }
+
 }
