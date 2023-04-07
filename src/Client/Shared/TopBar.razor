@@ -1,5 +1,5 @@
 @using Jordnaer.Client.Authentication
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
 @inject AuthStateProvider Client
 @inject UserClient UserClient
 
@@ -8,10 +8,12 @@
         <MudText Typo="Typo.h4">Jordnær</MudText>
     </MudButton>
     <MudSpacer />
+    <ThemeProvider />
+
     <AuthorizeView>
         <Authorized>
-            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" OnClick="@DeleteUser" Variant="Variant.Filled" Color="Color.Error">Slet Bruger</MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3">Log af</MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" OnClick="@DeleteUser" Variant="Variant.Filled" Color="Color.Error" Title="Slet Bruger" />
+            <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af" />
             <MudIconButton Icon="@Icons.Material.Filled.Person" OnClick="@NavigateToProfile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
         </Authorized>
         <NotAuthorized>
@@ -22,8 +24,13 @@
 
 @code
 {
-    async Task DeleteUser() => await UserClient.DeleteUserAsync();
+    async Task DeleteUser()
+    {
+        await Client.DeleteUserAsync();
+        NavigationManager.NavigateTo("/");
+    }
+
     async Task Logout() => await Client.LogoutAsync();
-    void Login() => Navigation.NavigateTo("auth/login");
-    void NavigateToProfile() => Navigation.NavigateTo("profile");
+    void Login() => NavigationManager.NavigateTo("auth/login");
+    void NavigateToProfile() => NavigationManager.NavigateTo("profile");
 }
