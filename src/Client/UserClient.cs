@@ -10,7 +10,7 @@ public class UserClient
     }
     public async Task<bool> DeleteUserAsync()
     {
-        var response = await _client.DeleteAsync("users/delete");
+        var response = await _client.DeleteAsync("api/user");
         return response.IsSuccessStatusCode;
     }
 }

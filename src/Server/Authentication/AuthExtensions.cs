@@ -79,31 +79,31 @@ public static class AuthExtensions
         return builder;
     }
 
-    private static readonly string ExternalProviderKey = "ExternalProviderName";
-    private static readonly string HasExternalTokenKey = "ExternalToken";
+    private const string EXTERNAL_PROVIDER_KEY = "ExternalProviderName";
+    private const string HAS_EXTERNAL_TOKEN_KEY = "ExternalToken";
 
     internal static string GetUserId(this HttpContext context) => context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     internal static bool UserIsAdmin(this HttpContext context) => context.User.IsInRole("admin");
 
     public static string? GetExternalProvider(this AuthenticationProperties properties) =>
-        properties.GetString(ExternalProviderKey);
+        properties.GetString(EXTERNAL_PROVIDER_KEY);
 
     public static void SetExternalProvider(this AuthenticationProperties properties, string providerName) =>
-        properties.SetString(ExternalProviderKey, providerName);
+        properties.SetString(EXTERNAL_PROVIDER_KEY, providerName);
 
     public static bool HasExternalToken(this AuthenticationProperties properties) =>
-        properties.GetString(HasExternalTokenKey) is not null;
+        properties.GetString(HAS_EXTERNAL_TOKEN_KEY) is not null;
 
     public static void SetHasExternalToken(this AuthenticationProperties properties, bool hasToken)
     {
         if (hasToken)
         {
-            properties.SetString(HasExternalTokenKey, "1");
+            properties.SetString(HAS_EXTERNAL_TOKEN_KEY, "1");
         }
         else
         {
-            properties.Items.Remove(HasExternalTokenKey);
+            properties.Items.Remove(HAS_EXTERNAL_TOKEN_KEY);
         }
     }
 }

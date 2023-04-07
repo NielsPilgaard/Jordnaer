@@ -1,5 +1,5 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
@@ -8,7 +8,7 @@
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated is not true)
                     {
-                        Navigation.NavigateToLogin("/auth/login");
+                      NavigationManager.NavigateToLogin("/auth/login");
                     }
                     else
                     {
