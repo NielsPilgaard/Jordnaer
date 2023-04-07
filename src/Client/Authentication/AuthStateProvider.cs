@@ -6,15 +6,17 @@ namespace Jordnaer.Client.Authentication;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {
-    private readonly AuthClient _client;
+    private readonly AuthClient _authClient;
+    private readonly UserClient _userClient;
     private readonly ILogger<AuthStateProvider> _logger;
     private AuthenticationState _currentAuthenticationState;
     private bool _authenticationStateChanged = true;
 
-    public AuthStateProvider(AuthClient client, ILogger<AuthStateProvider> logger)
+    public AuthStateProvider(AuthClient authClient, ILogger<AuthStateProvider> logger, UserClient userClient)
     {
-        _client = client;
+        _authClient = authClient;
         _logger = logger;
+        _userClient = userClient;
         _currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal());
     }
 
@@ -27,7 +29,7 @@ public class AuthStateProvider : AuthenticationStateProvider
         CurrentUserDto? currentUser;
         try
         {
-            currentUser = await _client.GetCurrentUserAsync();
+            currentUser = await _authClient.GetCurrentUserAsync();
         }
         catch (Exception exception)
         {
@@ -47,39 +49,50 @@ public class AuthStateProvider : AuthenticationStateProvider
 
     public async Task<bool> LoginAsync(string? username, string? password)
     {
-        bool response = await _client.LoginAsync(username, password);
-
-        if (response)
+        bool loggedIn = await _authClient.LoginAsync(username, password);
+        if (loggedIn)
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return response;
+        return loggedIn;
     }
 
     public async Task<bool> CreateUserAsync(string? username, string? password)
     {
-        bool response = await _client.CreateUserAsync(username, password);
-
-        if (response)
+        bool userCreated = await _authClient.CreateUserAsync(username, password);
+        if (userCreated)
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return response;
+        return userCreated;
     }
 
     public async Task<bool> LogoutAsync()
     {
-        bool response = await _client.LogoutAsync();
-        if (response)
+        bool loggedOut = await _authClient.LogoutAsync();
+        if (loggedOut)
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return response;
+        return loggedOut;
+    }
+
+
+    public async Task<bool> DeleteUserAsync()
+    {
+        bool userDeleted = await _userClient.DeleteUserAsync();
+        if (userDeleted)
+        {
+            _authenticationStateChanged = true;
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+
+        return userDeleted;
     }
 }

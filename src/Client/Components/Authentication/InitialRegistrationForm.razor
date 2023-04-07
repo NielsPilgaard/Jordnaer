@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components
 @inject ISnackbar Snackbar
 @inject AuthStateProvider Client
+@inject NavigationManager NavigationManager
 
 <EditForm Model="@_registrationModel" OnValidSubmit="Create">
     <DataAnnotationsValidator />
@@ -39,13 +40,23 @@
     async Task Create()
     {
         var registrationCompleted = await Client.CreateUserAsync(_registrationModel.Email, _registrationModel.Password);
-        if (registrationCompleted is false)
+        if (registrationCompleted)
+        {
+          Snackbar.Add("Konto oprettet!", Severity.Success, options =>
+            {
+                options.CloseAfterNavigation = false;
+                  options.VisibleStateDuration = 3000;
+                options.ShowTransitionDuration = 250;
+            });
+            NavigationManager.NavigateTo("/");
+        }
+        else
         {
             Snackbar.Add(ErrorMessages.REGISTRATION_FAILED, Severity.Warning, options =>
           {
               options.CloseAfterNavigation = true;
-              options.VisibleStateDuration = 5000;
-              options.ShowTransitionDuration = 500;
+              options.VisibleStateDuration = 3000;
+              options.ShowTransitionDuration = 250;
           });
         }
     }

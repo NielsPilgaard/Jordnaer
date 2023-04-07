@@ -35,16 +35,14 @@
         if (await Client.LoginAsync(_loginModel.Email, _loginModel.Password))
         {
             NavigationManager.NavigateTo("");
-        }
-        else
-        {
-            Snackbar.Add(ErrorMessages.LOGIN_FAILED, Severity.Warning, options =>
-            {
-                options.CloseAfterNavigation = true;
-                options.VisibleStateDuration = 5000;
-                options.ShowTransitionDuration = 500;
-            });
+            return;
         }
 
+        Snackbar.Add(ErrorMessages.LOGIN_FAILED, Severity.Warning, options =>
+        {
+            options.CloseAfterNavigation = true;
+            options.VisibleStateDuration = 5000;
+            options.ShowTransitionDuration = 250;
+        });
     }
 }

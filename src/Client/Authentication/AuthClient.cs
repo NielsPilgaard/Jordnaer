@@ -18,7 +18,7 @@ public class AuthClient
     {
         try
         {
-            return await _client.GetFromJsonAsync<CurrentUserDto?>("auth/current-user");
+            return await _client.GetFromJsonAsync<CurrentUserDto?>("api/auth/current-user");
         }
         catch (Exception exception)
         {
@@ -32,7 +32,7 @@ public class AuthClient
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             return false;
 
-        var response = await _client.PostAsJsonAsync("auth/login",
+        var response = await _client.PostAsJsonAsync("api/auth/login",
             new UserInfo
             {
                 Email = username,
@@ -47,7 +47,7 @@ public class AuthClient
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             return false;
 
-        var response = await _client.PostAsJsonAsync("auth/register",
+        var response = await _client.PostAsJsonAsync("api/auth/register",
             new UserInfo
             {
                 Email = username,
@@ -59,7 +59,7 @@ public class AuthClient
 
     public async Task<bool> LogoutAsync()
     {
-        var response = await _client.PostAsync("auth/logout", content: null);
+        var response = await _client.PostAsync("api/auth/logout", content: null);
 
         return response.IsSuccessStatusCode;
     }
