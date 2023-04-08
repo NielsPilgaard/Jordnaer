@@ -12,7 +12,7 @@ permissions:
   checks: write
 
 env:
-  AZURE_WEBAPP_PACKAGE_PATH: src/Server/publish
+  AZURE_WEBAPP_PACKAGE_PATH: publish
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,12 +44,12 @@ jobs:
           reporter: dotnet-trx
 
       - name: Publish
-        run: dotnet publish --no-restore --no-build -c Release /p:PublishDir=${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        run: dotnet publish --no-restore --no-build -c Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
       - name: Deploy to Azure App Service
         id: deploy-to-azure-app-service
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'Jordnaer'
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
