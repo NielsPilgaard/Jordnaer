@@ -7,7 +7,7 @@ using Xunit;
 namespace Jordnaer.Server.Tests.Authentication;
 
 [Trait("Category", "IntegrationTest")]
-public class AuthApi_Should : IClassFixture<WebApplicationFactory<Program>>
+public class AuthApi_Should : IClassFixture<JordnaerServerFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
     private const string VALID_PASSWORD = "123456789ABCabc";
