@@ -30,10 +30,10 @@ jobs:
 
       - name: Test Report
         uses: dorny/test-reporter@v1
-        if: success() || failure() # run this step even if previous step failed
+        if: success() || failure()
         with:
           name: xUnit Tests
-          path: test-results.trx
+          path: TestResults/test-results.trx
           reporter: dotnet-trx
       - name: Publish
         run: dotnet publish --no-restore --no-build -c Release
