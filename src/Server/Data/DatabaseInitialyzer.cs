@@ -10,11 +10,6 @@ public static class DatabaseInitializer
 
         var context = scope.ServiceProvider.GetRequiredService<RemindMeDbContext>();
 
-        var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-
-        if (pendingMigrations.Any())
-        {
-            await context.Database.MigrateAsync();
-        }
+        await context.Database.MigrateAsync();
     }
 }
