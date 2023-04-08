@@ -1,0 +1,38 @@
+@page "/profile"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<AuthorizeView>
+    <Authorized>
+        <MudCard>
+            <MudCardMedia>
+                <img src="user-profile-image.jpg" alt="User Profile Image" />
+            </MudCardMedia>
+            <MudCardContent>
+                <MudText variant="h5">@context.User.Identity!.Name</MudText>
+                <MudText variant="subtitle1">@context.User.Identity!.AuthenticationType</MudText>
+                <MudText variant="body1">Bio: Software Developer, Photographer, and Musician.</MudText>
+            </MudCardContent>
+        </MudCard>
+
+        <MudExpansionPanel>
+            <ul>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">Facebook</a></li>
+            </ul>
+        </MudExpansionPanel>
+
+        <MudCard>
+            <MudCardContent>
+                <MudText variant="h6">Profile Settings</MudText>
+            </MudCardContent>
+        </MudCard>
+    </Authorized>
+    <Authorizing>
+        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" StrokeWidth="2" />
+    </Authorizing>
+</AuthorizeView>
+
+@code {
+}
