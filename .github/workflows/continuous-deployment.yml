@@ -12,7 +12,7 @@ permissions:
   checks: write
 
 env:
-  AZURE_WEBAPP_PACKAGE_PATH: src/Jordnaer.Server/publish
+  AZURE_WEBAPP_PACKAGE_PATH: src/Server/publish
 jobs:
   build:
     runs-on: ubuntu-latest
