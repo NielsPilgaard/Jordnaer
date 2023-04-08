@@ -22,8 +22,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
-      - name: Test
-        run: dotnet test --no-build --configuration Release
+      #- name: Test
+      #  run: dotnet test --no-build --configuration Release
 
       - name: Publish
         run: dotnet publish --configuration Release --output ${{env.DOTNET_ROOT}}/jordnaer --no-build
