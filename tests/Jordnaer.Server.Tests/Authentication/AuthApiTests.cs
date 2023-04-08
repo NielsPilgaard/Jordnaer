@@ -89,7 +89,7 @@ public class AuthApi_Should : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task Login_User_When_User_Info_Is_Not_Registered()
+    public async Task Fail_To_Login_User_When_User_Info_Is_Not_Registered()
     {
         // Arrange
         var client = _factory.CreateClient();
