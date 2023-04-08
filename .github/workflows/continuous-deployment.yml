@@ -12,13 +12,16 @@ permissions:
   checks: write
 
 env:
-  AZURE_WEBAPP_PACKAGE_PATH: publish
+  AZURE_WEBAPP_PACKAGE_PATH: src/Server/publish
+  AZURE_WEBAPP_NAME: jordnaer
+  WORKING_DIRECTORY: src/Server
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Set up dotnet
         uses: actions/setup-dotnet@v1
@@ -27,13 +30,13 @@ jobs:
           include-prerelease: true
           
       - name: Restore Nugets
-        run: dotnet restore
+        run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
 
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --no-restore --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
@@ -44,12 +47,12 @@ jobs:
           reporter: dotnet-trx
 
       - name: Publish
-        run: dotnet publish --no-restore --no-build -c Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
       - name: Deploy to Azure App Service
         id: deploy-to-azure-app-service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'Jordnaer'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
