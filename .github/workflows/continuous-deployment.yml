@@ -33,7 +33,7 @@ jobs:
         if: success() || failure()
         with:
           name: xUnit Tests
-          path: '**/*.trx'
+          path: "**.trx"
           reporter: dotnet-trx
       - name: Publish
         run: dotnet publish --no-restore --no-build -c Release
