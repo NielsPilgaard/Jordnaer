@@ -6,6 +6,11 @@ on:
       - main
   workflow_dispatch:
 
+# Needed by dorny/test-reporter@v1
+permissions:
+  statuses: write
+  checks: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
