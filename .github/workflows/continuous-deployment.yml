@@ -18,13 +18,23 @@ jobs:
         with:
           dotnet-version: '7.x'
           include-prerelease: true
+          
+      - name: Restore Nugets
+        run: dotnet restore
 
       - name: Build
         run: dotnet build --configuration Release
 
       - name: Test
-        run: dotnet test --no-restore --no-build
+        run: dotnet test --no-restore --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
 
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: xUnit Tests
+          path: test-results.trx
+          reporter: dotnet-trx
       - name: Publish
         run: dotnet publish --no-restore --no-build -c Release
 
