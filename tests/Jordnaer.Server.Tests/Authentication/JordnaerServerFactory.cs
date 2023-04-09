@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
 
 namespace Jordnaer.Server.Tests.Authentication;
 
-public class JordnaerServerFactory : WebApplicationFactory<Program>
+[CollectionDefinition(nameof(JordnaerServerFactory))]
+public class JordnaerServerFactory : ICollectionFixture<WebApplicationFactory<Program>>
 { }

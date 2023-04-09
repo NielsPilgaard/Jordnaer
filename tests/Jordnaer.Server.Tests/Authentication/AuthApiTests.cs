@@ -1,17 +1,19 @@
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.Authentication;
 
 [Trait("Category", "IntegrationTest")]
-public class AuthApi_Should : IClassFixture<JordnaerServerFactory>
+[Collection(nameof(JordnaerServerFactory))]
+public class AuthApi_Should
 {
-    private readonly JordnaerServerFactory _factory;
+    private readonly WebApplicationFactory<Program> _factory;
     private const string VALID_PASSWORD = "123456789ABCabc";
 
-    public AuthApi_Should(JordnaerServerFactory factory)
+    public AuthApi_Should(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
     }
