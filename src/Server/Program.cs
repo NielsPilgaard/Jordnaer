@@ -62,7 +62,7 @@ try
 
     app.MapFallbackToFile("index.html");
 
-    //await app.InitializeDatabaseAsync();
+    await app.InitializeDatabaseAsync();
 
     app.Run();
 }
