@@ -1,3 +1,4 @@
+using Microsoft.ApplicationInsights.Extensibility;
 using Serilog;
 using Serilog.Exceptions;
 
@@ -15,6 +16,10 @@ public static class SerilogExtensions
                 .Enrich.WithExceptionDetails();
 
             loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+
+            loggerConfiguration.WriteTo.ApplicationInsights(
+                new TelemetryConfiguration(builder.Environment.ApplicationName),
+                TelemetryConverter.Events);
         });
 
         return builder;
