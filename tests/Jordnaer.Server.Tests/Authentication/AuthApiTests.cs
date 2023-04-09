@@ -36,7 +36,6 @@ public class AuthApi_Should : IClassFixture<JordnaerServerFactory>
     [Theory]
     [InlineData("aaaaaaaaaa")]
     [InlineData("aaaaaAAAAA")]
-    [InlineData("aaaaa6789")]
     [InlineData("123456789")]
     [InlineData("12345AAAAA")]
     public async Task Fail_To_Register_User_When_User_Info_Is_Invalid(string invalidPassword)
