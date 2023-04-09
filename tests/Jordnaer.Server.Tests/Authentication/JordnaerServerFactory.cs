@@ -18,13 +18,13 @@ public class JordnaerServerFactory : WebApplicationFactory<Program>
                 serviceDescriptor => serviceDescriptor.ServiceType ==
                      typeof(DbContextOptions<JordnaerDbContext>));
 
-            services.Remove(dbContextDescriptor);
+            services.Remove(dbContextDescriptor!);
 
             var dbConnectionDescriptor = services.SingleOrDefault(
                 serviceDescriptor => serviceDescriptor.ServiceType ==
                      typeof(DbConnection));
 
-            services.Remove(dbConnectionDescriptor);
+            services.Remove(dbConnectionDescriptor!);
 
             // Create open SqliteConnection so EF won't automatically close it.
             services.AddSingleton<DbConnection>(_ =>
