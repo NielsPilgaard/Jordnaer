@@ -8,7 +8,7 @@ public static class DatabaseInitializer
     {
         using var scope = app.Services.CreateScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<RemindMeDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<JordnaerDbContext>();
 
         await context.Database.MigrateAsync();
     }

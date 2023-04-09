@@ -17,7 +17,7 @@ public static class AuthExtensions
                 options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
             })
-            .AddEntityFrameworkStores<RemindMeDbContext>();
+            .AddEntityFrameworkStores<JordnaerDbContext>();
 
         // Used to send email confirmation links, reset password etc
         builder.Services.AddTransient<IEmailSender, EmailSender>();

@@ -2,16 +2,16 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Data;
 using Jordnaer.Server.Extensions;
-using Jordnaer.Server.Reminders;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddSerilog();
 
-string connectionString = builder.Configuration.GetConnectionString("RemindMeDbContext") ??
-                          throw new InvalidOperationException("Connection string 'RemindMeDbContext' not found.");
-builder.Services.AddSqlite<RemindMeDbContext>(connectionString);
+string connectionString = builder.Configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
+                          throw new InvalidOperationException(
+                              $"Connection string '{nameof(JordnaerDbContext)}' not found.");
+builder.Services.AddSqlite<JordnaerDbContext>(connectionString);
 
 builder.AddAuthentication();
 builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
@@ -52,7 +52,6 @@ app.UseAuthorization();
 
 // Configure the APIs
 app.MapAuthentication();
-app.MapReminders();
 app.MapUsers();
 
 app.MapFallbackToFile("index.html");

@@ -16,7 +16,7 @@ public class JordnaerServerFactory : WebApplicationFactory<Program>
         {
             var dbContextDescriptor = services.SingleOrDefault(
                 serviceDescriptor => serviceDescriptor.ServiceType ==
-                     typeof(DbContextOptions<RemindMeDbContext>));
+                     typeof(DbContextOptions<JordnaerDbContext>));
 
             services.Remove(dbContextDescriptor);
 
@@ -35,7 +35,7 @@ public class JordnaerServerFactory : WebApplicationFactory<Program>
                 return connection;
             });
 
-            services.AddDbContext<RemindMeDbContext>((container, options) =>
+            services.AddDbContext<JordnaerDbContext>((container, options) =>
             {
                 var connection = container.GetRequiredService<DbConnection>();
                 options.UseSqlite(connection);
