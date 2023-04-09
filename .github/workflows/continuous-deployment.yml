@@ -15,10 +15,18 @@ env:
   AZURE_WEBAPP_PACKAGE_PATH: src/Server/publish
   AZURE_WEBAPP_NAME: jordnaer
   WORKING_DIRECTORY: src/Server
+  MSSQL_SA_PASSWORD: StrongTestPassword!
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: "${{ env.MSSQL_SA_PASSWORD }}"
+          ACCEPT_EULA: 'Y'
+        ports:
+          - 1433:1433
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -37,6 +45,8 @@ jobs:
           
       - name: Test
         run: dotnet test --logger "trx;LogFileName=test-results.trx"
+        env:
+          ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
