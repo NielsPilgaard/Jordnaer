@@ -2,6 +2,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Data;
 using Jordnaer.Server.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -17,7 +18,7 @@ try
     string connectionString = builder.Configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
                               throw new InvalidOperationException(
                                   $"Connection string '{nameof(JordnaerDbContext)}' not found.");
-    builder.Services.AddSqlite<JordnaerDbContext>(connectionString);
+    builder.Services.AddSqlServer<JordnaerDbContext>(connectionString);
 
     builder.AddAuthentication();
     builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();

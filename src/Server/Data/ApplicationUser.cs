@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Jordnaer.Server.Data
+namespace Jordnaer.Server.Data;
+
+public class ApplicationUser : IdentityUser
 {
-    public class ApplicationUser : IdentityUser
-    {
-    }
 }
