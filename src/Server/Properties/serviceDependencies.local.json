@@ -6,15 +6,8 @@
       "containerName": "mssql",
       "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
       "type": "mssql.container",
-      "connectionId": "ConnectionStrings:JordnaerDbContext"
-    },
-    "sqlite1": {
-      "ignored": "true",
-      "type": "sqlite"
-    },
-    "identityapp1": {
-      "ignored": "true",
-      "type": "identityapp"
+      "connectionId": "ConnectionStrings:JordnaerDbContext",
+      "dynamicId": null
     }
   }
 }
