@@ -1,7 +1,6 @@
 using Jordnaer.Server.Data;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity;
-using ILogger = Serilog.ILogger;
 
 namespace Jordnaer.Server.Authentication;
 
@@ -17,12 +16,12 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ILogger _logger;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(UserManager<ApplicationUser> userManager, ILogger logger)
+    public UserService(UserManager<ApplicationUser> userManager, ILogger<UserService> logger)
     {
         _userManager = userManager;
-        _logger = logger.ForContext<UserService>();
+        _logger = logger;
     }
 
     public async Task<bool> CreateUserAsync(UserInfo newUser)
@@ -32,7 +31,7 @@ public class UserService : IUserService
         var identityResult = await _userManager.CreateAsync(user, newUser.Password);
         if (identityResult.Succeeded is false)
         {
-            _logger.Warning("Registration failed. " +
+            _logger.LogWarning("Registration failed. " +
                               "UserInfo: {@userInfo}. " +
                               "Errors: {@identityResultErrors}", newUser, identityResult.Errors);
         }
@@ -52,7 +51,7 @@ public class UserService : IUserService
         {
             if (await _userManager.IsLockedOutAsync(user))
             {
-                _logger.Information("User {userName} tried to login, " +
+                _logger.LogInformation("User {userName} tried to login, " +
                                     "but failed because they are currently locked out.", user.UserName);
 
                 return false;
@@ -70,7 +69,7 @@ public class UserService : IUserService
         var identityResult = await _userManager.DeleteAsync(user);
         if (identityResult.Succeeded is false)
         {
-            _logger.Warning("Failed to delete user {userEmail}. Errors: {@identityResultErrors}",
+            _logger.LogWarning("Failed to delete user {userEmail}. Errors: {@identityResultErrors}",
                 user.Email, identityResult.Errors);
         }
 

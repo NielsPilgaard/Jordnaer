@@ -4,8 +4,8 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Data;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Serilog;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.Authentication;
@@ -20,7 +20,7 @@ public class UserService_Should
     {
         _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
-        _userService = new UserService(_userManager, Substitute.For<ILogger>());
+        _userService = new UserService(_userManager, Substitute.For<ILogger<UserService>>());
     }
 
     [Fact]

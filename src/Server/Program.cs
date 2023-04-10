@@ -12,6 +12,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.Services.AddApplicationInsightsTelemetry();
     builder.AddSerilog();
 
     string connectionString = builder.Configuration.GetConnectionString(nameof(JordnaerDbContext)) ??

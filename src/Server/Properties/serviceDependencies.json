@@ -4,6 +4,10 @@
       "type": "mssql",
       "connectionId": "ConnectionStrings:JordnaerDbContext",
       "dynamicId": null
+    },
+    "appInsights1": {
+      "type": "appInsights",
+      "dynamicId": null
     }
   }
 }

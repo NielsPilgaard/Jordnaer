@@ -8,6 +8,14 @@
       "type": "mssql.container",
       "connectionId": "ConnectionStrings:JordnaerDbContext",
       "dynamicId": null
+    },
+    "appInsights1": {
+      "type": "appInsights.sdk",
+      "dynamicId": null
+    },
+    "identityapp1": {
+      "ignored": "true",
+      "type": "identityapp"
     }
   }
 }
