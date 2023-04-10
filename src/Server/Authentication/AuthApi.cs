@@ -66,13 +66,7 @@ public static class AuthApi
 
             if (result.Succeeded)
             {
-                var principal = result.Principal;
-
-                string id = principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-                string name = (principal.FindFirstValue(ClaimTypes.Email) ?? principal.Identity?.Name)!;
-
-                await SignIn(id, name, provider, result.Properties.GetTokens()).ExecuteAsync(context);
+                await SignIn(provider, result.Principal.Claims, result.Properties.GetTokens()).ExecuteAsync(context);
             }
 
             // Delete the external cookie
@@ -85,16 +79,21 @@ public static class AuthApi
     }
 
     private static IResult SignIn(UserInfo userInfo)
-        => SignIn(userInfo.Email,
-                userInfo.Email,
-                providerName: null,
+        => SignIn(providerName: null,
+                claims: new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userInfo.Email),
+                    new Claim(ClaimTypes.Email, userInfo.Email),
+                    new Claim(ClaimTypes.Name, userInfo.Email)
+                },
                 authTokens: Enumerable.Empty<AuthenticationToken>());
 
-    private static IResult SignIn(string userId, string userName, string? providerName, IEnumerable<AuthenticationToken> authTokens)
+    private static IResult SignIn(string? providerName,
+        IEnumerable<Claim> claims,
+        IEnumerable<AuthenticationToken> authTokens)
     {
         var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
-        identity.AddClaim(new Claim(ClaimTypes.Name, userName));
+        identity.AddClaims(claims);
 
         var properties = new AuthenticationProperties();
 
