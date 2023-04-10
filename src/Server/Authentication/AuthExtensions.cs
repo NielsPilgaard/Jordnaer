@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Jordnaer.Server.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -81,10 +80,6 @@ public static class AuthExtensions
 
     private const string EXTERNAL_PROVIDER_KEY = "ExternalProviderName";
     private const string HAS_EXTERNAL_TOKEN_KEY = "ExternalToken";
-
-    internal static string GetUserId(this HttpContext context) => context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-    internal static bool UserIsAdmin(this HttpContext context) => context.User.IsInRole("admin");
 
     public static string? GetExternalProvider(this AuthenticationProperties properties) =>
         properties.GetString(EXTERNAL_PROVIDER_KEY);
