@@ -3,8 +3,10 @@
 @inject AuthStateProvider Client
 @inject UserClient UserClient
 
-<MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@($"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);")">
-    <MudButton Color="Color.Inherit" Href="/">
+<MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@_appBarStyle">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
+    <MudSpacer />
+    <MudButton Class="d-none d-sm-flex" Color="Color.Inherit" Href="/">
         <MudText Typo="Typo.h4">Jordnær</MudText>
     </MudButton>
     <MudSpacer />
@@ -12,7 +14,6 @@
 
     <AuthorizeView>
         <Authorized>
-            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" OnClick="@DeleteUser" Variant="Variant.Filled" Color="Color.Error" Title="Slet Bruger" />
             <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af" />
             <MudIconButton Icon="@Icons.Material.Filled.Person" OnClick="@NavigateToProfile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
         </Authorized>
@@ -24,13 +25,12 @@
 
 @code
 {
-    async Task DeleteUser()
-    {
-        await Client.DeleteUserAsync();
-        NavigationManager.NavigateTo("/");
-    }
+    string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
 
     async Task Logout() => await Client.LogoutAsync();
     void Login() => NavigationManager.NavigateTo("auth/login");
     void NavigateToProfile() => NavigationManager.NavigateTo("profile");
+
+    [Parameter]
+    public EventCallback<bool> ToggleDrawer { get; set; }
 }

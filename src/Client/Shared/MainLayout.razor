@@ -4,11 +4,17 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <TopBar/>
-  <MudMainContent>
-    <MudContainer MaxWidth="MaxWidth.Large">
-      @Body
-    </MudContainer>
-  </MudMainContent>
-  <CookieBanner/>
+    <TopBar ToggleDrawer="@ToggleDrawer" />
+    <SideBar Open="_isDrawerOpen" />
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+    <CookieBanner />
 </MudLayout>
+@code
+{
+    bool _isDrawerOpen = false;
+    void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
+}
