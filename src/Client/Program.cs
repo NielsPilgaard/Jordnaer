@@ -21,9 +21,9 @@ builder.Services.AddMudServices(configuration => configuration.SnackbarConfigura
     VisibleStateDuration = 2500,
     ShowTransitionDuration = 250,
     BackgroundBlurred = true,
-    MaximumOpacity = 90,
+    MaximumOpacity = 95,
     MaxDisplayedSnackbars = 3,
-    PositionClass = Defaults.Classes.Position.TopRight,
+    PositionClass = Defaults.Classes.Position.BottomCenter,
     HideTransitionDuration = 100,
     ShowCloseIcon = false
 });
