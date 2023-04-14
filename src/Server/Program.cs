@@ -2,6 +2,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Data;
 using Jordnaer.Server.Extensions;
+using Microsoft.FeatureManagement;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -29,6 +30,8 @@ try
 
     // Configure rate limiting
     builder.Services.AddRateLimiting();
+
+    builder.Services.AddFeatureManagement();
 
     var app = builder.Build();
 

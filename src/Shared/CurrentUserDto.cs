@@ -2,6 +2,7 @@ using System.Security.Claims;
 
 namespace Jordnaer.Shared;
 public readonly record struct ClaimDto(string Type, string Value);
+
 public class CurrentUserDto
 {
     public string? Name { get; set; }

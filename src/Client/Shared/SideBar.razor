@@ -1,17 +1,21 @@
+@using Jordnaer.Shared
 <MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="1" Variant="@DrawerVariant.Mini">
-
     <MudNavMenu>
         <AuthorizeView>
             <Authorized>
                 <MudNavLink Match="NavLinkMatch.All" Href="/personal/contacts" Icon="@Icons.Material.Filled.Contacts">Mine Kontakter</MudNavLink>
                 <MudNavLink Match="NavLinkMatch.All" Href="/personal/groups" Icon="@Icons.Material.Filled.Group">Mine Grupper</MudNavLink>
-                <MudNavLink Match="NavLinkMatch.All" Href="/personal/events" Icon="@Icons.Material.Filled.EventAvailable">Mine Begivenheder</MudNavLink>
+                <Feature Name="@FeatureFlags.EVENTS">
+                    <MudNavLink Match="NavLinkMatch.All" Href="/personal/events" Icon="@Icons.Material.Filled.EventAvailable">Mine Begivenheder</MudNavLink>
+                </Feature>
                 <MudDivider />
             </Authorized>
         </AuthorizeView>
         <MudNavLink Match="NavLinkMatch.All" Href="/users" Icon="@Icons.Material.Filled.PersonSearch">Personer</MudNavLink>
         <MudNavLink Match="NavLinkMatch.All" Href="/groups" Icon="@Icons.Material.Filled.Groups">Grupper</MudNavLink>
-        <MudNavLink Match="NavLinkMatch.All" Href="/events" Icon="@Icons.Material.Filled.Event">Begivenheder</MudNavLink>
+        <Feature Name="@FeatureFlags.EVENTS">
+            <MudNavLink Match="NavLinkMatch.All" Href="/events" Icon="@Icons.Material.Filled.Event">Begivenheder</MudNavLink>
+        </Feature>
     </MudNavMenu>
 </MudDrawer>
 
