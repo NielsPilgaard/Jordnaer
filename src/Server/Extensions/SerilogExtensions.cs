@@ -8,7 +8,7 @@ public static class SerilogExtensions
 {
     public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog((context, provider, loggerConfiguration) =>
+        builder.Host.UseSerilog((context, loggerConfiguration) =>
         {
             loggerConfiguration.ReadFrom.Configuration(context.Configuration)
                 .Enrich.WithProperty("Application", builder.Environment.ApplicationName)
@@ -20,7 +20,7 @@ public static class SerilogExtensions
             loggerConfiguration.WriteTo.ApplicationInsights(
                 new TelemetryConfiguration
                 {
-                    ConnectionString = builder
+                    ConnectionString = context
                         .Configuration
                         .GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING")
                 },
