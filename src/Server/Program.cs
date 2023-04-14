@@ -19,6 +19,7 @@ try
                               throw new InvalidOperationException(
                                   $"Connection string '{nameof(JordnaerDbContext)}' not found.");
     builder.Services.AddSqlServer<JordnaerDbContext>(connectionString);
+    builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 
     builder.AddAuthentication();
     builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
@@ -60,6 +61,7 @@ try
     // Configure the APIs
     app.MapAuthentication();
     app.MapUsers();
+    app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
     app.MapFallbackToFile("index.html");
 
