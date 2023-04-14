@@ -6,7 +6,7 @@ using Serilog;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .CreateBootstrapLogger();
+    .CreateLogger();
 
 try
 {
@@ -61,6 +61,7 @@ try
     // Configure the APIs
     app.MapAuthentication();
     app.MapUsers();
+
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
     app.MapFallbackToFile("index.html");
