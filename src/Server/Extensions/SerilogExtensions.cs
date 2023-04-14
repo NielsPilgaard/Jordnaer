@@ -17,14 +17,19 @@ public static class SerilogExtensions
 
             loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 
-            loggerConfiguration.WriteTo.ApplicationInsights(
-                new TelemetryConfiguration
-                {
-                    ConnectionString = context
-                        .Configuration
-                        .GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING")
-                },
-                TelemetryConverter.Events);
+            string? applicationInsightsConnectionString = context
+                .Configuration
+                .GetValue<string>("APPLICATIONINSIGHTS_CONNECTION_STRING");
+
+            if (applicationInsightsConnectionString is not null)
+            {
+                loggerConfiguration.WriteTo.ApplicationInsights(
+                    new TelemetryConfiguration
+                    {
+                        ConnectionString = applicationInsightsConnectionString
+                    },
+                    TelemetryConverter.Events);
+            }
         });
 
         return builder;
