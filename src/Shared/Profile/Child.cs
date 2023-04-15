@@ -12,7 +12,7 @@ public class Child
     [ForeignKey(nameof(Parent))]
     public Guid ParentId { get; set; }
 
-    public virtual required Parent Parent { get; set; }
+    public virtual Parent Parent { get; set; } = default!;
 
     [Required]
     [MaxLength(100)]

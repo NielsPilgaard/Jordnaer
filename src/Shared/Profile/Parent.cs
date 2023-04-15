@@ -37,9 +37,9 @@ public class Parent
     [Required]
     public required LookingFor LookingFor { get; set; }
 
-    public List<Child> Children { get; } = new();
+    public List<Child> Children { get; set; } = new();
 
-    public List<Parent> Contacts { get; } = new();
+    public List<Parent> Contacts { get; set; } = new();
 
     public DateTime? DateOfBirth { get; set; }
 
