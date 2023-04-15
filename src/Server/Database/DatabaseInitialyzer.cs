@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Jordnaer.Server.Data;
+namespace Jordnaer.Server.Database;
 
 public static class DatabaseInitializer
 {
