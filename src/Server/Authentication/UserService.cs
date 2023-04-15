@@ -1,4 +1,4 @@
-using Jordnaer.Server.Data;
+using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity;
 

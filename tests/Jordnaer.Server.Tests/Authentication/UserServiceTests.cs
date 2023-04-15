@@ -1,7 +1,7 @@
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Server.Authentication;
-using Jordnaer.Server.Data;
+using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

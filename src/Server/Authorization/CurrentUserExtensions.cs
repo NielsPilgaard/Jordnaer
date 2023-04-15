@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Jordnaer.Server.Data;
+using Jordnaer.Server.Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 

@@ -1,6 +1,6 @@
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
-using Jordnaer.Server.Data;
+using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Microsoft.FeatureManagement;
 using Serilog;
