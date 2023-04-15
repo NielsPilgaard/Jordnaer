@@ -3,7 +3,8 @@
 	<PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>preview</LangVersion>
-	</PropertyGroup>
+    <RootNamespace>Jordnaer.Shared</RootNamespace>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
