@@ -1,4 +1,4 @@
-using Jordnaer.Server.Features.Profile;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
