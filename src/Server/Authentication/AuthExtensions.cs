@@ -79,26 +79,10 @@ public static class AuthExtensions
     }
 
     private const string EXTERNAL_PROVIDER_KEY = "ExternalProviderName";
-    private const string HAS_EXTERNAL_TOKEN_KEY = "ExternalToken";
 
     public static string? GetExternalProvider(this AuthenticationProperties properties) =>
         properties.GetString(EXTERNAL_PROVIDER_KEY);
 
     public static void SetExternalProvider(this AuthenticationProperties properties, string providerName) =>
         properties.SetString(EXTERNAL_PROVIDER_KEY, providerName);
-
-    public static bool HasExternalToken(this AuthenticationProperties properties) =>
-        properties.GetString(HAS_EXTERNAL_TOKEN_KEY) is not null;
-
-    public static void SetHasExternalToken(this AuthenticationProperties properties, bool hasToken)
-    {
-        if (hasToken)
-        {
-            properties.SetString(HAS_EXTERNAL_TOKEN_KEY, "1");
-        }
-        else
-        {
-            properties.Items.Remove(HAS_EXTERNAL_TOKEN_KEY);
-        }
-    }
 }
