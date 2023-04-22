@@ -1,17 +1,22 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-public class Parent
+[Index(nameof(ApplicationUserId))]
+[Index(nameof(ZipCode))]
+public class UserProfile
 {
     [Key]
-    public Guid Id { get; set; }
-
-    public required string ApplicationUserId { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
     [Required]
+    public required string ApplicationUserId { get; set; }
+
     [MaxLength(100)]
-    public required string FirstName { get; set; }
+    public string? FirstName { get; set; }
 
     [MaxLength(250)]
     public string? LastName { get; set; }
@@ -34,14 +39,15 @@ public class Parent
     [MaxLength(2000)]
     public string? Interests { get; set; }
 
-    [Required]
-    public required LookingFor LookingFor { get; set; }
+    public List<LookingFor> LookingFor { get; set; } = new();
 
-    public List<Child> Children { get; set; } = new();
+    public List<ChildProfile> ChildProfiles { get; set; } = new();
 
-    public List<Parent> Contacts { get; set; } = new();
+    public List<UserProfile> Contacts { get; set; } = new();
 
     public DateTime? DateOfBirth { get; set; }
+
+    public string? ProfilePictureUrl { get; set; }
 
     public int? GetAge() => DateOfBirth.GetAge();
 }

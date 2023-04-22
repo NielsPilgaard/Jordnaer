@@ -3,16 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Jordnaer.Shared;
 
-public class Child
+public class ChildProfile
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [ForeignKey(nameof(Parent))]
-    public Guid ParentId { get; set; }
+    [ForeignKey(nameof(UserProfile))]
+    public int UserProfileId { get; set; }
 
-    public virtual Parent Parent { get; set; } = default!;
+    public virtual UserProfile UserProfile { get; set; } = default!;
 
     [Required]
     [MaxLength(100)]
@@ -28,6 +28,8 @@ public class Child
 
     [MaxLength(4000)]
     public string? Interests { get; set; }
+
+    public string? PictureUrl { get; set; }
 
     public int GetAge() => DateOfBirth.GetAge();
 }
