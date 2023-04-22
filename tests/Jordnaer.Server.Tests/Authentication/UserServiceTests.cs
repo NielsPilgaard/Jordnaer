@@ -104,7 +104,7 @@ public class UserService_Should
         _userManager.DeleteAsync(Arg.Any<ApplicationUser>()).Returns(IdentityResult.Success);
 
         // Act
-        bool result = await _userService.DeleteUserAsync(user);
+        bool result = await _userService.DeleteUserAsync(user.Id);
 
         // Assert
         result.Should().BeTrue();
@@ -118,7 +118,7 @@ public class UserService_Should
         _userManager.DeleteAsync(Arg.Any<ApplicationUser>()).Returns(IdentityResult.Failed(new IdentityError()));
 
         // Act
-        bool result = await _userService.DeleteUserAsync(user);
+        bool result = await _userService.DeleteUserAsync(user.Id);
 
         // Assert
         result.Should().BeFalse();

@@ -1,7 +1,10 @@
 using Bogus;
 using FluentAssertions;
+using Jordnaer.Server.Database;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.Authentication;
@@ -29,12 +32,18 @@ public class UserApi_Should
         await client.PostAsJsonAsync("/api/auth/register", userInfo);
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login", userInfo);
 
+        // Get the user id
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var user = await userManager.FindByEmailAsync(userInfo.Email);
+        string id = user!.Id;
+
         // Add the authentication cookie to the client
         string? authCookie = loginResponse.Headers.GetValues("Set-Cookie").FirstOrDefault();
         client.DefaultRequestHeaders.Add("Cookie", authCookie);
 
         // Act
-        var response = await client.DeleteAsync("/api/user");
+        var response = await client.DeleteAsync($"/api/users/{id}");
 
         // Assert
         response.Should().Be200Ok();
@@ -44,12 +53,15 @@ public class UserApi_Should
     public async Task Fail_To_Delete_User_When_User_Is_Not_Authenticated()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
 
         // Act
-        var response = await client.DeleteAsync("/api/user");
+        var response = await client.DeleteAsync($"/api/users/{Guid.NewGuid()}");
 
         // Assert
-        response.Should().Be401Unauthorized();
+        response.Should().Be302Redirect();
     }
 }

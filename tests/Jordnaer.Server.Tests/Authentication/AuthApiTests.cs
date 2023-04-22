@@ -124,7 +124,10 @@ public class AuthApi_Should
     public async Task Fail_To_Logout_User_When_User_Is_Not_Logged_In()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
 
         // Act
         var response = await client.PostAsync("/api/auth/logout", null);
