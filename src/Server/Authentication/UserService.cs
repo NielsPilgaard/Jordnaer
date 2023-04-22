@@ -8,9 +8,11 @@ public interface IUserService
 {
     Task<bool> CreateUserAsync(UserInfo newUser);
 
+    Task<ApplicationUser?> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser);
+
     Task<bool> IsLoginValidAsync(UserInfo userInfo);
 
-    Task<bool> DeleteUserAsync(ApplicationUser user);
+    Task<bool> DeleteUserAsync(string id);
 }
 
 public class UserService : IUserService
@@ -29,14 +31,50 @@ public class UserService : IUserService
         var user = new ApplicationUser { Email = newUser.Email, UserName = newUser.Email };
 
         var identityResult = await _userManager.CreateAsync(user, newUser.Password);
+
         if (identityResult.Succeeded is false)
         {
             _logger.LogWarning("Registration failed. " +
-                              "UserInfo: {@userInfo}. " +
-                              "Errors: {@identityResultErrors}", newUser, identityResult.Errors);
+                              "Errors: {@identityResultErrors}", identityResult.Errors);
         }
 
         return identityResult.Succeeded;
+    }
+
+    public async Task<ApplicationUser?> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser)
+    {
+        var user = await _userManager.FindByLoginAsync(provider, newUser.ProviderKey);
+        if (user is not null)
+        {
+            return user;
+        }
+
+        user = new ApplicationUser { UserName = newUser.Email, Email = newUser.Email, Id = newUser.ProviderKey };
+
+        var identityResult = await _userManager.CreateAsync(user);
+        if (!identityResult.Succeeded)
+        {
+            _logger.LogWarning("Failed to create User {userName}. Errors: {@identityResultErrors}",
+                newUser.Email,
+                identityResult.Errors);
+
+            return null;
+        }
+
+        identityResult = await _userManager.AddLoginAsync(
+            user,
+            new UserLoginInfo(provider, newUser.ProviderKey, displayName: null));
+
+        if (identityResult.Succeeded)
+        {
+            return user;
+        }
+
+        _logger.LogWarning("Failed to add Login to User {userName}. Errors: {identityResultErrors}",
+            newUser.Email,
+            identityResult.Errors);
+
+        return null;
     }
 
     public async Task<bool> IsLoginValidAsync(UserInfo userInfo)
@@ -64,8 +102,14 @@ public class UserService : IUserService
     }
 
 
-    public async Task<bool> DeleteUserAsync(ApplicationUser user)
+    public async Task<bool> DeleteUserAsync(string id)
     {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null)
+        {
+            _logger.LogWarning("Failed to delete user with id {userId}. No such user exists.", id);
+            return false;
+        }
         var identityResult = await _userManager.DeleteAsync(user);
         if (identityResult.Succeeded is false)
         {
