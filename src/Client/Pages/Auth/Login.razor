@@ -1,14 +1,17 @@
 @page "/auth/login"
+@using Jordnaer.Shared
 <MudContainer MaxWidth="MaxWidth.Small">
 
     <MudStack>
-        <MudPaper Elevation="5" Class="pa-4">
-            <InitialRegistrationForm />
-        </MudPaper>
+        <Feature Name="@FeatureFlags.INTERNAL_REGISTRATION">
+          <MudPaper Elevation="5" Class="pa-4">
+                <InitialRegistrationForm />
+            </MudPaper>
 
-        <MudPaper Elevation="5" Class="pa-4">
-            <LoginForm />
-        </MudPaper>
+            <MudPaper Elevation="5" Class="pa-4">
+                <LoginForm />
+            </MudPaper>
+        </Feature>
 
         <MudPaper Elevation="5" Class="pa-4">
             <ExternalLoginButtons />
