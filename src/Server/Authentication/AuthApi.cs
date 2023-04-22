@@ -1,6 +1,9 @@
 using System.Security.Claims;
 using Jordnaer.Server.Authorization;
+using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.Profile;
 using Jordnaer.Shared;
+using Mediator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +15,8 @@ public static class AuthApi
     public static RouteGroupBuilder MapAuthentication(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("api/auth");
+
+        group.RequireAuthRateLimit();
 
         group.MapPost("register", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
         {
@@ -32,17 +37,7 @@ public static class AuthApi
                 : Results.Unauthorized();
         });
 
-        group.MapPost("logout", async (HttpContext context, [FromServices] CurrentUser? currentUser) =>
-        {
-            if (currentUser?.User is null)
-            {
-                return Results.Unauthorized();
-            }
-
-            await context.SignOutAsync();
-
-            return Results.Ok();
-        });
+        group.MapPost("logout", async context => await context.SignOutFromAllAccountsAsync()).RequireAuthorization();
 
         // External login
         group.MapGet("login/{provider}", ([FromRoute] string provider) =>
@@ -59,14 +54,32 @@ public static class AuthApi
                 ? null
                 : CurrentUserDto.From(currentUser.Principal));
 
-        group.MapGet("signin/{provider}", async ([FromRoute] string provider, [FromServices] IUserService userService, HttpContext context) =>
+        group.MapGet("signin/{provider}", async ([FromRoute] string provider, [FromServices] IUserService userService, [FromServices] IMediator mediator, HttpContext context) =>
         {
             // Grab the login information from the external login dance
             var result = await context.AuthenticateAsync(AuthConstants.ExternalScheme);
-
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                await SignIn(provider, result.Principal.Claims, result.Properties.GetTokens()).ExecuteAsync(context);
+                return Results.Unauthorized();
+            }
+
+            string providerUserId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            string name = (result.Principal.FindFirstValue(ClaimTypes.Email) ?? result.Principal.Identity?.Name)!;
+
+            var user = await userService.GetOrCreateUserAsync(
+                provider,
+                new ExternalUserInfo { Email = name, ProviderKey = providerUserId });
+
+            await SignIn(provider, result.Principal.Claims).ExecuteAsync(context);
+
+            string? accessToken = result.Properties?.GetTokenValue("access_token");
+            if (accessToken is not null)
+            {
+                await mediator.Publish(new AccessTokenAcquired(user!.Id,
+                    providerUserId,
+                    provider,
+                    accessToken));
             }
 
             // Delete the external cookie
@@ -85,12 +98,10 @@ public static class AuthApi
                     new Claim(ClaimTypes.NameIdentifier, userInfo.Email),
                     new Claim(ClaimTypes.Email, userInfo.Email),
                     new Claim(ClaimTypes.Name, userInfo.Email)
-                },
-                authTokens: Enumerable.Empty<AuthenticationToken>());
+                });
 
     private static IResult SignIn(string? providerName,
-        IEnumerable<Claim> claims,
-        IEnumerable<AuthenticationToken> authTokens)
+        IEnumerable<Claim> claims)
     {
         var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
         identity.AddClaims(claims);
@@ -101,12 +112,6 @@ public static class AuthApi
         if (providerName is not null)
         {
             properties.SetExternalProvider(providerName);
-        }
-
-        bool hasAuthToken = authTokens.Any();
-        if (hasAuthToken)
-        {
-            properties.SetHasExternalToken(true);
         }
 
         properties.IsPersistent = true;
