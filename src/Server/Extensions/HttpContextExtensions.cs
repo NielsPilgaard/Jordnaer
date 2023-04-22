@@ -6,7 +6,7 @@ namespace Jordnaer.Server.Extensions;
 
 public static class HttpContextExtensions
 {
-    public static async Task SignOutAsync(this HttpContext context)
+    public static async Task SignOutFromAllAccountsAsync(this HttpContext context)
     {
         await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
