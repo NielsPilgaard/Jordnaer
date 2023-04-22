@@ -17,6 +17,8 @@ builder.Services.AddHttpClient<AuthClient>(client =>
 builder.Services.AddHttpClient<UserClient>(client =>
     client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
+builder.AddResilientHttpClient();
+
 builder.Services.AddMudServices(configuration => configuration.SnackbarConfiguration = new SnackbarConfiguration
 {
     VisibleStateDuration = 2500,

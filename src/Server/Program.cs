@@ -2,6 +2,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.Profile;
 using Microsoft.FeatureManagement;
 using Serilog;
 
@@ -22,16 +23,18 @@ try
     builder.Services.AddSqlServer<JordnaerDbContext>(connectionString);
     builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 
+    builder.Services.AddCurrentUser();
+
     builder.AddAuthentication();
     builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
 
-    // State that represents the current user from the database *and* the request
-    builder.Services.AddCurrentUser();
-
-    // Configure rate limiting
     builder.Services.AddRateLimiting();
 
     builder.Services.AddFeatureManagement();
+
+    builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
+
+    builder.Services.AddResilientHttpClient();
 
     var app = builder.Build();
 
@@ -64,6 +67,7 @@ try
     // Configure the APIs
     app.MapAuthentication();
     app.MapUsers();
+    app.MapProfiles();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
