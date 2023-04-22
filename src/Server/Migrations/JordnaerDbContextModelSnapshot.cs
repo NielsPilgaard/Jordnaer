@@ -87,7 +87,7 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Jordnaer.Server.Features.Profile.Child", b =>
+            modelBuilder.Entity("Jordnaer.Shared.ChildProfile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -114,21 +114,51 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<Guid>("ParentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("PictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserProfileId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("UserProfileId");
 
-                    b.ToTable("Children");
+                    b.ToTable("ChildProfiles");
                 });
 
-            modelBuilder.Entity("Jordnaer.Server.Features.Profile.Parent", b =>
+            modelBuilder.Entity("Jordnaer.Shared.LookingFor", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserProfileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserProfileId");
+
+                    b.ToTable("LookingFor");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
                         .HasMaxLength(500)
@@ -136,7 +166,7 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<string>("ApplicationUserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("City")
                         .HasMaxLength(100)
@@ -150,7 +180,6 @@ namespace Jordnaer.Server.Migrations
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -162,14 +191,14 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<int>("LookingFor")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("ParentId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserProfileId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ZipCode")
                         .HasMaxLength(50)
@@ -177,9 +206,13 @@ namespace Jordnaer.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("Parents");
+                    b.HasIndex("UserProfileId");
+
+                    b.HasIndex("ZipCode");
+
+                    b.ToTable("UserProfiles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -315,22 +348,29 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Jordnaer.Server.Features.Profile.Child", b =>
+            modelBuilder.Entity("Jordnaer.Shared.ChildProfile", b =>
                 {
-                    b.HasOne("Jordnaer.Server.Features.Profile.Parent", "Parent")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentId")
+                    b.HasOne("Jordnaer.Shared.UserProfile", "UserProfile")
+                        .WithMany("ChildProfiles")
+                        .HasForeignKey("UserProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Parent");
+                    b.Navigation("UserProfile");
                 });
 
-            modelBuilder.Entity("Jordnaer.Server.Features.Profile.Parent", b =>
+            modelBuilder.Entity("Jordnaer.Shared.LookingFor", b =>
                 {
-                    b.HasOne("Jordnaer.Server.Features.Profile.Parent", null)
+                    b.HasOne("Jordnaer.Shared.UserProfile", null)
+                        .WithMany("LookingFor")
+                        .HasForeignKey("UserProfileId");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.UserProfile", null)
                         .WithMany("Contacts")
-                        .HasForeignKey("ParentId");
+                        .HasForeignKey("UserProfileId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -384,11 +424,13 @@ namespace Jordnaer.Server.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Jordnaer.Server.Features.Profile.Parent", b =>
+            modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>
                 {
-                    b.Navigation("Children");
+                    b.Navigation("ChildProfiles");
 
                     b.Navigation("Contacts");
+
+                    b.Navigation("LookingFor");
                 });
 #pragma warning restore 612, 618
         }
