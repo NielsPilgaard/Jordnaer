@@ -1,14 +1,111 @@
-@page "/{userName}"
+@page "/{fullName}"
+@using Jordnaer.Shared
 
-<h1>@UserName</h1>
+<h2>UserProfile Profile</h2>
+
+@if (_parent != null)
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <h2 class="mt-3 mb-3">UserProfile Details</h2>
+            <MudPaper Elevation="1" Class="p-3">
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Name:</MudText>
+                        <MudText>@_parent.FirstName @_parent.LastName</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Phone Number:</MudText>
+                        <MudText>@_parent.PhoneNumber</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Address:</MudText>
+                        <MudText>@_parent.Address, @_parent.ZipCode, @_parent.City</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Age:</MudText>
+                        <MudText>@_parent.GetAge()</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Description:</MudText>
+                        <MudText>@_parent.Description</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Interests:</MudText>
+                        <MudText>@_parent.Interests</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12">
+            <h2 class="mt-3 mb-3">ChildProfileren</h2>
+            <MudPaper Elevation="1" Class="p-3">
+                <MudGrid>
+                    @foreach (var child in _parent.ChildProfiles)
+                    {
+                        <MudItem xs="12">
+                            <MudGrid>
+                                <MudItem xs="12">
+                                    <h4>@child.FirstName @child.LastName</h4>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudText Typo="Typo.h6">Age:</MudText>
+                                    <MudText>@child.GetAge()</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudText Typo="Typo.h6">Gender:</MudText>
+                                    <MudText>@child.Gender</MudText>
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudText Typo="Typo.h6">Interests:</MudText>
+                                    <MudText>@child.Interests</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    <p>Loading...</p>
+}
 @code
 {
     [Parameter]
-    public string UserName { get; set; } = null!;
+    public required string FullName { get; set; }
 
-  protected override Task OnInitializedAsync()
+    UserProfile? _parent;
+
+    protected override Task OnInitializedAsync()
     {
-
+        _parent = new UserProfile
+            {
+                FirstName = "John",
+                ApplicationUserId = Guid.NewGuid().ToString(),
+                LastName = "Doe",
+                PhoneNumber = "123-456-7890",
+                Address = "123 Main St",
+                ZipCode = "12345",
+                City = "New York",
+                Description = "A loving _parent.",
+                Interests = "Hiking, reading",
+                LookingFor = new List<LookingFor> { new LookingFor { Name = "Playdates" } },
+                DateOfBirth = new DateTime(1985, 1, 1),
+                ChildProfiles = new List<ChildProfile>
+                {
+                  new()
+                  {
+                    FirstName = "Alice",
+                    LastName = "Doe",
+                    Gender = Gender.Female,
+                    DateOfBirth = new DateTime(2015, 1, 1),
+                    Interests = "Playing, painting"
+                  }
+                }
+            };
         return Task.CompletedTask;
     }
 }

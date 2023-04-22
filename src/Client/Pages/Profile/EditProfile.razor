@@ -1,41 +1,56 @@
 @page "/profile"
-@using Microsoft.AspNetCore.Authorization
-@using System.Security.Claims
+@using Jordnaer.Shared
+@inject HttpClient HttpClient
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
+@if (_user is null)
+{
+    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" StrokeWidth="2" />
+    return;
+}
+
 <AuthorizeView>
-  <Authorized>
-    <MudCard>
-      <MudCardHeader>
-        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@GetPictureUrl(context.User)"/>
-      </MudCardHeader>
-      <MudCardContent>
-        <MudText variant="h5">@context.User.Identity!.Name</MudText>
-        <MudText variant="subtitle1">@context.User.Identity!.AuthenticationType</MudText>
-        <MudText variant="body1">Bio: Software Developer, Photographer, and Musician.</MudText>
-      </MudCardContent>
-    </MudCard>
+    <Authorized>
+        <MudCard>
+            <MudCardHeader>
+                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_user.ProfilePictureUrl" />
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText variant="h5">@_user.FirstName @_user.LastName</MudText>
+                <MudText variant="subtitle1">@_user.Interests</MudText>
+                <MudText variant="body1">Bio: Software Developer, Photographer, and Musician.</MudText>
+            </MudCardContent>
+        </MudCard>
 
-    <MudExpansionPanel>
-      <ul>
-        <li><a href="#">Twitter</a></li>
-        <li><a href="#">Instagram</a></li>
-        <li><a href="#">Facebook</a></li>
-      </ul>
-    </MudExpansionPanel>
+        <MudExpansionPanel>
+            <ul>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">Facebook</a></li>
+            </ul>
+        </MudExpansionPanel>
 
-    <MudCard>
-      <MudCardContent>
-        <MudText variant="h6">Profile Settings</MudText>
-      </MudCardContent>
-    </MudCard>
-  </Authorized>
+        <MudCard>
+            <MudCardContent>
+                <MudText variant="h6">Profile Settings</MudText>
+            </MudCardContent>
+        </MudCard>
+    </Authorized>
     <Authorizing>
         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" StrokeWidth="2" />
     </Authorizing>
 </AuthorizeView>
 
 @code {
+    UserProfile? _user;
 
-    static string GetPictureUrl(ClaimsPrincipal user) => $"https://graph.facebook.com/{user.FindFirst(claim => claim.Type == ClaimTypes.NameIdentifier)!.Value}/picture?type=large";
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var id = authenticationState.User.GetId();
+
+        _user = await HttpClient.GetFromJsonAsync<UserProfile>($"api/profiles/{id}");
+    }
 }
