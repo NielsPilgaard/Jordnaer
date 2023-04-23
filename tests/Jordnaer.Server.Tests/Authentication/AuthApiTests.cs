@@ -121,7 +121,7 @@ public class AuthApi_Should
     }
 
     [Fact]
-    public async Task Fail_To_Logout_User_When_User_Is_Not_Logged_In()
+    public async Task Fail_To_Logout_User_When_User_Is_Not_Logged_In_And_Redict_To_Login()
     {
         // Arrange
         var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -133,6 +133,6 @@ public class AuthApi_Should
         var response = await client.PostAsync("/api/auth/logout", null);
 
         // Assert
-        response.Should().Be401Unauthorized();
+        response.Should().Be302Redirect();
     }
 }
