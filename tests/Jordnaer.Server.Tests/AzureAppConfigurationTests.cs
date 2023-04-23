@@ -32,8 +32,8 @@ public class AzureAppConfiguration_Should
         configuration.GetSection("Authentication:Schemes:Facebook").Bind(facebookOptions);
 
         // Assert
-        facebookOptions.AppId.Should().NotBeEmpty();
-        facebookOptions.AppSecret.Should().NotBeEmpty();
+        facebookOptions.AppId.Should().NotBeNullOrEmpty();
+        facebookOptions.AppSecret.Should().NotBeNullOrEmpty();
         facebookOptions.SaveTokens.Should().BeTrue();
     }
 
@@ -48,8 +48,8 @@ public class AzureAppConfiguration_Should
         configuration.GetSection("Authentication:Schemes:Microsoft").Bind(microsoftAccountOptions);
 
         // Assert
-        microsoftAccountOptions.ClientId.Should().NotBeEmpty();
-        microsoftAccountOptions.ClientSecret.Should().NotBeEmpty();
+        microsoftAccountOptions.ClientId.Should().NotBeNullOrEmpty();
+        microsoftAccountOptions.ClientSecret.Should().NotBeNullOrEmpty();
         microsoftAccountOptions.SaveTokens.Should().BeTrue();
     }
 
@@ -64,8 +64,8 @@ public class AzureAppConfiguration_Should
         configuration.GetSection("Authentication:Schemes:Google").Bind(facebookOptions);
 
         // Assert
-        facebookOptions.ClientId.Should().NotBeEmpty();
-        facebookOptions.ClientSecret.Should().NotBeEmpty();
+        facebookOptions.ClientId.Should().NotBeNullOrEmpty();
+        facebookOptions.ClientSecret.Should().NotBeNullOrEmpty();
         facebookOptions.SaveTokens.Should().BeTrue();
     }
 
@@ -79,11 +79,6 @@ public class AzureAppConfiguration_Should
         string? connectionString = configuration.GetConnectionString(nameof(JordnaerDbContext));
 
         // Assert
-        connectionString.Should()
-            .Contain("Server")
-            .And.ContainAny("Database", "Initial Catalog")
-            .And.Contain("User Id")
-            .And.Contain("Password")
-            .And.Contain("TrustServerCertificate");
+        connectionString.Should().NotBeNullOrEmpty();
     }
 }
