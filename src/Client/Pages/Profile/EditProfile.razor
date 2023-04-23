@@ -16,15 +16,16 @@
 @if (_userProfile is null || _userId is null)
 {
   <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
+  return;
 }
 
 <MudPaper Class="p-4">
     <MudGrid>
         <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.FirstName" Label="First Name" Variant="Variant.Text" InputType="InputType.Text" />
+            <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" />
         </MudItem>
         <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.LastName" Label="Last Name" Variant="Variant.Text" InputType="InputType.Text" />
+            <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" />
         </MudItem>
     </MudGrid>
     <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
