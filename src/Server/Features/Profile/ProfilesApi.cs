@@ -24,6 +24,7 @@ public static class ProfilesApi
             {
                 var profile = await context
                     .UserProfiles
+                    .AsNoTracking()
                     .Include(userProfile => userProfile.ChildProfiles)
                     .Include(userProfile => userProfile.LookingFor)
                     .FirstOrDefaultAsync(userProfile => userProfile.ApplicationUserId == id);
@@ -32,7 +33,17 @@ public static class ProfilesApi
                     ? TypedResults.NotFound()
                     : TypedResults.Ok(profile);
             });
+        group.MapPut("{id}",
+            async Task<Results<NoContent, NotFound>>
+                ([FromRoute] string id, [FromBody] UserProfileDto userProfileDto, [FromServices] JordnaerDbContext context) =>
+            {
+                int updatedRows = await context.UserProfiles.ExecuteUpdateAsync(calls =>
+                    calls.SetProperty(userProfile => userProfile, userProfileDto.Map()));
 
+                return updatedRows > 0
+                    ? TypedResults.NoContent()
+                    : TypedResults.NotFound();
+            });
         return group;
     }
 }

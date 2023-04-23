@@ -4,53 +4,59 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-@if (_user is null)
+<MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
+
+@if (_failedToGetUser)
 {
-    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" StrokeWidth="2" />
-    return;
+    <MudAlert>Not gik galt. Vent venligst et par sekunder, og genindlæs så siden.</MudAlert>
+  <MudIconButton Icon="@Icons.Material.Filled.Refresh" Href="/"></MudIconButton>
+  return;
 }
 
-<AuthorizeView>
-    <Authorized>
-        <MudCard>
-            <MudCardHeader>
-                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_user.ProfilePictureUrl" />
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText variant="h5">@_user.FirstName @_user.LastName</MudText>
-                <MudText variant="subtitle1">@_user.Interests</MudText>
-                <MudText variant="body1">Bio: Software Developer, Photographer, and Musician.</MudText>
-            </MudCardContent>
-        </MudCard>
+@if (_userProfile is null || _userId is null)
+{
+  <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
+}
 
-        <MudExpansionPanel>
-            <ul>
-                <li><a href="#">Twitter</a></li>
-                <li><a href="#">Instagram</a></li>
-                <li><a href="#">Facebook</a></li>
-            </ul>
-        </MudExpansionPanel>
+<MudPaper Class="p-4">
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="@_userProfile.FirstName" Label="First Name" Variant="Variant.Text" InputType="InputType.Text" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="@_userProfile.LastName" Label="Last Name" Variant="Variant.Text" InputType="InputType.Text" />
+        </MudItem>
+    </MudGrid>
+    <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
+    <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" />
+    <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" />
+    <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" />
+    <MudTextField @bind-Value="@_userProfile.Description" Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+    <MudTextField @bind-Value="@_userProfile.Interests" Label="Interesser" Variant="Variant.Text" InputType="InputType.Text" />
+    <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
+    <!-- Add other fields for LookingFor and ChildProfiles if needed -->
+</MudPaper>
 
-        <MudCard>
-            <MudCardContent>
-                <MudText variant="h6">Profile Settings</MudText>
-            </MudCardContent>
-        </MudCard>
-    </Authorized>
-    <Authorizing>
-        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" StrokeWidth="2" />
-    </Authorizing>
-</AuthorizeView>
 
 @code {
-    UserProfile? _user;
-
+    UserProfileDto? _userProfile;
+    string? _userId;
+    bool _failedToGetUser = false;
+    
     protected override async Task OnInitializedAsync()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-        var id = authenticationState.User.GetId();
+        _userId = authenticationState.User.GetId();
 
-        _user = await HttpClient.GetFromJsonAsync<UserProfile>($"api/profiles/{id}");
+        var userProfileDto = await HttpClient.GetFromJsonAsync<UserProfileDto>($"api/profiles/{_userId}");
+        if (userProfileDto is null)
+        {
+            _failedToGetUser = true;
+            return;
+        }
+        _userProfile = userProfileDto;
     }
+
+    async Task Update() => await HttpClient.PutAsJsonAsync($"api/profiles/{_userId}", _userProfile);
 }
