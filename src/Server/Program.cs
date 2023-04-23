@@ -14,6 +14,8 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.AddAzureAppConfiguration();
+
     builder.Services.AddApplicationInsightsTelemetry();
     builder.AddSerilog();
 
@@ -22,8 +24,6 @@ try
                                   $"Connection string '{nameof(JordnaerDbContext)}' not found.");
     builder.Services.AddSqlServer<JordnaerDbContext>(dbConnectionString);
     builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
-
-    builder.AddAzureAppConfiguration();
 
     builder.Services.AddCurrentUser();
 
