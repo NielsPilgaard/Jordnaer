@@ -46,6 +46,7 @@ jobs:
       - name: Test
         run: dotnet test --logger "trx;LogFileName=test-results.trx"
         env:
+          ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING}}
           ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
 
       - name: Test Report
