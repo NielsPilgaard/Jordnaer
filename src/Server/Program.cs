@@ -46,6 +46,7 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.UseWebAssemblyDebugging();
+        await app.InitializeDatabaseAsync();
     }
     else
     {
@@ -76,8 +77,6 @@ try
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
     app.MapFallbackToFile("index.html");
-
-    await app.InitializeDatabaseAsync();
 
     app.Run();
 }
