@@ -81,7 +81,7 @@ public class AzureAppConfiguration_Should
         // Assert
         connectionString.Should()
             .Contain("Server")
-            .And.Contain("Database")
+            .And.ContainAny("Database", "Initial Catalog")
             .And.Contain("User Id")
             .And.Contain("Password")
             .And.Contain("TrustServerCertificate");
