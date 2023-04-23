@@ -17,11 +17,13 @@ try
     builder.Services.AddApplicationInsightsTelemetry();
     builder.AddSerilog();
 
-    string connectionString = builder.Configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
+    string dbConnectionString = builder.Configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
                               throw new InvalidOperationException(
                                   $"Connection string '{nameof(JordnaerDbContext)}' not found.");
-    builder.Services.AddSqlServer<JordnaerDbContext>(connectionString);
-    builder.Services.AddHealthChecks().AddSqlServer(connectionString);
+    builder.Services.AddSqlServer<JordnaerDbContext>(dbConnectionString);
+    builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
+
+    builder.AddAzureAppConfiguration();
 
     builder.Services.AddCurrentUser();
 
@@ -51,6 +53,8 @@ try
         // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
         app.UseHsts();
     }
+
+    app.UseAzureAppConfiguration();
 
     app.UseRateLimiter();
 
