@@ -4,6 +4,8 @@ public static class AzureAppConfigurationExtensions
 {
     public static WebApplicationBuilder AddAzureAppConfiguration(this WebApplicationBuilder builder)
     {
+        builder.Services.AddAzureAppConfiguration();
+
         string appConfigConnectionString = builder.Configuration.GetConnectionString("AppConfig") ??
                                            throw new InvalidOperationException("Connection string 'AppConfig' not found.");
 
@@ -20,8 +22,6 @@ public static class AzureAppConfigurationExtensions
                 })
                 .UseFeatureFlags(flagOptions => flagOptions.CacheExpirationInterval = TimeSpan.FromMinutes(3));
         });
-
-        builder.Services.AddAzureAppConfiguration();
 
         return builder;
     }
