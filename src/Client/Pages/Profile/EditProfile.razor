@@ -4,34 +4,42 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-<MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
 
 @if (_failedToGetUser)
 {
     <MudAlert>Not gik galt. Vent venligst et par sekunder, og genindlæs så siden.</MudAlert>
-  <MudIconButton Icon="@Icons.Material.Filled.Refresh" Href="/"></MudIconButton>
-  return;
+    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Href="/"></MudIconButton>
+    return;
 }
 
 @if (_userProfile is null || _userId is null)
 {
-  <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
-  return;
+    <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
+    return;
 }
 
-<MudPaper Class="p-4">
+<MudPaper Elevation="3" Class="pa-4">
+    <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
     <MudGrid>
         <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" />
+            <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
         </MudItem>
         <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" />
+            <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
         </MudItem>
     </MudGrid>
     <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
-    <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" />
-    <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" />
-    <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" />
+    <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
+        </MudItem>
+    </MudGrid>
+
     <MudTextField @bind-Value="@_userProfile.Description" Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
     <MudTextField @bind-Value="@_userProfile.Interests" Label="Interesser" Variant="Variant.Text" InputType="InputType.Text" />
     <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
@@ -43,7 +51,7 @@
     UserProfileDto? _userProfile;
     string? _userId;
     bool _failedToGetUser = false;
-    
+
     protected override async Task OnInitializedAsync()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
