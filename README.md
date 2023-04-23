@@ -1,4 +1,4 @@
-# Fællesskabet Jordnær
+# Mini Møder
 
 A work in progress social website - Helps parents find social connections for their children. 
 
