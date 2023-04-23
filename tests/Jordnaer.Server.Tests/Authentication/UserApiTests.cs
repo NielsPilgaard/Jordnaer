@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Jordnaer.Server.Tests.Authentication;
+namespace Jordnaer.Server.Tests;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerServerFactory))]
