@@ -1,8 +1,7 @@
-using Jordnaer.Server.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace Jordnaer.Server.Extensions;
+namespace Jordnaer.Server.Authentication;
 
 public static class HttpContextExtensions
 {
@@ -12,8 +11,6 @@ public static class HttpContextExtensions
 
         var result = await context.AuthenticateAsync();
         if (result.Properties?.GetExternalProvider() is not null)
-        {
             await context.SignOutAsync(AuthConstants.ExternalScheme, new AuthenticationProperties { RedirectUri = "/" });
-        }
     }
 }

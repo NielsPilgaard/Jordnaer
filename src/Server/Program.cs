@@ -1,6 +1,5 @@
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
-using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Server.Features.Profile;
 using Microsoft.FeatureManagement;
@@ -19,11 +18,7 @@ try
     builder.Services.AddApplicationInsightsTelemetry();
     builder.AddSerilog();
 
-    string dbConnectionString = builder.Configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
-                              throw new InvalidOperationException(
-                                  $"Connection string '{nameof(JordnaerDbContext)}' not found.");
-    builder.Services.AddSqlServer<JordnaerDbContext>(dbConnectionString);
-    builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
+    builder.AddDatabase();
 
     builder.Services.AddCurrentUser();
 
@@ -46,7 +41,6 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.UseWebAssemblyDebugging();
-        await app.InitializeDatabaseAsync();
     }
     else
     {

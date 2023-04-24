@@ -63,7 +63,6 @@ public static class SerilogExtensions
     }
 }
 
-
 public sealed class GrafanaLokiOptions
 {
     [Required]
