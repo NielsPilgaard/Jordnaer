@@ -63,21 +63,20 @@ public static class AuthApi
                 return Results.Unauthorized();
             }
 
-            string providerUserId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            string id = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
             string name = (result.Principal.FindFirstValue(ClaimTypes.Email) ?? result.Principal.Identity?.Name)!;
 
-            var user = await userService.GetOrCreateUserAsync(
+            await userService.GetOrCreateUserAsync(
                 provider,
-                new ExternalUserInfo { Email = name, ProviderKey = providerUserId });
+                new ExternalUserInfo { Email = name, ProviderKey = id });
 
             await SignIn(provider, result.Principal.Claims).ExecuteAsync(context);
 
             string? accessToken = result.Properties?.GetTokenValue("access_token");
             if (accessToken is not null)
             {
-                await mediator.Publish(new AccessTokenAcquired(user!.Id,
-                    providerUserId,
+                await mediator.Publish(new AccessTokenAcquired(id,
                     provider,
                     accessToken));
             }
