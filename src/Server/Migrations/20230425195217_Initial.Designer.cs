@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jordnaer.Server.Migrations
 {
     [DbContext(typeof(JordnaerDbContext))]
-    [Migration("20230421194250_Initial")]
+    [Migration("20230425195217_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -120,8 +120,9 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("PictureUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserProfileId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserProfileId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -145,8 +146,8 @@ namespace Jordnaer.Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserProfileId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserProfileId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -157,19 +158,12 @@ namespace Jordnaer.Server.Migrations
 
             modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("City")
                         .HasMaxLength(100)
@@ -200,8 +194,8 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserProfileId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserProfileId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ZipCode")
                         .HasMaxLength(50)
@@ -209,11 +203,11 @@ namespace Jordnaer.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("UserProfileId");
 
-                    b.HasIndex("ZipCode");
+                    b.HasIndex("FirstName", "LastName");
+
+                    b.HasIndex("ZipCode", "City");
 
                     b.ToTable("UserProfiles");
                 });

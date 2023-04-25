@@ -5,7 +5,7 @@ public static class DtoExtensions
     public static UserProfile Map(this UserProfileDto dto)
         => new()
         {
-            ApplicationUserId = dto.ApplicationUserId,
+            Id = dto.Id,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Address = dto.Address,
@@ -17,7 +17,6 @@ public static class DtoExtensions
             LookingFor = dto.LookingFor,
             PhoneNumber = dto.PhoneNumber,
             ZipCode = dto.ZipCode,
-            Id = dto.Id,
             ProfilePictureUrl = dto.ProfilePictureUrl
         };
 }

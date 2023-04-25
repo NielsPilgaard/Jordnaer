@@ -1,3 +1,4 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -53,9 +54,7 @@ namespace Jordnaer.Server.Migrations
                 name: "UserProfiles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -66,7 +65,7 @@ namespace Jordnaer.Server.Migrations
                     Interests = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ProfilePictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserProfileId = table.Column<int>(type: "int", nullable: true)
+                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -190,7 +189,7 @@ namespace Jordnaer.Server.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserProfileId = table.Column<int>(type: "int", nullable: false),
+                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     Gender = table.Column<int>(type: "int", nullable: false),
@@ -217,7 +216,7 @@ namespace Jordnaer.Server.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserProfileId = table.Column<int>(type: "int", nullable: true)
+                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -279,9 +278,9 @@ namespace Jordnaer.Server.Migrations
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserProfiles_ApplicationUserId",
+                name: "IX_UserProfiles_FirstName_LastName",
                 table: "UserProfiles",
-                column: "ApplicationUserId");
+                columns: new[] { "FirstName", "LastName" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProfiles_UserProfileId",
@@ -289,9 +288,9 @@ namespace Jordnaer.Server.Migrations
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserProfiles_ZipCode",
+                name: "IX_UserProfiles_ZipCode_City",
                 table: "UserProfiles",
-                column: "ZipCode");
+                columns: new[] { "ZipCode", "City" });
         }
 
         /// <inheritdoc />

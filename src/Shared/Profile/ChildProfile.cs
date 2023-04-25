@@ -10,7 +10,7 @@ public class ChildProfile
     public int Id { get; set; }
 
     [ForeignKey(nameof(UserProfile))]
-    public int UserProfileId { get; set; }
+    public required string UserProfileId { get; set; }
 
     public virtual UserProfile UserProfile { get; set; } = default!;
 

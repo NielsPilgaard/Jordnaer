@@ -1,19 +1,14 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-[Index(nameof(ApplicationUserId))]
-[Index(nameof(ZipCode))]
+[Index(nameof(ZipCode), nameof(City))]
+[Index(nameof(FirstName), nameof(LastName))]
 public class UserProfile
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
-    [Required]
-    public required string ApplicationUserId { get; set; }
+    public required string Id { get; set; }
 
     [MaxLength(100)]
     public string? FirstName { get; set; }

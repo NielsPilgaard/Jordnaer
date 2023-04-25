@@ -4,9 +4,8 @@ namespace Jordnaer.Shared;
 
 public class UserProfileDto
 {
-    public int Id { get; set; }
-
-    public required string ApplicationUserId { get; set; }
+    [Required]
+    public required string Id { get; set; }
 
     [MaxLength(100)]
     public string? FirstName { get; set; }

@@ -81,10 +81,11 @@ else
 
     protected override Task OnInitializedAsync()
     {
+        var id = Guid.NewGuid().ToString();
         _parent = new UserProfile
             {
                 FirstName = "John",
-                ApplicationUserId = Guid.NewGuid().ToString(),
+                Id = id,
                 LastName = "Doe",
                 PhoneNumber = "123-456-7890",
                 Address = "123 Main St",
@@ -98,6 +99,7 @@ else
                 {
                   new()
                   {
+                    UserProfileId = id,
                     FirstName = "Alice",
                     LastName = "Doe",
                     Gender = Gender.Female,
