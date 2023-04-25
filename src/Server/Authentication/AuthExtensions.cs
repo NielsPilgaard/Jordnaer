@@ -31,19 +31,6 @@ public static class AuthExtensions
         // This is the cookie that will store the user information from the external login provider
         authenticationBuilder.AddCookie(AuthConstants.ExternalScheme);
 
-        // Add external auth providers based on configuration
-        //{
-        //    "Authentication": {
-        //        "Schemes": {
-        //            "<scheme>": {
-        //                "ClientId": "xxx",
-        //                "ClientSecret": "xxxx"
-        //                etc..
-        //            }
-        //        }
-        //    }
-        //}
-
         // These are the list of external providers available to the application.
         // Many more are available from https://github.com/aspnet-contrib/AspNet.Security.OAuth.Providers
         var externalProviders = new Dictionary<string, ExternalAuthProvider>
