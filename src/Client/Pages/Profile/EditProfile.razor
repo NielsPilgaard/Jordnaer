@@ -2,15 +2,8 @@
 @using Jordnaer.Shared
 @inject HttpClient HttpClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
 @attribute [Authorize]
-
-
-@if (_failedToGetUser)
-{
-    <MudAlert>Not gik galt. Vent venligst et par sekunder, og genindlæs så siden.</MudAlert>
-    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Href="/"></MudIconButton>
-    return;
-}
 
 @if (_userProfile is null || _userId is null)
 {
@@ -18,39 +11,60 @@
     return;
 }
 
-<MudPaper Elevation="3" Class="pa-4">
-    <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
-    <MudGrid>
-        <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
-        </MudItem>
-    </MudGrid>
-    <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
-    <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
+<EditForm Model="@_userProfile" OnValidSubmit="Update">
 
-    <MudGrid>
-        <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
-        </MudItem>
-    </MudGrid>
+    <DataAnnotationsValidator />
 
-    <MudTextField @bind-Value="@_userProfile.Description" Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
-    <MudTextField @bind-Value="@_userProfile.Interests" Label="Interesser" Variant="Variant.Text" InputType="InputType.Text" />
-    <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
-    <!-- Add other fields for LookingFor and ChildProfiles if needed -->
-</MudPaper>
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
+            </MudItem>
+        </MudGrid>
+        <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
 
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
+            </MudItem>
+        </MudGrid>
+        <MudTextField @bind-Value="@_userProfile.Interests" Label="Interesser" Variant="Variant.Text" InputType="InputType.Text" />
+
+        <MudTextField @bind-Value="@_userProfile.Description" Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+
+        <!-- Add other fields for LookingFor and ChildProfiles if needed -->
+
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Class="mt-3"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary">
+            Opdatér
+        </MudButton>
+        <MudIcon Class="@(_updateSucceeded ? "" : "d-none")" Icon="@Icons.Material.Filled.Check"></MudIcon>
+    </MudPaper>
+</EditForm>
 
 @code {
     UserProfileDto? _userProfile;
     string? _userId;
-    bool _failedToGetUser = false;
+    bool _updateSucceeded;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,11 +75,32 @@
         var userProfileDto = await HttpClient.GetFromJsonAsync<UserProfileDto>($"api/profiles/{_userId}");
         if (userProfileDto is null)
         {
-            _failedToGetUser = true;
+
+            Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.", Severity.Warning, options =>
+            {
+                options.CloseAfterNavigation = true;
+                options.VisibleStateDuration = 3000;
+                options.ShowTransitionDuration = 250;
+            });
             return;
         }
         _userProfile = userProfileDto;
     }
 
-    async Task Update() => await HttpClient.PutAsJsonAsync($"api/profiles/{_userId}", _userProfile);
+    async Task Update()
+    {
+        var response = await HttpClient.PutAsJsonAsync($"api/profiles/{_userProfile!.Id}", _userProfile);
+        if (response.IsSuccessStatusCode)
+        {
+            _updateSucceeded = true;
+            return;
+        }
+      Snackbar.Add("Det lykkedes ikke at opdatere dine informationer. Vent et øjeblik før du prøver igen.", Severity.Warning, options =>
+        {
+            options.CloseAfterNavigation = true;
+            options.VisibleStateDuration = 3000;
+            options.ShowTransitionDuration = 250;
+        });
+    }
+
 }
