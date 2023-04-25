@@ -8,7 +8,7 @@ public interface IUserService
 {
     Task<bool> CreateUserAsync(UserInfo newUser);
 
-    Task<ApplicationUser?> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser);
+    Task<bool> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser);
 
     Task<bool> IsLoginValidAsync(UserInfo userInfo);
 
@@ -41,12 +41,12 @@ public class UserService : IUserService
         return identityResult.Succeeded;
     }
 
-    public async Task<ApplicationUser?> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser)
+    public async Task<bool> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser)
     {
         var user = await _userManager.FindByLoginAsync(provider, newUser.ProviderKey);
         if (user is not null)
         {
-            return user;
+            return true;
         }
 
         user = new ApplicationUser { UserName = newUser.Email, Email = newUser.Email, Id = newUser.ProviderKey };
@@ -58,7 +58,7 @@ public class UserService : IUserService
                 newUser.Email,
                 identityResult.Errors);
 
-            return null;
+            return false;
         }
 
         identityResult = await _userManager.AddLoginAsync(
@@ -67,14 +67,14 @@ public class UserService : IUserService
 
         if (identityResult.Succeeded)
         {
-            return user;
+            return true;
         }
 
         _logger.LogWarning("Failed to add Login to User {userName}. Errors: {identityResultErrors}",
             newUser.Email,
             identityResult.Errors);
 
-        return null;
+        return false;
     }
 
     public async Task<bool> IsLoginValidAsync(UserInfo userInfo)
