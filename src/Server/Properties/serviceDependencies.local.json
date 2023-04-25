@@ -1,14 +1,5 @@
 {
   "dependencies": {
-    "mssql1": {
-      "containerPorts": "1433:1433",
-      "secretStore": "LocalSecretsFile",
-      "containerName": "mssql",
-      "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
-      "type": "mssql.container",
-      "connectionId": "ConnectionStrings:JordnaerDbContext",
-      "dynamicId": null
-    },
     "appInsights1": {
       "type": "appInsights.sdk",
       "dynamicId": null
