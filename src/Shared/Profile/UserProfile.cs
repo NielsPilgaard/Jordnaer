@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
@@ -8,6 +9,7 @@ namespace Jordnaer.Shared;
 public class UserProfile
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required string Id { get; set; }
 
     [MaxLength(100)]

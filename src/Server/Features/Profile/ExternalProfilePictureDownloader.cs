@@ -55,6 +55,8 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             new object[] { notification.UserId },
             cancellationToken);
 
+        bool userIsKnown = user is not null;
+
         user ??= new UserProfile { Id = notification.UserId };
 
         string? profilePictureUrl = provider switch
@@ -85,7 +87,16 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
         }
 
         user.ProfilePictureUrl = profilePictureUrl;
-        _context.UserProfiles.Update(user);
+
+        if (userIsKnown)
+        {
+            _context.UserProfiles.Update(user);
+        }
+        else
+        {
+            _context.UserProfiles.Add(user);
+        }
+
 
         await _context.SaveChangesAsync(cancellationToken);
     }
