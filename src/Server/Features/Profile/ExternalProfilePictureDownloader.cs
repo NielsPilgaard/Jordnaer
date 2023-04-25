@@ -4,26 +4,22 @@ using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Server.Features.Profile;
 
 public readonly struct AccessTokenAcquired : INotification
 {
-    public readonly string ApplicationUserId;
-    public readonly string ProviderUserId;
+    public readonly string UserId;
     public readonly string Provider;
     public readonly string AccessToken;
 
-    public AccessTokenAcquired(string applicationUserId, string providerUserId, string provider, string accessToken)
+    public AccessTokenAcquired(string userId, string provider, string accessToken)
     {
-        Debug.Assert(!string.IsNullOrEmpty(applicationUserId));
-        Debug.Assert(!string.IsNullOrEmpty(providerUserId));
+        Debug.Assert(!string.IsNullOrEmpty(userId));
         Debug.Assert(!string.IsNullOrEmpty(provider));
         Debug.Assert(!string.IsNullOrEmpty(accessToken));
 
-        ApplicationUserId = applicationUserId;
-        ProviderUserId = providerUserId;
+        UserId = userId;
         Provider = provider;
         AccessToken = accessToken;
     }
@@ -55,26 +51,26 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             return;
         }
 
-        var user = await _context.UserProfiles.FirstOrDefaultAsync(
-            parent => parent.ApplicationUserId == notification.ApplicationUserId,
+        var user = await _context.UserProfiles.FindAsync(
+            new object[] { notification.UserId },
             cancellationToken);
 
-        user ??= new UserProfile { ApplicationUserId = notification.ApplicationUserId };
+        user ??= new UserProfile { Id = notification.UserId };
 
         string? profilePictureUrl = provider switch
         {
             SupportedAuthProviders.Facebook => await GetFacebookProfilePictureUrlAsync(
-                notification.ProviderUserId,
+                notification.UserId,
                 notification.AccessToken,
                 cancellationToken),
 
             SupportedAuthProviders.Google => await GetGoogleProfilePictureUrlAsync(
-                notification.ProviderUserId,
+                notification.UserId,
                 notification.AccessToken,
                 cancellationToken),
 
             SupportedAuthProviders.Microsoft => await GetMicrosoftProfilePictureUrlAsync(
-                notification.ProviderUserId,
+                notification.UserId,
                 notification.AccessToken,
                 cancellationToken),
 
@@ -83,7 +79,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 
         if (profilePictureUrl is null)
         {
-            _logger.LogWarning("Failed to retrieve the {provider} profile picture for user with id {userId}", provider.ToString(), user.ApplicationUserId);
+            _logger.LogWarning("Failed to retrieve the {provider} profile picture for user with id {userId}", provider.ToString(), user.Id);
 
             return;
         }
