@@ -25,24 +25,33 @@ public static class ProfilesApi
                 var profile = await context
                     .UserProfiles
                     .AsNoTracking()
-                    .Include(userProfile => userProfile.ChildProfiles)
-                    .Include(userProfile => userProfile.LookingFor)
-                    .FirstOrDefaultAsync(userProfile => userProfile.ApplicationUserId == id);
+                    //.Include(userProfile => userProfile.ChildProfiles)
+                    //.Include(userProfile => userProfile.LookingFor)
+                    .FirstOrDefaultAsync(userProfile => userProfile.Id == id);
 
                 return profile is null
                     ? TypedResults.NotFound()
                     : TypedResults.Ok(profile);
             });
         group.MapPut("{id}",
-            async Task<Results<NoContent, NotFound>>
-                ([FromRoute] string id, [FromBody] UserProfileDto userProfileDto, [FromServices] JordnaerDbContext context) =>
+            async Task<Results<NoContent, UnauthorizedHttpResult>>
+                ([FromRoute] string id,
+                [FromBody] UserProfileDto userProfileDto,
+                [FromServices] JordnaerDbContext context,
+                [FromServices] CurrentUser currentUser) =>
             {
-                int updatedRows = await context.UserProfiles.ExecuteUpdateAsync(calls =>
-                    calls.SetProperty(userProfile => userProfile, userProfileDto.Map()));
+                if (currentUser.Id != userProfileDto.Id)
+                {
+                    return TypedResults.Unauthorized();
+                }
 
-                return updatedRows > 0
-                    ? TypedResults.NoContent()
-                    : TypedResults.NotFound();
+                var userProfile = userProfileDto.Map();
+
+                context.UserProfiles.Update(userProfile);
+
+                await context.SaveChangesAsync();
+
+                return TypedResults.NoContent();
             });
         return group;
     }
