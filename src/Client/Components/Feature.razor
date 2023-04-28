@@ -1,19 +1,13 @@
 @using Microsoft.FeatureManagement
-@inject IFeatureManager FeatureManager
+@using Jordnaer.Shared
 
-@if (_featureIsEnabled)
+@if (FeatureFlags.States.TryGetValue(Name, out var featureIsEnabled) && featureIsEnabled)
 {
     @ChildContent
 }
 
 @code
 {
-    bool _featureIsEnabled = false;
-    protected override async Task OnInitializedAsync()
-    {
-        _featureIsEnabled = await FeatureManager.IsEnabledAsync(Name);
-    }
-
     [Parameter]
     public required string Name { get; set; }
 

@@ -35,6 +35,6 @@ builder.Services.AddWasmAuthentication();
 
 builder.Services.AddBlazoredLocalStorage();
 
-builder.Services.AddFeatureManagement();
+builder.Services.AddMemoryCache();
 
 await builder.Build().RunAsync();
