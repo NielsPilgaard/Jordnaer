@@ -23,8 +23,10 @@ public static class DatabaseInitializer
             return;
         }
 
-        context.LookingFor.AddRange(new LookingFor { Name = "Legeaftaler" },
-            new LookingFor { Name = "Legegruppe" },
+        context.LookingFor.AddRange(
+            new LookingFor { Name = "Legeaftaler" },
+            new LookingFor { Name = "Legegrupper/Legestuer" },
+            new LookingFor { Name = "Hjemmepasnings-grupper" },
             new LookingFor { Name = "Hjemmeundervisnings-grupper" },
             new LookingFor { Name = "Mødregrupper" },
             new LookingFor { Name = "Fædregrupper" },
