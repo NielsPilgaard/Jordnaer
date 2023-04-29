@@ -1,5 +1,6 @@
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
+using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Server.Features.Profile;
 using Microsoft.FeatureManagement;
@@ -17,6 +18,8 @@ try
 
     builder.Services.AddApplicationInsightsTelemetry();
     builder.AddSerilog();
+
+    builder.Services.AddProblemDetails();
 
     builder.AddDatabase();
 
@@ -41,6 +44,7 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.UseWebAssemblyDebugging();
+        await app.InitializeDatabaseAsync();
     }
     else
     {
@@ -67,6 +71,7 @@ try
     app.MapAuthentication();
     app.MapUsers();
     app.MapProfiles();
+    app.MapLookingFor();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
