@@ -13,67 +13,73 @@
     return;
 }
 
-<EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
+<EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile" >
 
     <DataAnnotationsValidator />
 
     <MudPaper Elevation="3" Class="pa-4">
-        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
-        <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
-            </MudItem>
-        </MudGrid>
-        <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
 
-        <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
-            </MudItem>
-        </MudGrid>
-        <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
-            </MudItem>
-        </MudGrid>
+      <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
 
-        <MudSelect Dense
-                   T="string"
-                   Label="Interesseret i"
-                   MultiSelection="true"
-                   SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
-                   SelectedValuesChanged="SelectedLookingForChanged">
-            @foreach (var lookingFor in _lookingFor)
-            {
-                <MudSelectItem T="string" Value="lookingFor.Name">@lookingFor</MudSelectItem>
-            }
-        </MudSelect>
+      <MudGrid>
+        <MudItem xs="12" sm="6">
+          <MudTextField @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+          <MudTextField @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
+        </MudItem>
+        <MudItem sm="12">
+          <MudTextField @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
 
-        <MudTextField @bind-Value="@_userProfile.Description" Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+        </MudItem>
 
-        <!-- TODO: Add other fields for LookingFor and ChildProfiles -->
+        <MudItem xs="12" sm="6">
+          <MudTextField @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+          <MudTextField @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
+        </MudItem>
 
-        <MudButton Size="Size.Large"
-                   StartIcon="@Icons.Material.Filled.Save"
-                   Class="mt-3"
-                   ButtonType="ButtonType.Submit"
-                   Variant="Variant.Filled"
-                   Color="Color.Primary">
-            Gem
-        </MudButton>
+        <MudItem xs="12" sm="6">
+          <MudTextField @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+          <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
+        </MudItem>
+
+      </MudGrid>
+
+      <MudSelect Dense
+                 T="string"
+                 Class="pt-6"
+                 Label="Interesseret i"
+                 MultiSelection="true"
+                 SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
+                 SelectedValuesChanged="SelectedLookingForChanged">
+        @foreach (var lookingFor in _lookingFor)
+        {
+          <MudSelectItem T="string" Value="lookingFor.Name">@lookingFor</MudSelectItem>
+        }
+      </MudSelect>
+
+      <MudTextFieldExtended Class="pt-6" AutoSize Lines="2" Immediate @bind-Value="@_userProfile.Description" Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+
+      <!-- TODO: Add fields for ChildProfiles -->
+
     </MudPaper>
+    
+    <MudButton Size="Size.Large"
+               StartIcon="@Icons.Material.Filled.Save"
+               Class="my-6"
+               ButtonType="ButtonType.Submit"
+               Variant="Variant.Filled"
+               FullWidth
+               Color="Color.Primary">
+      Gem
+    </MudButton>
 </EditForm>
 
-@code {
+        @code {
     private UserProfileDto? _userProfile;
     private string? _userId;
     private IEnumerable<LookingFor> _lookingFor = Enumerable.Empty<LookingFor>();
@@ -84,6 +90,7 @@
         options.VisibleStateDuration = 3000;
         options.ShowTransitionDuration = 250;
     };
+
 
     protected override async Task OnInitializedAsync()
     {
