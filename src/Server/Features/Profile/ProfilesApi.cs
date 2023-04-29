@@ -25,14 +25,16 @@ public static class ProfilesApi
                 var profile = await context
                     .UserProfiles
                     .AsNoTracking()
-                    //.Include(userProfile => userProfile.ChildProfiles)
-                    //.Include(userProfile => userProfile.LookingFor)
+                    .AsSplitQuery()
+                    .Include(userProfile => userProfile.ChildProfiles)
+                    .Include(userProfile => userProfile.LookingFor)
                     .FirstOrDefaultAsync(userProfile => userProfile.Id == id);
 
                 return profile is null
                     ? TypedResults.NotFound()
                     : TypedResults.Ok(profile);
             });
+
         group.MapPut("{id}",
             async Task<Results<NoContent, UnauthorizedHttpResult>>
                 ([FromRoute] string id,
@@ -47,9 +49,23 @@ public static class ProfilesApi
 
                 var userProfile = userProfileDto.Map();
 
-                context.UserProfiles.Update(userProfile);
+                var transaction = await context.Database.BeginTransactionAsync();
 
-                await context.SaveChangesAsync();
+                try
+                {
+                    await context.UserProfileLookingFor
+                        .Where(userProfileLookingFor => userProfileLookingFor.UserProfileId == userProfile.Id)
+                        .ExecuteDeleteAsync();
+
+                    context.UserProfiles.Update(userProfile);
+
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                }
 
                 return TypedResults.NoContent();
             });
