@@ -3,9 +3,9 @@ using Jordnaer.Client;
 using Jordnaer.Client.Authentication;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.FeatureManagement;
 using MudBlazor;
 using MudBlazor.Services;
+using MudExtensions.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -30,6 +30,7 @@ builder.Services.AddMudServices(configuration => configuration.SnackbarConfigura
     HideTransitionDuration = 100,
     ShowCloseIcon = false
 });
+builder.Services.AddMudExtensions();
 
 builder.Services.AddWasmAuthentication();
 
