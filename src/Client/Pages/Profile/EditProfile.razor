@@ -1,8 +1,10 @@
 @page "/profile"
 @using Jordnaer.Shared
+@using Microsoft.Extensions.Caching.Memory
 @inject HttpClient HttpClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
+@inject IMemoryCache Cache
 @attribute [Authorize]
 
 @if (_userProfile is null || _userId is null)
@@ -11,7 +13,7 @@
     return;
 }
 
-<EditForm Model="@_userProfile" OnValidSubmit="Update">
+<EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
 
     <DataAnnotationsValidator />
 
@@ -43,11 +45,22 @@
                 <MudDatePicker @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
             </MudItem>
         </MudGrid>
-        <MudTextField @bind-Value="@_userProfile.Interests" Label="Interesser" Variant="Variant.Text" InputType="InputType.Text" />
+
+        <MudSelect Dense
+                   T="string"
+                   Label="Interesseret i"
+                   MultiSelection="true"
+                   SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
+                   SelectedValuesChanged="SelectedLookingForChanged">
+            @foreach (var lookingFor in _lookingFor)
+            {
+                <MudSelectItem T="string" Value="lookingFor.Name">@lookingFor</MudSelectItem>
+            }
+        </MudSelect>
 
         <MudTextField @bind-Value="@_userProfile.Description" Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
 
-        <!-- Add other fields for LookingFor and ChildProfiles if needed -->
+        <!-- TODO: Add other fields for LookingFor and ChildProfiles -->
 
         <MudButton Size="Size.Large"
                    StartIcon="@Icons.Material.Filled.Save"
@@ -55,16 +68,22 @@
                    ButtonType="ButtonType.Submit"
                    Variant="Variant.Filled"
                    Color="Color.Primary">
-            Opdatér
+            Gem
         </MudButton>
-        <MudIcon Class="@(_updateSucceeded ? "" : "d-none")" Icon="@Icons.Material.Filled.Check"></MudIcon>
     </MudPaper>
 </EditForm>
 
 @code {
-    UserProfileDto? _userProfile;
-    string? _userId;
-    bool _updateSucceeded;
+    private UserProfileDto? _userProfile;
+    private string? _userId;
+    private IEnumerable<LookingFor> _lookingFor = Enumerable.Empty<LookingFor>();
+
+    private readonly Action<SnackbarOptions> _snackbarOptions = options =>
+    {
+        options.CloseAfterNavigation = true;
+        options.VisibleStateDuration = 3000;
+        options.ShowTransitionDuration = 250;
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,31 +95,42 @@
         if (userProfileDto is null)
         {
 
-            Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.", Severity.Warning, options =>
-            {
-                options.CloseAfterNavigation = true;
-                options.VisibleStateDuration = 3000;
-                options.ShowTransitionDuration = 250;
-            });
+            Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.",
+              Severity.Warning, _snackbarOptions);
             return;
         }
+
+        await GetLookingFor();
+
         _userProfile = userProfileDto;
     }
 
-    async Task Update()
+    private async Task GetLookingFor()
+    {
+        var result = await HttpClient.GetFromJsonAsync<List<LookingFor>>("api/looking-for");
+        if (result is null)
+        {
+            Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.",
+              Severity.Warning, _snackbarOptions);
+            return;
+        }
+        _lookingFor = result;
+    }
+
+    private async Task UpdateUserProfile()
     {
         var response = await HttpClient.PutAsJsonAsync($"api/profiles/{_userProfile!.Id}", _userProfile);
         if (response.IsSuccessStatusCode)
         {
-            _updateSucceeded = true;
+            Snackbar.Add("Dine oplysninger er blevet gemt.", Severity.Success, _snackbarOptions);
             return;
         }
-      Snackbar.Add("Det lykkedes ikke at opdatere dine informationer. Vent et øjeblik før du prøver igen.", Severity.Warning, options =>
-        {
-            options.CloseAfterNavigation = true;
-            options.VisibleStateDuration = 3000;
-            options.ShowTransitionDuration = 250;
-        });
+        Snackbar.Add("Det lykkedes ikke at opdatere dine informationer. Vent et øjeblik før du prøver igen.", Severity.Warning, _snackbarOptions);
+    }
+
+    private void SelectedLookingForChanged(IEnumerable<string> lookingFor)
+    {
+        _userProfile!.LookingFor = _lookingFor.Where(e => lookingFor.Contains(e.Name)).ToList();
     }
 
 }
