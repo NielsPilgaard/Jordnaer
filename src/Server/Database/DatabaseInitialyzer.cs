@@ -23,19 +23,16 @@ public static class DatabaseInitializer
             return;
         }
 
-        context.LookingFor.AddRange(new[]
-        {
-            new LookingFor {Name = "Legeaftaler"},
-            new LookingFor {Name = "Hjemmeundervisnings-grupper"},
-            new LookingFor {Name = "Legeplads ture"},
-            new LookingFor {Name = "Mødregrupper"},
-            new LookingFor {Name = "Fædregrupper"},
-            new LookingFor {Name = "Forældre støttegrupper"},
-            new LookingFor {Name = "Sportsaktiviteter"},
-            new LookingFor {Name = "Kunst og håndværksværksaktiviteter"},
-            new LookingFor {Name = "Musik og danseaktiviteter"},
-            new LookingFor {Name = "Uddannelsesaktiviteter"}
-        });
+        context.LookingFor.AddRange(new LookingFor { Name = "Legeaftaler" },
+            new LookingFor { Name = "Legegruppe" },
+            new LookingFor { Name = "Hjemmeundervisnings-grupper" },
+            new LookingFor { Name = "Mødregrupper" },
+            new LookingFor { Name = "Fædregrupper" },
+            new LookingFor { Name = "Forældre støttegrupper" },
+            new LookingFor { Name = "Sportsaktiviteter" },
+            new LookingFor { Name = "Kunst og håndværksværksaktiviteter" },
+            new LookingFor { Name = "Musik og danseaktiviteter" },
+            new LookingFor { Name = "Uddannelsesaktiviteter" });
 
         await context.SaveChangesAsync();
     }
