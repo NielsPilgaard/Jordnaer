@@ -33,9 +33,6 @@ public class UserProfile
     [MaxLength(2000)]
     public string? Description { get; set; }
 
-    [MaxLength(2000)]
-    public string? Interests { get; set; }
-
     public List<LookingFor> LookingFor { get; set; } = new();
 
     public List<ChildProfile> ChildProfiles { get; set; } = new();
