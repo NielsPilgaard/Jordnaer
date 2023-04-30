@@ -51,6 +51,21 @@ namespace Jordnaer.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LookingFor",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LookingFor", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserProfiles",
                 columns: table => new
                 {
@@ -62,9 +77,9 @@ namespace Jordnaer.Server.Migrations
                     ZipCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                    Interests = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ProfilePictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
@@ -194,8 +209,9 @@ namespace Jordnaer.Server.Migrations
                     LastName = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     Gender = table.Column<int>(type: "int", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Interests = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
-                    PictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    PictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,23 +225,27 @@ namespace Jordnaer.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LookingFor",
+                name: "UserProfileLookingFor",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LookingForId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LookingFor", x => x.Id);
+                    table.PrimaryKey("PK_UserProfileLookingFor", x => new { x.LookingForId, x.UserProfileId });
                     table.ForeignKey(
-                        name: "FK_LookingFor_UserProfiles_UserProfileId",
+                        name: "FK_UserProfileLookingFor_LookingFor_LookingForId",
+                        column: x => x.LookingForId,
+                        principalTable: "LookingFor",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserProfileLookingFor_UserProfiles_UserProfileId",
                         column: x => x.UserProfileId,
                         principalTable: "UserProfiles",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -273,8 +293,8 @@ namespace Jordnaer.Server.Migrations
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LookingFor_UserProfileId",
-                table: "LookingFor",
+                name: "IX_UserProfileLookingFor_UserProfileId",
+                table: "UserProfileLookingFor",
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
@@ -315,13 +335,16 @@ namespace Jordnaer.Server.Migrations
                 name: "ChildProfiles");
 
             migrationBuilder.DropTable(
-                name: "LookingFor");
+                name: "UserProfileLookingFor");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "LookingFor");
 
             migrationBuilder.DropTable(
                 name: "UserProfiles");

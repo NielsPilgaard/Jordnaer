@@ -181,10 +181,6 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Interests")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
                     b.Property<string>("LastName")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
