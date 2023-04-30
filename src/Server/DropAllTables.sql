@@ -6,6 +6,7 @@ DROP TABLE AspNetUserRoles
 DROP TABLE AspNetUsers
 DROP TABLE AspNetUserTokens
 DROP TABLE ChildProfiles
+DROP TABLE UserProfileLookingFor
 DROP TABLE UserProfiles
 DROP TABLE LookingFor
 DROP TABLE AspNetRoles
