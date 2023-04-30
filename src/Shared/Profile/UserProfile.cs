@@ -47,4 +47,6 @@ public class UserProfile
     public string? ProfilePictureUrl { get; set; }
 
     public int? GetAge() => DateOfBirth.GetAge();
+
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 }

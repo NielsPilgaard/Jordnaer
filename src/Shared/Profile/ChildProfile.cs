@@ -12,7 +12,7 @@ public class ChildProfile
     [ForeignKey(nameof(UserProfile))]
     public required string UserProfileId { get; set; }
 
-    public virtual UserProfile UserProfile { get; set; } = default!;
+    public UserProfile UserProfile { get; set; } = default!;
 
     [Required]
     [MaxLength(100)]
@@ -26,10 +26,12 @@ public class ChildProfile
 
     public DateTime DateOfBirth { get; set; }
 
-    [MaxLength(4000)]
-    public string? Interests { get; set; }
+    [MaxLength(2000)]
+    public string? Description { get; set; }
 
     public string? PictureUrl { get; set; }
 
     public int GetAge() => DateOfBirth.GetAge();
+
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 }

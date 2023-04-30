@@ -13,5 +13,7 @@ public class LookingFor
 
     public string? Description { get; set; }
 
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+
     public override string ToString() => Name;
 }

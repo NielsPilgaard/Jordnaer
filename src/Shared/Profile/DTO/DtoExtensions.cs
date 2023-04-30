@@ -13,7 +13,6 @@ public static class DtoExtensions
             City = dto.City,
             DateOfBirth = dto.DateOfBirth,
             Description = dto.Description,
-            Interests = dto.Interests,
             LookingFor = dto.LookingFor,
             PhoneNumber = dto.PhoneNumber,
             ZipCode = dto.ZipCode,
