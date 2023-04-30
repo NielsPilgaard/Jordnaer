@@ -1,0 +1,33 @@
+
+
+<MudDynamicTabs @ref="@_dynamicTabs" @bind-ActivePanelIndex="@_activePanelIndex"
+                AddTab="@AddTabCallback"
+                AddIconToolTip="Klik for at oprette et barn"
+                PanelClass="px-4 py-6"
+                Elevation="4"
+                    Rounded
+                    ApplyEffectsToContainer>
+    @foreach (var childProfile in Parent.ChildProfiles)
+    {
+        <MudTabPanel ID="@childProfile.Id" Text="@childProfile.FirstName"><EditChildProfile Parent="Parent" ChildProfile="childProfile" /></MudTabPanel>
+    }
+</MudDynamicTabs>
+
+@code
+{
+    [Parameter]
+    public required UserProfileDto Parent { get; set; }
+    private MudDynamicTabs _dynamicTabs = null!;
+    private int _activePanelIndex = 1;
+
+    public void AddTab(Guid id)
+    {
+        Parent.ChildProfiles.Add(new ChildProfile { Id = id, UserProfileId = Parent.Id, Gender = Gender.PreferNotToSay, FirstName = "" });
+
+        _activePanelIndex = Parent.ChildProfiles.Count - 1; // Automatically switch to the new tab.
+
+        StateHasChanged();
+    }
+
+    void AddTabCallback() => AddTab(Guid.NewGuid());
+}
