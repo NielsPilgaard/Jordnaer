@@ -1,11 +1,8 @@
 @page "/profile"
-@using Jordnaer.Shared
-@using Microsoft.Extensions.Caching.Memory
 @using MudExtensions.Enums
 @inject HttpClient HttpClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
-@inject IMemoryCache Cache
 @attribute [Authorize]
 
 @if (_userProfile is null || _userId is null)
@@ -20,8 +17,8 @@
 
     <MudPaper Elevation="3" Class="pa-4">
 
-        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" />
-
+        @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
+        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@(_userProfile.ProfilePictureUrl?? "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp")" Alt="@($"Billede af {_userProfile.FirstName}")" />
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
@@ -29,23 +26,20 @@
             <MudItem xs="12" sm="6">
                 <MudTextField For="() => _userProfile.LastName" @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
             </MudItem>
-            <MudItem sm="12">
-                <MudTextField For="() => _userProfile.Address" @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
-
-            </MudItem>
-
+            @*<MudItem xs="12" sm="12">
+            <MudTextField For="() => _userProfile.Address" @bind-Value="@_userProfile.Address" Label="Adresse" Variant="Variant.Text" InputType="InputType.Text" name="address" />
+            </MudItem>*@
             <MudItem xs="12" sm="6">
                 <MudTextField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
             </MudItem>
-
+            @*<MudItem xs="12" sm="6">
+            <MudTextField For="() => _userProfile.PhoneNumber" @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
+            </MudItem>*@
             <MudItem xs="12" sm="6">
-                <MudTextField For="() => _userProfile.PhoneNumber" @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudDatePicker For="() => _userProfile.DateOfBirth" @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
+                <MudDatePicker For="() => _userProfile.DateOfBirth" AnchorOrigin="Origin.BottomLeft" @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
             </MudItem>
 
         </MudGrid>
@@ -61,24 +55,20 @@
                            SelectedValuesChanged="SelectedLookingForChanged">
         </MudSelectExtended>
 
-        <MudTextFieldExtended For="() => _userProfile.Description" Class="pt-6" AutoSize Lines="2" Immediate @bind-Value="@_userProfile.Description" Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+        <MudTextFieldExtended For="() => _userProfile.Description" Class="pt-6" AutoSize Lines="3" Immediate @bind-Value="@_userProfile.Description" Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
 
-        <!-- TODO: Add fields for ChildProfiles -->
 
     </MudPaper>
 
-    <MudButton Size="Size.Large"
-               StartIcon="@Icons.Material.Filled.Save"
-               Class="my-6"
-               ButtonType="ButtonType.Submit"
-               Variant="Variant.Filled"
-               FullWidth
-               Color="Color.Primary">
-        Gem
-    </MudButton>
-    </EditForm>
+    <SubmitButton />
 
-    @code {
+    <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
+
+    <SubmitButton />
+
+</EditForm>
+
+@code {
     private UserProfileDto? _userProfile;
     private string? _userId;
     private IEnumerable<LookingFor> _lookingFor = Enumerable.Empty<LookingFor>();
@@ -138,5 +128,4 @@
     {
         _userProfile!.LookingFor = _lookingFor.Where(e => lookingFor.Contains(e.Name)).ToList();
     }
-
 }

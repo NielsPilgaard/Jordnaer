@@ -25,7 +25,7 @@ public static class ProfilesApi
                 var profile = await context
                     .UserProfiles
                     .AsNoTracking()
-                    .AsSplitQuery()
+                    .AsSingleQuery()
                     .Include(userProfile => userProfile.ChildProfiles)
                     .Include(userProfile => userProfile.LookingFor)
                     .FirstOrDefaultAsync(userProfile => userProfile.Id == id);
@@ -47,28 +47,92 @@ public static class ProfilesApi
                     return TypedResults.Unauthorized();
                 }
 
-                var userProfile = userProfileDto.Map();
+                var userProfile = await context.UserProfiles
+                    .AsSingleQuery()
+                    .Include(user => user.LookingFor)
+                    .Include(user => user.ChildProfiles)
+                    .FirstOrDefaultAsync(user => user.Id == id);
 
-                var transaction = await context.Database.BeginTransactionAsync();
-
-                try
+                if (userProfile is null)
                 {
-                    await context.UserProfileLookingFor
-                        .Where(userProfileLookingFor => userProfileLookingFor.UserProfileId == userProfile.Id)
-                        .ExecuteDeleteAsync();
-
-                    context.UserProfiles.Update(userProfile);
-
-                    await context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    userProfile = userProfileDto.Map();
+                    context.UserProfiles.Add(userProfile);
                 }
-                catch (Exception)
+                else
                 {
-                    await transaction.RollbackAsync();
+                    await userProfile.LoadValuesFromAsync(userProfileDto, context);
+                    context.Entry(userProfile).State = EntityState.Modified;
                 }
+
+                await context.SaveChangesAsync();
 
                 return TypedResults.NoContent();
             });
         return group;
+    }
+
+    public static void LoadValuesFrom(this ChildProfile mapInto, ChildProfile mapFrom)
+    {
+        mapInto.CreatedUtc = mapFrom.CreatedUtc;
+        mapInto.Description = mapFrom.Description;
+        mapInto.DateOfBirth = mapFrom.DateOfBirth;
+        mapInto.FirstName = mapFrom.FirstName;
+        mapInto.LastName = mapFrom.LastName;
+        mapInto.Gender = mapFrom.Gender;
+        mapInto.PictureUrl = mapFrom.PictureUrl;
+        mapInto.Id = mapFrom.Id;
+    }
+    public static void LoadValuesFrom(this LookingFor mapInto, LookingFor mapFrom)
+    {
+        mapInto.CreatedUtc = mapFrom.CreatedUtc;
+        mapInto.Description = mapFrom.Description;
+        mapInto.Name = mapFrom.Name;
+        mapInto.Id = mapFrom.Id;
+    }
+    public static async Task LoadValuesFromAsync(this UserProfile userProfile, UserProfileDto dto, JordnaerDbContext context)
+    {
+        userProfile.FirstName = dto.FirstName;
+        userProfile.LastName = dto.LastName;
+        userProfile.Address = dto.Address;
+        userProfile.City = dto.City;
+        userProfile.ZipCode = dto.ZipCode;
+        userProfile.DateOfBirth = dto.DateOfBirth;
+        userProfile.Description = dto.Description;
+        userProfile.PhoneNumber = dto.PhoneNumber;
+        userProfile.ProfilePictureUrl = dto.ProfilePictureUrl;
+
+        userProfile.LookingFor.Clear();
+        foreach (var lookingForDto in dto.LookingFor)
+        {
+            var lookingFor = await context.LookingFor.FindAsync(lookingForDto.Id);
+            if (lookingFor is null)
+            {
+                userProfile.LookingFor.Add(lookingForDto);
+                context.Entry(lookingForDto).State = EntityState.Added;
+            }
+            else
+            {
+                lookingFor.LoadValuesFrom(lookingForDto);
+                userProfile.LookingFor.Add(lookingFor);
+                context.Entry(lookingFor).State = EntityState.Modified;
+            }
+        }
+
+        userProfile.ChildProfiles.Clear();
+        foreach (var childProfileDto in dto.ChildProfiles)
+        {
+            var childProfile = await context.ChildProfiles.FindAsync(childProfileDto.Id);
+            if (childProfile is null)
+            {
+                userProfile.ChildProfiles.Add(childProfileDto);
+                context.Entry(childProfileDto).State = EntityState.Added;
+            }
+            else
+            {
+                childProfile.LoadValuesFrom(childProfileDto);
+                userProfile.ChildProfiles.Add(childProfile);
+                context.Entry(childProfile).State = EntityState.Modified;
+            }
+        }
     }
 }

@@ -9,7 +9,7 @@ public class ChildProfile
     public Guid Id { get; set; }
 
     [ForeignKey(nameof(UserProfile))]
-    public required string UserProfileId { get; set; }
+    public string UserProfileId { get; set; } = null!;
 
     [Required]
     [MaxLength(100)]

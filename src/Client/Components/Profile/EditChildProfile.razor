@@ -1,28 +1,29 @@
-<MudPaper Elevation="3" Class="pa-4">
 
-    <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@ChildProfile.PictureUrl" />
-
-    <MudGrid>
+@*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
+      <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@(ChildProfile.PictureUrl ?? "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp")" Alt="@($"Picture of {ChildProfile.FirstName}")" />
+      @*TODO: Delete Button*@
+      <MudGrid>
         <MudItem xs="12" sm="6">
             <MudTextField For="() => ChildProfile.FirstName" @bind-Value="@ChildProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
         </MudItem>
         <MudItem xs="12" sm="6">
             <MudTextField For="() => ChildProfile.LastName" @bind-Value="@ChildProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
         </MudItem>
-        <MudItem sm="12">
-            <MudTextField For="() => ChildProfile.Gender" @bind-Value="@ChildProfile.Gender" Label="Køn" Variant="Variant.Text" InputType="InputType.Text" name="gender" />
-        </MudItem>
         <MudItem xs="12" sm="6">
-            <MudDatePicker @bind-Date="@ChildProfile.DateOfBirth" Label="Fødselsdato" />
+          <MudSelect For="() => ChildProfile.Gender" T="Gender" @bind-Value="ChildProfile.Gender" Label="Køn" Variant="Variant.Text" name="gender">
+            @foreach (var gender in Enum.GetValues<Gender>())
+            {
+              <MudSelectItem T="Gender" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+            }
+          </MudSelect>
+            
         </MudItem>
-    </MudGrid>
-
-    <MudTextFieldExtended For="() => ChildProfile.Description" Class="pt-6" AutoSize Lines="2" Immediate @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
-
-</MudPaper>
-
-
-@code {
+      <MudItem xs="12" sm="6">
+        <MudDatePicker  @bind-Date="@ChildProfile.DateOfBirth" AnchorOrigin="Origin.BottomLeft" For="@(()=>ChildProfile.DateOfBirth)" Label="Fødselsdato" />
+      </MudItem>
+      </MudGrid>
+    <MudTextFieldExtended For="() => ChildProfile.Description" Class="pt-6" AutoSize Lines="3" Immediate @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+    @code {
     [Parameter]
     public required UserProfileDto Parent { get; set; }
 

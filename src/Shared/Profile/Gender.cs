@@ -4,18 +4,18 @@ namespace Jordnaer.Shared;
 
 public enum Gender
 {
-    [Display(Name = "Han")]
-    Male = 0,
+    [Display(Name = "Foretrækker ikke at sige")]
+    PreferNotToSay = 0,
 
     [Display(Name = "Hun")]
     Female = 1,
 
+    [Display(Name = "Han")]
+    Male = 2,
+
     [Display(Name = "Ikke-binær")]
-    NonBinary = 2,
+    NonBinary = 3,
 
     [Display(Name = "Andet")]
-    Other = 3,
-
-    [Display(Name = "Foretrækker ikke at sige")]
-    PreferNotToSay = 4
+    Other = 4,
 }
