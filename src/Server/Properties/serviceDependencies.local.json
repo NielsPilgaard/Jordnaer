@@ -7,6 +7,14 @@
     "identityapp1": {
       "ignored": "true",
       "type": "identityapp"
+    },
+    "mssql1": {
+      "containerPorts": "1433:1433",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "mssql",
+      "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
+      "type": "mssql.container",
+      "connectionId": "ConnectionStrings:JordnaerDbContext"
     }
   }
 }

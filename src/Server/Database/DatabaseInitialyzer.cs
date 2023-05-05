@@ -11,6 +11,8 @@ public static class SeedDatabase
 
         var context = scope.ServiceProvider.GetRequiredService<JordnaerDbContext>();
 
+        await context.Database.MigrateAsync();
+
         await context.InsertLookingForDataAsync();
     }
 
@@ -26,13 +28,15 @@ public static class SeedDatabase
             new LookingFor { Name = "Legegrupper/Legestuer" },
             new LookingFor { Name = "Hjemmepasnings-grupper" },
             new LookingFor { Name = "Hjemmeundervisnings-grupper" },
+            new LookingFor { Name = "Privat Dagpleje" },
             new LookingFor { Name = "Mødregrupper" },
             new LookingFor { Name = "Fædregrupper" },
-            new LookingFor { Name = "Forældre støttegrupper" },
+            new LookingFor { Name = "Forældregrupper" },
             new LookingFor { Name = "Sportsaktiviteter" },
             new LookingFor { Name = "Kunst og håndværksværksaktiviteter" },
             new LookingFor { Name = "Musik og danseaktiviteter" },
-            new LookingFor { Name = "Uddannelsesaktiviteter" });
+            new LookingFor { Name = "Uddannelsesaktiviteter" },
+            new LookingFor { Name = "Andet" });
 
         await context.SaveChangesAsync();
     }

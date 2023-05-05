@@ -1,8 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
+[Index(nameof(DateOfBirth))]
+[Index(nameof(Gender))]
 public class ChildProfile
 {
     [Key]

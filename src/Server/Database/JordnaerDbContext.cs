@@ -10,6 +10,7 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ChildProfile> ChildProfiles { get; set; } = default!;
     public DbSet<LookingFor> LookingFor { get; set; } = default!;
     public DbSet<UserProfileLookingFor> UserProfileLookingFor { get; set; } = default!;
+    public DbSet<UserContact> UserContacts { get; set; } = default!;
 
     //TODO
     //public DbSet<Group> Groups { get; set; } = default!;
@@ -20,9 +21,22 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserProfile>()
-            .HasMany(e => e.LookingFor)
+            .HasMany(userProfile => userProfile.LookingFor)
             .WithMany()
             .UsingEntity<UserProfileLookingFor>();
+
+        modelBuilder.Entity<UserProfile>()
+            .HasMany(userProfile => userProfile.Contacts)
+            .WithMany()
+            .UsingEntity<UserContact>(
+                builder => builder
+                    .HasOne<UserProfile>()
+                    .WithMany()
+                    .HasForeignKey(userContact => userContact.UserProfileId),
+                builder => builder
+                    .HasOne<UserProfile>()
+                    .WithMany()
+                    .HasForeignKey(userContact => userContact.ContactId));
 
         base.OnModelCreating(modelBuilder);
     }
