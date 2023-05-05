@@ -29,7 +29,7 @@ public class ChildProfile
     [MaxLength(2000)]
     public string? Description { get; set; }
 
-    public string? PictureUrl { get; set; }
+    public string PictureUrl { get; set; } = ProfileConstants.DEFAULT_PROFILE_PICTURE;
 
     public int? GetAge() => DateOfBirth.GetAge();
 
