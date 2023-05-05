@@ -16,10 +16,10 @@
 @code
 {
     [Parameter]
-    public required UserProfileDto Parent { get; set; }
+    public required UserProfile Parent { get; set; }
 
     [Parameter]
-    public EventCallback<UserProfileDto> ParentChanged { get; set; }
+    public EventCallback<UserProfile> ParentChanged { get; set; }
 
   private int _activePanelIndex = 0;
 

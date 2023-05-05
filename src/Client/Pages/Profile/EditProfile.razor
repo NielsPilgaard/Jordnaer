@@ -69,7 +69,7 @@
 </EditForm>
 
 @code {
-    private UserProfileDto? _userProfile;
+    private UserProfile? _userProfile;
     private string? _userId;
     private IEnumerable<LookingFor> _lookingFor = Enumerable.Empty<LookingFor>();
 
@@ -87,8 +87,8 @@
 
         _userId = authenticationState.User.GetId();
 
-        var userProfileDto = await HttpClient.GetFromJsonAsync<UserProfileDto>($"api/profiles/{_userId}");
-        if (userProfileDto is null)
+        var userProfile = await HttpClient.GetFromJsonAsync<UserProfile>($"api/profiles/{_userId}");
+        if (userProfile is null)
         {
 
             Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.",
@@ -98,7 +98,7 @@
 
         await GetLookingFor();
 
-        _userProfile = userProfileDto;
+        _userProfile = userProfile;
     }
 
     private async Task GetLookingFor()

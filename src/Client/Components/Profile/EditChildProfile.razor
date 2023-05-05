@@ -23,9 +23,9 @@
       </MudItem>
       </MudGrid>
     <MudTextFieldExtended For="() => ChildProfile.Description" Class="pt-6" AutoSize Lines="3" Immediate @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
-    @code {
+@code {
     [Parameter]
-    public required UserProfileDto Parent { get; set; }
+    public required UserProfile Parent { get; set; }
 
     [Parameter]
     public required ChildProfile ChildProfile { get; set; }

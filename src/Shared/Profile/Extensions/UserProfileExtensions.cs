@@ -1,8 +1,8 @@
 namespace Jordnaer.Shared;
 
-public static class DtoExtensions
+public static class UserProfileExtensions
 {
-    public static UserProfile Map(this UserProfileDto dto)
+    public static UserProfile Map(this UserProfile dto)
         => new()
         {
             Id = dto.Id,
@@ -16,6 +16,8 @@ public static class DtoExtensions
             LookingFor = dto.LookingFor,
             PhoneNumber = dto.PhoneNumber,
             ZipCode = dto.ZipCode,
-            ProfilePictureUrl = dto.ProfilePictureUrl
+            ProfilePictureUrl = dto.ProfilePictureUrl,
+            Contacts = dto.Contacts,
+            CreatedUtc = dto.CreatedUtc
         };
 }

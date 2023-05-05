@@ -38,7 +38,7 @@ public static class ProfilesApi
         group.MapPut("{id}",
             async Task<Results<NoContent, UnauthorizedHttpResult>>
                 ([FromRoute] string id,
-                [FromBody] UserProfileDto userProfileDto,
+                [FromBody] UserProfile userProfileDto,
                 [FromServices] JordnaerDbContext context,
                 [FromServices] CurrentUser currentUser) =>
             {
@@ -89,7 +89,7 @@ public static class ProfilesApi
         mapInto.Name = mapFrom.Name;
         mapInto.Id = mapFrom.Id;
     }
-    public static async Task LoadValuesFromAsync(this UserProfile userProfile, UserProfileDto dto, JordnaerDbContext context)
+    public static async Task LoadValuesFromAsync(this UserProfile userProfile, UserProfile dto, JordnaerDbContext context)
     {
         userProfile.FirstName = dto.FirstName;
         userProfile.LastName = dto.LastName;
