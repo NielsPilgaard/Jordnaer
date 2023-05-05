@@ -363,3 +363,34 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
+BEGIN
+    DROP INDEX [IX_UserProfiles_FirstName_LastName] ON [UserProfiles];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [UserName] nvarchar(100) NULL;
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
+BEGIN
+    CREATE INDEX [IX_UserProfiles_UserName] ON [UserProfiles] ([UserName]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230505190358_AddUserName', N'7.0.5');
+END;
+GO
+
+COMMIT;
+GO
+

@@ -1,11 +1,10 @@
 @page "/profile"
 @using MudExtensions.Enums
 @inject HttpClient HttpClient
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
-@if (_userProfile is null || _userId is null)
+@if (_userProfile is null)
 {
     <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
     return;
@@ -39,6 +38,9 @@
             <MudTextField For="() => _userProfile.PhoneNumber" @bind-Value="@_userProfile.PhoneNumber" Label="Telefon Nr." Variant="Variant.Text" InputType="InputType.Telephone" />
             </MudItem>*@
             <MudItem xs="12" sm="6">
+              <MudTextField Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" name="username" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
                 <MudDatePicker For="() => _userProfile.DateOfBirth" AnchorOrigin="Origin.BottomLeft" @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" />
             </MudItem>
 
@@ -70,7 +72,6 @@
 
 @code {
     private UserProfile? _userProfile;
-    private string? _userId;
     private IEnumerable<LookingFor> _lookingFor = Enumerable.Empty<LookingFor>();
 
     private readonly Action<SnackbarOptions> _snackbarOptions = options =>
@@ -83,11 +84,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-
-        _userId = authenticationState.User.GetId();
-
-        var userProfile = await HttpClient.GetFromJsonAsync<UserProfile>($"api/profiles/{_userId}");
+        var userProfile = await HttpClient.GetFromJsonAsync<UserProfile>("api/profiles");
         if (userProfile is null)
         {
 
@@ -115,7 +112,7 @@
 
     private async Task UpdateUserProfile()
     {
-        var response = await HttpClient.PutAsJsonAsync($"api/profiles/{_userProfile!.Id}", _userProfile);
+        var response = await HttpClient.PutAsJsonAsync("api/profiles", _userProfile);
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("Dine oplysninger er blevet gemt.", Severity.Success, _snackbarOptions);
