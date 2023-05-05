@@ -18,9 +18,9 @@ public static class ProfilesApi
 
         group.RequirePerUserRateLimit();
 
-        group.MapGet("{id}",
-            async Task<Results<Ok<UserProfile>, NotFound>>
-                ([FromRoute] string id, [FromServices] JordnaerDbContext context) =>
+        group.MapGet("{userName}",
+            async Task<Results<Ok<ProfileDto>, NotFound>>
+                ([FromRoute] string userName, [FromServices] JordnaerDbContext context) =>
             {
                 var profile = await context
                     .UserProfiles
@@ -28,17 +28,35 @@ public static class ProfilesApi
                     .AsSingleQuery()
                     .Include(userProfile => userProfile.ChildProfiles)
                     .Include(userProfile => userProfile.LookingFor)
-                    .FirstOrDefaultAsync(userProfile => userProfile.Id == id);
+                    .Where(userProfile => userProfile.UserName == userName)
+                    .Select(userProfile => userProfile.ToProfileDto())
+                    .FirstOrDefaultAsync();
 
                 return profile is null
                     ? TypedResults.NotFound()
                     : TypedResults.Ok(profile);
             });
 
-        group.MapPut("{id}",
+        group.MapGet("",
+            async Task<Results<Ok<UserProfile>, NotFound>>
+                ([FromServices] CurrentUser currentUser, [FromServices] JordnaerDbContext context) =>
+            {
+                var profile = await context
+                    .UserProfiles
+                    .AsNoTracking()
+                    .AsSingleQuery()
+                    .Include(userProfile => userProfile.ChildProfiles)
+                    .Include(userProfile => userProfile.LookingFor)
+                    .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id);
+
+                return profile is null
+                    ? TypedResults.NotFound()
+                    : TypedResults.Ok(profile);
+            });
+
+        group.MapPut("",
             async Task<Results<NoContent, UnauthorizedHttpResult>>
-                ([FromRoute] string id,
-                [FromBody] UserProfile userProfileDto,
+                ([FromBody] UserProfile userProfileDto,
                 [FromServices] JordnaerDbContext context,
                 [FromServices] CurrentUser currentUser) =>
             {
@@ -51,7 +69,7 @@ public static class ProfilesApi
                     .AsSingleQuery()
                     .Include(user => user.LookingFor)
                     .Include(user => user.ChildProfiles)
-                    .FirstOrDefaultAsync(user => user.Id == id);
+                    .FirstOrDefaultAsync(user => user.Id == currentUser.Id);
 
                 if (userProfile is null)
                 {
@@ -71,24 +89,6 @@ public static class ProfilesApi
         return group;
     }
 
-    public static void LoadValuesFrom(this ChildProfile mapInto, ChildProfile mapFrom)
-    {
-        mapInto.CreatedUtc = mapFrom.CreatedUtc;
-        mapInto.Description = mapFrom.Description;
-        mapInto.DateOfBirth = mapFrom.DateOfBirth;
-        mapInto.FirstName = mapFrom.FirstName;
-        mapInto.LastName = mapFrom.LastName;
-        mapInto.Gender = mapFrom.Gender;
-        mapInto.PictureUrl = mapFrom.PictureUrl;
-        mapInto.Id = mapFrom.Id;
-    }
-    public static void LoadValuesFrom(this LookingFor mapInto, LookingFor mapFrom)
-    {
-        mapInto.CreatedUtc = mapFrom.CreatedUtc;
-        mapInto.Description = mapFrom.Description;
-        mapInto.Name = mapFrom.Name;
-        mapInto.Id = mapFrom.Id;
-    }
     public static async Task LoadValuesFromAsync(this UserProfile userProfile, UserProfile dto, JordnaerDbContext context)
     {
         userProfile.FirstName = dto.FirstName;
@@ -100,6 +100,7 @@ public static class ProfilesApi
         userProfile.Description = dto.Description;
         userProfile.PhoneNumber = dto.PhoneNumber;
         userProfile.ProfilePictureUrl = dto.ProfilePictureUrl;
+        userProfile.UserName = dto.UserName;
 
         userProfile.LookingFor.Clear();
         foreach (var lookingForDto in dto.LookingFor)

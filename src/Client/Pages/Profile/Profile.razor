@@ -1,4 +1,4 @@
-@page "/profile/{userId}"
+@page "/{userName}"
 
 @inject HttpClient HttpClient
 
@@ -43,11 +43,11 @@
 
 @code {
     private ProfileDto? _profile;
-    [Parameter] public required string UserId { get; set; }
+    [Parameter] public required string UserName { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var profileDto = await HttpClient.GetFromJsonAsync<ProfileDto>($"api/profiles/{UserId}");
+        var profileDto = await HttpClient.GetFromJsonAsync<ProfileDto>($"api/profiles/{UserName}");
         if (profileDto is null)
         {
             // Handle the error
