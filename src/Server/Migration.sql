@@ -322,3 +322,44 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
+BEGIN
+    DECLARE @var1 sysname;
+    SELECT @var1 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[UserProfiles]') AND [c].[name] = N'ProfilePictureUrl');
+    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [UserProfiles] DROP CONSTRAINT [' + @var1 + '];');
+    EXEC(N'UPDATE [UserProfiles] SET [ProfilePictureUrl] = N'''' WHERE [ProfilePictureUrl] IS NULL');
+    ALTER TABLE [UserProfiles] ALTER COLUMN [ProfilePictureUrl] nvarchar(max) NOT NULL;
+    ALTER TABLE [UserProfiles] ADD DEFAULT N'' FOR [ProfilePictureUrl];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
+BEGIN
+    DECLARE @var2 sysname;
+    SELECT @var2 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[ChildProfiles]') AND [c].[name] = N'PictureUrl');
+    IF @var2 IS NOT NULL EXEC(N'ALTER TABLE [ChildProfiles] DROP CONSTRAINT [' + @var2 + '];');
+    EXEC(N'UPDATE [ChildProfiles] SET [PictureUrl] = N'''' WHERE [PictureUrl] IS NULL');
+    ALTER TABLE [ChildProfiles] ALTER COLUMN [PictureUrl] nvarchar(max) NOT NULL;
+    ALTER TABLE [ChildProfiles] ADD DEFAULT N'' FOR [PictureUrl];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230505181748_DefaultProfilePicture', N'7.0.5');
+END;
+GO
+
+COMMIT;
+GO
+
