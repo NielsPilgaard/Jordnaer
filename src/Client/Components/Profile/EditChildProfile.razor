@@ -1,6 +1,6 @@
 
 @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
-      <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@(ChildProfile.PictureUrl ?? "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp")" Alt="@($"Picture of {ChildProfile.FirstName}")" />
+      <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@ChildProfile.PictureUrl" Alt="@($"Picture of {ChildProfile.FirstName}")" />
       @*TODO: Delete Button*@
       <MudGrid>
         <MudItem xs="12" sm="6">

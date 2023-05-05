@@ -18,7 +18,7 @@
     <MudPaper Elevation="3" Class="pa-4">
 
         @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
-        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@(_userProfile.ProfilePictureUrl?? "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp")" Alt="@($"Billede af {_userProfile.FirstName}")" />
+        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"Billede af {_userProfile.FirstName}")" />
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
