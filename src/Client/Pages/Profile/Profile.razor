@@ -1,108 +1,59 @@
-@page "/profile/{fullName}"
-@using Jordnaer.Shared
+@page "/profile/{userId}"
 
-<h2>UserProfile Profile</h2>
+@inject HttpClient HttpClient
 
-@if (_parent != null)
+@if (_profile is null)
 {
+    <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
+    return;
+}
+
+<MudPaper Elevation="3" Class="pa-4">
+    <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_profile.ProfilePictureUrl" Alt="@($"Billede af {_profile.FirstName}")" />
     <MudGrid>
-        <MudItem xs="12">
-            <h2 class="mt-3 mb-3">UserProfile Details</h2>
-            <MudPaper Elevation="1" Class="p-3">
-                <MudGrid>
-                    <MudItem xs="12" sm="6">
-                        <MudText Typo="Typo.h6">Name:</MudText>
-                        <MudText>@_parent.FirstName @_parent.LastName</MudText>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudText Typo="Typo.h6">Phone Number:</MudText>
-                        <MudText>@_parent.PhoneNumber</MudText>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudText Typo="Typo.h6">Address:</MudText>
-                        <MudText>@_parent.Address, @_parent.ZipCode, @_parent.City</MudText>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudText Typo="Typo.h6">Age:</MudText>
-                        <MudText>@_parent.GetAge()</MudText>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudText Typo="Typo.h6">Description:</MudText>
-                        <MudText>@_parent.Description</MudText>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+        <MudItem xs="12" sm="6">
+            <MudText>First Name: @_profile.FirstName</MudText>
         </MudItem>
-        <MudItem xs="12">
-            <h2 class="mt-3 mb-3">ChildProfileren</h2>
-            <MudPaper Elevation="1" Class="p-3">
-                <MudGrid>
-                    @foreach (var child in _parent.ChildProfiles)
-                    {
-                        <MudItem xs="12">
-                            <MudGrid>
-                                <MudItem xs="12">
-                                    <h4>@child.FirstName @child.LastName</h4>
-                                </MudItem>
-                                <MudItem xs="12" sm="4">
-                                    <MudText Typo="Typo.h6">Age:</MudText>
-                                    <MudText>@child.GetAge()</MudText>
-                                </MudItem>
-                                <MudItem xs="12" sm="4">
-                                    <MudText Typo="Typo.h6">Gender:</MudText>
-                                    <MudText>@child.Gender</MudText>
-                                </MudItem>
-                                <MudItem xs="12" sm="4">
-                                    <MudText Typo="Typo.h6">Description:</MudText>
-                                    <MudText>@child.Description</MudText>
-                                </MudItem>
-                            </MudGrid>
-                        </MudItem>
-                    }
-                </MudGrid>
-            </MudPaper>
+        <MudItem xs="12" sm="6">
+            <MudText>Last Name: @_profile.LastName</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudText>Zip Code: @_profile.ZipCode</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudText>City: @_profile.City</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudText>Date of Birth: @_profile.DateOfBirth?.ToString("dd/MM/yyyy")</MudText>
         </MudItem>
     </MudGrid>
-}
-else
-{
-    <p>Loading...</p>
-}
-@code
-{
-    [Parameter]
-    public required string FullName { get; set; }
 
-    UserProfile? _parent;
+    <MudText Class="pt-6">Looking For:</MudText>
+    <MudChipSet>
+        @foreach (var lookingFor in _profile.LookingFor)
+        {
+            <MudChip>@lookingFor.Name</MudChip>
+        }
+    </MudChipSet>
 
-    protected override Task OnInitializedAsync()
+    <MudText Class="pt-6">Description:</MudText>
+    <MudText>@_profile.Description</MudText>
+
+</MudPaper>
+
+@code {
+    private ProfileDto? _profile;
+    [Parameter] public required string UserId { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
-        var id = Guid.NewGuid().ToString();
-        _parent = new UserProfile
-            {
-                FirstName = "John",
-                Id = id,
-                LastName = "Doe",
-                PhoneNumber = "123-456-7890",
-                Address = "123 Main St",
-                ZipCode = "12345",
-                City = "New York",
-                Description = "A loving _parent.",
-                LookingFor = new List<LookingFor> { new LookingFor { Name = "Playdates" } },
-                DateOfBirth = new DateTime(1985, 1, 1),
-                ChildProfiles = new List<ChildProfile>
-                {
-                  new()
-                  {
-                    UserProfileId = id,
-                    FirstName = "Alice",
-                    LastName = "Doe",
-                    Gender = Gender.Female,
-                    DateOfBirth = new DateTime(2015, 1, 1),
-                    Description = "Playing, painting"
-                  }
-                }
-            };
-        return Task.CompletedTask;
+        var profileDto = await HttpClient.GetFromJsonAsync<ProfileDto>($"api/profiles/{UserId}");
+        if (profileDto is null)
+        {
+            // Handle the error
+            return;
+        }
+
+        _profile = profileDto;
     }
 }
