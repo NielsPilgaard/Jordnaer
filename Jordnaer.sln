@@ -23,6 +23,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3F3B23F8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Server.Tests", "tests\Jordnaer.Server.Tests\Jordnaer.Server.Tests.csproj", "{D48575A6-C052-4C27-BB00-579B28FBB9D3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29332986-70A7-4A4C-B7FD-77E11CC4CCDE}"
+	ProjectSection(SolutionItems) = preProject
+		chat.md = chat.md
+		contact_request.md = contact_request.md
+		invite.md = invite.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
