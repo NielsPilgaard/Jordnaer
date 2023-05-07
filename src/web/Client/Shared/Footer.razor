@@ -15,21 +15,19 @@
     <AuthorizeView>
         <Authorized>
             <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af" />
-            <MudIconButton Icon="@Icons.Material.Filled.Person" OnClick="@NavigateToProfile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
+            <MudIconButton Icon="@Icons.Material.Filled.Person" Href="profile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
         </Authorized>
         <NotAuthorized>
-            <MudIconButton Icon="@Icons.Material.Filled.Login" OnClick="@Login" Variant="Variant.Filled" Color="Color.Tertiary" />
+            <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
         </NotAuthorized>
     </AuthorizeView>
 </MudAppBar>
 
 @code
 {
-    string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
+  readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
 
     async Task Logout() => await Client.LogoutAsync();
-    void Login() => NavigationManager.NavigateTo("auth/login");
-    void NavigateToProfile() => NavigationManager.NavigateTo("profile");
 
     [Parameter]
     public EventCallback<bool> ToggleDrawer { get; set; }
