@@ -19,29 +19,29 @@
         @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
         <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"Billede af {_userProfile.FirstName}")" />
         <MudGrid>
-          
-          <MudItem xs="12" sm="4">
-            <MudTextField Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
-          </MudItem>
-          <MudItem xs="12" sm="4">
-            <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name"/>
-          </MudItem>
-          <MudItem xs="12" sm="4">
-            <MudTextField For="() => _userProfile.LastName" @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname"/>
-          </MudItem>
-          <MudItem xs="12" sm="4">
-            <MudTextField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode"/>
-          </MudItem>
-          <MudItem xs="12" sm="4">
-            <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city"/>
-          </MudItem>
-          <MudItem xs="12" sm="4">
-            <MudDatePicker For="() => _userProfile.DateOfBirth" AnchorOrigin="Origin.BottomLeft" @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" name="dob"/>
-          </MudItem>
 
-        </MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudTextField Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                <MudTextField For="() => _userProfile.LastName" @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                <MudTextField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                <MudDatePicker For="() => _userProfile.DateOfBirth" OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog" AnchorOrigin="Origin.BottomLeft" @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" name="dob" />
+                </MudItem>
 
-        <MudSelectExtended Dense
+                </MudGrid>
+
+                <MudSelectExtended Dense
                            ItemCollection="_lookingFor.Select(e=>e.Name).ToList()"
                            T="string"
                            Class="pt-6"
