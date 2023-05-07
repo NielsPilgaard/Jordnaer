@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Server\Jordnaer.Server.csproj" />
+    <ProjectReference Include="..\..\src\web\Server\Jordnaer.Server.csproj" />
   </ItemGroup>
 
 </Project>
