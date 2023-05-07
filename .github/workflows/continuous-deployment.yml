@@ -12,9 +12,9 @@ permissions:
   checks: write
 
 env:
-  AZURE_WEBAPP_PACKAGE_PATH: src/Server/publish
+  AZURE_WEBAPP_PACKAGE_PATH: src/web/Server/publish
   AZURE_WEBAPP_NAME: jordnaer
-  WORKING_DIRECTORY: src/Server
+  WORKING_DIRECTORY: src/web/Server
   MSSQL_SA_PASSWORD: StrongTestPassword!
 jobs:
   build:
