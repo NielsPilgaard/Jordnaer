@@ -1,34 +1,14 @@
-@using Jordnaer.Client.Authentication
-@inject IJSRuntime JsRuntime
-<MudAppBar @ref="_appBar" Bottom Fixed Dense Elevation="2" Color="Color.Default" Class="@(_isVisible ? "d-block footer" : "d-none footer")">
-    <MudGrid Justify="Justify.SpaceAround">
-      <MudItem xs="6">
-        <MudNavLink Href="/privacy">Privatlivspolitik</MudNavLink>
-        <MudNavLink Href="/terms">Servicevilkår</MudNavLink>
-      </MudItem>
-      <MudItem xs="6">
-        <MudNavLink Href="/about">Om</MudNavLink>
-        <MudNavLink Href="/contact">Kontakt</MudNavLink>
-        <MudNavLink Href="/sponsors">Sponsorer</MudNavLink></MudItem>
+<footer class="footer">
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="6">
+            <MudNavLink Href="/privacy">Privatlivspolitik</MudNavLink>
+            <MudNavLink Href="/terms">Servicevilkår</MudNavLink>
+        </MudItem>
+        <MudItem xs="6">
+            <MudNavLink Href="/about">Om</MudNavLink>
+            <MudNavLink Href="/contact">Kontakt</MudNavLink>
+            <MudNavLink Href="/sponsors">Sponsorer</MudNavLink>
+        </MudItem>
     </MudGrid>
-</MudAppBar>
+</footer>
 
-@code {
-  private MudAppBar _appBar = new();
-  private bool _isVisible = false;
-
-  [JSInvokable]
-  public void SetAppBarVisibility(bool isVisible)
-  {
-    _isVisible = isVisible;
-    StateHasChanged();
-  }
-
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender)
-    {
-      await JsRuntime.InvokeVoidAsync("onWindowScroll", DotNetObjectReference.Create(this));
-    }
-  }
-}

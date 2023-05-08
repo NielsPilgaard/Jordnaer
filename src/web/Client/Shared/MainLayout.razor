@@ -4,15 +4,15 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <TopBar ToggleDrawer="@ToggleDrawer" />
-    <SideBar Open="_isDrawerOpen" />
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large">
-            @Body
-        </MudContainer>
-    </MudMainContent>
-    <Footer></Footer>
-    <CookieBanner />
+        <TopBar ToggleDrawer="@ToggleDrawer" />
+        <SideBar Open="_isDrawerOpen" />
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.Large">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+        <Footer></Footer>
+        <CookieBanner />
 </MudLayout>
 @code
 {
