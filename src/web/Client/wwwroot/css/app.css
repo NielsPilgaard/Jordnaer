@@ -93,7 +93,7 @@ h1:focus {
 .footer {
   z-index: calc(var(--mud-zindex-drawer) + 1);
   color: var(--mud-palette-appbar-text);
-  background-color: var(--mud-palette-appbar-background);
+  background-color: var(--mud-palette-drawer-background);
   transition: margin 225ms cubic-bezier(0,0,.2,1) 0ms,width 225ms cubic-bezier(0,0,.2,1) 0ms;
 }
 
