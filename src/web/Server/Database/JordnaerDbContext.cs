@@ -38,6 +38,14 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
                     .WithMany()
                     .HasForeignKey(userContact => userContact.ContactId));
 
+        modelBuilder.Entity<UserProfile>()
+            .Property(user => user.SearchableName)
+            .HasComputedColumnSql(
+                $"[{nameof(UserProfile.FirstName)}] + " +
+                $"[{nameof(UserProfile.LastName)}] + " +
+                $"[{nameof(UserProfile.UserName)}]",
+                stored: true);
+
         base.OnModelCreating(modelBuilder);
     }
 

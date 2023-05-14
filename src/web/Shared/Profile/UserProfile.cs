@@ -4,8 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-[Index(nameof(ZipCode), nameof(City))]
+[Index(nameof(ZipCode))]
 [Index(nameof(UserName))]
+[Index(nameof(SearchableName))]
 public class UserProfile
 {
     [Key]
@@ -23,6 +24,8 @@ public class UserProfile
 
     [MaxLength(250, ErrorMessage = "Efternavn må højest være 250 karakterer langt.")]
     public string? LastName { get; set; }
+
+    public string? SearchableName { get; set; }
 
     [Phone(ErrorMessage = "Telefon nummeret må kun indeholde tal, mellemrum og +")]
     public string? PhoneNumber { get; set; }
