@@ -394,3 +394,40 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
+BEGIN
+    DROP INDEX [IX_UserProfiles_ZipCode_City] ON [UserProfiles];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
+BEGIN
+    EXEC(N'ALTER TABLE [UserProfiles] ADD [SearchableName] AS [FirstName] + [LastName] + [UserName] PERSISTED');
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
+BEGIN
+    CREATE INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles] ([SearchableName]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
+BEGIN
+    CREATE INDEX [IX_UserProfiles_ZipCode] ON [UserProfiles] ([ZipCode]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230514200453_AddSearchableName', N'7.0.5');
+END;
+GO
+
+COMMIT;
+GO
+
