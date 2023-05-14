@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="7.0.0-rc2.11" />
+    <PackageReference Include="Bogus" Version="34.0.2" />
 
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
 
