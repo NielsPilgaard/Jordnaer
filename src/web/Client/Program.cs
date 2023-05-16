@@ -1,11 +1,14 @@
 using Blazored.LocalStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Authentication;
+using Jordnaer.Client.Features.Search;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using Polly;
+using Refit;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -18,6 +21,15 @@ builder.Services.AddHttpClient<UserClient>(client =>
     client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
 builder.AddResilientHttpClient();
+
+builder.Services.AddRefitClient<IUserSearchApi>().ConfigureHttpClient(client =>
+    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+    .AddTransientHttpErrorPolicy(policyBuilder =>
+        policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
+    .AddTransientHttpErrorPolicy(policyBuilder =>
+        policyBuilder.CircuitBreakerAsync(
+            handledEventsAllowedBeforeBreaking: 3,
+            durationOfBreak: TimeSpan.FromSeconds(10)));
 
 builder.Services.AddMudServices(configuration => configuration.SnackbarConfiguration = new SnackbarConfiguration
 {

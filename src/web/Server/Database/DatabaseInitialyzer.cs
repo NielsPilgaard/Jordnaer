@@ -58,7 +58,7 @@ public static class SeedDatabase
             .RuleFor(u => u.ProfilePictureUrl, f => f.Internet.Avatar())
             .FinishWith((_, userProfile) => Console.WriteLine($"UserProfile Created! UserName={userProfile.UserName}"));
 
-        var users = userFaker.Generate(1000);
+        var users = userFaker.Generate(10000);
 
         context.AddRange(users);
 

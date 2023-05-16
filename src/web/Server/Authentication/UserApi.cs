@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Jordnaer.Server.Authentication;
 
-public static class UsersApi
+public static class UserApi
 {
     public static RouteGroupBuilder MapUsers(this IEndpointRouteBuilder routes)
     {

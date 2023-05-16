@@ -1,7 +1,90 @@
 @page "/users"
+@using Jordnaer.Shared.UserSearch
+@using Jordnaer.Client.Features.Search
+@inject IUserSearchApi UserSearchApi
 
-<h1>Søg profiler</h1>
+<MudPaper Elevation="1" Class="pa-4">
+    <MudText Typo="Typo.h4">Søg brugere</MudText>
+
+    <EditForm Model="@_searchResult" OnValidSubmit="UserSearch">
+        <MudTextField @bind-Value="_filter.Name" Label="Navn" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+      <MudSelect @bind-Value="_filter.ChildGender" Label="Køn" Variant="Variant.Text">
+        <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
+
+        @foreach (var gender in Enum.GetValues<Gender>())
+        {
+          <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+        }
+      </MudSelect>
+        <MudTextField @bind-Value="_filter.MinimumChildAge" Label="Minimum barnets alder" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="_filter.MaximumChildAge" Label="Maksimal barnets alder" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="_filter.Address" Label="Adresse" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="_filter.ZipCode" Label="Postnummer" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="_filter.WithinRadiusMeters" Label="Inden for radius (meter)" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Søg</MudButton>
+    </EditForm>
+
+</MudPaper>
+
+@if (!_hasSearched)
+{
+    return;
+}
+
+<MudPaper Elevation="1" Class="pa-4">
+    <h1>TotalCount: @_searchResult.TotalCount</h1>
+    @foreach (var searchResultUser in _searchResult!.Users)
+    {
+        <ul>
+            <li>
+                @searchResultUser.UserName
+            </li>
+            <li>
+                @searchResultUser.FirstName
+            </li>
+            <li>
+                @searchResultUser.LastName
+            </li>
+            <li>
+                @searchResultUser.ZipCode
+            </li>
+            <li>
+                @searchResultUser.City
+            </li>
+            <li>
+                @string.Join(", ", searchResultUser.LookingFor)
+            </li>
+            <li>
+                <ul>
+
+                    @foreach (var child in searchResultUser.Children)
+                    {
+                        <li>@child.FirstName @child.LastName @child.DateOfBirth @child.Gender</li>
+                    }
+                </ul>
+            </li>
+        </ul>
+        <hr />
+    }
+</MudPaper>
 
 @code {
+    private readonly UserSearchFilter _filter = new();
+    private UserSearchResult _searchResult = new();
+    private bool _hasSearched = false;
 
+    private async Task UserSearch()
+    {
+        var response = await UserSearchApi.GetUsers(_filter);
+        if (response.IsSuccessStatusCode)
+        {
+            _hasSearched = true;
+            _searchResult = response.Content!;
+        }
+        else
+        {
+
+        }
+    }
 }
