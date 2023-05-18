@@ -17,6 +17,8 @@ public static class SeedDatabase
         await context.InsertLookingForDataAsync();
 
         await context.InsertFakeUsersAsync();
+
+        await context.SaveChangesAsync();
     }
 
     public static async Task InsertFakeUsersAsync(this JordnaerDbContext context)
@@ -61,11 +63,9 @@ public static class SeedDatabase
         var users = userFaker.Generate(10000);
 
         context.AddRange(users);
-
-        await context.SaveChangesAsync();
     }
 
-    private static async Task InsertLookingForDataAsync(this JordnaerDbContext context)
+    public static async Task InsertLookingForDataAsync(this JordnaerDbContext context)
     {
         if (await context.LookingFor.AnyAsync())
         {
@@ -86,7 +86,5 @@ public static class SeedDatabase
             new LookingFor { Name = "Musik og danseaktiviteter" },
             new LookingFor { Name = "Uddannelsesaktiviteter" },
             new LookingFor { Name = "Andet" });
-
-        await context.SaveChangesAsync();
     }
 }
