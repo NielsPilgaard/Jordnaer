@@ -1,9 +1,9 @@
-name: Build and deploy to Azure App Service
+name: Build, test and deploy to Azure App Service
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - release-*
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
