@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
-using Polly;
 using Refit;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -22,14 +21,7 @@ builder.Services.AddHttpClient<UserClient>(client =>
 
 builder.AddResilientHttpClient();
 
-builder.Services.AddRefitClient<IUserSearchApi>().ConfigureHttpClient(client =>
-    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
-    .AddTransientHttpErrorPolicy(policyBuilder =>
-        policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
-    .AddTransientHttpErrorPolicy(policyBuilder =>
-        policyBuilder.CircuitBreakerAsync(
-            handledEventsAllowedBeforeBreaking: 3,
-            durationOfBreak: TimeSpan.FromSeconds(10)));
+builder.Services.AddRefitClient<IUserSearchApi>(builder.HostEnvironment.BaseAddress);
 
 builder.Services.AddMudServices(configuration => configuration.SnackbarConfiguration = new SnackbarConfiguration
 {
