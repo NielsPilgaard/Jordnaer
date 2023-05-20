@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
-namespace Jordnaer.Server.Tests;
+namespace Jordnaer.Server.Tests.Authentication;
 
 public class UserService_Should
 {
