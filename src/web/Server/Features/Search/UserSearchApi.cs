@@ -26,8 +26,8 @@ public static class UserSearchApi
             [FromQuery] int? minimumChildAge,
             [FromQuery] int? maximumChildAge,
             [FromQuery] string? childGender,
-            [FromQuery] int pageNumber,
-            [FromQuery] int pageSize,
+            [FromQuery] int? pageNumber,
+            [FromQuery] int? pageSize,
             CancellationToken cancellationToken) =>
         {
             bool genderParsedSuccessfully = Enum.TryParse<Gender>(childGender, out var parsedChildGender);
@@ -40,8 +40,8 @@ public static class UserSearchApi
                 ChildGender = genderParsedSuccessfully ? parsedChildGender : null,
                 MaximumChildAge = maximumChildAge,
                 MinimumChildAge = minimumChildAge,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
+                PageNumber = pageNumber ?? 1,
+                PageSize = pageSize ?? 10,
                 WithinRadiusMeters = withinRadiusMeters,
                 ZipCode = zipCode
             };
