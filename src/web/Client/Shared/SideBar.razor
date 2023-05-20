@@ -32,9 +32,9 @@
     {
         _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
         {
-                Open = false;
-                await OpenChanged.InvokeAsync(Open);
-                StateHasChanged();
+            Open = false;
+            await OpenChanged.InvokeAsync(Open);
+            StateHasChanged();
         });
     }
 
