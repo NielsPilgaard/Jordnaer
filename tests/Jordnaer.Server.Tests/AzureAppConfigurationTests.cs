@@ -10,7 +10,7 @@ using Xunit;
 namespace Jordnaer.Server.Tests;
 
 [Trait("Category", "IntegrationTest")]
-[Collection(nameof(JordnaerServerFactoryCollection))]
+[Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class AzureAppConfiguration_Should
 {
     private readonly JordnaerWebApplicationFactory _factory;

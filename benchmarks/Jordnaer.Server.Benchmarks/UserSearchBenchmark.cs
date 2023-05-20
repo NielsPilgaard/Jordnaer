@@ -22,6 +22,7 @@ public class UserSearchBenchmark
     public async Task GlobalSetupAsync()
     {
         var factory = new BenchmarkWebApplicationFactory();
+        factory.ClientOptions.AllowAutoRedirect = false;
 
         using var scope = factory.Services.CreateScope();
 

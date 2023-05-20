@@ -10,7 +10,7 @@ using Xunit;
 namespace Jordnaer.Server.Tests.Authentication;
 
 [Trait("Category", "IntegrationTest")]
-[Collection(nameof(JordnaerServerFactoryCollection))]
+[Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class UserApi_Should
 {
     private readonly JordnaerWebApplicationFactory _factory;
