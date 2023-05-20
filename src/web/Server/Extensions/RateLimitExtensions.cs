@@ -19,33 +19,36 @@ public static class RateLimitExtensions
                 // We always have a user name
                 string username = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-                return RateLimitPartition.GetTokenBucketLimiter(username, _ => new TokenBucketRateLimiterOptions
+                return RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
                 {
-                    ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+                    // 10 messages per user per 10 seconds
+                    Window = TimeSpan.FromSeconds(15),
                     AutoReplenishment = true,
-                    TokenLimit = 100,
-                    TokensPerPeriod = 100,
-                    QueueLimit = 100,
+                    PermitLimit = 50
                 });
             });
 
-            options.AddPolicy(HEALTH_CHECK_RATELIMIT_POLICY, _ =>
+            options.AddPolicy(HEALTH_CHECK_RATELIMIT_POLICY, context =>
             {
-                return RateLimitPartition.GetFixedWindowLimiter(PER_USER_RATELIMIT_POLICY, _ => new FixedWindowRateLimiterOptions
+                return RateLimitPartition.GetFixedWindowLimiter(HEALTH_CHECK_RATELIMIT_POLICY, _ => new FixedWindowRateLimiterOptions
                 {
+                    // 5 messages per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
                     AutoReplenishment = true,
-                    QueueLimit = 5
+                    PermitLimit = 5
                 });
             });
 
-            options.AddPolicy(AUTH_RATELIMIT_POLICY, _ =>
+            options.AddPolicy(AUTH_RATELIMIT_POLICY, context =>
             {
-                return RateLimitPartition.GetFixedWindowLimiter(AUTH_RATELIMIT_POLICY, _ => new FixedWindowRateLimiterOptions
+                string username = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+                return RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
                 {
+                    // 10 messages per user per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
                     AutoReplenishment = true,
-                    QueueLimit = 10
+                    PermitLimit = 10
                 });
             });
         });
@@ -54,5 +57,5 @@ public static class RateLimitExtensions
 
     public static IEndpointConventionBuilder RequireHealthCheckRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(HEALTH_CHECK_RATELIMIT_POLICY);
 
-    public static IEndpointConventionBuilder RequireAuthRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(HEALTH_CHECK_RATELIMIT_POLICY);
+    public static IEndpointConventionBuilder RequireAuthRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(AUTH_RATELIMIT_POLICY);
 }
