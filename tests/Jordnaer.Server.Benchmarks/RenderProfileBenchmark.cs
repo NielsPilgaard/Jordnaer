@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using Jordnaer.Server.Database;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,7 +14,7 @@ public class RenderProfileBenchmark
     [GlobalSetup]
     public async Task GlobalSetupAsync()
     {
-        var factory = new WebApplicationFactory<Program>();
+        var factory = new BenchmarkWebApplicationFactory();
 
         using var scope = factory.Services.CreateScope();
 

@@ -1,16 +1,15 @@
 using BenchmarkDotNet.Attributes;
-using Jordnaer.Client;
 using Jordnaer.Client.Features.Search;
 using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using Jordnaer.Shared.UserSearch;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Refit;
 
 namespace Jordnaer.Server.Benchmarks;
 
+//TODO: This fails because the search endpoint requires auth and has rate limiting
 [MemoryDiagnoser]
 public class UserSearchBenchmark
 {
@@ -22,11 +21,7 @@ public class UserSearchBenchmark
     [GlobalSetup]
     public async Task GlobalSetupAsync()
     {
-        var factory = new WebApplicationFactory<Program>();
-
-        factory.WithWebHostBuilder(builder =>
-            builder.ConfigureTestServices(services =>
-                services.AddRefitClient<IUserSearchApi>(factory.Server.BaseAddress)));
+        var factory = new BenchmarkWebApplicationFactory();
 
         using var scope = factory.Services.CreateScope();
 
@@ -40,9 +35,15 @@ public class UserSearchBenchmark
 
         await _context.SaveChangesAsync();
 
-        _client = scope.ServiceProvider.GetRequiredService<IUserSearchApi>();
+        var httpClient = factory.CreateClient();
 
-        _randomUser = (await _context.UserProfiles.Skip(Random.Shared.Next(0, 10000)).Take(1).FirstOrDefaultAsync())!;
+        _randomUser = (await _context.UserProfiles
+            .Order()
+            .Skip(Random.Shared.Next(0, 10000))
+            .Take(1)
+            .FirstOrDefaultAsync())!;
+
+        _client = RestService.For<IUserSearchApi>(httpClient);
     }
 
     [Benchmark]
