@@ -11,7 +11,7 @@ permissions:
   checks: write
 
 env:
-  MSSQL_SA_PASSWORD: StrongTestPassword!
+  MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
 jobs:
   build:
     runs-on: ubuntu-latest
