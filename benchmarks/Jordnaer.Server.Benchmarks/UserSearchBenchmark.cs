@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using Jordnaer.Client.Features.Search;
+using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using Jordnaer.Shared.UserSearch;
@@ -92,7 +92,7 @@ public class UserSearchBenchmark
     public async Task UserSearch_Filter_By_Address_Within_20_Kilometers() =>
         await _client.GetUsers(new UserSearchFilter
         {
-            Address = _randomUser.ZipCode,
+            Location = _randomUser.ZipCode,
             WithinRadiusMeters = 20000
         });
 

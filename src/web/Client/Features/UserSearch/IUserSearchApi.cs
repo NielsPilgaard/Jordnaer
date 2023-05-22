@@ -1,7 +1,7 @@
 using Jordnaer.Shared.UserSearch;
 using Refit;
 
-namespace Jordnaer.Client.Features.Search;
+namespace Jordnaer.Client.Features.UserSearch;
 
 public interface IUserSearchApi
 {

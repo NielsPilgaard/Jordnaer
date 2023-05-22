@@ -1,78 +1,141 @@
 @page "/users"
 @using Jordnaer.Shared.UserSearch
-@using Jordnaer.Client.Features.Search
 @inject IUserSearchApi UserSearchApi
 
-<MudPaper Elevation="1" Class="pa-4">
-    <MudText Typo="Typo.h4">Søg brugere</MudText>
-
-    <EditForm Model="@_searchResult" OnValidSubmit="UserSearch">
-        <MudTextField @bind-Value="_filter.Name" Label="Navn" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-      <MudSelect @bind-Value="_filter.ChildGender" Label="Køn" Variant="Variant.Text">
-        <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
-
-        @foreach (var gender in Enum.GetValues<Gender>())
-        {
-          <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
-        }
-      </MudSelect>
-        <MudTextField @bind-Value="_filter.MinimumChildAge" Label="Minimum barnets alder" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-        <MudTextField @bind-Value="_filter.MaximumChildAge" Label="Maksimal barnets alder" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-        <MudTextField @bind-Value="_filter.Address" Label="Adresse" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-        <MudTextField @bind-Value="_filter.ZipCode" Label="Postnummer" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-        <MudTextField @bind-Value="_filter.WithinRadiusMeters" Label="Inden for radius (meter)" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Søg</MudButton>
-    </EditForm>
-
-</MudPaper>
+<UserSearchForm OnValidSubmit="@UserSearch" @bind-Filter="_filter"/>
 
 @if (!_hasSearched)
 {
     return;
 }
+<SponsorAd/>
 
-<MudPaper Elevation="1" Class="pa-4">
-    <h1>TotalCount: @_searchResult.TotalCount</h1>
-    @foreach (var searchResultUser in _searchResult!.Users)
-    {
-        <ul>
-            <li>
-                @searchResultUser.UserName
-            </li>
-            <li>
-                @searchResultUser.FirstName
-            </li>
-            <li>
-                @searchResultUser.LastName
-            </li>
-            <li>
-                @searchResultUser.ZipCode
-            </li>
-            <li>
-                @searchResultUser.City
-            </li>
-            <li>
-                @string.Join(", ", searchResultUser.LookingFor)
-            </li>
-            <li>
-                <ul>
-
-                    @foreach (var child in searchResultUser.Children)
-                    {
-                        <li>@child.FirstName @child.LastName @child.DateOfBirth @child.Gender</li>
-                    }
-                </ul>
-            </li>
-        </ul>
-        <hr />
-    }
-</MudPaper>
+<UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged"/>
 
 @code {
-    private readonly UserSearchFilter _filter = new();
-    private UserSearchResult _searchResult = new();
-    private bool _hasSearched = false;
+    private  UserSearchFilter _filter = new();
+  private UserSearchResult _searchResult = new()
+  {
+    TotalCount = 10,
+    Users = new List<UserDto>
+    {
+      new()
+      {
+        UserName = "KasperHansen",
+        FirstName = "Kasper",
+        LastName = "Hansen",
+        ZipCode = "2100",
+        City = "København",
+        ProfilePictureUrl = "https://example.com/userprofile/kasperhansen.jpg",
+        LookingFor = new List<string> { "Playdates", "Advice" },
+        Children = new List<ChildDto>
+        {
+          new ()
+          {
+            FirstName = "Emma",
+            LastName = "Hansen",
+            Gender = Gender.Female,
+            DateOfBirth = new DateTime(2018, 5, 12)
+          }
+        }
+      },
+      new()
+      {
+        UserName = "LeneJensen",
+        FirstName = "Lene",
+        LastName = "Jensen",
+        ZipCode = "8200",
+        City = "Aarhus",
+        ProfilePictureUrl = "https://example.com/userprofile/lenejensen.jpg",
+        LookingFor = new List<string> { "Support group", "Babysitting circle" },
+        Children = new List<ChildDto>
+        {
+          new()
+          {
+            FirstName = "Liam",
+            LastName = "Jensen",
+            Gender = Gender.Male,
+            DateOfBirth = new DateTime(2017, 7, 25)
+          },
+          new()
+          {
+            FirstName = "Sofie",
+            LastName = "Jensen",
+            Gender = Gender.Female,
+            DateOfBirth = new DateTime(2019, 8, 30)
+          }
+        }
+      },
+      new()
+      {
+        UserName = "MadsPetersen",
+        FirstName = "Mads",
+        LastName = "Petersen",
+        ZipCode = "5000",
+        City = "Odense",
+        ProfilePictureUrl = "https://example.com/userprofile/madspetersen.jpg",
+        LookingFor = new List<string> { "Football team", "Language exchange" },
+        Children = new List<ChildDto>
+        {
+          new()
+          {
+            FirstName = "Oliver",
+            LastName = "Petersen",
+            Gender = Gender.Male,
+            DateOfBirth = new DateTime(2020, 4, 15)
+          },
+          new()
+          {
+            FirstName = "Ida",
+            LastName = "Petersen",
+            Gender = Gender.Female,
+            DateOfBirth = new DateTime(2022, 1, 5)
+          }
+        }
+      },
+      new()
+      {
+        UserName = "FrederikNielsen",
+        FirstName = "Frederik",
+        LastName = "Nielsen",
+        ZipCode = "8000",
+        City = "Aarhus",
+        ProfilePictureUrl = "https://example.com/userprofile/frederiknielsen.jpg",
+        LookingFor = new List<string> { "Music classes", "Coding club" },
+        Children = new List<ChildDto>
+        {
+          new()
+          {
+            FirstName = "Lucas",
+            LastName = "Nielsen",
+            Gender = Gender.Male,
+            DateOfBirth = new DateTime(2019, 12, 18)
+          }
+        }
+      },
+      new()
+      {
+        UserName = "MetteLarsen",
+        FirstName = "Mette",
+        LastName = "Larsen",
+        ZipCode = "9000",
+        City = "Aalborg",
+        ProfilePictureUrl = "https://example.com/userprofile/mettelarsen.jpg",
+        LookingFor = new List<string> { "Parenting advice", "Fitness partners" },
+        Children = new List<ChildDto>
+        {
+          new()
+          {
+            FirstName = "Alma",
+            LastName = "Larsen",
+            Gender = Gender.Female,
+            DateOfBirth = new DateTime(2021, 6, 6)
+          }
+        }
+      }
+    }
+  };
+    private bool _hasSearched = true;
 
     private async Task UserSearch()
     {
@@ -87,4 +150,11 @@
 
         }
     }
+
+    private async Task OnSelectedPageChanged(int selectedPage)
+    {
+        _filter.PageNumber = selectedPage;
+        await UserSearch();
+    }
+
 }

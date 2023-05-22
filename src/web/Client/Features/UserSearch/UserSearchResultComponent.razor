@@ -1,0 +1,109 @@
+@using Jordnaer.Shared.UserSearch
+@using MudBlazor.Services
+@inject IBreakpointService BreakpointService
+@implements IAsyncDisposable
+<MudPaper Elevation="3" Class="pa-10 mt-5">
+    @foreach (var searchResultUser in SearchResult.Users)
+    {
+      if (_isMobile)
+      {
+        <MudCard Elevation="2" Class="pa-3 my-3">
+          <MudCardContent>
+            <MudImage Fluid Style="border-radius: 50%" Src="@searchResultUser.ProfilePictureUrl" />
+            <ul>
+              <li>
+                @searchResultUser.UserName
+              </li>
+              <li>
+                @searchResultUser.FirstName
+              </li>
+              <li>
+                @searchResultUser.LastName
+              </li>
+              <li>
+                @searchResultUser.ZipCode
+              </li>
+              <li>
+                @searchResultUser.City
+              </li>
+              <li>
+                @string.Join(", ", searchResultUser.LookingFor)
+              </li>
+              <li>
+                <ul>
+
+                  @foreach (var child in searchResultUser.Children)
+                  {
+                    <li>@child.FirstName @child.LastName @child.DateOfBirth.GetAge() @child.Gender.GetDisplayName()</li>
+                  }
+                </ul>
+              </li>
+            </ul>
+          </MudCardContent>
+        </MudCard>
+      }
+      else
+      {
+        <MudCard Elevation="2" Class="pa-3 my-3">
+          <MudCardContent>
+            <MudImage Fluid Style="border-radius: 50%" Src="@searchResultUser.ProfilePictureUrl" />
+            <ul>
+              <li>
+                @searchResultUser.UserName
+              </li>
+              <li>
+                @searchResultUser.FirstName
+              </li>
+              <li>
+                @searchResultUser.LastName
+              </li>
+              <li>
+                @searchResultUser.ZipCode
+              </li>
+              <li>
+                @searchResultUser.City
+              </li>
+              <li>
+                @string.Join(", ", searchResultUser.LookingFor)
+              </li>
+              <li>
+                <ul>
+
+                  @foreach (var child in searchResultUser.Children)
+                  {
+                    <li>@child.FirstName @child.LastName @child.DateOfBirth.GetAge() @child.Gender.GetDisplayName()</li>
+                  }
+                </ul>
+              </li>
+            </ul>
+          </MudCardContent>
+        </MudCard>
+      }
+    }
+    <MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3" UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)" />
+</MudPaper>
+@code {
+  
+    [Parameter]
+    public required UserSearchFilter Filter { get; set; }
+
+    [Parameter]
+    public required UserSearchResult SearchResult { get; set; }
+
+    [Parameter]
+    public EventCallback<int> SelectedPageChanged { get; set; }
+
+    private bool _isMobile;
+    private Guid _subscriptionId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isMobile = await BreakpointService.IsMediaSize(Breakpoint.SmAndDown);
+
+        var subscription = await BreakpointService.SubscribeAsync(breakpoint => _isMobile = breakpoint == Breakpoint.SmAndDown);
+
+        _subscriptionId = subscription.SubscriptionId;
+    }
+
+    public async ValueTask DisposeAsync() => await BreakpointService.UnsubscribeAsync(_subscriptionId);
+}

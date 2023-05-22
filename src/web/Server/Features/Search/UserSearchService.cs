@@ -23,7 +23,7 @@ public class UserSearchService : IUserSearchService
 
     public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken)
     {
-        var users = _context.UserProfiles.AsNoTracking().AsQueryable();
+        var users = _context.UserProfiles.AsQueryable();
 
         users = ApplyChildFilters(filter, users);
         users = ApplyNameFilter(filter, users);
@@ -42,6 +42,7 @@ public class UserSearchService : IUserSearchService
             .AsSingleQuery()
             .Select(user => new UserDto
             {
+                ProfilePictureUrl = user.ProfilePictureUrl,
                 UserName = user.UserName,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -56,6 +57,7 @@ public class UserSearchService : IUserSearchService
                     DateOfBirth = child.DateOfBirth
                 }).ToList()
             })
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
         return new UserSearchResult { TotalCount = users.Count(), Users = paginatedUsers };
@@ -64,13 +66,11 @@ public class UserSearchService : IUserSearchService
     private static IQueryable<UserProfile> ApplyLocationFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
     {
         //TODO: Implement location filter
-        if (!string.IsNullOrEmpty(filter.Address))
+        if (!string.IsNullOrEmpty(filter.Location))
         {
-
-        }
-        else if (!string.IsNullOrEmpty(filter.ZipCode))
-        {
-
+            // Query the api with the location, extract returned coordinates
+            // Query the api with the coordinates and filter.Radius, extract returned zip codes
+            // Fetch all users that match any of the returned zip codes
         }
 
         return users;

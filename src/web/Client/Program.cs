@@ -1,7 +1,7 @@
 using Blazored.LocalStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Authentication;
-using Jordnaer.Client.Features.Search;
+using Jordnaer.Client.Features.UserSearch;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;

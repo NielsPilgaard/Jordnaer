@@ -1,0 +1,34 @@
+@using Jordnaer.Shared.UserSearch
+
+<MudPaper Elevation="3" Class="pa-10 mt-5">
+    <MudText Typo="Typo.h4">Søg brugere</MudText>
+
+    <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
+        <MudTextField @bind-Value="Filter.Name" Label="Navn" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudSelect @bind-Value="Filter.ChildGender" Label="Køn" Variant="Variant.Text">
+            <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
+            @foreach (var gender in Enum.GetValues<Gender>())
+            {
+                <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField @bind-Value="Filter.MinimumChildAge" Label="Minimum barnets alder" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="Filter.MaximumChildAge" Label="Maksimal barnets alder" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="Filter.Location" Label="Placering" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+        <MudTextField @bind-Value="Filter.WithinRadiusMeters" Label="Inden for radius (meter)" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Søg</MudButton>
+    </EditForm>
+
+</MudPaper>
+@code
+{
+    [Parameter]
+    public required UserSearchFilter Filter { get; set; }
+
+    [Parameter]
+    public EventCallback<UserSearchFilter> FilterChanged { get; set; }
+
+    [Parameter]
+    public required EventCallback OnValidSubmit { get; set; }
+}

@@ -1,4 +1,3 @@
-using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
 using Jordnaer.Shared.UserSearch;
@@ -12,15 +11,12 @@ public static class UserSearchApi
     {
         var group = routes.MapGroup("api/users/search");
 
-        group.RequireAuthorization(builder => builder.RequireCurrentUser());
-
-        group.RequirePerUserRateLimit();
+        group.RequireUserSearchRateLimit();
 
         group.MapGet("", async Task<UserSearchResult> (
             [FromServices] IUserSearchService userService,
             [FromQuery] string? name,
-            [FromQuery] string? address,
-            [FromQuery] string? zipCode,
+            [FromQuery] string? location,
             [FromQuery] int? withinRadiusMeters,
             [FromQuery] string[]? lookingFor,
             [FromQuery] int? minimumChildAge,
@@ -36,14 +32,13 @@ public static class UserSearchApi
             {
                 LookingFor = lookingFor?.ToList() ?? new List<string>(),
                 Name = name,
-                Address = address,
+                Location = location,
                 ChildGender = genderParsedSuccessfully ? parsedChildGender : null,
                 MaximumChildAge = maximumChildAge,
                 MinimumChildAge = minimumChildAge,
                 PageNumber = pageNumber ?? 1,
                 PageSize = pageSize ?? 10,
-                WithinRadiusMeters = withinRadiusMeters,
-                ZipCode = zipCode
+                WithinRadiusMeters = withinRadiusMeters
             };
 
             var users = await userService.GetUsersAsync(searchFilter, cancellationToken);
