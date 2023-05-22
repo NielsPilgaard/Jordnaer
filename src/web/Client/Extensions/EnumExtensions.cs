@@ -5,10 +5,10 @@ namespace Jordnaer.Client;
 
 public static class EnumExtensions
 {
-    public static string? GetDisplayName(this Enum enumValue) =>
+    public static string GetDisplayName(this Enum enumValue) =>
         enumValue.GetType()
             .GetMember(enumValue.ToString())
-            .FirstOrDefault()?
+            .FirstOrDefault()!
             .GetCustomAttribute<DisplayAttribute>()?
-            .GetName();
+            .GetName()!;
 }

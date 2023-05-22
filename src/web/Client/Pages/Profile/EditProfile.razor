@@ -17,7 +17,7 @@
     <MudPaper Elevation="3" Class="pa-4">
 
         @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
-        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"Billede af {_userProfile.FirstName}")" />
+        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"{_userProfile.FirstName}'s profilebillede")" />
         <MudGrid>
 
             <MudItem xs="12" sm="4">
@@ -57,11 +57,17 @@
 
     </MudPaper>
 
-    <SubmitButton />
-
     <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
 
-    <SubmitButton />
+    <MudButton Size="Size.Large"
+               StartIcon="@Icons.Material.Filled.Save"
+               Class="my-6"
+               ButtonType="ButtonType.Submit"
+               Variant="Variant.Filled"
+               FullWidth
+               Color="Color.Primary">
+      Gem
+    </MudButton>
 
 </EditForm>
 
