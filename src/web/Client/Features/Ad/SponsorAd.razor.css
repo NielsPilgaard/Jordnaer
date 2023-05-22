@@ -1,0 +1,13 @@
+.sponsored-ad {
+  height: 300px;
+  width: 100%;
+  position: relative;
+}
+.container {
+  border: 5px solid blue;
+  padding: 15px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
