@@ -40,7 +40,7 @@ h1:focus {
 }
 
   .blazor-error-boundary::after {
-    content: "An error has occurred."
+    content: "Der er sket en fejl."
   }
 
 .loading-progress {
