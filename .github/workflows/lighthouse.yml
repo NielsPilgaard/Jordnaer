@@ -1,0 +1,45 @@
+name: Unlighthose Website Test
+
+on:
+  push:
+    tags:
+      - release-*
+  workflow_dispatch:
+
+env:
+  WEBSITE_URL: https://jordnaer.azurewebsites.net
+jobs:
+  lighthose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        run: npm add @unlighthouse/cli puppeteer
+
+      - name: Unlighthouse website tests
+        run: unlighthouse-ci --site "${{ env.WEBSITE_URL }}" --build-static
+
+      - name: Add generated report to GitHub Actions Summary
+        shell: pwsh
+        run: |
+          cat "lighthouse.html" >> $GITHUB_STEP_SUMMARY
+            
+      # - name: Deploy report to Netlify
+        # uses: nwtgck/actions-netlify@v1.2
+        # with:
+          # publish-dir: './.unlighthouse'
+          # production-branch: main
+          # production-deploy: true
+          # github-token: ${{ secrets.GITHUB_TOKEN }}
+          # deploy-message: "New Release Deploy from GitHub Actions"
+          # enable-pull-request-comment: false
+          # enable-commit-comment: true
+          # overwrites-pull-request-comment: true
+        # env:
+          # NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          # NETLIFY_SITE_ID: ${{ secrets.NETLIFY_DEMO_SITE_ID }}
+        # timeout-minutes: 1
