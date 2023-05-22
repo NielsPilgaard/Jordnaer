@@ -95,12 +95,4 @@ public class UserSearchBenchmark
             Location = _randomUser.ZipCode,
             WithinRadiusMeters = 20000
         });
-
-    [Benchmark]
-    public async Task UserSearch_Filter_By_ZipCode_Within_20_Kilometers() =>
-        await _client.GetUsers(new UserSearchFilter
-        {
-            ZipCode = _randomUser.ZipCode,
-            WithinRadiusMeters = 20000
-        });
 }
