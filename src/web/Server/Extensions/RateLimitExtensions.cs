@@ -8,6 +8,7 @@ public static class RateLimitExtensions
     private const string PER_USER_RATELIMIT_POLICY = "PerUserRatelimit";
     private const string HEALTH_CHECK_RATELIMIT_POLICY = "HealthCheckRateLimit";
     private const string AUTH_RATELIMIT_POLICY = "AuthenticationRateLimit";
+    private const string USER_SEARCH_RATELIMIT_POLICY = "UserSearchRateLimit";
 
     public static IServiceCollection AddRateLimiting(this IServiceCollection services) =>
         services.AddRateLimiter(options =>
@@ -41,9 +42,7 @@ public static class RateLimitExtensions
 
             options.AddPolicy(AUTH_RATELIMIT_POLICY, context =>
             {
-                string username = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-                return RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
+                return RateLimitPartition.GetFixedWindowLimiter(context.Session.Id, _ => new FixedWindowRateLimiterOptions
                 {
                     // 10 messages per user per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
@@ -51,11 +50,19 @@ public static class RateLimitExtensions
                     PermitLimit = 10
                 });
             });
+
+            options.AddPolicy(USER_SEARCH_RATELIMIT_POLICY,
+                context => RateLimitPartition.GetFixedWindowLimiter(context.Session.Id, _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromSeconds(10),
+                        PermitLimit = 3,
+                        AutoReplenishment = true
+                    }));
         });
 
     public static IEndpointConventionBuilder RequirePerUserRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(PER_USER_RATELIMIT_POLICY);
-
     public static IEndpointConventionBuilder RequireHealthCheckRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(HEALTH_CHECK_RATELIMIT_POLICY);
-
     public static IEndpointConventionBuilder RequireAuthRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(AUTH_RATELIMIT_POLICY);
+    public static IEndpointConventionBuilder RequireUserSearchRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(USER_SEARCH_RATELIMIT_POLICY);
 }
