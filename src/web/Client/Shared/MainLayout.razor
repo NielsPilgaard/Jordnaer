@@ -5,8 +5,8 @@
 
 <MudLayout>
     <TopBar ToggleDrawer="@ToggleDrawer" />
-    <SideBar Open="_isDrawerOpen" />
-    <MudMainContent>
+    <SideBar @bind-Open="_isDrawerOpen" />
+    <MudMainContent Class="my-6">
         <MudContainer MaxWidth="MaxWidth.Large">
             @Body
         </MudContainer>
