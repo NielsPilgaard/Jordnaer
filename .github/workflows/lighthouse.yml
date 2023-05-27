@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Dependencies
-        run: npm add @unlighthouse/cli puppeteer
+        run: npm install -g @unlighthouse/cli puppeteer
 
       - name: Unlighthouse website tests
         run: unlighthouse-ci --site "${{ env.WEBSITE_URL }}" --build-static
