@@ -26,7 +26,7 @@ jobs:
       - name: Add generated report to GitHub Actions Summary
         shell: pwsh
         run: |
-          cat ".unlighthouse/lighthouse.html" >> $GITHUB_STEP_SUMMARY
+          Get-ChildItem "./.unlighthouse/reports" -Filter *.html -Recurse | Get-Content >> $GITHUB_STEP_SUMMARY
             
       # - name: Deploy report to Netlify
         # uses: nwtgck/actions-netlify@v1.2
