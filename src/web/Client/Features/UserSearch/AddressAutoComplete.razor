@@ -1,0 +1,36 @@
+@using Jordnaer.Shared.UserSearch
+@inject IDataForsyningenClient DataForsyningenClient
+<MudAutocomplete T="string"
+                 ValueChanged="SearchValueChanged"
+                 Label="Placering"
+                 SearchFuncWithCancel="@SearchForAddresses"
+                 Variant="Variant.Outlined"
+                 Class="my-2"
+                 SelectValueOnTab
+                 ShowProgressIndicator
+                 OpenIcon="@string.Empty"
+                 DebounceInterval="250"
+                 MinCharacters="2" />
+
+@code
+{
+    [Parameter]
+    public required string Location { get; set; }
+    [Parameter]
+    public EventCallback<string> LocationChanged { get; set; }
+
+    public async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
+    {
+        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+
+        return searchResponse.IsSuccessStatusCode
+          ? searchResponse.Content!.Select(response => response.ToString())
+          : Array.Empty<string>();
+    }
+
+    private async Task SearchValueChanged(string value)
+    {
+        Location = value;
+        await LocationChanged.InvokeAsync(Location);
+    }
+}

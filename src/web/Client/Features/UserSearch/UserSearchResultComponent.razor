@@ -71,7 +71,7 @@
 
                   @foreach (var child in searchResultUser.Children)
                   {
-                    <li>@child.FirstName @child.LastName @child.DateOfBirth.GetAge() @child.Gender.GetDisplayName()</li>
+                    <li>@child.FirstName @child.LastName @child.DateOfBirth.GetAge() @child.Gender?.GetDisplayName()</li>
                   }
                 </ul>
               </li>
