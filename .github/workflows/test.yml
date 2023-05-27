@@ -2,6 +2,10 @@ name: Run Tests
 
 on:
   push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/test.yml'
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
