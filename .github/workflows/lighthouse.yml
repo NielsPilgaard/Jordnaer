@@ -26,20 +26,5 @@ jobs:
       - name: Add generated report to GitHub Actions Summary
         shell: pwsh
         run: |
-          Get-ChildItem "./.unlighthouse/reports" -Filter *.html -Recurse | Get-Content >> $GITHUB_STEP_SUMMARY
-            
-      # - name: Deploy report to Netlify
-        # uses: nwtgck/actions-netlify@v1.2
-        # with:
-          # publish-dir: './.unlighthouse'
-          # production-branch: main
-          # production-deploy: true
-          # github-token: ${{ secrets.GITHUB_TOKEN }}
-          # deploy-message: "New Release Deploy from GitHub Actions"
-          # enable-pull-request-comment: false
-          # enable-commit-comment: true
-          # overwrites-pull-request-comment: true
-        # env:
-          # NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          # NETLIFY_SITE_ID: ${{ secrets.NETLIFY_DEMO_SITE_ID }}
-        # timeout-minutes: 1
+          Get-ChildItem "./.unlighthouse/reports" -Filter *.html -Recurse | Get-Content >> $env:
+        
