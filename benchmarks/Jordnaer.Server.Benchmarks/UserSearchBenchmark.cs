@@ -78,7 +78,7 @@ public class UserSearchBenchmark
             LookingFor = _lookingFor
                 .Select(lookingFor => lookingFor.Name)
                 .Skip(Random.Shared.Next(0, _lookingFor.Count))
-                .ToList()
+                .ToArray()
         });
 
     [Benchmark]
@@ -93,6 +93,6 @@ public class UserSearchBenchmark
         await _client.GetUsers(new UserSearchFilter
         {
             Location = _randomUser.ZipCode,
-            WithinRadiusMeters = 20000
+            WithinRadiusKilometers = 20000
         });
 }

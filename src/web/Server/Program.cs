@@ -3,7 +3,7 @@ using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Server.Features.Profile;
-using Jordnaer.Server.Features.Search;
+using Jordnaer.Server.Features.UserSearch;
 using Microsoft.FeatureManagement;
 using Serilog;
 

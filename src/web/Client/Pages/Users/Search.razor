@@ -8,6 +8,7 @@
 {
     return;
 }
+
 <SponsorAd/>
 
 <UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged"/>
@@ -26,7 +27,7 @@
         LastName = "Hansen",
         ZipCode = "2100",
         City = "København",
-        ProfilePictureUrl = "https://example.com/userprofile/kasperhansen.jpg",
+        ProfilePictureUrl = "https://images.unsplash.com/photo-1554384645-13eab165c24b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
         LookingFor = new List<string> { "Playdates", "Advice" },
         Children = new List<ChildDto>
         {
@@ -46,7 +47,7 @@
         LastName = "Jensen",
         ZipCode = "8200",
         City = "Aarhus",
-        ProfilePictureUrl = "https://example.com/userprofile/lenejensen.jpg",
+        ProfilePictureUrl = "https://images.unsplash.com/photo-1542103749-8ef59b94f47e?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
         LookingFor = new List<string> { "Support group", "Babysitting circle" },
         Children = new List<ChildDto>
         {
@@ -73,7 +74,7 @@
         LastName = "Petersen",
         ZipCode = "5000",
         City = "Odense",
-        ProfilePictureUrl = "https://example.com/userprofile/madspetersen.jpg",
+        ProfilePictureUrl = "https://images.unsplash.com/photo-1554384645-13eab165c24b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
         LookingFor = new List<string> { "Football team", "Language exchange" },
         Children = new List<ChildDto>
         {
@@ -100,7 +101,7 @@
         LastName = "Nielsen",
         ZipCode = "8000",
         City = "Aarhus",
-        ProfilePictureUrl = "https://example.com/userprofile/frederiknielsen.jpg",
+        ProfilePictureUrl = "https://images.unsplash.com/photo-1539571696357-5a59832b1789?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
         LookingFor = new List<string> { "Music classes", "Coding club" },
         Children = new List<ChildDto>
         {
@@ -142,13 +143,15 @@
         var response = await UserSearchApi.GetUsers(_filter);
         if (response.IsSuccessStatusCode)
         {
-            _hasSearched = true;
             _searchResult = response.Content!;
         }
         else
         {
 
         }
+
+      _hasSearched = true;
+
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
