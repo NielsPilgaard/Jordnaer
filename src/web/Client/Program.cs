@@ -2,12 +2,12 @@ using Blazored.LocalStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Authentication;
 using Jordnaer.Client.Features.UserSearch;
+using Jordnaer.Shared.UserSearch;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
-using Refit;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -42,4 +42,10 @@ builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddMemoryCache();
 
-await builder.Build().RunAsync();
+builder.Services.AddDataForsyningenClient();
+builder.Services.Configure<DataForsyningenOptions>(
+    builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
+
+var host = builder.Build();
+
+await host.RunAsync();
