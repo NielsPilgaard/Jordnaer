@@ -1,9 +1,6 @@
-name: Unlighthose Website Test
+name: Run Lighthouse
 
 on:
-  push:
-    tags:
-      - release-*
   workflow_dispatch:
 
 env:
@@ -20,11 +17,17 @@ jobs:
       - name: Install Dependencies
         run: npm install -g @unlighthouse/cli puppeteer
 
-      - name: Unlighthouse website tests
+      - name: Run Unlighthouse CI
         run: unlighthouse-ci --site "${{ env.WEBSITE_URL }}" --build-static
 
-      - name: Add generated report to GitHub Actions Summary
-        shell: pwsh
-        run: |
-          Get-Content "./.unlighthouse/reports/lighthouse.html" >> $env:GITHUB_STEP_SUMMARY
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
         
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: './.unlighthouse'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
