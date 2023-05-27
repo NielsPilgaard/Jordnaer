@@ -1,0 +1,59 @@
+@using Jordnaer.Shared.UserSearch
+
+<MudPaper Elevation="3" Class="pa-10 mt-5">
+    <MudText Typo="Typo.h4">Søg brugere</MudText>
+
+    <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
+        <MudGrid Justify="Justify.Center" Spacing="3">
+            <MudItem sm="9">
+                <AddressAutoComplete @bind-Location="Filter.Location" />
+            </MudItem>
+            <MudItem sm="3">
+                <MudTextField For="() => Filter.WithinRadiusKilometers" @bind-Value="Filter.WithinRadiusKilometers" Adornment="Adornment.End" AdornmentText="km" Label="Radius" Variant="Variant.Outlined" Class="my-2"></MudTextField>
+            </MudItem>
+
+            <MudItem sm="3">
+                <MudNumericField For="() => Filter.MinimumChildAge" @bind-Value="Filter.MinimumChildAge" Adornment="Adornment.End" AdornmentText="år" Label="Minimum barnets alder" Variant="Variant.Outlined" Class="my-2"></MudNumericField>
+            </MudItem>
+            <MudItem sm="3">
+                <MudNumericField For="() => Filter.MaximumChildAge" @bind-Value="Filter.MaximumChildAge" Adornment="Adornment.End" AdornmentText="år" Label="Maksimal barnets alder" Variant="Variant.Outlined" Class="my-2"></MudNumericField>
+            </MudItem>
+            <MudItem sm="6">
+                <MudSelect @bind-Value="Filter.ChildGender" Label="Køn" Variant="Variant.Text">
+                    <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
+                    @foreach (var gender in Enum.GetValues<Gender>())
+                    {
+                        <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem sm="6">
+                <MudTextField @bind-Value="Filter.Name" Label="Navn" Class="my-2"></MudTextField>
+            </MudItem>
+          <MudItem sm="6">
+            <LookingForAutoComplete @bind-LookingFor="Filter.LookingFor" />
+          </MudItem>
+
+          <MudItem sm="8" md="6" lg="5" xl="4" xxl="3">
+            <MudButton FullWidth Variant="Variant.Outlined" Color="Color.Success" ButtonType="ButtonType.Submit">
+              <MudIcon Icon="@Icons.Material.Filled.Search"/>
+            </MudButton>
+          </MudItem>
+          
+        </MudGrid>
+        
+    </EditForm>
+
+</MudPaper>
+@code
+{
+    [Parameter]
+    public required UserSearchFilter Filter { get; set; }
+
+    [Parameter]
+    public EventCallback<UserSearchFilter> FilterChanged { get; set; }
+
+    [Parameter]
+    public required EventCallback OnValidSubmit { get; set; }
+}
