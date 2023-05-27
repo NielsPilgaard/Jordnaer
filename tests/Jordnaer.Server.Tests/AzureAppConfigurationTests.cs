@@ -3,7 +3,6 @@ using Jordnaer.Server.Database;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -11,12 +10,12 @@ using Xunit;
 namespace Jordnaer.Server.Tests;
 
 [Trait("Category", "IntegrationTest")]
-[Collection(nameof(JordnaerServerFactory))]
+[Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class AzureAppConfiguration_Should
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly JordnaerWebApplicationFactory _factory;
 
-    public AzureAppConfiguration_Should(WebApplicationFactory<Program> factory)
+    public AzureAppConfiguration_Should(JordnaerWebApplicationFactory factory)
     {
         _factory = factory;
     }

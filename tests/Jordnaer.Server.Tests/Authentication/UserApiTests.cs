@@ -7,16 +7,16 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Jordnaer.Server.Tests;
+namespace Jordnaer.Server.Tests.Authentication;
 
 [Trait("Category", "IntegrationTest")]
-[Collection(nameof(JordnaerServerFactory))]
+[Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class UserApi_Should
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly JordnaerWebApplicationFactory _factory;
     private const string VALID_PASSWORD = "123456789ABCabc";
 
-    public UserApi_Should(WebApplicationFactory<Program> factory)
+    public UserApi_Should(JordnaerWebApplicationFactory factory)
     {
         _factory = factory;
     }

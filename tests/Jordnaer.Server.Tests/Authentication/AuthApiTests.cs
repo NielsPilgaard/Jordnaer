@@ -4,16 +4,16 @@ using Jordnaer.Shared;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Jordnaer.Server.Tests;
+namespace Jordnaer.Server.Tests.Authentication;
 
 [Trait("Category", "IntegrationTest")]
-[Collection(nameof(JordnaerServerFactory))]
+[Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class AuthApi_Should
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly JordnaerWebApplicationFactory _factory;
     private const string VALID_PASSWORD = "123456789ABCabc";
 
-    public AuthApi_Should(WebApplicationFactory<Program> factory)
+    public AuthApi_Should(JordnaerWebApplicationFactory factory)
     {
         _factory = factory;
     }
@@ -121,7 +121,7 @@ public class AuthApi_Should
     }
 
     [Fact]
-    public async Task Fail_To_Logout_User_When_User_Is_Not_Logged_In_And_Redict_To_Login()
+    public async Task Fail_To_Logout_User_When_User_Is_Not_Logged_In_And_Redirect_To_Login()
     {
         // Arrange
         var client = _factory.CreateClient(new WebApplicationFactoryClientOptions

@@ -1,6 +1,7 @@
 @using Jordnaer.Shared
 @using MudBlazor.Services
-
+@inject NavigationManager Navigation
+@implements IDisposable
 <MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="5" Variant="DrawerVariant.Responsive">
     <MudNavMenu>
         <AuthorizeView>
@@ -22,5 +23,20 @@
 </MudDrawer>
 
 @code {
-    [Parameter] public bool Open { get; set; } = false;
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    private IDisposable? _locationChangedHandler;
+
+    protected override void OnInitialized()
+    {
+        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
+        {
+            Open = false;
+            await OpenChanged.InvokeAsync(Open);
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose() => _locationChangedHandler?.Dispose();
 }

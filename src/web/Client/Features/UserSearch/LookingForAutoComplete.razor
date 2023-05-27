@@ -1,0 +1,37 @@
+@using MudExtensions.Enums
+@inject HttpClient HttpClient
+
+<MudSelectExtended Dense
+                   ItemCollection="_lookingFor"
+                   T="string"
+                   Class="my-2"
+                   Label="Interesseret i"
+                   MultiSelection="true"
+                   ValuePresenter="ValuePresenter.Chip"
+                   SelectedValuesChanged="SelectedLookingForChanged">
+</MudSelectExtended>
+@code
+{
+    private List<string> _lookingFor = new();
+
+    [Parameter]
+    public string[]? LookingFor { get; set; }
+
+    [Parameter]
+    public EventCallback<string[]?> LookingForChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await HttpClient.GetFromJsonAsync<List<LookingFor>>("api/looking-for");
+        if (result is not null)
+        {
+            _lookingFor = result.Select(lookingFor => lookingFor.Name).ToList();
+        }
+    }
+
+    private async Task SelectedLookingForChanged(IEnumerable<string> lookingFor)
+    {
+        LookingFor = _lookingFor.Where(lookingFor.Contains).ToArray();
+        await LookingForChanged.InvokeAsync(LookingFor);
+    }
+}

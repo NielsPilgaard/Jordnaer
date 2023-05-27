@@ -232,7 +232,7 @@ dotnet_naming_symbols.constant_fields.required_modifiers = const
 dotnet_naming_rule.constant_fields_should_be_upper_case.style = upper_case_style
 
 # dotnet_naming_style.<styleTitle>.<property> = <value>
-dotnet_naming_style.upper_case_style.capitalization = all_upper
+dotnet_naming_style.upper_case_style.capitalization = pascal_case
 dotnet_naming_style.upper_case_style.word_separator = _
 
 # dotnet_naming_rule.<namingRuleTitle>.severity = <value>

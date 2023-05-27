@@ -3,6 +3,7 @@ using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Server.Features.Profile;
+using Jordnaer.Server.Features.UserSearch;
 using Microsoft.FeatureManagement;
 using Serilog;
 
@@ -35,6 +36,8 @@ try
     builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
 
     builder.Services.AddResilientHttpClient();
+
+    builder.Services.AddUserSearchServices();
 
     var app = builder.Build();
 
@@ -72,6 +75,7 @@ try
     app.MapUsers();
     app.MapProfiles();
     app.MapLookingFor();
+    app.MapUserSearch();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
