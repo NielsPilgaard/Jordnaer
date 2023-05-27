@@ -26,5 +26,5 @@ jobs:
       - name: Add generated report to GitHub Actions Summary
         shell: pwsh
         run: |
-          Get-ChildItem "./.unlighthouse/reports" -Filter *.html -Recurse | Get-Content >> $env:GITHUB_STEP_SUMMARY
+          Get-Content "./.unlighthouse/reports/lighthouse.html" >> $env:GITHUB_STEP_SUMMARY
         
