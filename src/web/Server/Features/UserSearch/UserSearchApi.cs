@@ -3,7 +3,7 @@ using Jordnaer.Shared;
 using Jordnaer.Shared.UserSearch;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Jordnaer.Server.Features.Search;
+namespace Jordnaer.Server.Features.UserSearch;
 
 public static class UserSearchApi
 {
@@ -17,7 +17,7 @@ public static class UserSearchApi
             [FromServices] IUserSearchService userService,
             [FromQuery] string? name,
             [FromQuery] string? location,
-            [FromQuery] int? withinRadiusMeters,
+            [FromQuery] int? withinRadiusKilometers,
             [FromQuery] string[]? lookingFor,
             [FromQuery] int? minimumChildAge,
             [FromQuery] int? maximumChildAge,
@@ -30,7 +30,7 @@ public static class UserSearchApi
 
             var searchFilter = new UserSearchFilter
             {
-                LookingFor = lookingFor?.ToList() ?? new List<string>(),
+                LookingFor = lookingFor,
                 Name = name,
                 Location = location,
                 ChildGender = genderParsedSuccessfully ? parsedChildGender : null,
@@ -38,7 +38,7 @@ public static class UserSearchApi
                 MinimumChildAge = minimumChildAge,
                 PageNumber = pageNumber ?? 1,
                 PageSize = pageSize ?? 10,
-                WithinRadiusMeters = withinRadiusMeters
+                WithinRadiusKilometers = withinRadiusKilometers
             };
 
             var users = await userService.GetUsersAsync(searchFilter, cancellationToken);
