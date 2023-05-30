@@ -16,7 +16,8 @@ public static class WebApplicationBuilderExtensions
     }
 
     private static string GetConnectionString(IConfiguration configuration) =>
-        Environment.GetEnvironmentVariable($"ConnectionStrings_{nameof(JordnaerDbContext)}")
+           Environment.GetEnvironmentVariable($"ConnectionStrings_{nameof(JordnaerDbContext)}")
+        ?? Environment.GetEnvironmentVariable($"ConnectionStrings__{nameof(JordnaerDbContext)}")
         ?? configuration.GetConnectionString(nameof(JordnaerDbContext))
         ?? throw new InvalidOperationException(
             $"Connection string '{nameof(JordnaerDbContext)}' not found.");
