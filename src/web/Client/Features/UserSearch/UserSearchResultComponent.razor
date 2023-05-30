@@ -1,89 +1,80 @@
 @using Jordnaer.Shared.UserSearch
 @using MudBlazor.Services
-@inject IBreakpointService BreakpointService
-@implements IAsyncDisposable
-<MudPaper Elevation="3" Class="pa-10 mt-5">
-    @foreach (var searchResultUser in SearchResult.Users)
+
+<MudGrid Justify="Justify.Center">
+    @foreach (var user in SearchResult.Users)
     {
-      if (_isMobile)
-      {
-        <MudCard Elevation="2" Class="pa-3 my-3">
-          <MudCardContent>
-            <MudImage Fluid Style="border-radius: 50%" Src="@searchResultUser.ProfilePictureUrl" />
-            <ul>
-              <li>
-                @searchResultUser.UserName
-              </li>
-              <li>
-                @searchResultUser.FirstName
-              </li>
-              <li>
-                @searchResultUser.LastName
-              </li>
-              <li>
-                @searchResultUser.ZipCode
-              </li>
-              <li>
-                @searchResultUser.City
-              </li>
-              <li>
-                @string.Join(", ", searchResultUser.LookingFor)
-              </li>
-              <li>
-                <ul>
+        <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
+            <MudNavLink Href="@($"/{user.UserName}")">
+                <MudCard Class="pa-3 my-3" Elevation="3">
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" Class="d-flex justify-center">
+                                <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" />
+                            </MudItem>
 
-                  @foreach (var child in searchResultUser.Children)
-                  {
-                    <li>@child.FirstName @child.LastName @child.DateOfBirth.GetAge() @child.Gender?.GetDisplayName()</li>
-                  }
-                </ul>
-              </li>
-            </ul>
-          </MudCardContent>
-        </MudCard>
-      }
-      else
-      {
-        <MudCard Elevation="2" Class="pa-3 my-3">
-          <MudCardContent>
-            <MudImage Fluid Style="border-radius: 50%" Src="@searchResultUser.ProfilePictureUrl" />
-            <ul>
-              <li>
-                @searchResultUser.UserName
-              </li>
-              <li>
-                @searchResultUser.FirstName
-              </li>
-              <li>
-                @searchResultUser.LastName
-              </li>
-              <li>
-                @searchResultUser.ZipCode
-              </li>
-              <li>
-                @searchResultUser.City
-              </li>
-              <li>
-                @string.Join(", ", searchResultUser.LookingFor)
-              </li>
-              <li>
-                <ul>
+                            <MudItem xs="12">
+                                <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" T="string" Text="@user.UserName" ReadOnly />
+                            </MudItem>
 
-                  @foreach (var child in searchResultUser.Children)
-                  {
-                    <li>@child.FirstName @child.LastName @child.DateOfBirth.GetAge() @child.Gender?.GetDisplayName()</li>
-                  }
-                </ul>
-              </li>
-            </ul>
-          </MudCardContent>
-        </MudCard>
-      }
+                            <MudItem xs="12">
+                                <MudTextField AdornmentIcon="@Icons.Material.Filled.Place" Adornment="Adornment.Start" T="string" Text="@user.DisplayLocation()" ReadOnly />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" T="string" Text="@($"{user.FirstName} {user.LastName}".TrimEnd())" ReadOnly />
+                            </MudItem>
+
+                            @if (user.LookingFor.Any())
+                            {
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudChipSet ReadOnly>
+                                    @foreach (var lookingFor in user.LookingFor)
+                                        {
+                                            <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
+                                        }
+                                    </MudChipSet>
+                                </MudItem>
+                            }
+
+                            @if (user.Children.Any())
+                            {
+                                <MudDivider />
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                                </MudItem>
+                                <MudItem xs="12" Class="d-flex justify-center">
+                                    <MudChipSet ReadOnly>
+                                    @foreach (var child in user.Children)
+                                        {
+                                            <MudBadge Color="Color.Success" Overlap Origin="Origin.TopRight" Content="GetAgeString(child)">
+                                                <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
+                                            </MudBadge>
+                                        }
+                                    </MudChipSet>
+                                </MudItem>
+                            }
+
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            </MudNavLink>
+        </MudItem>
+
     }
-    <MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3" UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)" />
-</MudPaper>
+
+</MudGrid>
+<MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3" UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)" />
 @code {
-  
+
+    private string GetAgeString(ChildDto child)
+    {
+        var age = child.DateOfBirth.GetAge();
+        return age is not null ? $"{age} år" : "?";
+    }
+
     [Parameter]
     public required UserSearchFilter Filter { get; set; }
 
@@ -93,17 +84,4 @@
     [Parameter]
     public EventCallback<int> SelectedPageChanged { get; set; }
 
-    private bool _isMobile;
-    private Guid _subscriptionId;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isMobile = await BreakpointService.IsMediaSize(Breakpoint.SmAndDown);
-
-        var subscription = await BreakpointService.SubscribeAsync(breakpoint => _isMobile = breakpoint == Breakpoint.SmAndDown);
-
-        _subscriptionId = subscription.SubscriptionId;
-    }
-
-    public async ValueTask DisposeAsync() => await BreakpointService.UnsubscribeAsync(_subscriptionId);
 }

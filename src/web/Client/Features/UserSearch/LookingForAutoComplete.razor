@@ -1,13 +1,13 @@
 @using MudExtensions.Enums
 @inject HttpClient HttpClient
 
-<MudSelectExtended Dense
-                   ItemCollection="_lookingFor"
+<MudSelectExtended ItemCollection="_lookingFor"
                    T="string"
-                   Class="my-2"
-                   Label="Interesseret i"
+                   Label="Personer som er interesserede i"
+                   Placeholder="Vælg"
                    MultiSelection="true"
                    ValuePresenter="ValuePresenter.Chip"
+                   AnchorOrigin="Origin.BottomCenter"
                    SelectedValuesChanged="SelectedLookingForChanged">
 </MudSelectExtended>
 @code
@@ -31,7 +31,7 @@
 
     private async Task SelectedLookingForChanged(IEnumerable<string> lookingFor)
     {
-        LookingFor = _lookingFor.Where(lookingFor.Contains).ToArray();
+        LookingFor = lookingFor.ToArray();
         await LookingForChanged.InvokeAsync(LookingFor);
     }
 }
