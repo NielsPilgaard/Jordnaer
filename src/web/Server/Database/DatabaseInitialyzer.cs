@@ -34,7 +34,7 @@ public static class SeedDatabase
 
         // Danish locale is not available, nb_NO is norwegian. Close enough!
         var childProfileFaker = new Faker<ChildProfile>("nb_NO")
-            .RuleFor(cp => cp.Id, f => Guid.NewGuid())
+            .RuleFor(cp => cp.Id, _ => Guid.NewGuid())
             .RuleFor(cp => cp.FirstName, f => f.Name.FirstName())
             .RuleFor(cp => cp.LastName, f => f.Name.LastName())
             .RuleFor(cp => cp.Gender, f => f.PickRandom<Gender>())
@@ -77,7 +77,8 @@ public static class SeedDatabase
         var lookingFor = new List<LookingFor>()
         {
             new() {Name = "Legeaftaler"},
-            new() {Name = "Legegrupper/Legestuer"},
+            new() {Name = "Legegrupper"},
+            new() {Name = "Legestuer"},
             new() {Name = "Hjemmepasnings-grupper"},
             new() {Name = "Hjemmeundervisnings-grupper"},
             new() {Name = "Privat Dagpleje"},
@@ -85,9 +86,6 @@ public static class SeedDatabase
             new() {Name = "Fædregrupper"},
             new() {Name = "Forældregrupper"},
             new() {Name = "Sportsaktiviteter"},
-            new() {Name = "Kunst og håndværksværksaktiviteter"},
-            new() {Name = "Musik og danseaktiviteter"},
-            new() {Name = "Uddannelsesaktiviteter"},
             new() {Name = "Andet"}
         };
 

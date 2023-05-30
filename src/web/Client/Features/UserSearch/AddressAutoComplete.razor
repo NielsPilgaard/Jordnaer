@@ -2,10 +2,8 @@
 @inject IDataForsyningenClient DataForsyningenClient
 <MudAutocomplete T="string"
                  ValueChanged="SearchValueChanged"
-                 Label="Placering"
+                 Label="Søg i nærheden af"
                  SearchFuncWithCancel="@SearchForAddresses"
-                 Variant="Variant.Outlined"
-                 Class="my-2"
                  SelectValueOnTab
                  ShowProgressIndicator
                  OpenIcon="@string.Empty"

@@ -1,157 +1,42 @@
 @page "/users"
 @using Jordnaer.Shared.UserSearch
 @inject IUserSearchApi UserSearchApi
+@inject ISnackbar Snackbar
 
-<UserSearchForm OnValidSubmit="@UserSearch" @bind-Filter="_filter"/>
+<MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-@if (!_hasSearched)
-{
-    return;
-}
+    <UserSearchForm OnValidSubmit="@UserSearch" @bind-Filter="_filter" />
 
-<SponsorAd/>
-
-<UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged"/>
-
-@code {
-    private  UserSearchFilter _filter = new();
-  private UserSearchResult _searchResult = new()
-  {
-    TotalCount = 10,
-    Users = new List<UserDto>
+    @if (!_hasSearched)
     {
-      new()
-      {
-        UserName = "KasperHansen",
-        FirstName = "Kasper",
-        LastName = "Hansen",
-        ZipCode = "2100",
-        City = "København",
-        ProfilePictureUrl = "https://images.unsplash.com/photo-1554384645-13eab165c24b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
-        LookingFor = new List<string> { "Playdates", "Advice" },
-        Children = new List<ChildDto>
-        {
-          new ()
-          {
-            FirstName = "Emma",
-            LastName = "Hansen",
-            Gender = Gender.Female,
-            DateOfBirth = new DateTime(2018, 5, 12)
-          }
-        }
-      },
-      new()
-      {
-        UserName = "LeneJensen",
-        FirstName = "Lene",
-        LastName = "Jensen",
-        ZipCode = "8200",
-        City = "Aarhus",
-        ProfilePictureUrl = "https://images.unsplash.com/photo-1542103749-8ef59b94f47e?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
-        LookingFor = new List<string> { "Support group", "Babysitting circle" },
-        Children = new List<ChildDto>
-        {
-          new()
-          {
-            FirstName = "Liam",
-            LastName = "Jensen",
-            Gender = Gender.Male,
-            DateOfBirth = new DateTime(2017, 7, 25)
-          },
-          new()
-          {
-            FirstName = "Sofie",
-            LastName = "Jensen",
-            Gender = Gender.Female,
-            DateOfBirth = new DateTime(2019, 8, 30)
-          }
-        }
-      },
-      new()
-      {
-        UserName = "MadsPetersen",
-        FirstName = "Mads",
-        LastName = "Petersen",
-        ZipCode = "5000",
-        City = "Odense",
-        ProfilePictureUrl = "https://images.unsplash.com/photo-1554384645-13eab165c24b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
-        LookingFor = new List<string> { "Football team", "Language exchange" },
-        Children = new List<ChildDto>
-        {
-          new()
-          {
-            FirstName = "Oliver",
-            LastName = "Petersen",
-            Gender = Gender.Male,
-            DateOfBirth = new DateTime(2020, 4, 15)
-          },
-          new()
-          {
-            FirstName = "Ida",
-            LastName = "Petersen",
-            Gender = Gender.Female,
-            DateOfBirth = new DateTime(2022, 1, 5)
-          }
-        }
-      },
-      new()
-      {
-        UserName = "FrederikNielsen",
-        FirstName = "Frederik",
-        LastName = "Nielsen",
-        ZipCode = "8000",
-        City = "Aarhus",
-        ProfilePictureUrl = "https://images.unsplash.com/photo-1539571696357-5a59832b1789?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8",
-        LookingFor = new List<string> { "Music classes", "Coding club" },
-        Children = new List<ChildDto>
-        {
-          new()
-          {
-            FirstName = "Lucas",
-            LastName = "Nielsen",
-            Gender = Gender.Male,
-            DateOfBirth = new DateTime(2019, 12, 18)
-          }
-        }
-      },
-      new()
-      {
-        UserName = "MetteLarsen",
-        FirstName = "Mette",
-        LastName = "Larsen",
-        ZipCode = "9000",
-        City = "Aalborg",
-        ProfilePictureUrl = "https://example.com/userprofile/mettelarsen.jpg",
-        LookingFor = new List<string> { "Parenting advice", "Fitness partners" },
-        Children = new List<ChildDto>
-        {
-          new()
-          {
-            FirstName = "Alma",
-            LastName = "Larsen",
-            Gender = Gender.Female,
-            DateOfBirth = new DateTime(2021, 6, 6)
-          }
-        }
-      }
+        return;
     }
-  };
-    private bool _hasSearched = true;
+
+    <SponsorAd />
+
+    <UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+</MudLoading>
+@code {
+    private UserSearchFilter _filter = new();
+    private UserSearchResult _searchResult = new();
+    private bool _isSearching = false;
+    private bool _hasSearched = false;
 
     private async Task UserSearch()
     {
+        _isSearching = true;
         var response = await UserSearchApi.GetUsers(_filter);
         if (response.IsSuccessStatusCode)
         {
             _searchResult = response.Content!;
+            _hasSearched = true;
         }
         else
         {
-
+            Snackbar.Add(ErrorMessages.SOMETHING_WENT_WRONG_TRY_AGAIN, Severity.Warning);
         }
 
-      _hasSearched = true;
-
+        _isSearching = false;
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

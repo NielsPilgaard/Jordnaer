@@ -1,51 +1,81 @@
 @using Jordnaer.Shared.UserSearch
 
-<MudPaper Elevation="3" Class="pa-10 mt-5">
-    <MudText Typo="Typo.h4">Søg brugere</MudText>
 
-    <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
-        <MudGrid Justify="Justify.Center" Spacing="3">
-            <MudItem sm="9">
-                <AddressAutoComplete @bind-Location="Filter.Location" />
-            </MudItem>
-            <MudItem sm="3">
-                <MudTextField For="() => Filter.WithinRadiusKilometers" @bind-Value="Filter.WithinRadiusKilometers" Adornment="Adornment.End" AdornmentText="km" Label="Radius" Variant="Variant.Outlined" Class="my-2"></MudTextField>
-            </MudItem>
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="3" Class="pa-10 mt-5">
+        <MudText Typo="Typo.h6">Find dit næste Mini Møde</MudText>
 
-            <MudItem sm="3">
-                <MudNumericField For="() => Filter.MinimumChildAge" @bind-Value="Filter.MinimumChildAge" Adornment="Adornment.End" AdornmentText="år" Label="Minimum barnets alder" Variant="Variant.Outlined" Class="my-2"></MudNumericField>
-            </MudItem>
-            <MudItem sm="3">
-                <MudNumericField For="() => Filter.MaximumChildAge" @bind-Value="Filter.MaximumChildAge" Adornment="Adornment.End" AdornmentText="år" Label="Maksimal barnets alder" Variant="Variant.Outlined" Class="my-2"></MudNumericField>
-            </MudItem>
-            <MudItem sm="6">
-                <MudSelect @bind-Value="Filter.ChildGender" Label="Køn" Variant="Variant.Text">
-                    <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
-                    @foreach (var gender in Enum.GetValues<Gender>())
-                    {
-                        <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
+        <MudDivider Class="mb-5 mt-1" />
 
-            <MudItem sm="6">
-                <MudTextField @bind-Value="Filter.Name" Label="Navn" Class="my-2"></MudTextField>
-            </MudItem>
-          <MudItem sm="6">
-            <LookingForAutoComplete @bind-LookingFor="Filter.LookingFor" />
-          </MudItem>
+      <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
 
-          <MudItem sm="8" md="6" lg="5" xl="4" xxl="3">
-            <MudButton FullWidth Variant="Variant.Outlined" Color="Color.Success" ButtonType="ButtonType.Submit">
-              <MudIcon Icon="@Icons.Material.Filled.Search"/>
-            </MudButton>
-          </MudItem>
-          
-        </MudGrid>
-        
-    </EditForm>
+            <MudGrid Justify="Justify.SpaceAround" Spacing="2">
 
-</MudPaper>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Filter.Name" Label="Søg på navn" Placeholder="Fornavn, efternavn eller brugernavn."></MudTextField>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <LookingForAutoComplete @bind-LookingFor="Filter.LookingFor" />
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-8 pb-0">
+                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Place" /> Område</MudText>
+                </MudItem>
+
+                <MudItem xs="8">
+                    <AddressAutoComplete @bind-Location="Filter.Location" />
+                </MudItem>
+                <MudItem xs="4">
+                  <MudTextField For="() => Filter.WithinRadiusKilometers"
+                                @bind-Value="Filter.WithinRadiusKilometers"
+                                Adornment="Adornment.End"
+                                AdornmentText="km">
+                  </MudTextField>
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-8 pb-0">
+                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudNumericField For="() => Filter.MinimumChildAge"
+                    @bind-Value="Filter.MinimumChildAge"
+                                     Label="Min. alder">
+                    </MudNumericField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField For="() => Filter.MaximumChildAge"
+                    @bind-Value="Filter.MaximumChildAge"
+                                     Label="Max. alder">
+                    </MudNumericField>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="Filter.ChildGender" Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter"  T="Gender?" Label="Køn" Placeholder="Filtrer ud fra køn">
+                        <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
+                        @foreach (var gender in Enum.GetValues<Gender>())
+                        {
+                            <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="10" md="8" lg="6" xl="4" xxl="2" Class="mt-8">
+                    <MudButton FullWidth
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               ButtonType="ButtonType.Submit">
+                        <MudIcon Icon="@Icons.Material.Filled.Search" />
+                    </MudButton>
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
 @code
 {
     [Parameter]
