@@ -16,7 +16,7 @@ permissions:
 env:
   MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     services:
       mssql:
@@ -52,6 +52,6 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: xUnit Tests
+          name: Test Report
           path: "**.trx"
           reporter: dotnet-trx
