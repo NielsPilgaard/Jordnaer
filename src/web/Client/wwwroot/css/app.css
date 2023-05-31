@@ -87,9 +87,6 @@ h1:focus {
    min-height:100vh;
 }
 
-.mud-main-content {
-  flex: 1;
-}
 .footer {
   z-index: calc(var(--mud-zindex-drawer) + 1);
   color: var(--mud-palette-drawer-text);
