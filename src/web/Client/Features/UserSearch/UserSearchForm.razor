@@ -51,15 +51,15 @@
                     </MudNumericField>
                 </MudItem>
 
-                <MudItem xs="12">
-                    <MudSelect @bind-Value="Filter.ChildGender" Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter"  T="Gender?" Label="Køn" Placeholder="Filtrer ud fra køn">
-                        <MudSelectItem T="Gender?" Value="null">-</MudSelectItem>
-                        @foreach (var gender in Enum.GetValues<Gender>())
-                        {
-                            <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+              <MudItem xs="12">
+                @*TODO: This moves when user scrolls*@
+                <MudSelect  @bind-Value="Filter.ChildGender" Clearable Label="Køn" Placeholder="Filtrer ud fra køn">
+                  @foreach (var gender in Enum.GetValues<Gender>())
+                  {
+                    <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                  }
+                </MudSelect>
+              </MudItem>
 
                 <MudItem xs="12" sm="10" md="8" lg="6" xl="4" xxl="2" Class="mt-8">
                     <MudButton FullWidth
