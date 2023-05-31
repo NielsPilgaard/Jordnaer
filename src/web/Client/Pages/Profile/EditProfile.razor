@@ -21,40 +21,61 @@
         <MudGrid>
 
             <MudItem xs="12" sm="4">
-                <MudTextField Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
+                <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
                 <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
+            </MudItem>
+            <MudItem xs="12" sm="4">
                 <MudTextField For="() => _userProfile.LastName" @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                <MudTextField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Variant="Variant.Text" InputType="InputType.Text" name="city" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                <MudDatePicker For="() => _userProfile.DateOfBirth" OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog" AnchorOrigin="Origin.BottomLeft" @bind-Date="@_userProfile.DateOfBirth" Label="Fødselsdato" name="dob" />
-                </MudItem>
-
-                </MudGrid>
-
-        <MudSelectExtended ItemCollection="_lookingFor.Select(e=>e.Name).ToList()"
-                           T="string"
-                           Class="pt-6"
-                           Label="Interesseret i"
-                           MultiSelection="true"
-                           SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
-                           ValuePresenter="ValuePresenter.Chip"
-                           SelectedValuesChanged="SelectedLookingForChanged">
-        </MudSelectExtended>
-
-        <MudTextFieldExtended For="() => _userProfile.Description" Class="pt-6" AutoSize Lines="3" Immediate @bind-Value="@_userProfile.Description" Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
-
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Placeholder="8000" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Placeholder="Aarhus C" Variant="Variant.Text" InputType="InputType.Text" name="city" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+              <MudDatePicker AdornmentColor="Color.Primary"
+                             Color="Color.Primary"
+                             Rounded
+                             Placeholder="@DateTime.Now.ToString("d")"
+                             For="() => _userProfile.DateOfBirth"
+                             OpenTo="OpenTo.Year"
+                             PickerVariant="PickerVariant.Dialog"
+                             @bind-Date="@_userProfile.DateOfBirth"
+                             Label="Fødselsdato"
+                             name="dob" />
+            </MudItem>
+            <MudItem xs="12">
+              <MudSelectExtended ItemCollection="_lookingFor.Select(e=>e.Name).ToList()"
+                                   T="string"
+                                   Label="Interesseret i"
+                                   MultiSelection="true"
+                                   SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
+                                   ValuePresenter="ValuePresenter.Chip"
+                                   SelectedValuesChanged="SelectedLookingForChanged">
+                </MudSelectExtended>
+            </MudItem>
+            <MudItem xs="12">
+              <MudTextFieldExtended
+                For="() => _userProfile.Description"
+                AutoSize
+                Lines="3"
+                Immediate
+                @bind-Value="@_userProfile.Description"
+                Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags."
+                Label="Beskrivelse"
+                Variant="Variant.Text"
+                InputType="InputType.Text" />
+            </MudItem>
+        </MudGrid>
 
     </MudPaper>
+
+    
+      <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+
 
     <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
 
@@ -65,7 +86,7 @@
                Variant="Variant.Filled"
                FullWidth
                Color="Color.Primary">
-      Gem
+        Gem
     </MudButton>
 
 </EditForm>

@@ -1,6 +1,5 @@
 @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
 <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@ChildProfile.PictureUrl" Alt="@($"Picture of {ChildProfile.FirstName}")" />
-@*TODO: Delete Button*@
 <MudGrid>
     <MudItem xs="12" sm="6">
         <MudTextField For="() => ChildProfile.FirstName" @bind-Value="@ChildProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
@@ -18,10 +17,21 @@
 
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudDatePicker @bind-Date="@ChildProfile.DateOfBirth" OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog" AnchorOrigin="Origin.BottomLeft" For="@(()=>ChildProfile.DateOfBirth)" Label="Fødselsdato" />
+        <MudDatePicker @bind-Date="@ChildProfile.DateOfBirth"
+                       OpenTo="OpenTo.Year"
+                       PickerVariant="PickerVariant.Dialog"
+                       AnchorOrigin="Origin.BottomLeft"
+                       For="@(()=>ChildProfile.DateOfBirth)"
+                       AdornmentColor="Color.Primary"
+                       Color="Color.Primary"
+                       Rounded
+                       Placeholder="@DateTime.Now.ToString("d")"
+                       Label="Fødselsdato" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudTextFieldExtended For="() => ChildProfile.Description" AutoSize Lines="3" Immediate @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
     </MudItem>
 </MudGrid>
-<MudTextFieldExtended For="() => ChildProfile.Description" Class="pt-6" AutoSize Lines="3" Immediate @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
 @code {
     [Parameter]
     public required UserProfile Parent { get; set; }
