@@ -1,7 +1,7 @@
 @using Jordnaer.Client.Authentication
 @inject AuthStateProvider Client
 
-<MudAppBar Class="auth" Fixed Dense Elevation="5" Style="@_appBarStyle">
+<MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@_appBarStyle">
   <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
   <MudSpacer />
   <MudButton Class="d-none d-sm-flex" Color="Color.Inherit" Href="/">
@@ -12,8 +12,8 @@
 
   <AuthorizeView>
     <Authorized>
-      <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af" />
-      <MudIconButton Icon="@Icons.Material.Filled.Person" Href="profile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
+      <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af"/>
+      <MudIconButton Icon="@Icons.Material.Filled.Person" Href="profile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3"/>
     </Authorized>
     <NotAuthorized>
       <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
