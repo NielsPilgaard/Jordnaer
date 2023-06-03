@@ -1,6 +1,7 @@
 @page "/profile"
 @using MudExtensions.Enums
 @inject HttpClient HttpClient
+@inject ILookingForCache LookingForCache
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
@@ -47,16 +48,17 @@
                              Label="Fødselsdato"
                              name="dob" />
             </MudItem>
-            <MudItem xs="12">
-              <MudSelectExtended ItemCollection="_lookingFor.Select(e=>e.Name).ToList()"
-                                   T="string"
-                                   Label="Interesseret i"
-                                   MultiSelection="true"
-                                   SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
-                                   ValuePresenter="ValuePresenter.Chip"
-                                   SelectedValuesChanged="SelectedLookingForChanged">
-                </MudSelectExtended>
-            </MudItem>
+          <MudItem xs="12">
+            @*TODO: Add lookingFor cache*@
+            <MudSelectExtended ItemCollection="_lookingFor.Select(e => e.Name).ToList()"
+                               T="string"
+                               Label="Interesseret i"
+                               MultiSelection="true"
+                               SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
+                               ValuePresenter="ValuePresenter.Chip"
+                               SelectedValuesChanged="SelectedLookingForChanged">
+            </MudSelectExtended>
+          </MudItem>
             <MudItem xs="12">
               <MudTextFieldExtended
                 For="() => _userProfile.Description"
@@ -114,24 +116,12 @@
             return;
         }
 
-        await GetLookingFor();
+      _lookingFor = await LookingForCache.GetOrCreateLookingForAsync();
 
         _userProfile = userProfile;
     }
 
-    private async Task GetLookingFor()
-    {
-        var result = await HttpClient.GetFromJsonAsync<List<LookingFor>>("api/looking-for");
-        if (result is null)
-        {
-            Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.",
-              Severity.Warning, _snackbarOptions);
-            return;
-        }
-        _lookingFor = result;
-    }
-
-    private async Task UpdateUserProfile()
+  private async Task UpdateUserProfile()
     {
         var response = await HttpClient.PutAsJsonAsync("api/profiles", _userProfile);
         if (response.IsSuccessStatusCode)

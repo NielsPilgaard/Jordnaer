@@ -4,8 +4,8 @@ namespace Jordnaer.Shared;
 
 public enum Gender
 {
-    [Display(Name = "Ønsker ikke at oplyse")]
-    PreferNotToSay = 0,
+    [Display(Name = "Ikke angivet")]
+    NotSet = 0,
 
     [Display(Name = "Pige")]
     Female = 1,

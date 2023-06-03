@@ -30,7 +30,7 @@
 
     public async Task AddTab(Guid id)
     {
-        Parent.ChildProfiles.Add(new ChildProfile { Id = id, Gender = Gender.PreferNotToSay, FirstName = "" });
+        Parent.ChildProfiles.Add(new ChildProfile { Id = id, Gender = Gender.NotSet, FirstName = "" });
 
         await ParentChanged.InvokeAsync(Parent);
 

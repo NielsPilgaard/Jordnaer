@@ -21,8 +21,7 @@ public class ChildProfile
     [MaxLength(250, ErrorMessage = "Efternavn må højest være 250 karakterer langt.")]
     public string? LastName { get; set; }
 
-    [Required(ErrorMessage = "Køn er påkrævet. Hvis du føler der mangler muligheder, så giv os endelig besked.")]
-    public required Gender Gender { get; set; }
+    public Gender Gender { get; set; } = Gender.NotSet;
 
     public DateTime? DateOfBirth { get; set; }
 
