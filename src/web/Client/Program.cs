@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Authentication;
+using Jordnaer.Client.Features.LookingFor;
 using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Shared.UserSearch;
 using Microsoft.AspNetCore.Components.Web;
@@ -22,6 +23,7 @@ builder.Services.AddHttpClient<UserClient>(client =>
 builder.AddResilientHttpClient();
 
 builder.Services.AddRefitClient<IUserSearchApi>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<ILookingForApi>(builder.HostEnvironment.BaseAddress);
 
 builder.Services.AddMudServices(configuration => configuration.SnackbarConfiguration = new SnackbarConfiguration
 {
@@ -45,6 +47,8 @@ builder.Services.AddMemoryCache();
 builder.Services.AddDataForsyningenClient();
 builder.Services.Configure<DataForsyningenOptions>(
     builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
+
+builder.Services.AddTransient<ILookingForCache, LookingForCache>();
 
 var host = builder.Build();
 

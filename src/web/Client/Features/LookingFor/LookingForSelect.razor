@@ -1,5 +1,5 @@
 @using MudExtensions.Enums
-@inject HttpClient HttpClient
+@inject ILookingForCache LookingForCache
 
 <MudSelectExtended ItemCollection="_lookingFor"
                    T="string"
@@ -22,11 +22,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await HttpClient.GetFromJsonAsync<List<LookingFor>>("api/looking-for");
-        if (result is not null)
-        {
-            _lookingFor = result.Select(lookingFor => lookingFor.Name).ToList();
-        }
+        var cachedLookingFor = await LookingForCache.GetOrCreateLookingForAsync();
+        _lookingFor = cachedLookingFor.Select(e => e.Name).ToList();
     }
 
     private async Task SelectedLookingForChanged(IEnumerable<string> lookingFor)
