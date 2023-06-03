@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Jordnaer.Server.Tests.Authentication;
 
+[Trait("Category", "UnitTest")]
 public class UserService_Should
 {
     private readonly UserManager<ApplicationUser> _userManager;
