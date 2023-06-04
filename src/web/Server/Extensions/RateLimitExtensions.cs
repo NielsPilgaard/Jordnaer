@@ -5,19 +5,18 @@ namespace Jordnaer.Server.Extensions;
 
 public static class RateLimitExtensions
 {
-    private const string PER_USER_RATELIMIT_POLICY = "PerUserRatelimit";
-    private const string HEALTH_CHECK_RATELIMIT_POLICY = "HealthCheckRateLimit";
-    private const string AUTH_RATELIMIT_POLICY = "AuthenticationRateLimit";
-    private const string USER_SEARCH_RATELIMIT_POLICY = "UserSearchRateLimit";
+    private const string Per_User_Ratelimit_Policy = "PerUserRateLimit";
+    private const string Health_Check_Ratelimit_Policy = "HealthCheckRateLimit";
+    private const string Auth_Ratelimit_Policy = "AuthenticationRateLimit";
+    private const string User_Search_Ratelimit_Policy = "UserSearchRateLimit";
 
     public static IServiceCollection AddRateLimiting(this IServiceCollection services) =>
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            options.AddPolicy(PER_USER_RATELIMIT_POLICY, context =>
+            options.AddPolicy(Per_User_Ratelimit_Policy, context =>
             {
-                // We always have a user name
                 string username = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
                 return RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
@@ -29,9 +28,9 @@ public static class RateLimitExtensions
                 });
             });
 
-            options.AddPolicy(HEALTH_CHECK_RATELIMIT_POLICY, context =>
+            options.AddPolicy(Health_Check_Ratelimit_Policy, _ =>
             {
-                return RateLimitPartition.GetFixedWindowLimiter(HEALTH_CHECK_RATELIMIT_POLICY, _ => new FixedWindowRateLimiterOptions
+                return RateLimitPartition.GetFixedWindowLimiter(Health_Check_Ratelimit_Policy, _ => new FixedWindowRateLimiterOptions
                 {
                     // 5 messages per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
@@ -40,9 +39,9 @@ public static class RateLimitExtensions
                 });
             });
 
-            options.AddPolicy(AUTH_RATELIMIT_POLICY, context =>
+            options.AddPolicy(Auth_Ratelimit_Policy, context =>
             {
-                return RateLimitPartition.GetFixedWindowLimiter(context.Session.Id, _ => new FixedWindowRateLimiterOptions
+                return RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id, _ => new FixedWindowRateLimiterOptions
                 {
                     // 10 messages per user per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
@@ -51,8 +50,8 @@ public static class RateLimitExtensions
                 });
             });
 
-            options.AddPolicy(USER_SEARCH_RATELIMIT_POLICY,
-                context => RateLimitPartition.GetFixedWindowLimiter(context.Session.Id, _ =>
+            options.AddPolicy(User_Search_Ratelimit_Policy,
+                context => RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? context.Connection.Id, _ =>
                     new FixedWindowRateLimiterOptions
                     {
                         Window = TimeSpan.FromSeconds(10),
@@ -61,8 +60,8 @@ public static class RateLimitExtensions
                     }));
         });
 
-    public static IEndpointConventionBuilder RequirePerUserRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(PER_USER_RATELIMIT_POLICY);
-    public static IEndpointConventionBuilder RequireHealthCheckRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(HEALTH_CHECK_RATELIMIT_POLICY);
-    public static IEndpointConventionBuilder RequireAuthRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(AUTH_RATELIMIT_POLICY);
-    public static IEndpointConventionBuilder RequireUserSearchRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(USER_SEARCH_RATELIMIT_POLICY);
+    public static IEndpointConventionBuilder RequirePerUserRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Per_User_Ratelimit_Policy);
+    public static IEndpointConventionBuilder RequireHealthCheckRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Health_Check_Ratelimit_Policy);
+    public static IEndpointConventionBuilder RequireAuthRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Auth_Ratelimit_Policy);
+    public static IEndpointConventionBuilder RequireUserSearchRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(User_Search_Ratelimit_Policy);
 }
