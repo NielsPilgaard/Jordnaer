@@ -1,5 +1,6 @@
 @page "/users"
 @using Jordnaer.Shared.UserSearch
+@using System.Net
 @inject IUserSearchApi UserSearchApi
 @inject ISnackbar Snackbar
 
@@ -30,6 +31,10 @@
         {
             _searchResult = response.Content!;
             _hasSearched = true;
+        }
+        else if (response.StatusCode is HttpStatusCode.TooManyRequests)
+        {
+            Snackbar.Add(ErrorMessages.HIGH_LOAD, Severity.Info);
         }
         else
         {
