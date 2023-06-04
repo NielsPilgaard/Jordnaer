@@ -6,7 +6,6 @@ using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.FeatureManagement;
 using Serilog;
 
@@ -66,14 +65,13 @@ try
 
     app.UseAzureAppConfiguration();
 
-    app.UseRateLimiter(new RateLimiterOptions { RejectionStatusCode = StatusCodes.Status429TooManyRequests });
-
     app.UseHttpsRedirection();
 
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles();
 
     app.UseRouting();
+    app.UseRateLimiter();
 
     app.UseAuthentication();
     app.UseAuthorization();
