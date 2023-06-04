@@ -2,8 +2,11 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.FeatureManagement;
 using Serilog;
 
@@ -41,6 +44,11 @@ try
 
     var app = builder.Build();
 
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
+
     app.UseSerilogRequestLogging();
 
     // Configure the HTTP request pipeline.
@@ -58,7 +66,7 @@ try
 
     app.UseAzureAppConfiguration();
 
-    app.UseRateLimiter();
+    app.UseRateLimiter(new RateLimiterOptions { RejectionStatusCode = StatusCodes.Status429TooManyRequests });
 
     app.UseHttpsRedirection();
 
