@@ -1,3 +1,4 @@
+using System.Net;
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Server.Database;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using Refit;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.UserSearch;
@@ -16,10 +18,10 @@ namespace Jordnaer.Server.Tests.UserSearch;
 [Trait("Category", "UnitTest")]
 public class UserSearchService_Should : IAsyncLifetime
 {
-    private SqliteConnection _connection;
-    private JordnaerDbContext _context = default!;
-    private IDataForsyningenClient _mockDataForsyningenClient;
-    private UserSearchService _sut;
+    private SqliteConnection _connection = null!;
+    private JordnaerDbContext _context = null!;
+    private IDataForsyningenClient _dataForsyningenClientMock = null!;
+    private UserSearchService _sut = null!;
     private readonly Faker _faker = new();
 
     [Fact]
@@ -44,7 +46,7 @@ public class UserSearchService_Should : IAsyncLifetime
         var filter = new UserSearchFilter { LookingFor = new[] { _faker.Lorem.Word() } };
         var users = CreateTestUsers(5);
         // Ensure at least one user is looking for the specified activity
-        users[0].LookingFor.Add(new LookingFor { Name = filter.LookingFor.First() });
+        users[0].LookingFor.Add(new Shared.LookingFor { Name = filter.LookingFor.First() });
         _context.UserProfiles.AddRange(users);
         await _context.SaveChangesAsync();
 
@@ -154,9 +156,45 @@ public class UserSearchService_Should : IAsyncLifetime
                 DateTime.UtcNow.Year - child.DateOfBirth.GetValueOrDefault().Year <= filter.MaximumChildAge));
     }
 
+    [Fact]
+    public async Task Return_UserSearchResult_With_Location_Filter()
+    {
+        // Arrange
+        const string zipCode = "8000";
+        const string location = "Park Allé 1, 8000 Aarhus";
+        var filter = new UserSearchFilter { Location = location, WithinRadiusKilometers = 3 };
+        var users = CreateTestUsers(5);
+
+        users[0].ZipCode = zipCode;
+        _context.UserProfiles.AddRange(users);
+        await _context.SaveChangesAsync();
+
+        _dataForsyningenClientMock.GetAddressesWithAutoComplete(location)
+            .Returns(new ApiResponse<IEnumerable<AddressAutoCompleteResponse>>(
+                new HttpResponseMessage(HttpStatusCode.OK),
+                new[] { new AddressAutoCompleteResponse(location, new Adresse { Postnr = zipCode }) },
+                new RefitSettings()));
+
+        _dataForsyningenClientMock.GetZipCodesWithinCircle(Arg.Any<string>())
+            .Returns(new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(
+                new HttpResponseMessage(HttpStatusCode.OK),
+                new[] { new ZipCodeSearchResponse { Nr = zipCode } },
+                new RefitSettings()));
+
+        // Act
+        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        result.Users
+            .Should()
+            .ContainSingle(user => user.ZipCode != null &&
+                                   filter.Location.Contains(user.ZipCode));
+    }
+
     public async Task InitializeAsync()
     {
-        _mockDataForsyningenClient = Substitute.For<IDataForsyningenClient>();
+        _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
 
         // Open the connection manually because EF won't do it automatically
         _connection = new SqliteConnection("Filename=:memory:");
@@ -172,7 +210,7 @@ public class UserSearchService_Should : IAsyncLifetime
         _sut = new UserSearchService(
             Substitute.For<ILogger<UserSearchService>>(),
             _context,
-            _mockDataForsyningenClient,
+            _dataForsyningenClientMock,
             Options.Create(new DataForsyningenOptions { BaseUrl = string.Empty }));
     }
 
