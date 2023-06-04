@@ -23,7 +23,6 @@ public static class RateLimitExtensions
                 {
                     // 10 messages per user per 10 seconds
                     Window = TimeSpan.FromSeconds(15),
-                    AutoReplenishment = true,
                     PermitLimit = 50
                 });
             });
@@ -34,7 +33,6 @@ public static class RateLimitExtensions
                 {
                     // 5 messages per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
-                    AutoReplenishment = true,
                     PermitLimit = 5
                 });
             });
@@ -45,7 +43,6 @@ public static class RateLimitExtensions
                 {
                     // 10 messages per user per 10 seconds
                     Window = TimeSpan.FromSeconds(10),
-                    AutoReplenishment = true,
                     PermitLimit = 10
                 });
             });
@@ -55,8 +52,7 @@ public static class RateLimitExtensions
                     new FixedWindowRateLimiterOptions
                     {
                         Window = TimeSpan.FromSeconds(10),
-                        PermitLimit = 3,
-                        AutoReplenishment = true
+                        PermitLimit = 3
                     }));
         });
 
