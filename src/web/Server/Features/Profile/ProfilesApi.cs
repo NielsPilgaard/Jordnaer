@@ -14,8 +14,6 @@ public static class ProfilesApi
     {
         var group = routes.MapGroup("api/profiles");
 
-        group.RequireAuthorization(builder => builder.RequireCurrentUser());
-
         group.RequirePerUserRateLimit();
 
         group.MapGet("{userName}",
@@ -52,7 +50,7 @@ public static class ProfilesApi
                 return profile is null
                     ? TypedResults.NotFound()
                     : TypedResults.Ok(profile);
-            });
+            }).RequireCurrentUser();
 
         group.MapPut("",
             async Task<Results<NoContent, UnauthorizedHttpResult>>
@@ -85,7 +83,7 @@ public static class ProfilesApi
                 await context.SaveChangesAsync();
 
                 return TypedResults.NoContent();
-            });
+            }).RequireCurrentUser();
         return group;
     }
 

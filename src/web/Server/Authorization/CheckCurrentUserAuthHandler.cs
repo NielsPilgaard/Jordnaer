@@ -11,11 +11,11 @@ public static class AuthorizationHandlerExtensions
     }
 
     // Adds the current user requirement that will activate our authorization handler
-    public static AuthorizationPolicyBuilder RequireCurrentUser(this AuthorizationPolicyBuilder builder)
-    {
-        return builder.RequireAuthenticatedUser()
-                      .AddRequirements(new CheckCurrentUserRequirement());
-    }
+    public static AuthorizationPolicyBuilder RequireCurrentUser(this AuthorizationPolicyBuilder builder) =>
+        builder.RequireAuthenticatedUser().AddRequirements(new CheckCurrentUserRequirement());
+
+    public static RouteHandlerBuilder RequireCurrentUser(this RouteHandlerBuilder builder) =>
+        builder.RequireAuthorization(policyBuilder => policyBuilder.RequireCurrentUser());
 
     private class CheckCurrentUserRequirement : IAuthorizationRequirement { }
 

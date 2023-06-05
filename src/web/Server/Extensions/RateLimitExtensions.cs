@@ -19,14 +19,20 @@ public static class RateLimitExtensions
 
             options.AddPolicy(Per_User_Ratelimit_Policy, context =>
             {
-                string username = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-                return RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
-                {
-                    // 50 messages per user per 15 seconds
-                    Window = TimeSpan.FromSeconds(15),
-                    PermitLimit = 50
-                });
+                string? username = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                return username is not null
+                    ? RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromSeconds(15),
+                        PermitLimit = 50
+                    })
+                    : RateLimitPartition.GetFixedWindowLimiter(Anonymous_Partition, _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromSeconds(1),
+                        PermitLimit = 50
+                    });
             });
 
             options.AddPolicy(Health_Check_Ratelimit_Policy, _ =>
