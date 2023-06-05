@@ -1,72 +1,85 @@
 @using Jordnaer.Shared.UserSearch
 @using MudBlazor.Services
 
-<MudGrid Justify="Justify.Center">
-    @foreach (var user in SearchResult.Users)
-    {
-        <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
-            <MudNavLink Href="@($"/{user.UserName}")">
-                <MudCard Class="pa-3 my-3" Elevation="3">
-                    <MudCardContent>
-                        <MudGrid>
-                            <MudItem xs="12" Class="d-flex justify-center">
-                                <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" />
-                            </MudItem>
+@if (SearchResult.TotalCount > 0)
+{
+    <MudGrid Justify="Justify.Center">
 
-                            <MudItem xs="12">
-                                <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" T="string" Text="@user.UserName" ReadOnly />
-                            </MudItem>
-
-                            <MudItem xs="12">
-                                <MudTextField AdornmentIcon="@Icons.Material.Filled.Place" Adornment="Adornment.Start" T="string" Text="@user.DisplayLocation()" ReadOnly />
-                            </MudItem>
-                            <MudItem xs="12">
-                                <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" T="string" Text="@($"{user.FirstName} {user.LastName}".TrimEnd())" ReadOnly />
-                            </MudItem>
-
-                            @if (user.LookingFor.Any())
-                            {
-                                <MudItem xs="12">
-                                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
-                                </MudItem>
-                                <MudItem xs="12">
-                                    <MudChipSet ReadOnly>
-                                    @foreach (var lookingFor in user.LookingFor)
-                                        {
-                                            <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
-                                        }
-                                    </MudChipSet>
-                                </MudItem>
-                            }
-
-                            @if (user.Children.Any())
-                            {
-                                <MudDivider />
-                                <MudItem xs="12">
-                                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
-                                </MudItem>
+        @foreach (var user in SearchResult.Users)
+        {
+            <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
+                <MudNavLink Href="@($"/{user.UserName}")">
+                    <MudCard Class="pa-3 my-3" Elevation="3">
+                        <MudCardContent>
+                            <MudGrid>
                                 <MudItem xs="12" Class="d-flex justify-center">
-                                    <MudChipSet ReadOnly>
-                                    @foreach (var child in user.Children)
-                                        {
-                                            <MudBadge Color="Color.Success" Overlap Origin="Origin.TopRight" Content="GetAgeString(child)">
-                                                <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
-                                            </MudBadge>
-                                        }
-                                    </MudChipSet>
+                                    <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" />
                                 </MudItem>
-                            }
 
-                        </MudGrid>
-                    </MudCardContent>
-                </MudCard>
-            </MudNavLink>
-        </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" T="string" Text="@user.UserName" ReadOnly />
+                                </MudItem>
 
-    }
+                                <MudItem xs="12">
+                                    <MudTextField AdornmentIcon="@Icons.Material.Filled.Place" Adornment="Adornment.Start" T="string" Text="@user.DisplayLocation()" ReadOnly />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" T="string" Text="@($"{user.FirstName} {user.LastName}".TrimEnd())" ReadOnly />
+                                </MudItem>
 
-</MudGrid>
-<MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3" UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)" />
+                                @if (user.LookingFor.Any())
+                                {
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudChipSet ReadOnly>
+                                        @foreach (var lookingFor in user.LookingFor)
+                                            {
+                                                <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
+                                            }
+                                        </MudChipSet>
+                                    </MudItem>
+                                }
+
+                                @if (user.Children.Any())
+                                {
+                                    <MudDivider />
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" Class="d-flex justify-center">
+                                        <MudChipSet ReadOnly>
+                                        @foreach (var child in user.Children)
+                                            {
+                                                <MudBadge Color="Color.Success" Overlap Origin="Origin.TopRight" Content="GetAgeString(child)">
+                                                    <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
+                                                </MudBadge>
+                                            }
+                                        </MudChipSet>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+                </MudNavLink>
+            </MudItem>
+        }
+    </MudGrid>
+    <MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3" UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)" />
+
+}
+else
+{
+    <MudGrid Justify="Justify.Center">
+      <MudItem xs="12">
+        <MudPaper>
+          <MudAlert Severity="Severity.Info">
+            <MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
+          </MudAlert></MudPaper>
+      </MudItem>
+    </MudGrid>
+}
 @code {
 
     private string GetAgeString(ChildDto child)
