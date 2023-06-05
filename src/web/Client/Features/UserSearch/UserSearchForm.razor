@@ -1,5 +1,5 @@
 @using Jordnaer.Shared.UserSearch
-
+@inject ILocalStorageService LocalStorage
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudPaper Elevation="3" Class="pa-10 mt-5">
@@ -7,7 +7,7 @@
 
         <MudDivider Class="mb-5 mt-1" />
 
-      <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
+        <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
 
             <MudGrid Justify="Justify.SpaceAround" Spacing="2">
 
@@ -27,11 +27,11 @@
                     <AddressAutoComplete @bind-Location="Filter.Location" />
                 </MudItem>
                 <MudItem xs="4">
-                  <MudTextField For="() => Filter.WithinRadiusKilometers"
-                                @bind-Value="Filter.WithinRadiusKilometers"
-                                Adornment="Adornment.End"
-                                AdornmentText="km">
-                  </MudTextField>
+                    <MudTextField For="() => Filter.WithinRadiusKilometers"
+                    @bind-Value="Filter.WithinRadiusKilometers"
+                                  Adornment="Adornment.End"
+                                  AdornmentText="km">
+                    </MudTextField>
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-8 pb-0">
@@ -51,27 +51,32 @@
                     </MudNumericField>
                 </MudItem>
 
-              <MudItem xs="12">
-                @*TODO: This moves when user scrolls*@
-                <MudSelect  @bind-Value="Filter.ChildGender" Clearable Label="Køn" Placeholder="Filtrer ud fra køn">
-                  @foreach (var gender in Enum.GetValues<Gender>())
-                  {
-                    <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
-                  }
-                </MudSelect>
-              </MudItem>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="Filter.ChildGender" Clearable Label="Køn" Placeholder="Filtrer ud fra køn">
+                        @foreach (var gender in Enum.GetValues<Gender>())
+                        {
+                            <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
 
                 <MudItem xs="12" sm="10" md="8" lg="6" xl="4" xxl="2" Class="mt-8">
+
+                  <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
                     <MudButton FullWidth
                                Variant="Variant.Filled"
                                Color="Color.Primary"
                                ButtonType="ButtonType.Submit">
-                        <MudIcon Icon="@Icons.Material.Filled.Search" />
+                      <MudIcon Icon="@Icons.Material.Filled.Search" />
                     </MudButton>
+                    <MudButton OnClick="ClearFilter"
+                               Color="Color.Info"
+                               Variant="Variant.Filled">
+                      <MudIcon Icon="@Icons.Material.Filled.Clear"/>
+                    </MudButton>
+                  </MudButtonGroup>
                 </MudItem>
-
             </MudGrid>
-
         </EditForm>
     </MudPaper>
 </MudContainer>
@@ -86,4 +91,12 @@
 
     [Parameter]
     public required EventCallback OnValidSubmit { get; set; }
+
+    private async Task ClearFilter()
+    {
+        Filter = new UserSearchFilter();
+
+        await LocalStorage.RemoveItemAsync(nameof(UserSearchResult));
+        await LocalStorage.RemoveItemAsync(nameof(UserSearchFilter));
+    }
 }
