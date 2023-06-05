@@ -41,6 +41,8 @@ try
 
     builder.Services.AddUserSearchServices();
 
+    builder.Services.AddOutputCache();
+
     var app = builder.Build();
 
     app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -72,6 +74,7 @@ try
 
     app.UseRouting();
     app.UseRateLimiter();
+    app.UseOutputCache();
 
     app.UseAuthentication();
     app.UseAuthorization();
