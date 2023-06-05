@@ -1,8 +1,10 @@
 @page "/users"
 @using Jordnaer.Shared.UserSearch
 @using System.Net
+@using Blazored.LocalStorage
 @inject IUserSearchApi UserSearchApi
 @inject ISnackbar Snackbar
+@inject ILocalStorageService LocalStorage
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -23,6 +25,23 @@
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        _isSearching = true;
+        var savedSearchResult = await LocalStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
+        var savedSearchFilter = await LocalStorage.GetItemAsync<UserSearchFilter>(nameof(UserSearchFilter));
+        _isSearching = false;
+        if (savedSearchResult is not null)
+        {
+            _searchResult = savedSearchResult;
+            _hasSearched = true;
+        }
+        if (savedSearchFilter is not null)
+        {
+            _filter = savedSearchFilter;
+        }
+    }
+
     private async Task UserSearch()
     {
         _isSearching = true;
@@ -31,6 +50,8 @@
         {
             _searchResult = response.Content!;
             _hasSearched = true;
+            await LocalStorage.SetItemAsync(nameof(UserSearchResult), _searchResult);
+            await LocalStorage.SetItemAsync(nameof(UserSearchFilter), _filter);
         }
         else if (response.StatusCode is HttpStatusCode.TooManyRequests)
         {
