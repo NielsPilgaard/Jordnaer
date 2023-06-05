@@ -23,7 +23,8 @@ builder.Services.AddHttpClient<UserClient>(client =>
 builder.AddResilientHttpClient();
 
 builder.Services.AddRefitClient<IUserSearchApi>(builder.HostEnvironment.BaseAddress);
-builder.Services.AddRefitClient<ILookingForApi>(builder.HostEnvironment.BaseAddress);
+
+builder.AddLookingForServices();
 
 builder.Services.AddMudServices(configuration => configuration.SnackbarConfiguration = new SnackbarConfiguration
 {
@@ -47,8 +48,6 @@ builder.Services.AddMemoryCache();
 builder.Services.AddDataForsyningenClient();
 builder.Services.Configure<DataForsyningenOptions>(
     builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
-
-builder.Services.AddTransient<ILookingForCache, LookingForCache>();
 
 var host = builder.Build();
 
