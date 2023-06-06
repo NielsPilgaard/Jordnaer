@@ -1,59 +1,70 @@
 @page "/{userName}"
 
-@inject HttpClient HttpClient
+@using System.Net
+@inject ISnackbar Snackbar
+@inject IProfileApiClient ProfileApiClient
 
-@if (_profile is null)
-{
-    <MudProgressCircular Class="ms-n1" Size="Size.Large" Indeterminate="true" StrokeWidth="2" />
-    return;
-}
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    @if (_profile is null)
+    {
+        return;
+    }
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_profile.ProfilePictureUrl" Alt="@($"Billede af {_profile.FirstName}")" />
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>First Name: @_profile.FirstName</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>Last Name: @_profile.LastName</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>Zip Code: @_profile.ZipCode</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>City: @_profile.City</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>Date of Birth: @_profile.DateOfBirth?.ToString("dd/MM/yyyy")</MudText>
+            </MudItem>
+        </MudGrid>
 
-<MudPaper Elevation="3" Class="pa-4">
-    <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_profile.ProfilePictureUrl" Alt="@($"Billede af {_profile.FirstName}")" />
-    <MudGrid>
-        <MudItem xs="12" sm="6">
-            <MudText>First Name: @_profile.FirstName</MudText>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudText>Last Name: @_profile.LastName</MudText>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudText>Zip Code: @_profile.ZipCode</MudText>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudText>City: @_profile.City</MudText>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudText>Date of Birth: @_profile.DateOfBirth?.ToString("dd/MM/yyyy")</MudText>
-        </MudItem>
-    </MudGrid>
+        <MudText Class="pt-6">Looking For:</MudText>
+        <MudChipSet>
+            @foreach (var lookingFor in _profile.LookingFor)
+            {
+                <MudChip>@lookingFor.Name</MudChip>
+            }
+        </MudChipSet>
 
-    <MudText Class="pt-6">Looking For:</MudText>
-    <MudChipSet>
-        @foreach (var lookingFor in _profile.LookingFor)
-        {
-            <MudChip>@lookingFor.Name</MudChip>
-        }
-    </MudChipSet>
+        <MudText Class="pt-6">Description:</MudText>
+        <MudText>@_profile.Description</MudText>
 
-    <MudText Class="pt-6">Description:</MudText>
-    <MudText>@_profile.Description</MudText>
-
-</MudPaper>
+    </MudPaper>
+</MudLoading>
 
 @code {
     private ProfileDto? _profile;
-    [Parameter] public required string UserName { get; set; }
+    private bool _isLoading = true;
+
+    [Parameter]
+    public required string UserName { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var profileDto = await HttpClient.GetFromJsonAsync<ProfileDto>($"api/profiles/{UserName}");
-        if (profileDto is null)
+        var response = await ProfileApiClient.GetUserProfile(UserName);
+        if (response.IsSuccessStatusCode)
         {
-            // Handle the error
-            return;
+            _profile = response.Content;
         }
-
-        _profile = profileDto;
+        else if (response.StatusCode is HttpStatusCode.TooManyRequests)
+        {
+            Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+        }
+        _isLoading = false;
     }
 }
