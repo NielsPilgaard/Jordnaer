@@ -22,7 +22,7 @@ builder.Services.AddHttpClient<UserClient>(client =>
 
 builder.AddResilientHttpClient();
 
-builder.Services.AddRefitClient<IUserSearchApi>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IUserSearchApiClient>(builder.HostEnvironment.BaseAddress);
 
 builder.AddLookingForServices();
 
