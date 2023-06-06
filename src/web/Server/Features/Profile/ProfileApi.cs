@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Server.Features.Profile;
 
-public static class ProfilesApi
+public static class ProfileApi
 {
     public static RouteGroupBuilder MapProfiles(this IEndpointRouteBuilder routes)
     {
