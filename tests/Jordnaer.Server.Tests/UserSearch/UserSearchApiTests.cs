@@ -36,11 +36,15 @@ public class UserSearchApi_Should
         // Arrange
         var client = _factory.CreateClient();
 
-        // Make 15 calls to hit the limit
-        for (int i = 0; i < 15; i++)
+        var tasks = new List<Task>();
+
+        // Make at least 15 calls to hit the limit
+        for (int i = 0; i < 25; i++)
         {
-            _ = await client.GetAsync("/api/users/search");
+            tasks.Add(client.GetAsync("/api/users/search"));
         }
+
+        await Task.WhenAll(tasks);
 
         // Act
         var rateLimitedResponse = await client.GetAsync("/api/users/search");
