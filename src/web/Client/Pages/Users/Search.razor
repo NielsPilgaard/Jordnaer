@@ -54,11 +54,11 @@
         }
         else if (response.StatusCode is HttpStatusCode.TooManyRequests)
         {
-            Snackbar.Add(ErrorMessages.HIGH_LOAD, Severity.Info);
+            Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
         }
         else
         {
-            Snackbar.Add(ErrorMessages.SOMETHING_WENT_WRONG_TRY_AGAIN, Severity.Warning);
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Warning);
         }
 
         _isSearching = false;
