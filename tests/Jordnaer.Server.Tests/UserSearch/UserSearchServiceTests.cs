@@ -160,7 +160,7 @@ public class UserSearchService_Should : IAsyncLifetime
     public async Task Return_UserSearchResult_With_Location_Filter()
     {
         // Arrange
-        const string zipCode = "8000";
+        const int zipCode = 8000;
         const string location = "Park Allé 1, 8000 Aarhus";
         var filter = new UserSearchFilter { Location = location, WithinRadiusKilometers = 3 };
         var users = CreateTestUsers(5);
@@ -172,13 +172,13 @@ public class UserSearchService_Should : IAsyncLifetime
         _dataForsyningenClientMock.GetAddressesWithAutoComplete(location)
             .Returns(new ApiResponse<IEnumerable<AddressAutoCompleteResponse>>(
                 new HttpResponseMessage(HttpStatusCode.OK),
-                new[] { new AddressAutoCompleteResponse(location, new Adresse { Postnr = zipCode }) },
+                new[] { new AddressAutoCompleteResponse(location, new Adresse { Postnr = zipCode.ToString() }) },
                 new RefitSettings()));
 
         _dataForsyningenClientMock.GetZipCodesWithinCircle(Arg.Any<string>())
             .Returns(new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(
                 new HttpResponseMessage(HttpStatusCode.OK),
-                new[] { new ZipCodeSearchResponse { Nr = zipCode } },
+                new[] { new ZipCodeSearchResponse { Nr = zipCode.ToString() } },
                 new RefitSettings()));
 
         // Act
@@ -189,7 +189,7 @@ public class UserSearchService_Should : IAsyncLifetime
         result.Users
             .Should()
             .ContainSingle(user => user.ZipCode != null &&
-                                   filter.Location.Contains(user.ZipCode));
+                                   filter.Location.Contains(user.ZipCode.ToString()!));
     }
 
     public async Task InitializeAsync()

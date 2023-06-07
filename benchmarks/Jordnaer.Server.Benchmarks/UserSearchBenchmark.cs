@@ -92,7 +92,7 @@ public class UserSearchBenchmark
     public async Task UserSearch_Filter_By_Address_Within_20_Kilometers() =>
         await _client.GetUsers(new UserSearchFilter
         {
-            Location = _randomUser.ZipCode,
-            WithinRadiusKilometers = 20000
+            Location = $"{_randomUser.Address}, {_randomUser.ZipCode} {_randomUser.City}",
+            WithinRadiusKilometers = 20
         });
 }

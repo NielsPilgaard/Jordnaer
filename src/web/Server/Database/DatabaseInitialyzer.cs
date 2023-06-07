@@ -49,7 +49,7 @@ public static class SeedDatabase
             .RuleFor(u => u.LastName, f => f.Name.LastName())
             .RuleFor(u => u.PhoneNumber, f => f.Phone.PhoneNumber())
             .RuleFor(u => u.Address, f => f.Address.StreetAddress())
-            .RuleFor(u => u.ZipCode, f => f.Random.Int(999, 9991).ToString())
+            .RuleFor(u => u.ZipCode, f => f.Random.Int(1000, 9991))
             .RuleFor(u => u.City, f => f.Address.City())
             .RuleFor(u => u.Description, f => f.Lorem.Sentence())
             .RuleFor(u => u.LookingFor,

@@ -33,8 +33,8 @@ public class UserProfile
     [MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
     public string? Address { get; set; }
 
-    [MaxLength(50, ErrorMessage = "Post nummer må højest være 50 karakterer langt.")]
-    public string? ZipCode { get; set; }
+    [Range(4, 4, ErrorMessage = "Post nummer skal være 4 cifre langt.")]
+    public int? ZipCode { get; set; }
 
     [MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
     public string? City { get; set; }

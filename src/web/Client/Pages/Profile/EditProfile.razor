@@ -31,7 +31,7 @@
                     <MudTextField For="() => _userProfile.LastName" @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Placeholder="8000" Variant="Variant.Text" InputType="InputType.Number" name="zipcode" />
+                    <MudNumericField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Placeholder="8000" Variant="Variant.Text" name="zipcode" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Placeholder="Aarhus C" Variant="Variant.Text" InputType="InputType.Text" name="city" />
