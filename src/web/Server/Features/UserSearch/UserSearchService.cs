@@ -38,13 +38,15 @@ public class UserSearchService : IUserSearchService
         users = ApplyChildFilters(filter, users);
         users = ApplyNameFilter(filter, users);
         users = ApplyLookingForFilter(filter, users);
-        users = await ApplyLocationFilterAsync(filter, users);
+        (users, bool isOrdered) = await ApplyLocationFilterAsync(filter, users);
 
-        _logger.LogDebug("GetUsersAsync query: {query}", users.ToQueryString());
+        if (!isOrdered)
+        {
+            users = users.OrderBy(user => user.CreatedUtc);
+        }
 
         int usersToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
         var paginatedUsers = await users
-            .OrderBy(user => user.CreatedUtc)
             .Skip(usersToSkip)
             .Take(filter.PageSize)
             .Include(user => user.LookingFor)
@@ -75,25 +77,27 @@ public class UserSearchService : IUserSearchService
         return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
     }
 
-    private async Task<IQueryable<UserProfile>> ApplyLocationFilterAsync(UserSearchFilter filter, IQueryable<UserProfile> users)
+    private async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilterAsync(
+        UserSearchFilter filter,
+        IQueryable<UserProfile> users)
     {
         if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
         {
-            return users;
+            return (users, false);
         }
 
         var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(filter.Location);
         if (!searchResponse.IsSuccessStatusCode)
         {
             _logger.LogError(searchResponse.Error, searchResponse.Error?.Message);
-            return users;
+            return (users, false);
         }
 
         var addressDetails = searchResponse.Content?.FirstOrDefault().Adresse;
         if (addressDetails is null)
         {
             _logger.LogError("{responseName} was null.", $"{nameof(AddressAutoCompleteResponse)}.{nameof(AddressAutoCompleteResponse.Adresse)}");
-            return users;
+            return (users, false);
         }
 
         int searchRadiusMeters = Math.Min(filter.WithinRadiusKilometers ?? 0, _options.MaxSearchRadiusKilometers) * 1000;
@@ -104,16 +108,37 @@ public class UserSearchService : IUserSearchService
         if (!zipCodeSearchResponse.IsSuccessStatusCode)
         {
             _logger.LogError("Failed to get zip codes within {radius}m of the coordinates x={x}, y={y}", filter.WithinRadiusKilometers, addressDetails.Value.X, addressDetails.Value.Y);
-            return users;
+            return (users, false);
         }
 
-        var zipCodesWithinCircle = zipCodeSearchResponse.Content!.Select(x => x.Nr).ToList();
+        int searchedZipCode = GetZipCodeFromLocation(filter.Location);
 
-        _logger.LogDebug("Returned zip codes: {@zipCodes}", zipCodesWithinCircle.Count);
+        _logger.LogDebug("ZipCode that was searched for is: {searchedZipCode}", searchedZipCode);
 
-        users = users.Where(user => zipCodesWithinCircle.Contains(user.ZipCode));
+        var zipCodesWithinCircle = zipCodeSearchResponse.Content!
+            .Select(zipCodeResponse => int.Parse(zipCodeResponse.Nr!))
+            .ToList();
 
-        return users;
+        _logger.LogDebug("Returned zip codes: {zipCodeCount}", zipCodesWithinCircle.Count);
+
+        users = users
+            .Where(user => user.ZipCode != null &&
+                           zipCodesWithinCircle.Contains(user.ZipCode.Value))
+            .OrderBy(user => Math.Abs(user.ZipCode!.Value - searchedZipCode));
+
+        return (users, true);
+    }
+
+    private static int GetZipCodeFromLocation(string location)
+    {
+        var span = location.AsSpan();
+
+        int indexOfLastComma = span.LastIndexOf(',');
+
+        // Start from last comma, move 2 to skip comma and whitespace, then take the next 4 chars
+        var zipCodeSpan = span.Slice(indexOfLastComma + 2, 4);
+
+        return int.Parse(zipCodeSpan);
     }
 
     private static IQueryable<UserProfile> ApplyLookingForFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
