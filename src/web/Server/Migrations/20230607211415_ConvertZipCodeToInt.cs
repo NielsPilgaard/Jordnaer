@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,11 +10,6 @@ namespace Jordnaer.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Location",
-                table: "UserProfiles",
-                newName: "Address");
-
             migrationBuilder.AlterColumn<int>(
                 name: "ZipCode",
                 table: "UserProfiles",
@@ -29,11 +24,6 @@ namespace Jordnaer.Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Address",
-                table: "UserProfiles",
-                newName: "Location");
-
             migrationBuilder.AlterColumn<string>(
                 name: "ZipCode",
                 table: "UserProfiles",

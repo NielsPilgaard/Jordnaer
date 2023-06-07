@@ -1,4 +1,4 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -432,12 +432,6 @@ COMMIT;
 GO
 
 BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230607211415_ConvertZipCodeToInt')
-BEGIN
-    EXEC sp_rename N'[UserProfiles].[Location]', N'Address', N'COLUMN';
-END;
 GO
 
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230607211415_ConvertZipCodeToInt')
