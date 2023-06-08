@@ -38,7 +38,7 @@ public static class UserSearchApi
                 MinimumChildAge = minimumChildAge,
                 PageNumber = pageNumber ?? 1,
                 PageSize = pageSize ?? 10,
-                WithinRadiusKilometers = withinRadiusKilometers
+                WithinRadiusKilometers = withinRadiusKilometers ?? 5
             };
 
             var users = await userService.GetUsersAsync(searchFilter, cancellationToken);

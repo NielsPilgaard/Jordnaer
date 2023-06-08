@@ -1,13 +1,18 @@
 @using Jordnaer.Shared.UserSearch
+@using System.Linq.Expressions
 @inject IDataForsyningenClient DataForsyningenClient
+
 <MudAutocomplete T="string"
                  ValueChanged="SearchValueChanged"
                  Label="Søg i nærheden af"
+                 Value="Location"
                  SearchFuncWithCancel="@SearchForAddresses"
                  SelectValueOnTab
                  ShowProgressIndicator
                  OpenIcon="@string.Empty"
                  DebounceInterval="250"
+                 Clearable
+                 For="@For"
                  MinCharacters="2" />
 
 @code
@@ -16,6 +21,10 @@
     public required string Location { get; set; }
     [Parameter]
     public EventCallback<string> LocationChanged { get; set; }
+
+    [Parameter]
+    public required Expression<Func<string?>> For { get; set; }
+
 
     public async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
     {
@@ -31,4 +40,5 @@
         Location = value;
         await LocationChanged.InvokeAsync(Location);
     }
+
 }
