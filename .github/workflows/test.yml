@@ -43,13 +43,17 @@ jobs:
         run: dotnet build --configuration Release --no-restore
           
       - name: Test
+        # Dependabot cannot access secrets, so we disable this step for Dependabot
+        if: github.actor != "dependabot[bot]" && github.actor != "dependabot-preview[bot]"
         run: dotnet test --logger "trx;LogFileName=test-results.trx" --no-restore --filter Category!=ManualTest
         env:
+          ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
           ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
 
       - name: Test Report
+        # Dependabot cannot access secrets, so we disable this step for Dependabot
+        if: (success() || failure()) && (github.actor != "dependabot[bot]" && github.actor != "dependabot-preview[bot]")
         uses: dorny/test-reporter@v1
-        if: success() || failure()
         with:
           name: Test Report
           path: "**.trx"
