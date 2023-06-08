@@ -5,7 +5,6 @@ using Xunit;
 
 namespace Jordnaer.Server.Tests.UserSearch;
 
-[Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class UserSearchApi_Should
 {
@@ -16,8 +15,8 @@ public class UserSearchApi_Should
         _factory = factory;
     }
 
-    // TODO: Test UserSearchApi - Rate limiting especially
     [Fact]
+    [Trait("Category", "IntegrationTest")]
     public async Task Return_UserSearchResult_WhenCallIsValid()
     {
         // Arrange
@@ -31,6 +30,7 @@ public class UserSearchApi_Should
     }
 
     [Fact]
+    [Trait("Category", "ManualTest")]
     public async Task Return_429TooManyRequests_When_Too_Many_Requests_Are_Sent_By_The_Same_Client()
     {
         // Arrange

@@ -29,4 +29,19 @@ public class ProfileDto
     public int? GetAge() => DateOfBirth.GetAge();
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+
+    public string DisplayLocation()
+    {
+        if (ZipCode is not null && City is not null)
+        {
+            return $"{ZipCode}, {City}";
+        }
+
+        if (ZipCode is not null)
+        {
+            return ZipCode.ToString()!;
+        }
+
+        return City ?? "Område ikke angivet";
+    }
 }
