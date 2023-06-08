@@ -4,14 +4,19 @@ public static class AzureAppConfigurationExtensions
 {
     public static WebApplicationBuilder AddAzureAppConfiguration(this WebApplicationBuilder builder)
     {
+
+        string? connectionString = builder.Configuration.GetConnectionString("AppConfig");
+        if (connectionString is null)
+        {
+            return builder.Environment.IsDevelopment()
+                ? builder
+                : throw new InvalidOperationException("Connection string 'AppConfig' not found.");
+        }
+
         builder.Services.AddAzureAppConfiguration();
-
-        string appConfigConnectionString = builder.Configuration.GetConnectionString("AppConfig") ??
-                                           throw new InvalidOperationException("Connection string 'AppConfig' not found.");
-
         builder.Configuration.AddAzureAppConfiguration(options =>
         {
-            options.Connect(appConfigConnectionString)
+            options.Connect(connectionString)
                 // Load all keys that have no label
                 .Select("*")
                 // Configure to reload builder if the registered sentinel key is modified
