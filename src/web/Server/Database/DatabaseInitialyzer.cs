@@ -59,8 +59,9 @@ public static class SeedDatabase
                     .ToList())
             .RuleFor(u => u.ChildProfiles, f => childProfileFaker.Generate(f.Random.Int(1, 3)))
             .RuleFor(u => u.DateOfBirth, f => f.Date.Between(DateTime.UtcNow.AddYears(-70), DateTime.UtcNow.AddYears(-16)))
-            .RuleFor(u => u.ProfilePictureUrl, f => f.Internet.Avatar())
-            .FinishWith((_, userProfile) => Console.WriteLine($"UserProfile Created! UserName={userProfile.UserName}"));
+            .RuleFor(u => u.ProfilePictureUrl, f => f.Internet.Avatar());
+
+        Console.WriteLine("Generated {0} UserProfiles for testing.", usersToGenerate);
 
         var users = userFaker.Generate(usersToGenerate);
 
