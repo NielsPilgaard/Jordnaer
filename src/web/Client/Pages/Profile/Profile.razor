@@ -3,6 +3,9 @@
 @using System.Net
 @inject ISnackbar Snackbar
 @inject IProfileApiClient ProfileApiClient
+@inject IJSRuntime JsRuntime
+
+<MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack"/>
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null)
@@ -10,36 +13,55 @@
         return;
     }
     <MudPaper Elevation="3" Class="pa-4">
-        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_profile.ProfilePictureUrl" Alt="@($"Billede af {_profile.FirstName}")" />
         <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudText>First Name: @_profile.FirstName</MudText>
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@_profile.ProfilePictureUrl" />
             </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudText>Last Name: @_profile.LastName</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudText>Zip Code: @_profile.ZipCode</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudText>City: @_profile.City</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudText>Date of Birth: @_profile.DateOfBirth?.ToString("dd/MM/yyyy")</MudText>
-            </MudItem>
-        </MudGrid>
 
-        <MudText Class="pt-6">Looking For:</MudText>
-        <MudChipSet>
-            @foreach (var lookingFor in _profile.LookingFor)
+            <MudItem xs="12">
+                <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" T="string" Text="@UserName" ReadOnly />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField AdornmentIcon="@Icons.Material.Filled.Place" Adornment="Adornment.Start" T="string" Text="@_profile.DisplayLocation()" ReadOnly />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" T="string" Text="@($"{_profile.FirstName} {_profile.LastName}".TrimEnd())" ReadOnly />
+            </MudItem>
+
+            @if (_profile.LookingFor.Any())
             {
-                <MudChip>@lookingFor.Name</MudChip>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudChipSet ReadOnly>
+                    @foreach (var lookingFor in _profile.LookingFor)
+                        {
+                            <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
+                        }
+                    </MudChipSet>
+                </MudItem>
             }
-        </MudChipSet>
 
-        <MudText Class="pt-6">Description:</MudText>
-        <MudText>@_profile.Description</MudText>
-
+            @if (_profile.ChildProfiles.Any())
+            {
+                <MudDivider />
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudChipSet ReadOnly>
+                    @foreach (var child in _profile.ChildProfiles)
+                        {
+                            <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="child.GetAge()">
+                                <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
+                            </MudBadge>
+                        }
+                    </MudChipSet>
+                </MudItem>
+            }
+        </MudGrid>
     </MudPaper>
 </MudLoading>
 
@@ -67,4 +89,9 @@
         }
         _isLoading = false;
     }
+
+  private async Task GoBack()
+  {
+    await JsRuntime.InvokeVoidAsync("history.back");
+  }
 }

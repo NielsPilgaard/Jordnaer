@@ -1,5 +1,7 @@
 @using Jordnaer.Shared.UserSearch
 @using MudBlazor.Services
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
 
 @if (SearchResult.TotalCount > 0)
 {
@@ -8,7 +10,7 @@
         @foreach (var user in SearchResult.Users)
         {
             <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
-                <MudNavLink Href="@($"/{user.UserName}")">
+                <MudNavLink OnClick="()=>SaveScrollPosition(user)">
                     <MudCard Class="pa-3 my-3" Elevation="3">
                         <MudCardContent>
                             <MudGrid>
@@ -52,7 +54,7 @@
                                         <MudChipSet ReadOnly>
                                         @foreach (var child in user.Children)
                                             {
-                                                <MudBadge Color="Color.Success" Overlap Origin="Origin.TopRight" Content="GetAgeString(child)">
+                                                <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="GetAgeString(child)">
                                                     <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
                                                 </MudBadge>
                                             }
@@ -72,12 +74,13 @@
 else
 {
     <MudGrid Justify="Justify.Center">
-      <MudItem xs="12">
-        <MudPaper>
-          <MudAlert Severity="Severity.Info">
-            <MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
-          </MudAlert></MudPaper>
-      </MudItem>
+        <MudItem xs="12">
+            <MudPaper>
+                <MudAlert Severity="Severity.Info">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
+                </MudAlert>
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 }
 @code {
@@ -86,6 +89,20 @@ else
     {
         var age = child.DateOfBirth.GetAge();
         return age is not null ? $"{age} år" : "?";
+    }
+
+    private async Task SaveScrollPosition(UserDto user)
+    {
+        await JsRuntime.InvokeVoidAsync("scrollFunctions.saveScrollPosition");
+        Navigation.NavigateTo($"/{user.UserName}");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JsRuntime.InvokeVoidAsync("scrollFunctions.loadScrollPosition");
+        }
     }
 
     [Parameter]
