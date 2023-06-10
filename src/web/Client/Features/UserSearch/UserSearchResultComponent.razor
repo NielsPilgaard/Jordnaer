@@ -35,7 +35,7 @@
                                         <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
                                     </MudItem>
                                     <MudItem xs="12">
-                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-4">
+                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-3">
                                         @foreach (var lookingFor in user.LookingFor)
                                             {
                                                 <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
@@ -51,7 +51,7 @@
                                         <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
                                     </MudItem>
                                     <MudItem xs="12">
-                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-4">
+                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-3">
                                         @foreach (var child in user.Children.OrderBy(c => c.DateOfBirth))
                                             {
                                                 <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="GetAgeString(child)">
