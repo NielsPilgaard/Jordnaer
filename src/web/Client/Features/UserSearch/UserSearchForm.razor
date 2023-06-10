@@ -1,5 +1,6 @@
 @using Jordnaer.Shared.UserSearch
-@inject ILocalStorageService LocalStorage
+@using Blazored.SessionStorage
+@inject ISessionStorageService SessionStorage
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudPaper Elevation="3" Class="pa-10 mt-5">
@@ -98,8 +99,7 @@
         Filter = new UserSearchFilter();
         await FilterChanged.InvokeAsync();
 
-        await LocalStorage.RemoveItemAsync(nameof(UserSearchResult));
-        await LocalStorage.RemoveItemAsync(nameof(UserSearchFilter));
-
+        await SessionStorage.RemoveItemAsync(nameof(UserSearchResult));
+        await SessionStorage.RemoveItemAsync(nameof(UserSearchFilter));
     }
 }

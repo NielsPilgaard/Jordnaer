@@ -1,9 +1,8 @@
 @page "/users"
 @using Jordnaer.Shared.UserSearch
-@using System.Net
 @inject IUserSearchApiClient UserSearchApi
 @inject ISnackbar Snackbar
-@inject ILocalStorageService LocalStorage
+@inject ISessionStorageService SessionStorage
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -27,8 +26,8 @@
     protected override async Task OnInitializedAsync()
     {
         _isSearching = true;
-        var savedSearchResult = await LocalStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
-        var savedSearchFilter = await LocalStorage.GetItemAsync<UserSearchFilter>(nameof(UserSearchFilter));
+        var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
+        var savedSearchFilter = await SessionStorage.GetItemAsync<UserSearchFilter>(nameof(UserSearchFilter));
         _isSearching = false;
         if (savedSearchResult is not null)
         {
@@ -49,8 +48,8 @@
         {
             _searchResult = response.Content!;
             _hasSearched = true;
-            await LocalStorage.SetItemAsync(nameof(UserSearchResult), _searchResult);
-            await LocalStorage.SetItemAsync(nameof(UserSearchFilter), _filter);
+            await SessionStorage.SetItemAsync(nameof(UserSearchResult), _searchResult);
+            await SessionStorage.SetItemAsync(nameof(UserSearchFilter), _filter);
         }
         else if (response.StatusCode is HttpStatusCode.TooManyRequests)
         {
