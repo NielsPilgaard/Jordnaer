@@ -2,9 +2,9 @@
   height: 300px;
   width: 100%;
   position: relative;
+  border: 5px solid blue;
 }
 .container {
-  border: 5px solid blue;
   padding: 15px;
   position: absolute;
   top: 50%;
