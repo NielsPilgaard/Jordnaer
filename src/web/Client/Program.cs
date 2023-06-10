@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Authentication;
 using Jordnaer.Client.Features.LookingFor;
@@ -45,6 +46,7 @@ builder.Services.AddMudExtensions();
 builder.Services.AddWasmAuthentication();
 
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredSessionStorage();
 
 builder.Services.AddMemoryCache();
 
