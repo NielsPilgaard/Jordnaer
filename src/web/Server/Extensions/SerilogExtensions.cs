@@ -10,6 +10,11 @@ public static class SerilogExtensions
 {
     public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
     {
+        builder.Services
+            .AddOptions<GrafanaLokiOptions>()
+            .BindConfiguration("GrafanaLoki")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         builder.Host.UseSerilog((context, provider, loggerConfiguration) =>
         {
@@ -20,17 +25,7 @@ public static class SerilogExtensions
 
             loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 
-
-            if (!builder.Environment.IsDevelopment())
-            {
-                builder.Services
-                    .AddOptions<GrafanaLokiOptions>()
-                    .BindConfiguration("GrafanaLoki")
-                    .ValidateDataAnnotations()
-                    .ValidateOnStart();
-
-                loggerConfiguration.WriteToLoki(provider);
-            }
+            loggerConfiguration.WriteToLoki(provider);
         });
 
         return builder;
@@ -51,7 +46,7 @@ public static class SerilogExtensions
                 new()
                 {
                     Key = "environment",
-                    Value = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "not_configured"
+                    Value = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Not Configured"
                 }
             };
 
