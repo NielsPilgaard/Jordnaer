@@ -38,10 +38,10 @@ jobs:
           include-prerelease: true
 
       - name: Restore Nugets
-        run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
           
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
