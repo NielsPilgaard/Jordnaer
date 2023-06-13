@@ -2,6 +2,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.Email;
 using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
@@ -42,6 +43,8 @@ try
     builder.Services.AddUserSearchServices();
 
     builder.Services.AddOutputCache();
+
+    builder.AddEmailServices();
 
     var app = builder.Build();
 
@@ -85,6 +88,7 @@ try
     app.MapProfiles();
     app.MapLookingFor();
     app.MapUserSearch();
+    app.MapEmail();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 

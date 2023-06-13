@@ -31,11 +31,14 @@
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.5.1" />
 
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="7.0.0-rc2.11" />
+    <PackageReference Include="AspNetCore.HealthChecks.SendGrid" Version="7.0.0-rc2.5" />
 
     <PackageReference Include="Bogus" Version="34.0.2" />
     <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
 
     <PackageReference Include="MiniValidation" Version="0.7.4" />
+
+    <PackageReference Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
 
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
