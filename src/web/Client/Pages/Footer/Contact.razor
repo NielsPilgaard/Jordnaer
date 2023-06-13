@@ -3,29 +3,36 @@
 @using Jordnaer.Shared.Email
 @inject IEmailApiClient EmailApiClient
 @inject ISnackbar Snackbar
-<MudContainer MaxWidth="MaxWidth.Small">
-    <MudPaper Elevation="3" Class="pa-10 mt-5">
-        <MudText Typo="Typo.h3">Kontakt os</MudText>
-        <MudDivider Class="mt-1 mb-5" />
+<MudLoading @bind-Loading="_isSending" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <MudPaper Elevation="3" Class="pa-10 mt-5">
+            <MudText Typo="Typo.h3">Kontakt os</MudText>
+            <MudDivider Class="mt-1 mb-5" />
 
-        <MudText Typo="Typo.body1">
-            Har du spørgsmål, kommentarer eller forslag? Vi vil meget gerne høre fra dig! Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
-        </MudText>
+            <MudText Typo="Typo.body1">
+                Har du spørgsmål, kommentarer eller forslag? Vi vil meget gerne høre fra dig!
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mt-3">
+                Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
+            </MudText>
 
-        <EditForm Model="_contactForm" OnValidSubmit="SubmitForm" Class="mt-5">
-            <MudTextField Label="Dit Navn" @bind-Value="_contactForm.Name" For="() => _contactForm.Name" Variant="Variant.Outlined" FullWidth Class="mt-3" name="name" />
-            <MudTextField Label="Din Email" @bind-Value="_contactForm.Email" For="() => _contactForm.Email" Required InputType="InputType.Email" Variant="Variant.Outlined" FullWidth Class="mt-3" name="reg_email__" />
-            <MudTextFieldExtended Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required Variant="Variant.Outlined" FullWidth AutoSize Lines="5" Immediate Class="mt-3" />
-            <MudButton FullWidth Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Send" OnClick="SubmitForm" Class="mt-3">Send</MudButton>
-        </EditForm>
-    </MudPaper>
-</MudContainer>
+            <EditForm Model="_contactForm" OnValidSubmit="SubmitForm" Class="mt-5">
+                <MudTextField Label="Dit Navn" @bind-Value="_contactForm.Name" For="() => _contactForm.Name" FullWidth Class="mt-3" name="name" />
+                <MudTextField Label="Din Email" @bind-Value="_contactForm.Email" For="() => _contactForm.Email" Required InputType="InputType.Email" FullWidth Class="mt-3" name="reg_email__" />
+                <MudTextFieldExtended Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required FullWidth AutoSize Lines="2" Immediate Class="mt-3" />
+                <MudButton FullWidth Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Send" OnClick="SubmitForm" Class="mt-3">Send</MudButton>
+            </EditForm>
+        </MudPaper>
+    </MudContainer>
+</MudLoading>
 
 @code {
     private ContactForm _contactForm = new();
+    private bool _isSending = false;
 
     private async Task SubmitForm()
     {
+        _isSending = true;
         var response = await EmailApiClient.SendEmailFromContactForm(_contactForm);
         if (response is { IsSuccessStatusCode: true, Content: true })
         {
@@ -39,7 +46,9 @@
         {
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Warning);
         }
+        _isSending = false;
     }
+
 }
 
 
