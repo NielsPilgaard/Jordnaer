@@ -19,7 +19,6 @@ public static class RateLimitExtensions
 
             options.AddPolicy(Per_User_Ratelimit_Policy, context =>
             {
-
                 string? username = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 return username is not null
