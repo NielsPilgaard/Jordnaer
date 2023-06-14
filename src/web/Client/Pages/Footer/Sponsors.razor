@@ -1,8 +1,47 @@
 @page "/sponsors"
 
-<MudText Typo="Typo.h2">Sponsorer</MudText>
-@code{
+<MetadataComponent Title="Mini Møder - Sponsorer"
+                   Description="Mini Møder's sponsorer" />
 
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Elevation="3" Class="pa-10 mt-5">
+        <MudText Typo="Typo.h3" Class="mb-5">Vore Sponsorer</MudText>
+        <MudDivider Class="mt-1 mb-5" />
 
+        <MudGrid Justify="Justify.SpaceEvenly">
+          @foreach (var sponsor in _sponsors)
+          {
+              <SponsorCard Sponsor="sponsor" />
+          }
+        </MudGrid>
 
+        <MudDivider Class="my-10" />
+        <MudText Typo="Typo.h4" Class="mt-5 mb-3">Bliv Sponsor</MudText>
+        <MudText Typo="Typo.body1">
+            At være en sponsor af Mini Møder giver en unik mulighed for at støtte et lokalt initiativ og samtidig opnå synlighed for dit brand. Hvis du er interesseret i at lære mere om mulighederne for at blive en sponsor, bedes du kontakte os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.
+        </MudText>
+
+    </MudPaper>
+</MudContainer>
+
+@code {
+
+    private readonly List<Sponsor> _sponsors = new()
+      {
+        new Sponsor
+        {
+          Name = "Moon Creative",
+          Description = "Moon Creative laver illustrationer og grafisk design til iværksættere og virksomheder, der ønsker at skabe forandring i mennesker",
+          LogoUrl = "https://usercontent.one/wp/www.mooncreative.dk/wp-content/uploads/2022/04/Logo_mooncreative_long-2-e1649063478985.png",
+          Link = "https://www.mooncreative.dk/"
+        },
+        new Sponsor
+        {
+          Name = string.Empty,
+          Description = "Microsoft for Startups samler mennesker, viden og teknologi for at hjælpe iværksættere på alle stadier med at løse udfordringer i startfasen.",
+          LogoUrl = "https://i.ibb.co/v4Q7pkQ/startups-wordmark-purple.png",
+          Link = "https://www.microsoft.com/en-us/startups"
+        }
+      };
+    
 }
