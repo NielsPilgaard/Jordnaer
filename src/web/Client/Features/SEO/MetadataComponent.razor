@@ -1,8 +1,18 @@
 <PageTitle>@Title</PageTitle>
 <HeadContent>
-    <meta name="description" content="@Description" />
     <meta name="og:title" content="@Title" />
-    <meta name="og:description" content="@Description" />
+    <meta name="og:site_name" content="Mini Møder" />
+
+    @if (!string.IsNullOrEmpty(Description))
+    {
+        <meta name="description" content="@Description" />
+        <meta name="og:description" content="@Description" />
+    }
+    
+    @if (!string.IsNullOrEmpty(Image))
+    {
+      <meta name="og:image" content="@Image" />
+    }
 
     @if (!string.IsNullOrEmpty(Tags))
     {
@@ -12,10 +22,13 @@
 
 @code {
     [Parameter]
-    public string Title { get; set; } = null!;
+    public required string Title { get; set; } = null!;
 
     [Parameter]
-    public string Description { get; set; } = null!;
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string? Image { get; set; }
 
     [Parameter]
     public string? Tags { get; set; } // Comma separated list

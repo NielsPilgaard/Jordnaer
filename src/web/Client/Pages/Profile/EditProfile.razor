@@ -5,6 +5,9 @@
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
+<MetadataComponent Title="Redigér Profil"
+                   Description="Her kan du redigére din profil" />
+
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_userProfile is null)
     {

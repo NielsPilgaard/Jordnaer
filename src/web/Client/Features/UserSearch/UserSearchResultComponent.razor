@@ -29,34 +29,35 @@
                                     <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" T="string" Text="@($"{user.FirstName} {user.LastName}".TrimEnd())" ReadOnly />
                                 </MudItem>
 
-                                @if (user.LookingFor.Any())
+                                @if (user.Children.Any())
                                 {
                                     <MudItem xs="12">
-                                        <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
+                                        <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
                                     </MudItem>
                                     <MudItem xs="12">
-                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-3">
-                                        @foreach (var lookingFor in user.LookingFor)
+                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-start flex-grow-1 gap-3">
+                                            @foreach (var child in user.Children.OrderBy(c => c.DateOfBirth))
                                             {
-                                                <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
+                                                <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="GetAgeString(child)">
+                                                    <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
+                                                </MudBadge>
                                             }
                                         </MudChipSet>
                                     </MudItem>
                                 }
 
-                                @if (user.Children.Any())
+                                @if (user.LookingFor.Any())
                                 {
-                                    <MudDivider />
+                                  <MudDivider />
+
                                     <MudItem xs="12">
-                                        <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                                        <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
                                     </MudItem>
                                     <MudItem xs="12">
-                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-3">
-                                        @foreach (var child in user.Children.OrderBy(c => c.DateOfBirth))
+                                        <MudChipSet ReadOnly Class="d-flex flex-wrap justify-start flex-grow-1">
+                                            @foreach (var lookingFor in user.LookingFor)
                                             {
-                                                <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="GetAgeString(child)">
-                                                    <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
-                                                </MudBadge>
+                                                <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
                                             }
                                         </MudChipSet>
                                     </MudItem>
