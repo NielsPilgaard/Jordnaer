@@ -99,8 +99,11 @@ h1:focus {
     margin-left: var(--mud-drawer-width-left);
   }
 }
-
-.mud-grid-spacing-xs-3 {
-  width: 100%;
-  margin: 0;
+.mud-card {
+  transition: all 0.3s ease;
+}
+.mud-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.3);
+  background-color: #fafafa;
 }
