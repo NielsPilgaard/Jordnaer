@@ -4,6 +4,9 @@
 @inject ISnackbar Snackbar
 @inject ISessionStorageService SessionStorage
 
+<MetadataComponent Title="Mini Møder - Søg efter brugere"
+                   Description="Søg efter brugere" />
+
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
     <UserSearchForm OnValidSubmit="@UserSearch" @bind-Filter="_filter" />
