@@ -3,6 +3,11 @@
 @using Jordnaer.Shared.Email
 @inject IEmailApiClient EmailApiClient
 @inject ISnackbar Snackbar
+
+
+<MetadataComponent Title="Mini Møder - Kontakt"
+                   Description="Kontakt Mini Møder her" />
+
 <MudLoading @bind-Loading="_isSending" Darken Overlap>
     <MudContainer MaxWidth="MaxWidth.Small">
         <MudPaper Elevation="3" Class="pa-10 mt-5">
