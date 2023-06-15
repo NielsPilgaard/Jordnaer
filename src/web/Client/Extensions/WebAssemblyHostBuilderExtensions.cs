@@ -11,7 +11,7 @@ public static class WebAssemblyHostBuilderExtensions
         RefitSettings? settings = null)
         where TClient : class
     {
-        services.AddRefitClient<TClient>().ConfigureHttpClient(client =>
+        services.AddRefitClient<TClient>(settings).ConfigureHttpClient(client =>
             client.BaseAddress = baseAddress)
             .AddTransientHttpErrorPolicy(policyBuilder =>
                 policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
