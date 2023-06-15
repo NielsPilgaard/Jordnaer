@@ -1,6 +1,8 @@
-using System.Net.Http.Json;
+using System.Net;
 using FluentAssertions;
+using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Shared.UserSearch;
+using Refit;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.UserSearch;
@@ -20,10 +22,10 @@ public class UserSearchApi_Should
     public async Task Return_UserSearchResult_WhenCallIsValid()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = RestService.For<IUserSearchApiClient>(_factory.CreateClient());
 
         // Act
-        var response = await client.GetFromJsonAsync<UserSearchResult>("/api/users/search");
+        var response = await client.GetUsers(new UserSearchFilter());
 
         // Assert
         response.Should().NotBeNull();
@@ -34,22 +36,22 @@ public class UserSearchApi_Should
     public async Task Return_429TooManyRequests_When_Too_Many_Requests_Are_Sent_By_The_Same_Client()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var client = RestService.For<IUserSearchApiClient>(_factory.CreateClient());
 
         var tasks = new List<Task>();
 
         // Make at least 15 calls to hit the limit
         for (int i = 0; i < 25; i++)
         {
-            tasks.Add(client.GetAsync("/api/users/search"));
+            tasks.Add(client.GetUsers(new UserSearchFilter()));
         }
 
         await Task.WhenAll(tasks);
 
         // Act
-        var rateLimitedResponse = await client.GetAsync("/api/users/search");
+        var rateLimitedResponse = await client.GetUsers(new UserSearchFilter());
 
         // Assert
-        rateLimitedResponse.Should().Be429TooManyRequests();
+        rateLimitedResponse.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
     }
 }
