@@ -9,11 +9,11 @@ public interface IAuthApiClient
     Task<IApiResponse<CurrentUserDto?>> GetCurrentUserAsync();
 
     [Post("/api/auth/login")]
-    Task<bool> LoginAsync(UserInfo userInfo);
+    Task<IApiResponse<bool>> LoginAsync(UserInfo userInfo);
 
     [Post("/api/auth/register")]
-    Task<bool> CreateUserAsync(UserInfo userInfo);
+    Task<IApiResponse<bool>> CreateUserAsync(UserInfo userInfo);
 
     [Post("/api/auth/logout")]
-    Task<bool> LogoutAsync();
+    Task<IApiResponse> LogoutAsync();
 }

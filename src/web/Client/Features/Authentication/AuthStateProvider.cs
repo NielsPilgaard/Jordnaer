@@ -51,38 +51,38 @@ public class AuthStateProvider : AuthenticationStateProvider
 
     public async Task<bool> LoginAsync(UserInfo userInfo)
     {
-        bool loggedIn = await _authApiClient.LoginAsync(userInfo);
-        if (loggedIn)
+        var response = await _authApiClient.LoginAsync(userInfo);
+        if (response is { IsSuccessStatusCode: true, Content: true })
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return loggedIn;
+        return false;
     }
 
     public async Task<bool> CreateUserAsync(UserInfo userInfo)
     {
-        bool userCreated = await _authApiClient.CreateUserAsync(userInfo);
-        if (userCreated)
+        var response = await _authApiClient.CreateUserAsync(userInfo);
+        if (response is { IsSuccessStatusCode: true, Content: true })
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return userCreated;
+        return false;
     }
 
     public async Task<bool> LogoutAsync()
     {
-        bool loggedOut = await _authApiClient.LogoutAsync();
-        if (loggedOut)
+        var response = await _authApiClient.LogoutAsync();
+        if (response.IsSuccessStatusCode)
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return loggedOut;
+        return false;
     }
 
 
