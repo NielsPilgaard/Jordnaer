@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 
-namespace Jordnaer.Client.Authentication;
+namespace Jordnaer.Client.Features.Authentication;
 
 public static class AuthExtensions
 {

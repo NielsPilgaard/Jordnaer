@@ -1,7 +1,7 @@
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Jordnaer.Client;
-using Jordnaer.Client.Authentication;
+using Jordnaer.Client.Features.Authentication;
 using Jordnaer.Client.Features.Email;
 using Jordnaer.Client.Features.LookingFor;
 using Jordnaer.Client.Features.Profile;

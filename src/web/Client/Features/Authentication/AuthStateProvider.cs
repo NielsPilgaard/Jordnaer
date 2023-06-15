@@ -3,7 +3,7 @@ using Jordnaer.Client.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
 
-namespace Jordnaer.Client.Authentication;
+namespace Jordnaer.Client.Features.Authentication;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {
