@@ -14,7 +14,7 @@ public class ChildProfile
     [ForeignKey(nameof(UserProfile))]
     public string UserProfileId { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Fornavn er påkrævet.")]
     [MaxLength(100, ErrorMessage = "Fornavn må højest være 100 karakterer langt.")]
     public required string FirstName { get; set; }
 
