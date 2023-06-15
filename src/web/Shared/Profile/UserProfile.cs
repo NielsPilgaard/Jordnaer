@@ -33,7 +33,7 @@ public class UserProfile
     [MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
     public string? Address { get; set; }
 
-    [Range(4, 4, ErrorMessage = "Post nummer skal være 4 cifre langt.")]
+    [DanishZipCode(ErrorMessage = "Post nummer skal være mellem 1000 og 9999")]
     public int? ZipCode { get; set; }
 
     [MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
@@ -55,4 +55,22 @@ public class UserProfile
     public int? GetAge() => DateOfBirth.GetAge();
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+}
+
+public class DanishZipCodeAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+    {
+        if (value is not int zipCode)
+        {
+            return new ValidationResult("Post nummer må kun bestå af tal.");
+        }
+
+        if (zipCode is < 1000 or > 10_000)
+        {
+            return new ValidationResult("Post nummer skal være mellem 1000 og 9999");
+        }
+
+        return ValidationResult.Success!;
+    }
 }
