@@ -14,6 +14,8 @@
         return;
     }
 
+    <MudButton Disabled="@(_userProfile.UserName is null)" Href="@($"/{_userProfile.UserName}")" Color="Color.Primary" StartIcon="@Icons.Material.Filled.KeyboardArrowLeft" EndIcon="@Icons.Material.Filled.Person">@(_userProfile.UserName is null ? "Sæt et brugernavn for at gøre din profil offentlig" : "Gå til offentlig profil")</MudButton>
+
     <EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
 
         <DataAnnotationsValidator />
@@ -42,7 +44,7 @@
                 <MudItem xs="12" sm="4">
                     <MudDatePicker AdornmentColor="Color.Primary"
                                    Color="Color.Primary"
-                                      Rounded
+                                   Rounded
                                    Placeholder="@DateTime.Now.ToString("d")"
                                    For="() => _userProfile.DateOfBirth"
                                    OpenTo="OpenTo.Year"
@@ -52,7 +54,6 @@
                                    name="dob" />
                 </MudItem>
                 <MudItem xs="12">
-                    @*TODO: Add lookingFor cache*@
                     <MudSelectExtended ItemCollection="_lookingFor.Select(e => e.Name).ToList()"
                                        T="string"
                                        Label="Interesseret i"
