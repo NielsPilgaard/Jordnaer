@@ -5,11 +5,14 @@ namespace Jordnaer.Client;
 
 public static class WebAssemblyHostBuilderExtensions
 {
-    public static IServiceCollection AddRefitClient<TClient>(this IServiceCollection services, Uri baseAddress)
+    public static IServiceCollection AddRefitClient<TClient>(
+        this IServiceCollection services,
+        Uri baseAddress,
+        RefitSettings? settings = null)
         where TClient : class
     {
         services.AddRefitClient<TClient>().ConfigureHttpClient(client =>
-                client.BaseAddress = baseAddress)
+            client.BaseAddress = baseAddress)
             .AddTransientHttpErrorPolicy(policyBuilder =>
                 policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
             .AddTransientHttpErrorPolicy(policyBuilder =>
@@ -20,6 +23,9 @@ public static class WebAssemblyHostBuilderExtensions
         return services;
     }
 
-    public static IServiceCollection AddRefitClient<TClient>(this IServiceCollection services,
-        string baseAddress) where TClient : class => services.AddRefitClient<TClient>(new Uri(baseAddress));
+    public static IServiceCollection AddRefitClient<TClient>(
+        this IServiceCollection services,
+        string baseAddress,
+        RefitSettings? settings = null) where TClient : class
+        => services.AddRefitClient<TClient>(new Uri(baseAddress), settings);
 }
