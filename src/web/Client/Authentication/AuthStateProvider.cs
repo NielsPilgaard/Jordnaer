@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Jordnaer.Client.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -7,16 +8,16 @@ namespace Jordnaer.Client.Authentication;
 public class AuthStateProvider : AuthenticationStateProvider
 {
     private readonly AuthClient _authClient;
-    private readonly UserClient _userClient;
+    private readonly IUserApiClient _userApiClient;
     private readonly ILogger<AuthStateProvider> _logger;
     private AuthenticationState _currentAuthenticationState;
     private bool _authenticationStateChanged = true;
 
-    public AuthStateProvider(AuthClient authClient, ILogger<AuthStateProvider> logger, UserClient userClient)
+    public AuthStateProvider(AuthClient authClient, ILogger<AuthStateProvider> logger, IUserApiClient userApiClient)
     {
         _authClient = authClient;
         _logger = logger;
-        _userClient = userClient;
+        _userApiClient = userApiClient;
         _currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal());
     }
 
@@ -84,15 +85,15 @@ public class AuthStateProvider : AuthenticationStateProvider
     }
 
 
-    public async Task<bool> DeleteUserAsync()
+    public async Task<bool> DeleteUserAsync(string id)
     {
-        bool userDeleted = await _userClient.DeleteUserAsync();
-        if (userDeleted)
+        var response = await _userApiClient.DeleteUserAsync(id);
+        if (response.IsSuccessStatusCode)
         {
             _authenticationStateChanged = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        return userDeleted;
+        return response.IsSuccessStatusCode;
     }
 }

@@ -20,10 +20,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddHttpClient<AuthClient>(client =>
     client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
-builder.Services.AddHttpClient<UserClient>(client =>
-    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
-
-builder.AddResilientHttpClient();
+builder.Services.AddRefitClient<IUserApiClient>(builder.HostEnvironment.BaseAddress);
 
 builder.Services.AddRefitClient<IUserSearchApiClient>(builder.HostEnvironment.BaseAddress);
 

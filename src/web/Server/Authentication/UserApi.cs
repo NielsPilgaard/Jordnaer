@@ -15,8 +15,17 @@ public static class UserApi
 
         group.RequirePerUserRateLimit();
 
-        group.MapDelete("{id}", async Task<Results<UnauthorizedHttpResult, Ok>> (HttpContext httpContext, [FromRoute] string id, [FromServices] IUserService userService) =>
+        group.MapDelete("{id}", async Task<Results<UnauthorizedHttpResult, Ok>> (
+            HttpContext httpContext,
+            [FromRoute] string id,
+            [FromServices] IUserService userService,
+            [FromServices] CurrentUser currentUser) =>
         {
+            if (currentUser.Id != id)
+            {
+                return TypedResults.Unauthorized();
+            }
+
             bool userDeleted = await userService.DeleteUserAsync(id);
             if (!userDeleted)
             {
