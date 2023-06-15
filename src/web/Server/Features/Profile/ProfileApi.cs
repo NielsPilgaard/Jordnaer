@@ -54,30 +54,30 @@ public static class ProfileApi
 
         group.MapPut("",
             async Task<Results<NoContent, UnauthorizedHttpResult>>
-                ([FromBody] UserProfile userProfileDto,
+                ([FromBody] UserProfile userProfile,
                 [FromServices] JordnaerDbContext context,
                 [FromServices] CurrentUser currentUser) =>
             {
-                if (currentUser.Id != userProfileDto.Id)
+                if (currentUser.Id != userProfile.Id)
                 {
                     return TypedResults.Unauthorized();
                 }
 
-                var userProfile = await context.UserProfiles
+                var currentUserProfile = await context.UserProfiles
                     .AsSingleQuery()
                     .Include(user => user.LookingFor)
                     .Include(user => user.ChildProfiles)
                     .FirstOrDefaultAsync(user => user.Id == currentUser.Id);
 
-                if (userProfile is null)
+                if (currentUserProfile is null)
                 {
-                    userProfile = userProfileDto.Map();
-                    context.UserProfiles.Add(userProfile);
+                    currentUserProfile = userProfile.Map();
+                    context.UserProfiles.Add(currentUserProfile);
                 }
                 else
                 {
-                    await userProfile.LoadValuesFromAsync(userProfileDto, context);
-                    context.Entry(userProfile).State = EntityState.Modified;
+                    await currentUserProfile.LoadValuesFromAsync(userProfile, context);
+                    context.Entry(currentUserProfile).State = EntityState.Modified;
                 }
 
                 await context.SaveChangesAsync();
