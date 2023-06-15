@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
@@ -47,7 +46,7 @@ try
     builder.Services.AddOutputCache();
 
     builder.Services.ConfigureHttpJsonOptions(options =>
-        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.AddEmailServices();
 
