@@ -1,5 +1,5 @@
 using Jordnaer.Server.Database;
-using Jordnaer.Shared;
+using Jordnaer.Shared.Auth;
 using Microsoft.AspNetCore.Identity;
 
 namespace Jordnaer.Server.Authentication;

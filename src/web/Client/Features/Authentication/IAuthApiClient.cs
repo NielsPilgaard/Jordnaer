@@ -1,4 +1,4 @@
-using Jordnaer.Shared;
+using Jordnaer.Shared.Auth;
 using Refit;
 
 namespace Jordnaer.Client.Features.Authentication;
@@ -9,11 +9,11 @@ public interface IAuthApiClient
     Task<IApiResponse<CurrentUserDto?>> GetCurrentUserAsync();
 
     [Post("/api/auth/login")]
-    Task<IApiResponse<bool>> LoginAsync(UserInfo userInfo);
+    Task<bool> LoginAsync(UserInfo userInfo);
 
     [Post("/api/auth/register")]
-    Task<IApiResponse<bool>> CreateUserAsync(UserInfo userInfo);
+    Task<bool> CreateUserAsync(UserInfo userInfo);
 
     [Post("/api/auth/logout")]
-    Task<IApiResponse<bool>> LogoutAsync();
+    Task<bool> LogoutAsync();
 }

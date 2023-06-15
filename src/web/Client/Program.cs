@@ -17,11 +17,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddHttpClient<AuthClient>(client =>
-    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
-
+builder.Services.AddRefitClient<IAuthApiClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IUserApiClient>(builder.HostEnvironment.BaseAddress);
-
 builder.Services.AddRefitClient<IUserSearchApiClient>(builder.HostEnvironment.BaseAddress);
 
 builder.AddLookingForServices();

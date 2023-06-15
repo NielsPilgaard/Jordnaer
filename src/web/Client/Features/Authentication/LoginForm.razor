@@ -1,18 +1,19 @@
+@using Jordnaer.Shared.Auth
 @inject AuthStateProvider Client
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
-<EditForm Model="@_loginModel" OnValidSubmit="Login">
+<EditForm Model="@_userInfo" OnValidSubmit="Login">
     <DataAnnotationsValidator />
     <MudStack Spacing="2">
         <MudTextField Label="Email"
-                      @bind-Value="_loginModel.Email"
-                      For="@(() => _loginModel.Email)"
+                      @bind-Value="_userInfo.Email"
+                      For="@(() => _userInfo.Email)"
                       InputType="InputType.Email"
                       InputMode="InputMode.email" />
         <MudTextField Label="Kodeord"
-                      @bind-Value="_loginModel.Password"
-                      For="@(() => _loginModel.Password)"
+                      @bind-Value="_userInfo.Password"
+                      For="@(() => _userInfo.Password)"
                       InputType="InputType.Password" />
         <MudButton Size="Size.Large"
                    StartIcon="@Icons.Material.Filled.Login"
@@ -26,11 +27,11 @@
 </EditForm>
 
 @code {
-    private LoginModel _loginModel = new();
+    private UserInfo _userInfo = new();
 
     async Task Login()
     {
-        if (await Client.LoginAsync(_loginModel.Email, _loginModel.Password))
+        if (await Client.LoginAsync(_userInfo))
         {
             NavigationManager.NavigateTo("");
             return;

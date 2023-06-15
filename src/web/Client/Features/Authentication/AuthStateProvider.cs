@@ -1,21 +1,21 @@
 using System.Security.Claims;
 using Jordnaer.Client.Features.Profile;
-using Jordnaer.Shared;
+using Jordnaer.Shared.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Jordnaer.Client.Features.Authentication;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {
-    private readonly AuthClient _authClient;
+    private readonly IAuthApiClient _authApiClient;
     private readonly IUserApiClient _userApiClient;
     private readonly ILogger<AuthStateProvider> _logger;
     private AuthenticationState _currentAuthenticationState;
     private bool _authenticationStateChanged = true;
 
-    public AuthStateProvider(AuthClient authClient, ILogger<AuthStateProvider> logger, IUserApiClient userApiClient)
+    public AuthStateProvider(IAuthApiClient authApiClient, ILogger<AuthStateProvider> logger, IUserApiClient userApiClient)
     {
-        _authClient = authClient;
+        _authApiClient = authApiClient;
         _logger = logger;
         _userApiClient = userApiClient;
         _currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal());
@@ -28,13 +28,14 @@ public class AuthStateProvider : AuthenticationStateProvider
             return _currentAuthenticationState;
 
         CurrentUserDto? currentUser;
-        try
+        var response = await _authApiClient.GetCurrentUserAsync();
+        if (response.IsSuccessStatusCode)
         {
-            currentUser = await _authClient.GetCurrentUserAsync();
+            currentUser = response.Content;
         }
-        catch (Exception exception)
+        else
         {
-            _logger.LogError(exception, "Exception occurred while getting authentication state");
+            _logger.LogError(response.Error, "Exception occurred while getting user authentication state");
             return _currentAuthenticationState;
         }
 
@@ -48,9 +49,9 @@ public class AuthStateProvider : AuthenticationStateProvider
         return _currentAuthenticationState;
     }
 
-    public async Task<bool> LoginAsync(string? username, string? password)
+    public async Task<bool> LoginAsync(UserInfo userInfo)
     {
-        bool loggedIn = await _authClient.LoginAsync(username, password);
+        bool loggedIn = await _authApiClient.LoginAsync(userInfo);
         if (loggedIn)
         {
             _authenticationStateChanged = true;
@@ -60,9 +61,9 @@ public class AuthStateProvider : AuthenticationStateProvider
         return loggedIn;
     }
 
-    public async Task<bool> CreateUserAsync(string? username, string? password)
+    public async Task<bool> CreateUserAsync(UserInfo userInfo)
     {
-        bool userCreated = await _authClient.CreateUserAsync(username, password);
+        bool userCreated = await _authApiClient.CreateUserAsync(userInfo);
         if (userCreated)
         {
             _authenticationStateChanged = true;
@@ -74,7 +75,7 @@ public class AuthStateProvider : AuthenticationStateProvider
 
     public async Task<bool> LogoutAsync()
     {
-        bool loggedOut = await _authClient.LogoutAsync();
+        bool loggedOut = await _authApiClient.LogoutAsync();
         if (loggedOut)
         {
             _authenticationStateChanged = true;

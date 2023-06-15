@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Jordnaer.Shared;
+namespace Jordnaer.Shared.Auth;
 public readonly record struct ClaimDto(string Type, string Value);
 
 public class CurrentUserDto

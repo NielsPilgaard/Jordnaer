@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Jordnaer.Shared;
+namespace Jordnaer.Shared.Auth;
 
 public static class ClaimsPrincipalExtensions
 {
