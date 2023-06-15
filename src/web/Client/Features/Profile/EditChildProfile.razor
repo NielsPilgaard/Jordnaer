@@ -8,13 +8,12 @@
         <MudTextField For="() => ChildProfile.LastName" @bind-Value="@ChildProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudSelect For="() => ChildProfile.Gender" T="Gender" @bind-Value="ChildProfile.Gender" Label="Køn" Variant="Variant.Text" name="gender">
+        <MudSelect For="() => ChildProfile.Gender"  @bind-Value="ChildProfile.Gender" Label="Køn">
             @foreach (var gender in Enum.GetValues<Gender>())
             {
                 <MudSelectItem T="Gender" Value="gender">@gender.GetDisplayName()</MudSelectItem>
             }
         </MudSelect>
-
     </MudItem>
     <MudItem xs="12" sm="6">
         <MudDatePicker @bind-Date="@ChildProfile.DateOfBirth"
