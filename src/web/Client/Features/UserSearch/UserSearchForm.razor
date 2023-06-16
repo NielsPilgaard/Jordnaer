@@ -97,7 +97,7 @@
     private async Task ClearFilter()
     {
         Filter = new UserSearchFilter();
-        await FilterChanged.InvokeAsync();
+        await FilterChanged.InvokeAsync(Filter);
 
         await SessionStorage.RemoveItemAsync(nameof(UserSearchResult));
         await SessionStorage.RemoveItemAsync(nameof(UserSearchFilter));
