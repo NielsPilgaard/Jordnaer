@@ -1,32 +1,37 @@
 @using Jordnaer.Client.Features.Authentication
 @inject AuthStateProvider Client
+@inject NavigationManager Navigation
 
 <MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@_appBarStyle">
-  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
-  <MudSpacer />
-  <MudButton Class="d-none d-sm-flex" Color="Color.Inherit" Href="/">
-    <MudText Typo="Typo.h4">Mini Møder</MudText>
-  </MudButton>
-  <MudSpacer />
-  <ThemeProvider />
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
+    <MudSpacer />
+    <MudButton Class="d-none d-sm-flex" Color="Color.Inherit" Href="/">
+        <MudText Typo="Typo.h4">Mini Møder</MudText>
+    </MudButton>
+    <MudSpacer />
+    <ThemeProvider />
 
-  <AuthorizeView>
-    <Authorized>
-      <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af"/>
-      <MudIconButton Icon="@Icons.Material.Filled.Person" Href="profile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3"/>
-    </Authorized>
-    <NotAuthorized>
-      <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
-    </NotAuthorized>
-  </AuthorizeView>
+    <AuthorizeView>
+        <Authorized>
+            <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af" />
+            <MudIconButton Icon="@Icons.Material.Filled.Person" Href="profile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
+        </Authorized>
+        <NotAuthorized>
+            <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
+        </NotAuthorized>
+    </AuthorizeView>
 </MudAppBar>
 
 @code
 {
-  readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
+    readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
 
-  async Task Logout() => await Client.LogoutAsync();
+    async Task Logout()
+    {
+        await Client.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
 
-  [Parameter]
-  public EventCallback<bool> ToggleDrawer { get; set; }
+    [Parameter]
+    public EventCallback<bool> ToggleDrawer { get; set; }
 }
