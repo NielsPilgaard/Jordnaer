@@ -28,7 +28,7 @@ public class ChildProfile
     [MaxLength(2000, ErrorMessage = "Beskrivelse må højest være 2000 karakterer langt.")]
     public string? Description { get; set; }
 
-    public string PictureUrl { get; set; } = ProfileConstants.DEFAULT_PROFILE_PICTURE;
+    public string PictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
 
     public int? GetAge() => DateOfBirth.GetAge();
 

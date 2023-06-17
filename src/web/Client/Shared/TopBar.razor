@@ -1,6 +1,8 @@
 @using Jordnaer.Client.Features.Authentication
 @inject AuthStateProvider Client
 @inject NavigationManager Navigation
+@inject IProfileCache ProfileCache
+@inject ILocalStorageService LocalStorage
 
 <MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@_appBarStyle">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
@@ -9,12 +11,28 @@
         <MudText Typo="Typo.h4">Mini Møder</MudText>
     </MudButton>
     <MudSpacer />
-    <ThemeProvider />
+    <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
 
     <AuthorizeView>
         <Authorized>
-            <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="@Logout" Variant="Variant.Outlined" Color="Color.Warning" Class="ml-3" Title="Log af" />
-            <MudIconButton Icon="@Icons.Material.Filled.Person" Href="profile" Variant="Variant.Filled" Color="Color.Tertiary" Class="ml-3" />
+            <MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
+                <ActivatorContent>
+                    <MudAvatar>
+                        <MudImage Src="@_profilePictureUrl" />
+                    </MudAvatar>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">Redigér Profil</MudMenuItem>
+                  <MudMenuItem AutoClose="false"
+                               OnClick="UpdateDarkMode"
+                               Icon="@(_isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
+                               IconColor="@(_isDarkMode ? Color.Dark : Color.Warning)">
+                    Skift tema
+                  </MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout">Log af</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
         </Authorized>
         <NotAuthorized>
             <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
@@ -24,12 +42,36 @@
 
 @code
 {
-    readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
+    private bool _isDarkMode = true;
+    private const string Key = "dark-mode";
+
+    private readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
+
+    private string _profilePictureUrl = ProfileConstants.Default_Profile_Picture;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userProfile = await ProfileCache.GetOrCreateProfileAsync();
+        if (userProfile?.ProfilePictureUrl is not null)
+        {
+            _profilePictureUrl = userProfile.ProfilePictureUrl;
+        }
+    }
 
     async Task Logout()
     {
         await Client.LogoutAsync();
         Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+
+    private async Task UpdateDarkMode()
+    {
+        _isDarkMode = !_isDarkMode;
+
+        await LocalStorage.SetItemAsync(Key, _isDarkMode);
+
+        StateHasChanged();
     }
 
     [Parameter]

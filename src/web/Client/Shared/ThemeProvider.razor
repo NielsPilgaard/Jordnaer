@@ -1,35 +1,35 @@
 @using Blazored.LocalStorage
 @inject ILocalStorageService LocalStorage
 
-<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="CustomTheme" />
-<MudToggleIconButton ToggledIcon="@Icons.Material.Filled.DarkMode"
-                     ToggledColor="@Color.Dark"
-                     ToggledTitle="Mørkt tema"
-                     Icon="@Icons.Material.Filled.LightMode"
-                     Color="@Color.Warning"
-                     Title="Lyst tema"
-                     ToggledChanged="SaveThemePreference"
-                     Toggled="_isDarkMode"/>
-@code {
-    bool _isDarkMode = true;
-    const string Key = "dark-mode";
-    MudThemeProvider _mudThemeProvider = new();
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDarkMode" Theme="CustomTheme" />
 
-    static readonly MudTheme CustomTheme = new();
+@code {
+    [Parameter]
+    public bool IsDarkMode { get; set; }
+    [Parameter]
+    public EventCallback<bool> IsDarkModeChanged { get; set; }
+
+    private const string Key = "dark-mode";
+
+    private MudThemeProvider _mudThemeProvider = new();
+
+    private static readonly MudTheme CustomTheme = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            IsDarkMode = await _mudThemeProvider.GetSystemPreference();
 
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
 
             var savedMode = await LocalStorage.GetItemAsync<bool?>(Key);
             if (savedMode.HasValue)
             {
-                _isDarkMode = savedMode.Value;
+                IsDarkMode = savedMode.Value;
             }
+
+            await IsDarkModeChanged.InvokeAsync(IsDarkMode);
 
             StateHasChanged();
         }
@@ -37,20 +37,12 @@
 
     private async Task OnSystemPreferenceChanged(bool isDarkMode)
     {
-        _isDarkMode = isDarkMode;
+        IsDarkMode = isDarkMode;
 
-        await LocalStorage.SetItemAsync(Key, _isDarkMode);
+        await LocalStorage.SetItemAsync(Key, IsDarkMode);
 
-        StateHasChanged();
-    }
-
-    private async Task SaveThemePreference(bool isDarkMode)
-    {
-        _isDarkMode = isDarkMode;
-
-        await LocalStorage.SetItemAsync(Key, _isDarkMode);
+        await IsDarkModeChanged.InvokeAsync(IsDarkMode);
 
         StateHasChanged();
     }
-
 }

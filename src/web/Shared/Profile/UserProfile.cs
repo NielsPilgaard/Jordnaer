@@ -50,7 +50,7 @@ public class UserProfile
 
     public DateTime? DateOfBirth { get; set; }
 
-    public string ProfilePictureUrl { get; set; } = ProfileConstants.DEFAULT_PROFILE_PICTURE;
+    public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
 
     public int? GetAge() => DateOfBirth.GetAge();
 
