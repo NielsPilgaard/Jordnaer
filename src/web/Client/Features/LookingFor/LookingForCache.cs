@@ -22,7 +22,6 @@ public class LookingForCache : ILookingForCache
     public async Task<List<Jordnaer.Shared.LookingFor>> GetOrCreateLookingForAsync() =>
         await _memoryCache.GetOrCreateAsync(nameof(LookingFor), async entry =>
         {
-
             var result = await _lookingForApi.GetLookingFor();
             if (result.IsSuccessStatusCode)
             {
