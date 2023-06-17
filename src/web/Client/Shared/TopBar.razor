@@ -30,7 +30,10 @@
                     Skift tema
                   </MudMenuItem>
                     <MudDivider />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout">Log af</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                                 OnClick="Logout"
+                                 OnTouch="Logout">Log af
+                      </MudMenuItem>
                 </ChildContent>
             </MudMenu>
         </Authorized>
@@ -58,7 +61,7 @@
         }
     }
 
-    async Task Logout()
+    private async Task Logout()
     {
         await Client.LogoutAsync();
         Navigation.NavigateTo("/", forceLoad: true);
