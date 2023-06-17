@@ -2,5 +2,5 @@ namespace Jordnaer.Shared;
 
 public static class ProfileConstants
 {
-    public const string DEFAULT_PROFILE_PICTURE = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp";
+    public const string Default_Profile_Picture = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp";
 }
