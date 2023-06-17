@@ -1,6 +1,7 @@
 @page "/profile"
 @using MudExtensions.Enums
 @inject ILookingForCache LookingForCache
+@inject IProfileCache ProfileCache
 @inject IProfileApiClient ProfileApiClient
 @inject ISnackbar Snackbar
 @attribute [Authorize]
@@ -16,18 +17,18 @@
 
     <MudButton Disabled="@(_userProfile.UserName is null)" Href="@($"/{_userProfile.UserName}")" Color="Color.Primary" StartIcon="@Icons.Material.Filled.KeyboardArrowLeft" EndIcon="@Icons.Material.Filled.Person">@(_userProfile.UserName is null ? "Sæt et brugernavn for at gøre din profil offentlig" : "Gå til offentlig profil")</MudButton>
 
-    <EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
+        <EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
 
-        <DataAnnotationsValidator />
+            <DataAnnotationsValidator />
 
-        <MudPaper Elevation="3" Class="pa-4">
+            <MudPaper Elevation="3" Class="pa-4">
 
-            @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
-            <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"{_userProfile.FirstName}'s profilebillede")" />
-            <MudGrid>
+                @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
+                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"{_userProfile.FirstName}'s profilebillede")" />
+                <MudGrid>
 
-                <MudItem xs="12" sm="4">
-                    <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
+                    <MudItem xs="12" sm="4">
+                        <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
@@ -44,7 +45,7 @@
                 <MudItem xs="12" sm="4">
                     <MudDatePicker AdornmentColor="Color.Primary"
                                    Color="Color.Primary"
-                                   Rounded
+                                      Rounded
                                    Placeholder="@DateTime.Now.ToString("d")"
                                    For="() => _userProfile.DateOfBirth"
                                    OpenTo="OpenTo.Year"
@@ -110,19 +111,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userProfile = await ProfileApiClient.GetUserProfile();
-        if (!userProfile.IsSuccessStatusCode)
+        var userProfile = await ProfileCache.GetOrCreateProfileAsync();
+        if (userProfile is null)
         {
-
             Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.",
-              Severity.Warning, _snackbarOptions);
+                Severity.Warning, _snackbarOptions);
             return;
         }
-        _userProfile = userProfile.Content;
+        _userProfile = userProfile;
 
         _isLoading = false;
         _lookingFor = await LookingForCache.GetOrCreateLookingForAsync();
-
     }
 
     private async Task UpdateUserProfile()
@@ -131,6 +130,7 @@
         var response = await ProfileApiClient.UpdateUserProfile(_userProfile!);
         if (response.IsSuccessStatusCode)
         {
+            ProfileCache.SetProfile(_userProfile!);
             Snackbar.Add("Dine oplysninger er blevet gemt.", Severity.Success, _snackbarOptions);
         }
         else
