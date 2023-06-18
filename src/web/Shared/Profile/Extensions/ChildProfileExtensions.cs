@@ -2,7 +2,6 @@ namespace Jordnaer.Shared;
 
 public static class ChildProfileExtensions
 {
-
     public static void LoadValuesFrom(this ChildProfile mapInto, ChildProfile mapFrom)
     {
         mapInto.CreatedUtc = mapFrom.CreatedUtc;
@@ -14,4 +13,15 @@ public static class ChildProfileExtensions
         mapInto.PictureUrl = mapFrom.PictureUrl;
         mapInto.Id = mapFrom.Id;
     }
+
+    public static ChildProfileDto ToChildProfileDto(this ChildProfile childProfile) =>
+        new()
+        {
+            FirstName = childProfile.FirstName,
+            LastName = childProfile.LastName,
+            Gender = childProfile.Gender,
+            PictureUrl = childProfile.PictureUrl,
+            DateOfBirth = childProfile.DateOfBirth,
+            Description = childProfile.Description
+        };
 }
