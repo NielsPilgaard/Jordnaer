@@ -18,9 +18,7 @@ public class ProfileDto
 
     public List<LookingFor> LookingFor { get; set; } = new();
 
-    public List<ChildProfile> ChildProfiles { get; set; } = new();
-
-    public List<UserProfile> Contacts { get; set; } = new();
+    public List<ChildProfileDto> ChildProfiles { get; set; } = new();
 
     public DateTime? DateOfBirth { get; set; }
 

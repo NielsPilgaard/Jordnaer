@@ -1,6 +1,8 @@
 window.scrollFunctions = {
   saveScrollPosition: function () {
-    sessionStorage.setItem('scrollPosition', window.scrollY);
+    if (window.scrollY > 0) {
+      sessionStorage.setItem('scrollPosition', window.scrollY);
+    }
   },
   loadScrollPosition: function () {
     setTimeout(function () {

@@ -16,50 +16,32 @@
     {
         return;
     }
-    <MudPaper Elevation="3" Class="pa-4">
+    <MudPaper Elevation="1" Class="pa-4">
         <MudGrid>
-            <MudItem xs="12" Class="d-flex justify-start">
-                <MudImage ObjectPosition="ObjectPosition.Left" ObjectFit="ObjectFit.Fill" Style="border-radius: 50%" Src="@_profile.ProfilePictureUrl" />
-            </MudItem>
-
             <MudItem xs="12">
-                <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" T="string" Text="@UserName" ReadOnly />
-            </MudItem>
-
-            <MudItem xs="12">
-                <MudTextField AdornmentIcon="@Icons.Material.Filled.Place" Adornment="Adornment.Start" T="string" Text="@_profile.DisplayLocation()" ReadOnly />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" T="string" Text="@($"{_profile.FirstName} {_profile.LastName}")" ReadOnly />
-            </MudItem>
-            <MudItem xs="12">
-                <MudText Typo="Typo.body1">
-                    @_profile.Description
-                </MudText>
+                <UserProfileCard Profile="_profile" UserName="UserName" />
             </MudItem>
 
             @if (_profile.ChildProfiles.Any())
             {
-                <MudItem xs="12">
-                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
-                </MudItem>
-                <MudItem xs="12" Class="d-flex justify-start">
-                    <MudChipSet ReadOnly>
-                    @foreach (var child in _profile.ChildProfiles)
-                        {
-                            <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="child.GetAge()">
-                                <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
-                            </MudBadge>
-                        }
-                    </MudChipSet>
-                </MudItem>
+                <MudDivider Class="my-5" />
+                <MudText Typo="Typo.h5" Class="d-sm-none mt-3">
+                    <MudIcon Class="mx-2" Icon="@Icons.Material.Filled.ChildCare" />Børn
+                </MudText>
+
+                foreach (var child in _profile.ChildProfiles)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="3">
+                        <ChildProfileCard Child="child" />
+                    </MudItem>
+                }
             }
 
             @if (_profile.LookingFor.Any())
             {
-              <MudDivider />
-              <MudItem xs="12">
-                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
+                <MudDivider Class="my-5" />
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-start">
                     <MudChipSet ReadOnly>
