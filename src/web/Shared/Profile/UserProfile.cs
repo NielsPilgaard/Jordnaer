@@ -61,6 +61,11 @@ public class DanishZipCodeAttribute : ValidationAttribute
 {
     protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
+        if (value is null)
+        {
+            return ValidationResult.Success!;
+        }
+
         if (value is not int zipCode)
         {
             return new ValidationResult("Post nummer må kun bestå af tal.");
