@@ -109,3 +109,6 @@ h1:focus {
 .mud-card:hover {
   transform: scale(1.02);
 }
+.card-link .mud-nav-link:hover:not(.mud-nav-link-disabled) {
+  background-color: unset !important;
+}
