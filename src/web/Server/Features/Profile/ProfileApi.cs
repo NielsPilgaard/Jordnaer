@@ -76,7 +76,7 @@ public static class ProfileApi
                 }
                 else
                 {
-                    await currentUserProfile.LoadValuesFromAsync(userProfile, context);
+                    await currentUserProfile.UpdateExistingUserProfileAsync(userProfile, context);
                     context.Entry(currentUserProfile).State = EntityState.Modified;
                 }
 
@@ -84,10 +84,11 @@ public static class ProfileApi
 
                 return TypedResults.NoContent();
             }).RequireCurrentUser();
+
         return group;
     }
 
-    public static async Task LoadValuesFromAsync(this UserProfile userProfile, UserProfile dto, JordnaerDbContext context)
+    public static async Task UpdateExistingUserProfileAsync(this UserProfile userProfile, UserProfile dto, JordnaerDbContext context)
     {
         userProfile.FirstName = dto.FirstName;
         userProfile.LastName = dto.LastName;
