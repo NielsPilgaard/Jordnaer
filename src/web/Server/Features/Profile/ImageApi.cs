@@ -31,9 +31,31 @@ public static class ImageApi
                     return null;
                 }
 
-                string uri = await UploadImageAsync(blobServiceClient, dto);
+                string uri = await UploadImageAsync(blobServiceClient, dto.ChildProfile.Id.ToString("N"), dto.FileBytes);
 
                 await SetChildProfilePictureAsync(context, dto, uri);
+
+                return uri;
+
+            }).RequireCurrentUser();
+
+
+        group.MapPut("user-profile",
+            async Task<string?>
+            (
+                [FromBody] SetUserProfilePicture dto,
+                [FromServices] JordnaerDbContext context,
+                [FromServices] BlobServiceClient blobServiceClient,
+                [FromServices] CurrentUser currentUser) =>
+            {
+                if (currentUser.Id != dto.UserProfile.Id)
+                {
+                    return null;
+                }
+
+                string uri = await UploadImageAsync(blobServiceClient, dto.UserProfile.Id, dto.FileBytes);
+
+                await SetUserProfilePictureAsync(context, dto, uri);
 
                 return uri;
 
@@ -63,16 +85,37 @@ public static class ImageApi
         }
     }
 
-    private static async Task<string> UploadImageAsync(BlobServiceClient blobServiceClient, SetChildProfilePicture dto)
+
+    private static async Task SetUserProfilePictureAsync(JordnaerDbContext context, SetUserProfilePicture dto, string uri)
+    {
+        var currentUserProfile = await context.UserProfiles.FindAsync(dto.UserProfile.Id);
+        if (currentUserProfile is null)
+        {
+            dto.UserProfile.ProfilePictureUrl = uri;
+            context.UserProfiles.Add(dto.UserProfile);
+            await context.SaveChangesAsync();
+            return;
+        }
+
+        // Updating is only required if the pictureUrl is not already correct
+        if (currentUserProfile.ProfilePictureUrl != uri)
+        {
+            currentUserProfile.ProfilePictureUrl = uri;
+            context.Entry(currentUserProfile).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+        }
+    }
+
+    private static async Task<string> UploadImageAsync(BlobServiceClient blobServiceClient, string blobName, byte[] fileBytes)
     {
         var containerClient = blobServiceClient.GetBlobContainerClient(ChildProfilePicturesContainerName);
         await containerClient.CreateIfNotExistsAsync();
 
-        string blobName = dto.ChildProfile.Id.ToString("N");
         var blobClient = containerClient.GetBlobClient(blobName);
 
         // Convert file bytes to MemoryStream and upload
-        using var memoryStream = new MemoryStream(dto.FileBytes);
+        using var memoryStream = new MemoryStream(fileBytes);
 
         await blobClient.UploadAsync(memoryStream, overwrite: true);
 

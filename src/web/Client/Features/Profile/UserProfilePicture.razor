@@ -15,22 +15,22 @@
                   ObjectFit="ObjectFit.Fill"
                   Fluid
                   Class="editable-image"
-                  Src="@ChildProfile.PictureUrl"
-                  Alt="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? "Billede af barn" : $"Billede af {ChildProfile.FirstName}")" />
+                  Src="@UserProfile.ProfilePictureUrl"
+                  Alt="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")" />
     </ButtonTemplate>
 </MudFileUpload>
 
 @code {
     [Parameter]
-    public required ChildProfile ChildProfile { get; set; }
+    public required UserProfile UserProfile { get; set; }
     [Parameter]
-    public required EventCallback<ChildProfile> ChildProfileChanged { get; set; }
+    public required EventCallback<UserProfile> UserProfileChanged { get; set; }
 
-    private BrowserFileValidator _browserFileValidator = new();
+    private static readonly BrowserFileValidator BrowserFileValidator = new();
 
     private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
     {
-        var validationResult = await _browserFileValidator.ValidateAsync(inputFileChange.File);
+        var validationResult = await BrowserFileValidator.ValidateAsync(inputFileChange.File);
         if (!validationResult.IsValid)
         {
             Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
@@ -44,13 +44,13 @@
         await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
         var bytes = ms.ToArray();
 
-        var response = await ImageApiClient.SetChildProfilePicture(new SetChildProfilePicture(ChildProfile, bytes));
+        var response = await ImageApiClient.SetUserProfilePicture(new SetUserProfilePicture(UserProfile, bytes));
         if (response.IsSuccessStatusCode)
         {
-            ChildProfile.PictureUrl = response.Content!;
-            await ChildProfileChanged.InvokeAsync(ChildProfile);
+            UserProfile.ProfilePictureUrl = response.Content!;
+            await UserProfileChanged.InvokeAsync(UserProfile);
 
-            ChildProfile.PictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+            UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
 
             Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
         }

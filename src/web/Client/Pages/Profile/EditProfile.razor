@@ -23,10 +23,8 @@
 
             <MudPaper Elevation="3" Class="pa-4">
 
-                @*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
-                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@_userProfile.ProfilePictureUrl" Alt="@($"{_userProfile.FirstName}'s profilebillede")" />
+                <UserProfilePicture @bind-UserProfile="_userProfile" />
                 <MudGrid>
-
                     <MudItem xs="12" sm="4">
                         <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
                 </MudItem>
