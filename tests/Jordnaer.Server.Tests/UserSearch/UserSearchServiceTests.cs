@@ -5,7 +5,6 @@ using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.UserSearch;
 using Jordnaer.Shared;
 using Jordnaer.Shared.UserSearch;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,13 +15,23 @@ using Xunit;
 namespace Jordnaer.Server.Tests.UserSearch;
 
 [Trait("Category", "UnitTest")]
-public class UserSearchService_Should : IAsyncLifetime
+public class UserSearchService_Should : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
 {
-    private SqliteConnection _connection = null!;
-    private JordnaerDbContext _context = null!;
-    private IDataForsyningenClient _dataForsyningenClientMock = null!;
-    private UserSearchService _sut = null!;
+    private readonly JordnaerDbContext _context;
+    private readonly IDataForsyningenClient _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
+    private readonly UserSearchService _sut;
     private readonly Faker _faker = new();
+
+    public UserSearchService_Should(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
+    {
+        _context = sqlServerContainer.Context;
+
+        _sut = new UserSearchService(
+            Substitute.For<ILogger<UserSearchService>>(),
+            _context,
+            _dataForsyningenClientMock,
+            Options.Create(new DataForsyningenOptions { BaseUrl = string.Empty }));
+    }
 
     [Fact]
     public async Task Return_UserSearchResult_Given_Valid_Filter()
@@ -58,9 +67,7 @@ public class UserSearchService_Should : IAsyncLifetime
         result.Users.Should().ContainSingle(u => u.LookingFor.Contains(filter.LookingFor.First()));
     }
 
-#pragma warning disable xUnit1004 // Test methods should not be skipped
-    [Fact(Skip = "This test fails. SQLite does not support computed columns, which the name filter relies on.")]
-#pragma warning restore xUnit1004 // Test methods should not be skipped
+    [Fact]
     public async Task Return_UserSearchResult_With_Name_Filter()
     {
         // Arrange
@@ -192,35 +199,6 @@ public class UserSearchService_Should : IAsyncLifetime
                                    filter.Location.Contains(user.ZipCode.ToString()!));
     }
 
-    public async Task InitializeAsync()
-    {
-        _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
-
-        // Open the connection manually because EF won't do it automatically
-        _connection = new SqliteConnection("Filename=:memory:");
-        await _connection.OpenAsync();
-
-        var options = new DbContextOptionsBuilder<JordnaerDbContext>()
-            .UseSqlite(_connection)
-            .Options;
-
-        _context = new JordnaerDbContext(options);
-        await _context.Database.EnsureCreatedAsync();
-
-        _sut = new UserSearchService(
-            Substitute.For<ILogger<UserSearchService>>(),
-            _context,
-            _dataForsyningenClientMock,
-            Options.Create(new DataForsyningenOptions { BaseUrl = string.Empty }));
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _context.Database.EnsureDeletedAsync();
-        await _context.DisposeAsync();
-        await _connection.CloseAsync();
-    }
-
     private static List<UserProfile> CreateTestUsers(int count)
     {
         var users = new Faker<UserProfile>()
@@ -233,4 +211,8 @@ public class UserSearchService_Should : IAsyncLifetime
 
         return users;
     }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _context.UserProfiles.ExecuteDeleteAsync();
 }
