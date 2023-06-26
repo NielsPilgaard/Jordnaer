@@ -11,7 +11,7 @@ namespace Jordnaer.Server.Tests.Authentication;
 public class AuthApi_Should
 {
     private readonly JordnaerWebApplicationFactory _factory;
-    private const string VALID_PASSWORD = "123456789ABCabc";
+    private const string Valid_Password = "123456789ABCabc";
 
     public AuthApi_Should(JordnaerWebApplicationFactory factory)
     {
@@ -25,7 +25,7 @@ public class AuthApi_Should
         var client = _factory.CreateClient();
         var userInfo = new Faker<UserInfo>()
             .RuleFor(info => info.Email, faker => faker.Internet.Email())
-            .RuleFor(info => info.Password, (_, info) => info.Password = VALID_PASSWORD)
+            .RuleFor(info => info.Password, (_, info) => info.Password = Valid_Password)
             .Generate();
 
         // Act
@@ -58,7 +58,7 @@ public class AuthApi_Should
     {
         // Arrange
         var client = _factory.CreateClient();
-        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = VALID_PASSWORD };
+        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = Valid_Password };
 
         // Register the user once
         await client.PostAsJsonAsync("/api/auth/register", userInfo);
@@ -76,7 +76,7 @@ public class AuthApi_Should
     {
         // Arrange
         var client = _factory.CreateClient();
-        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = VALID_PASSWORD };
+        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = Valid_Password };
 
         // Register the user first
         await client.PostAsJsonAsync("/api/auth/register", userInfo);
@@ -93,7 +93,7 @@ public class AuthApi_Should
     {
         // Arrange
         var client = _factory.CreateClient();
-        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = VALID_PASSWORD };
+        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = Valid_Password };
 
         // Act
         var response = await client.PostAsJsonAsync("/api/auth/login", userInfo);
@@ -107,7 +107,7 @@ public class AuthApi_Should
     {
         // Arrange
         var client = _factory.CreateClient();
-        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = VALID_PASSWORD };
+        var userInfo = new UserInfo { Email = new Faker().Internet.ExampleEmail(), Password = Valid_Password };
 
         // Register and login the user first
         await client.PostAsJsonAsync("/api/auth/register", userInfo);
