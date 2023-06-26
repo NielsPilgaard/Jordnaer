@@ -173,7 +173,8 @@ public class UserSearchService : IUserSearchService
                 user.ChildProfiles.Any(child => child.Gender == filter.ChildGender));
         }
 
-        if (filter.MinimumChildAge == filter.MaximumChildAge)
+        if (filter is { MinimumChildAge: not null, MaximumChildAge: not null } &&
+            filter.MinimumChildAge == filter.MaximumChildAge)
         {
             users = users.Where(user =>
                 user.ChildProfiles.Any(child => child.Age != null &&
