@@ -1,5 +1,4 @@
-@*TODO: MudImage should be clickable, or have an overlay so we can add an image*@
-<MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Fill" Src="@ChildProfile.PictureUrl" Alt="@($"Picture of {ChildProfile.FirstName}")" />
+<ChildProfilePicture @bind-ChildProfile="@ChildProfile" />
 <MudGrid>
     <MudItem xs="12" sm="6">
         <MudTextField For="() => ChildProfile.FirstName" @bind-Value="@ChildProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
@@ -8,7 +7,7 @@
         <MudTextField For="() => ChildProfile.LastName" @bind-Value="@ChildProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudSelect For="() => ChildProfile.Gender"  @bind-Value="ChildProfile.Gender" Label="Køn">
+        <MudSelect For="() => ChildProfile.Gender" @bind-Value="ChildProfile.Gender" Label="Køn">
             @foreach (var gender in Enum.GetValues<Gender>())
             {
                 <MudSelectItem T="Gender" Value="gender">@gender.GetDisplayName()</MudSelectItem>
@@ -23,7 +22,7 @@
                        For="@(()=>ChildProfile.DateOfBirth)"
                        AdornmentColor="Color.Primary"
                        Color="Color.Primary"
-                       Rounded
+                          Rounded
                        Placeholder="@DateTime.Now.ToString("d")"
                        Label="Fødselsdato" />
     </MudItem>
@@ -32,9 +31,6 @@
     </MudItem>
 </MudGrid>
 @code {
-    [Parameter]
-    public required UserProfile Parent { get; set; }
-
     [Parameter]
     public required ChildProfile ChildProfile { get; set; }
 }

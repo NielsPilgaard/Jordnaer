@@ -154,10 +154,12 @@ public class UserSearchService : IUserSearchService
 
     private static IQueryable<UserProfile> ApplyNameFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
     {
-        if (!string.IsNullOrEmpty(filter.Name))
+        if (!string.IsNullOrWhiteSpace(filter.Name))
         {
+            string trimmedNameFilter = new(filter.Name.Where(c => !char.IsWhiteSpace(c)).ToArray());
+
             users = users.Where(user => !string.IsNullOrEmpty(user.SearchableName) &&
-                                        EF.Functions.Like(user.SearchableName, $"%{filter.Name}%"));
+                                        EF.Functions.Like(user.SearchableName, $"%{trimmedNameFilter}%"));
         }
 
         return users;

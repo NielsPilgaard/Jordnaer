@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Azure.Storage.Blobs;
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
@@ -50,6 +51,8 @@ try
 
     builder.AddEmailServices();
 
+    builder.Services.AddSingleton(_ => new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
+
     var app = builder.Build();
 
     app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -93,6 +96,7 @@ try
     app.MapLookingFor();
     app.MapUserSearch();
     app.MapEmail();
+    app.MapImages();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
