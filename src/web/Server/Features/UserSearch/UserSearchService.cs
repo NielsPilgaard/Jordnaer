@@ -171,20 +171,26 @@ public class UserSearchService : IUserSearchService
                 user.ChildProfiles.Any(child => child.Gender == filter.ChildGender));
         }
 
+        if (filter.MinimumChildAge == filter.MaximumChildAge)
+        {
+            users = users.Where(user =>
+                user.ChildProfiles.Any(child => child.Age != null &&
+                                                child.Age == filter.MinimumChildAge));
+            return users;
+        }
+
         if (filter.MinimumChildAge is not null)
         {
-            var minimumDateOfBirth = DateTime.UtcNow.AddYears(-filter.MinimumChildAge.Value);
             users = users.Where(user =>
-                user.ChildProfiles.Any(child => child.DateOfBirth != null &&
-                                                child.DateOfBirth <= minimumDateOfBirth));
+                user.ChildProfiles.Any(child => child.Age != null &&
+                                                child.Age >= filter.MinimumChildAge));
         }
 
         if (filter.MaximumChildAge is not null)
         {
-            var maximumDateOfBirth = DateTime.UtcNow.AddYears(-filter.MaximumChildAge.Value);
             users = users.Where(user =>
-                user.ChildProfiles.Any(child => child.DateOfBirth != null &&
-                                                child.DateOfBirth >= maximumDateOfBirth));
+                user.ChildProfiles.Any(child => child.Age != null &&
+                                                child.Age <= filter.MaximumChildAge));
         }
 
         return users;

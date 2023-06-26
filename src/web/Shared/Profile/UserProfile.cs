@@ -52,7 +52,7 @@ public class UserProfile
 
     public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
 
-    public int? GetAge() => DateOfBirth.GetAge();
+    public int? Age { get; set; }
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 }

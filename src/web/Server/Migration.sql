@@ -1,4 +1,4 @@
-IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -248,7 +248,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230430201410_Initial', N'7.0.5');
+    VALUES (N'20230430201410_Initial', N'7.0.8');
 END;
 GO
 
@@ -315,7 +315,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505180341_UserContacts', N'7.0.5');
+    VALUES (N'20230505180341_UserContacts', N'7.0.8');
 END;
 GO
 
@@ -356,7 +356,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505181748_DefaultProfilePicture', N'7.0.5');
+    VALUES (N'20230505181748_DefaultProfilePicture', N'7.0.8');
 END;
 GO
 
@@ -387,7 +387,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505190358_AddUserName', N'7.0.5');
+    VALUES (N'20230505190358_AddUserName', N'7.0.8');
 END;
 GO
 
@@ -424,7 +424,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230514200453_AddSearchableName', N'7.0.5');
+    VALUES (N'20230514200453_AddSearchableName', N'7.0.8');
 END;
 GO
 
@@ -451,7 +451,32 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230607211415_ConvertZipCodeToInt')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230607211415_ConvertZipCodeToInt', N'7.0.5');
+    VALUES (N'20230607211415_ConvertZipCodeToInt', N'7.0.8');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
+BEGIN
+    EXEC(N'ALTER TABLE [UserProfiles] ADD [Age] AS DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END');
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
+BEGIN
+    EXEC(N'ALTER TABLE [ChildProfiles] ADD [Age] AS DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END');
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230626113357_Ages', N'7.0.8');
 END;
 GO
 

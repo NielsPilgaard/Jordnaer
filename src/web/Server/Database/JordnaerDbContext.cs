@@ -46,6 +46,25 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
                 $"[{nameof(UserProfile.UserName)}]",
                 stored: true);
 
+
+        modelBuilder.Entity<UserProfile>()
+            .Property(user => user.Age)
+            .HasComputedColumnSql(
+                $"DATEDIFF(YY, [{nameof(UserProfile.DateOfBirth)}], GETDATE()) - " +
+                $"CASE WHEN MONTH([{nameof(UserProfile.DateOfBirth)}]) > MONTH(GETDATE()) " +
+                $"OR MONTH([{nameof(UserProfile.DateOfBirth)}]) = MONTH(GETDATE()) " +
+                $"AND DAY([{nameof(UserProfile.DateOfBirth)}]) > DAY(GETDATE()) " +
+                $"THEN 1 ELSE 0 END");
+
+        modelBuilder.Entity<ChildProfile>()
+            .Property(child => child.Age)
+            .HasComputedColumnSql(
+                $"DATEDIFF(YY, [{nameof(ChildProfile.DateOfBirth)}], GETDATE()) - " +
+                $"CASE WHEN MONTH([{nameof(ChildProfile.DateOfBirth)}]) > MONTH(GETDATE()) " +
+                $"OR MONTH([{nameof(ChildProfile.DateOfBirth)}]) = MONTH(GETDATE()) " +
+                $"AND DAY([{nameof(ChildProfile.DateOfBirth)}]) > DAY(GETDATE()) " +
+                $"THEN 1 ELSE 0 END");
+
         base.OnModelCreating(modelBuilder);
     }
 
