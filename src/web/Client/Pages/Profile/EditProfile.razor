@@ -26,7 +26,7 @@
                 <UserProfilePicture @bind-UserProfile="_userProfile" />
                 <MudGrid>
                     <MudItem xs="12" sm="4">
-                        <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" Required For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
+                        <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
