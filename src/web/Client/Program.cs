@@ -28,16 +28,23 @@ builder.AddProfileServices();
 
 builder.AddEmailServices();
 
-builder.Services.AddMudServices(configuration => configuration.SnackbarConfiguration = new SnackbarConfiguration
+builder.Services.AddMudServices(configuration =>
 {
-    VisibleStateDuration = 2500,
-    ShowTransitionDuration = 250,
-    BackgroundBlurred = true,
-    MaximumOpacity = 95,
-    MaxDisplayedSnackbars = 3,
-    PositionClass = Defaults.Classes.Position.BottomCenter,
-    HideTransitionDuration = 100,
-    ShowCloseIcon = false
+    configuration.ResizeOptions = new ResizeOptions
+    {
+        NotifyOnBreakpointOnly = true
+    };
+    configuration.SnackbarConfiguration = new SnackbarConfiguration
+    {
+        VisibleStateDuration = 2500,
+        ShowTransitionDuration = 250,
+        BackgroundBlurred = true,
+        MaximumOpacity = 95,
+        MaxDisplayedSnackbars = 3,
+        PositionClass = Defaults.Classes.Position.BottomCenter,
+        HideTransitionDuration = 100,
+        ShowCloseIcon = false
+    };
 });
 builder.Services.AddMudExtensions();
 
