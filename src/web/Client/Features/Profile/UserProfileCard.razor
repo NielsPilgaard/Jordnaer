@@ -1,6 +1,6 @@
 <MudCard Elevation="3">
     <MudCardContent>
-        <MudImage ObjectPosition="ObjectPosition.Left" ObjectFit="ObjectFit.Fill" Style="border-radius: 50%" Src="@Profile.ProfilePictureUrl" />
+        <MudImage ObjectPosition="ObjectPosition.Left" Style="border-radius: 50%" Src="@Profile.ProfilePictureUrl" loading="lazy" />
         <MudTextField Label="Brugernavn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" ReadOnly T="string" Text="@UserName" />
         <MudTextField Label="Område" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@Profile.DisplayLocation()" />
         <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@($"{Profile.FirstName} {Profile.LastName}")" />
