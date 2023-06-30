@@ -8,7 +8,7 @@
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated is not true)
                     {
-                      NavigationManager.NavigateToLogin("/auth/login");
+                        NavigationManager.NavigateToLogin("/auth/login");
                     }
                     else
                     {
@@ -16,16 +16,13 @@
                     }
                 </NotAuthorized>
                 <Authorizing>
-                  <MudLoading Loading="true"/>
+                    <MudLoading Loading="true" />
                 </Authorizing>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
-            <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Beklager, det er intet at se her.</p>
-            </LayoutView>
+            <NotFoundComponent />
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
