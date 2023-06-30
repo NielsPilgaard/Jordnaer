@@ -4,18 +4,22 @@
 @inject IProfileApiClient ProfileApiClient
 @inject IJSRuntime JsRuntime
 
-
-<MetadataComponent Title="@($"{UserName}'s profil")"
-                   Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
-                   Image="@_profile?.ProfilePictureUrl" />
-
-<MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
-
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    @if (_profile is null && _isLoading is false)
+    {
+        <NotFoundComponent />
+        return;
+    }
     @if (_profile is null)
     {
         return;
     }
+    <MetadataComponent Title="@($"{UserName}'s profil")"
+                       Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
+                       Image="@_profile?.ProfilePictureUrl" />
+
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
+
     <MudPaper Elevation="1" Class="pa-4">
         <MudGrid>
             <MudItem xs="12">
@@ -66,18 +70,23 @@
     protected override async Task OnInitializedAsync()
     {
         var response = await ProfileApiClient.GetUserProfile(UserName);
-        if (response.IsSuccessStatusCode)
+
+        switch (response.StatusCode)
         {
-            _profile = response.Content;
+            case var _ when response.IsSuccessStatusCode:
+                _profile = response.Content;
+                break;
+            case HttpStatusCode.NotFound:
+                _profile = null;
+                break;
+            case HttpStatusCode.TooManyRequests:
+                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
+                break;
+            default:
+                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+                break;
         }
-        else if (response.StatusCode is HttpStatusCode.TooManyRequests)
-        {
-            Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-        }
-        else
-        {
-            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-        }
+
         _isLoading = false;
     }
 
