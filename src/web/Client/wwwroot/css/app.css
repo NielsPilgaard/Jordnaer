@@ -15,7 +15,7 @@ h1:focus {
 }
 
 #blazor-error-ui {
-  background-color: darkred;
+  background-color: #dbab45;
   bottom: 0;
   box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
   display: none;
@@ -43,48 +43,15 @@ h1:focus {
     content: "Der er sket en fejl."
   }
 
-.loading-progress {
-  position: relative;
-  display: block;
-  width: 8rem;
-  height: 8rem;
-  margin: 20vh auto 1rem auto;
-}
-
-  .loading-progress circle {
-    fill: none;
-    stroke: #e0e0e0;
-    stroke-width: 0.6rem;
-    transform-origin: 50% 50%;
-    transform: rotate(-90deg);
-  }
-
-    .loading-progress circle:last-child {
-      stroke: #1b6ec2;
-      stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-      transition: stroke-dasharray 0.05s ease-in-out;
-    }
-
-.loading-progress-text {
-  position: absolute;
-  text-align: center;
-  font-weight: bold;
-  inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
-}
-
-  .loading-progress-text:after {
-    content: var(--blazor-load-percentage-text, "Loading");
-  }
-
 .mud-toolbar-gutters {
   padding-left: 16px;
   padding-right: 16px;
 }
 
 .mud-layout {
-   display:flex;
-   flex-direction:column;
-   min-height:100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .footer {
@@ -103,12 +70,15 @@ h1:focus {
     margin-left: var(--mud-drawer-width-left);
   }
 }
+
 .mud-card {
   transition: all 0.3s ease;
 }
-.mud-card:hover {
-  transform: scale(1.02);
-}
+
+  .mud-card:hover {
+    transform: scale(1.02);
+  }
+
 .card-link .mud-nav-link:hover:not(.mud-nav-link-disabled) {
   background-color: unset !important;
 }
