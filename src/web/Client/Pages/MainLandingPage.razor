@@ -2,16 +2,18 @@
 
 <MudContainer MaxWidth="MaxWidth.Medium">
 
-@*    <MudImage Fluid Src="images/landing_page_with_text.png" loading="lazy" />
-*@
+    @*    <MudImage Fluid Src="images/landing_page_with_text.png" loading="lazy" />
+    *@
 
     <MudAlert Severity="Severity.Info" Class="mt-4">
-        Mini Møder er under opbygning.
-        Kom gerne tilbage om et par dage og se hvor langt vi er kommet!
+        <MudText Typo="Typo.body1">
+            Mini Møder er under opbygning.
+            Kom gerne tilbage om et par dage og se hvor langt vi er kommet!
+        </MudText>
     </MudAlert>
 
     <MudPaper Elevation="3" Class="pa-6 my-4">
-        <MudText Typo="Typo.body2">
+        <MudText Typo="Typo.body1">
             Mini Møder er en tryg og hyggelig platform,
             der gør det nemt at planlægge legeaftaler, hjemmeskoling og lignende i en hjertevarm atmosfære.
             <MudSpacer />
@@ -21,4 +23,4 @@
         </MudText>
     </MudPaper>
 
-    </MudContainer>
+</MudContainer>
