@@ -18,9 +18,6 @@ public static class AuthExtensions
             })
             .AddEntityFrameworkStores<JordnaerDbContext>();
 
-        // Used to send email confirmation links, reset password etc
-        builder.Services.AddTransient<IEmailSender, EmailSender>();
-
         // Our default scheme is cookies
         var authenticationBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -59,8 +56,6 @@ public static class AuthExtensions
                 });
             }
         }
-
-        builder.Services.AddScoped<IUserService, UserService>();
 
         return builder;
     }

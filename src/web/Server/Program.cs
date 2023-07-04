@@ -4,6 +4,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Server.Features.Email;
 using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
@@ -42,7 +43,7 @@ try
 
     builder.Services.AddResilientHttpClient();
 
-    builder.Services.AddUserSearchServices();
+    builder.Services.AddUserSearchFeature();
 
     builder.Services.AddOutputCache();
 
@@ -50,6 +51,8 @@ try
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     builder.AddEmailServices();
+
+    builder.AddDeleteUserFeature();
 
     builder.Services.AddSingleton(_ => new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
 
@@ -91,12 +94,12 @@ try
 
     // Configure the APIs
     app.MapAuthentication();
-    app.MapUsers();
     app.MapProfiles();
     app.MapLookingFor();
     app.MapUserSearch();
     app.MapEmail();
     app.MapImages();
+    app.MapDeleteUsers();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 

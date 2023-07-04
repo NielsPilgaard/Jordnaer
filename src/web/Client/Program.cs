@@ -18,7 +18,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddRefitClient<IAuthApiClient>(builder.HostEnvironment.BaseAddress);
-builder.Services.AddRefitClient<IUserApiClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IDeleteUserApiClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IUserSearchApiClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IImageApiClient>(builder.HostEnvironment.BaseAddress);
 

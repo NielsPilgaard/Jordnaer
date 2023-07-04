@@ -11,8 +11,6 @@ public interface IUserService
     Task<bool> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser);
 
     Task<bool> IsLoginValidAsync(UserInfo userInfo);
-
-    Task<bool> DeleteUserAsync(string id);
 }
 
 public class UserService : IUserService
@@ -99,24 +97,5 @@ public class UserService : IUserService
         bool passwordMatches = await _userManager.CheckPasswordAsync(user, userInfo.Password);
 
         return passwordMatches;
-    }
-
-
-    public async Task<bool> DeleteUserAsync(string id)
-    {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user is null)
-        {
-            _logger.LogWarning("Failed to delete user with id {userId}. No such user exists.", id);
-            return false;
-        }
-        var identityResult = await _userManager.DeleteAsync(user);
-        if (identityResult.Succeeded is false)
-        {
-            _logger.LogWarning("Failed to delete user {userEmail}. Errors: {@identityResultErrors}",
-                user.Email, identityResult.Errors);
-        }
-
-        return identityResult.Succeeded;
     }
 }
