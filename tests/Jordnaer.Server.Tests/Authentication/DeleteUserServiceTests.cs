@@ -38,7 +38,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     {
         // Arrange
         var user = new ApplicationUser { Email = "test@test.com" };
-        _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider, DeleteUserService.TokenPurpose).Returns("token");
+        _userManager.GenerateUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose).Returns("token");
         _httpContextAccessor.HttpContext!.Request.Scheme.Returns("https");
         _httpContextAccessor.HttpContext!.Request.Host.Returns(new HostString("localhost"));
         _sendGridClient.SendEmailAsync(Arg.Any<SendGridMessage>()).Returns(new Response(HttpStatusCode.Accepted, null, null));
@@ -69,7 +69,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     {
         // Arrange
         var user = new ApplicationUser { Email = "test@test.com", Id = Guid.NewGuid().ToString() };
-        _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
+        _userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
         _userManager.DeleteAsync(user).Returns(IdentityResult.Success);
 
         _context.UserProfiles.Add(new UserProfile { Id = user.Id });
@@ -87,7 +87,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     {
         // Arrange
         var user = new ApplicationUser { Email = "test@test.com" };
-        _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, DeleteUserService.TokenPurpose, "token").Returns(false);
+        _userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(false);
 
         // Act
         bool result = await _deleteUserService.DeleteUserAsync(user, "token");
@@ -101,7 +101,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     {
         // Arrange
         var user = new ApplicationUser { Email = "test@test.com" };
-        _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
+        _userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
         _userManager.DeleteAsync(user).Returns(IdentityResult.Failed(new IdentityError()));
 
         // Act
@@ -116,7 +116,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     {
         // Arrange
         var user = new ApplicationUser { Email = "test@test.com" };
-        _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
+        _userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
         _userManager.DeleteAsync(user).Returns(IdentityResult.Success);
 
         // Act
@@ -131,7 +131,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     {
         // Arrange
         var user = new ApplicationUser { Email = "test@test.com" };
-        _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
+        _userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
         _userManager.DeleteAsync(user).ThrowsAsync(new Exception());
 
         // Act

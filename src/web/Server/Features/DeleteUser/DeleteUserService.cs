@@ -18,6 +18,7 @@ public interface IDeleteUserService
 public class DeleteUserService : IDeleteUserService
 {
     public const string TokenPurpose = "delete-user";
+    public static readonly string TokenProvider = TokenOptions.DefaultEmailProvider;
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<UserService> _logger;
@@ -55,7 +56,7 @@ public class DeleteUserService : IDeleteUserService
 
         var to = new EmailAddress(user.Email);
 
-        string token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider,
+        string token = await _userManager.GenerateUserTokenAsync(user, TokenProvider,
             TokenPurpose);
 
         string deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
@@ -81,7 +82,7 @@ public class DeleteUserService : IDeleteUserService
     {
         _diagnosticContext.Set("userId", user.Id);
 
-        bool tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, TokenPurpose, token);
+        bool tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
         if (tokenIsValid is false)
         {
             _logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
