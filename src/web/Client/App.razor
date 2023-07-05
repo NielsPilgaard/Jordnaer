@@ -9,7 +9,9 @@
                     }
                     else
                     {
-                        <MudAlert Severity="Severity.Error" role="alert">Du har ikke adgang.</MudAlert>
+                        <MudContainer MaxWidth="MaxWidth.Small">
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke adgang til at se denne side</MudAlert>
+                        </MudContainer>
                     }
                 </NotAuthorized>
                 <Authorizing>
