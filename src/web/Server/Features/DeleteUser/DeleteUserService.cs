@@ -71,6 +71,13 @@ public class DeleteUserService : IDeleteUserService
         };
 
         email.AddTo(to);
+        email.TrackingSettings = new TrackingSettings
+        {
+            ClickTracking = new ClickTracking { Enable = false },
+            Ganalytics = new Ganalytics { Enable = false },
+            OpenTracking = new OpenTracking { Enable = false },
+            SubscriptionTracking = new SubscriptionTracking { Enable = false }
+        };
 
         var emailSentResponse = await _sendGridClient.SendEmailAsync(email, cancellationToken);
 
