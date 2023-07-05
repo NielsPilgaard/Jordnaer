@@ -20,7 +20,6 @@ public static class EmailApi
             [FromServices] ISendGridClient sendGridClient,
             CancellationToken cancellationToken) =>
         {
-            var contactEmail = new EmailAddress("kontakt@mini-moeder.dk", "Kontakt @ Mini Møder");
             var replyTo = new EmailAddress(contactFormModel.Email, contactFormModel.Name);
 
             string subject = contactFormModel.Name is null
@@ -29,13 +28,13 @@ public static class EmailApi
 
             var email = new SendGridMessage
             {
-                From = contactEmail, // Must be from a verified email
+                From = EmailConstants.ContactEmail, // Must be from a verified email
                 Subject = subject,
                 PlainTextContent = contactFormModel.Message,
                 ReplyTo = replyTo,
             };
 
-            email.AddTo(contactEmail);
+            email.AddTo(EmailConstants.ContactEmail);
 
             var response = await sendGridClient.SendEmailAsync(email, cancellationToken);
 

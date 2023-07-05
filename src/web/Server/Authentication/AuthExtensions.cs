@@ -18,6 +18,8 @@ public static class AuthExtensions
             })
             .AddEntityFrameworkStores<JordnaerDbContext>();
 
+        builder.Services.AddScoped<IUserService, UserService>();
+
         // Our default scheme is cookies
         var authenticationBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
 

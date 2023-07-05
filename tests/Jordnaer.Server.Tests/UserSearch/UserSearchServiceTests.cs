@@ -19,7 +19,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 {
     private readonly JordnaerDbContext _context;
     private readonly IDataForsyningenClient _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
-    private readonly UserSearchService _sut;
+    private readonly IUserSearchService _sut;
     private readonly Faker _faker = new();
 
     public UserSearchService_Should(SqlServerContainer<JordnaerDbContext> sqlServerContainer)

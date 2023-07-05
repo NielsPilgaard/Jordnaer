@@ -56,6 +56,8 @@ try
 
     builder.Services.AddSingleton(_ => new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
 
+    builder.Services.AddHttpContextAccessor();
+
     var app = builder.Build();
 
     app.UseForwardedHeaders(new ForwardedHeadersOptions

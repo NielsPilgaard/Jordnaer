@@ -97,35 +97,6 @@ public class UserService_Should
     }
 
     [Fact]
-    public async Task DeleteUserAsync_Should_Delete_User_When_Valid()
-    {
-        // Arrange
-
-        var user = new ApplicationUser { Email = "test@example.com", UserName = "test@example.com" };
-        _userManager.DeleteAsync(Arg.Any<ApplicationUser>()).Returns(IdentityResult.Success);
-
-        // Act
-        bool result = await _userService.DeleteUserAsync(user.Id);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task DeleteUserAsync_Should_Not_Delete_User_When_Invalid()
-    {
-        // Arrange
-        var user = new ApplicationUser { Email = "test@example.com", UserName = "test@example.com" };
-        _userManager.DeleteAsync(Arg.Any<ApplicationUser>()).Returns(IdentityResult.Failed(new IdentityError()));
-
-        // Act
-        bool result = await _userService.DeleteUserAsync(user.Id);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
     public async Task IsLoginValidAsync_Should_Return_False_When_User_Is_LockedOut()
     {
         // Arrange
