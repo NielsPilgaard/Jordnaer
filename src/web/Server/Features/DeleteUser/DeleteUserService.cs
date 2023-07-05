@@ -58,7 +58,7 @@ public class DeleteUserService : IDeleteUserService
         string token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider,
             TokenPurpose);
 
-        string deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/delete-user?token={token}";
+        string deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
 
         string message = CreateDeleteUserEmailMessage(deletionLink);
 
