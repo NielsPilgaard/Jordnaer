@@ -53,10 +53,9 @@ public class DeleteUserService : IDeleteUserService
             return false;
         }
 
-        var from = EmailConstants.ContactEmail;
         var to = new EmailAddress(user.Email);
 
-        string token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider,
+        string token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider,
             TokenPurpose);
 
         string deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/delete-user?token={token}";
@@ -65,11 +64,12 @@ public class DeleteUserService : IDeleteUserService
 
         var email = new SendGridMessage
         {
-            From = from, // Must be from a verified email
+            From = EmailConstants.ContactEmail, // Must be from a verified email
             Subject = "Anmodning om sletning af bruger",
-            HtmlContent = message,
-            ReplyTo = to,
+            HtmlContent = message
         };
+
+        email.AddTo(to);
 
         var emailSentResponse = await _sendGridClient.SendEmailAsync(email, cancellationToken);
 
@@ -81,7 +81,7 @@ public class DeleteUserService : IDeleteUserService
     {
         _diagnosticContext.Set("userId", user.Id);
 
-        bool tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, TokenPurpose, token);
+        bool tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, TokenPurpose, token);
         if (tokenIsValid is false)
         {
             _logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
@@ -92,6 +92,9 @@ public class DeleteUserService : IDeleteUserService
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            // TODO: Make sure all user data is deleted here,
+            // and that owned groups are assigned new admins
+
             var identityResult = await _userManager.DeleteAsync(user);
             if (identityResult.Succeeded is false)
             {

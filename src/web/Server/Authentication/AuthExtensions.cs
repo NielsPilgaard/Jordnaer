@@ -1,6 +1,7 @@
 using Jordnaer.Server.Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace Jordnaer.Server.Authentication;
 
@@ -16,7 +17,8 @@ public static class AuthExtensions
                 options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
             })
-            .AddEntityFrameworkStores<JordnaerDbContext>();
+            .AddEntityFrameworkStores<JordnaerDbContext>()
+            .AddDefaultTokenProviders();
 
         builder.Services.AddScoped<IUserService, UserService>();
 
