@@ -1,8 +1,5 @@
 @using Jordnaer.Client.Features.Authentication
-@inject AuthStateProvider Client
-@inject NavigationManager Navigation
-@inject IProfileCache ProfileCache
-@inject ILocalStorageService LocalStorage
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 <MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@_appBarStyle">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
@@ -12,31 +9,11 @@
     </MudButton>
     <MudSpacer />
     <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
-
     <AuthorizeView>
-        <Authorized>
-            <MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
-                <ActivatorContent>
-                    <MudAvatar>
-                        <MudImage Src="@_profilePictureUrl" loading="lazy" />
-                    </MudAvatar>
-                </ActivatorContent>
-                <ChildContent>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">Redigér Profil</MudMenuItem>
-                  <MudMenuItem AutoClose="false"
-                               OnClick="UpdateDarkMode"
-                               Icon="@(_isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
-                               IconColor="@(_isDarkMode ? Color.Dark : Color.Warning)">
-                    Skift tema
-                  </MudMenuItem>
-                    <MudDivider />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout"
-                                 OnClick="Logout"
-                                 OnTouch="Logout">Log af
-                      </MudMenuItem>
-                </ChildContent>
-            </MudMenu>
-        </Authorized>
+      <Authorized>
+        <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode" />
+      </Authorized>
+      <Authorizing>Oh shit</Authorizing>
         <NotAuthorized>
             <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
         </NotAuthorized>
@@ -45,38 +22,10 @@
 
 @code
 {
-    private bool _isDarkMode = true;
-    private const string Key = "dark-mode";
-
-    private readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
-
-    private string _profilePictureUrl = ProfileConstants.Default_Profile_Picture;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var userProfile = await ProfileCache.GetOrCreateProfileAsync();
-        if (userProfile?.ProfilePictureUrl is not null)
-        {
-            _profilePictureUrl = userProfile.ProfilePictureUrl;
-        }
-    }
-
-    private async Task Logout()
-    {
-        await Client.LogoutAsync();
-        Navigation.NavigateTo("/", forceLoad: true);
-    }
-
-
-    private async Task UpdateDarkMode()
-    {
-        _isDarkMode = !_isDarkMode;
-
-        await LocalStorage.SetItemAsync(Key, _isDarkMode);
-
-        StateHasChanged();
-    }
-
     [Parameter]
     public EventCallback<bool> ToggleDrawer { get; set; }
+
+    private bool _isDarkMode = true;
+
+    private readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
 }

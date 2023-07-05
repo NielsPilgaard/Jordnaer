@@ -1,6 +1,3 @@
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject NavigationManager NavigationManager
-
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
@@ -8,11 +5,11 @@
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated is not true)
                     {
-                        NavigationManager.NavigateToLogin("/auth/login");
+                        <RedirectToLogin />
                     }
                     else
                     {
-                        <p role="alert">Du har ikke adgang.</p>
+                        <MudAlert Severity="Severity.Error" role="alert">Du har ikke adgang.</MudAlert>
                     }
                 </NotAuthorized>
                 <Authorizing>
