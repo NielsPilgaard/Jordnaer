@@ -1,0 +1,40 @@
+@using System.Security.Claims
+@inject IDeleteUserApiClient DeleteUserApiClient
+
+<MudButton StartIcon="@Icons.Material.Filled.DeleteForever" Variant="Variant.Filled" Color="Color.Error" OnClick="OpenDialog">Slet Bruger</MudButton>
+
+<MudDialog @bind-IsOpen="@_dialogIsOpen" @bind-IsVisible="_dialogIsOpen">
+    <DialogContent>
+        <MudText Typo="Typo.h5">Sletning af bruger</MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">Når du trykker på "Slet Bruger", vil du modtage en e-mail med et link til at bekræfte sletningen. Du skal klikke på dette link for at fuldføre sletningen af din konto.</MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">Dette vil permanent slette din bruger og alle tilknyttede data. Denne handling kan ikke fortrydes.</MudText>
+        <MudTextField Immediate Label="@($"Indtast din e-mail '{_userEmail}' for at fortsætte")" @bind-Value="@_inputEmail" Class="mt-3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Default" OnClick="CloseDialog">Annuller</MudButton>
+        <MudButton Color="Color.Error" Disabled="@(!EmailConfirmed)" OnClick="DeleteAccount" Variant="Variant.Filled" ButtonType="ButtonType.Submit">Slet Bruger</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
+    private bool _dialogIsOpen = false;
+    private string? _inputEmail;
+    private string _userEmail = null!;
+    private bool EmailConfirmed => _inputEmail == _userEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationState;
+        _userEmail = authState.User.FindFirst(ClaimTypes.Email)!.Value;
+    }
+
+    private void OpenDialog() => _dialogIsOpen = true;
+    private void CloseDialog() => _dialogIsOpen = false;
+
+    private async Task DeleteAccount()
+    {
+        await DeleteUserApiClient.InitiateDeleteUserAsync();
+    }
+}
