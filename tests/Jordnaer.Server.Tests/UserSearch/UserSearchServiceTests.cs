@@ -5,6 +5,7 @@ using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.UserSearch;
 using Jordnaer.Shared;
 using Jordnaer.Shared.UserSearch;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -206,7 +207,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
             .RuleFor(u => u.LastName, f => f.Name.LastName())
             .RuleFor(u => u.UserName, f => f.Internet.UserName())
             .RuleFor(u => u.SearchableName, (_, user) => $"{user.FirstName}{user.LastName}{user.UserName}")
-            .RuleFor(u => u.Id, _ => Guid.NewGuid().ToString())
+            .RuleFor(u => u.Id, _ => NewId.NextGuid().ToString())
             .Generate(count);
 
         return users;

@@ -4,6 +4,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -68,7 +69,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     public async Task DeleteUserAsync_Should_Delete_User_When_Token_Is_Valid()
     {
         // Arrange
-        var user = new ApplicationUser { Email = "test@test.com", Id = Guid.NewGuid().ToString() };
+        var user = new ApplicationUser { Email = "test@test.com", Id = NewId.NextGuid().ToString() };
         _userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(true);
         _userManager.DeleteAsync(user).Returns(IdentityResult.Success);
 

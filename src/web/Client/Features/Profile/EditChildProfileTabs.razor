@@ -1,3 +1,4 @@
+@using MassTransit
 <MudDynamicTabs @bind-ActivePanelIndex="@_activePanelIndex"
                 AddTab="@AddTabCallback"
                 AddIconToolTip="Klik for at oprette et barn"
@@ -45,7 +46,7 @@
         _activePanelIndex = Parent.ChildProfiles.Count - 1; // Automatically switch to the new tab.
     }
 
-    private async Task AddTabCallback() => await AddTab(Guid.NewGuid());
+    private async Task AddTabCallback() => await AddTab(NewId.NextGuid());
 
     private void RemoveTab(MudTabPanel obj)
     {

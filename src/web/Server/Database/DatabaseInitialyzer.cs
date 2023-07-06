@@ -1,5 +1,6 @@
 using Bogus;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Server.Database;
@@ -26,15 +27,14 @@ public static class SeedDatabase
         List<LookingFor> lookingFor,
         int usersToGenerate = 10000)
     {
-        int userProfileCount = await context.UserProfiles.CountAsync();
-        if (userProfileCount > 1)
+        if (await context.UserProfiles.AnyAsync())
         {
             return;
         }
 
         // Danish locale is not available, nb_NO is norwegian. Close enough!
         var childProfileFaker = new Faker<ChildProfile>("nb_NO")
-            .RuleFor(cp => cp.Id, _ => Guid.NewGuid())
+            .RuleFor(cp => cp.Id, _ => NewId.NextGuid())
             .RuleFor(cp => cp.FirstName, f => f.Name.FirstName())
             .RuleFor(cp => cp.LastName, f => f.Name.LastName())
             .RuleFor(cp => cp.Gender, f => f.PickRandom<Gender>())
@@ -43,7 +43,7 @@ public static class SeedDatabase
             .RuleFor(cp => cp.PictureUrl, f => f.Internet.Avatar());
 
         var userFaker = new Faker<UserProfile>("nb_NO")
-            .RuleFor(u => u.Id, _ => Guid.NewGuid().ToString())
+            .RuleFor(u => u.Id, _ => NewId.NextGuid().ToString())
             .RuleFor(u => u.UserName, f => f.Internet.UserName())
             .RuleFor(u => u.FirstName, f => f.Name.FirstName())
             .RuleFor(u => u.LastName, f => f.Name.LastName())
