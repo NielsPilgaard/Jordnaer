@@ -79,6 +79,7 @@ public class DeleteUserService : IDeleteUserService
             SubscriptionTracking = new SubscriptionTracking { Enable = false }
         };
 
+        // TODO: Turn this email sending into an Azure Function
         var emailSentResponse = await _sendGridClient.SendEmailAsync(email, cancellationToken);
 
         return emailSentResponse.IsSuccessStatusCode;
