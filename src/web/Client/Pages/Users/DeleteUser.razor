@@ -1,0 +1,13 @@
+@page "/delete-user/{token}"
+@attribute [Authorize]
+
+<MetadataComponent Title="Mini Møder - Slet bruger"
+                   Description="Ved at navigere til denne side efter at have efterspurgt at få slettet din bruger, slettes din bruger endeligt." />
+
+@code
+{
+  [Parameter]
+  public required string Token { get; set; }
+
+
+}
