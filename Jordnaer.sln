@@ -28,6 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29332986-7
 	ProjectSection(SolutionItems) = preProject
 		docs\chat.md = docs\chat.md
 		docs\contact_request.md = docs\contact_request.md
+		docs\delete_user.md = docs\delete_user.md
 		docs\invite.md = docs\invite.md
 	EndProjectSection
 EndProject

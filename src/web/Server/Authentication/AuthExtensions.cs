@@ -1,6 +1,7 @@
 using Jordnaer.Server.Database;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace Jordnaer.Server.Authentication;
 
@@ -16,10 +17,10 @@ public static class AuthExtensions
                 options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
             })
-            .AddEntityFrameworkStores<JordnaerDbContext>();
+            .AddEntityFrameworkStores<JordnaerDbContext>()
+            .AddDefaultTokenProviders();
 
-        // Used to send email confirmation links, reset password etc
-        builder.Services.AddTransient<IEmailSender, EmailSender>();
+        builder.Services.AddScoped<IUserService, UserService>();
 
         // Our default scheme is cookies
         var authenticationBuilder = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -59,8 +60,6 @@ public static class AuthExtensions
                 });
             }
         }
-
-        builder.Services.AddScoped<IUserService, UserService>();
 
         return builder;
     }

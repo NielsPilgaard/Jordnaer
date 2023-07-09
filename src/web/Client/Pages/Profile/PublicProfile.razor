@@ -26,7 +26,7 @@
                 <UserProfileCard Profile="_profile" UserName="@UserName" />
             </MudItem>
 
-            @if (_profile.ChildProfiles.Any())
+            @if (_profile!.ChildProfiles.Any())
             {
                 <MudDivider Class="my-5" />
                 <MudText Typo="Typo.h5" Class="d-sm-none mt-3">

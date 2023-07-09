@@ -7,7 +7,7 @@
 @attribute [Authorize]
 
 <MetadataComponent Title="Redigér Profil"
-                   Description="Her kan du redigére din profil" />
+                   Description="Her kan du redigere din profil" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_userProfile is null)
@@ -26,31 +26,48 @@
                 <UserProfilePicture @bind-UserProfile="_userProfile" />
                 <MudGrid>
                     <MudItem xs="12" sm="4">
-                        <MudTextField Adornment="Adornment.Start" AdornmentText="@("@")" For="() => _userProfile.UserName" @bind-Value="@_userProfile.UserName" Label="Brugernavn" Variant="Variant.Text" InputType="InputType.Text" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField For="() => _userProfile.FirstName" @bind-Value="@_userProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField For="() => _userProfile.LastName" @bind-Value="@_userProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudNumericField For="() => _userProfile.ZipCode" @bind-Value="@_userProfile.ZipCode" Label="Postnummer" Placeholder="8000" Variant="Variant.Text" name="zipcode" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField For="() => _userProfile.City" @bind-Value="@_userProfile.City" Label="By" Placeholder="Aarhus C" Variant="Variant.Text" InputType="InputType.Text" name="city" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudDatePicker AdornmentColor="Color.Primary"
-                                   Color="Color.Primary"
-                                      Rounded
-                                   Placeholder="@DateTime.Now.ToString("d")"
-                                   For="() => _userProfile.DateOfBirth"
-                                   OpenTo="OpenTo.Year"
-                                   PickerVariant="PickerVariant.Dialog"
-                    @bind-Date="@_userProfile.DateOfBirth"
-                                   Label="Fødselsdato"
-                                   name="dob" />
+                        <MudTextField Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                        @bind-Value="@_userProfile.UserName"
+                                      For="() => _userProfile.UserName"
+                                      Label="Brugernavn" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField @bind-Value="@_userProfile.FirstName"
+                                      For="() => _userProfile.FirstName"
+                                      Label="Fornavn"
+                                      name="name"
+                                      Variant="Variant.Text" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField @bind-Value="@_userProfile.LastName"
+                                      For="() => _userProfile.LastName"
+                                      Label="Efternavn"
+                                      name="lastname" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudNumericField @bind-Value="@_userProfile.ZipCode"
+                                         For="() => _userProfile.ZipCode"
+                                         Label="Postnummer"
+                                         name="zipcode" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField @bind-Value="@_userProfile.City"
+                                      For="() => _userProfile.City"
+                                      Label="By"
+                                      name="city"
+                                      Placeholder="Aarhus C" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker AdornmentColor="Color.Primary"
+                        @bind-Date="@_userProfile.DateOfBirth"
+                                       Color="Color.Primary"
+                                       For="() => _userProfile.DateOfBirth"
+                                       Label="Fødselsdato" name="dob"
+                                       OpenTo="OpenTo.Year"
+                                       PickerVariant="PickerVariant.Dialog"
+                                       Placeholder="@DateTime.Now.ToString("d")"
+                                      Rounded />
                 </MudItem>
                 <MudItem xs="12">
                     <MudSelectExtended ItemCollection="_lookingFor.Select(e => e.Name).ToList()"
@@ -69,9 +86,7 @@
                                                     Immediate
                     @bind-Value="@_userProfile.Description"
                                           Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags."
-                                          Label="Beskrivelse"
-                                          Variant="Variant.Text"
-                                          InputType="InputType.Text" />
+                                          Label="Beskrivelse" />
                     </MudItem>
                     </MudGrid>
 
@@ -94,6 +109,12 @@
         </MudButton>
 
     </EditForm>
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <MiniDivider Color="MiniDividerColor.Blue" />
+    </div>
+
+    <DeleteUserComponent />
+
 </MudLoading>
 @code {
     private bool _isLoading = true;

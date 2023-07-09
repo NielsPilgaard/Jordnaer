@@ -4,7 +4,7 @@ namespace Jordnaer.Server.Features.UserSearch;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddUserSearchServices(this IServiceCollection services)
+    public static IServiceCollection AddUserSearchFeature(this IServiceCollection services)
     {
         services.AddOptions<DataForsyningenOptions>()
             .BindConfiguration(DataForsyningenOptions.SectionName)

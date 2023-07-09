@@ -9,7 +9,7 @@
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-    <UserSearchForm OnValidSubmit="@UserSearch" @bind-Filter="_filter" />
+    <UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
 
     @if (!_hasSearched)
     {
@@ -46,7 +46,7 @@
         }
     }
 
-    private async Task UserSearch()
+    private async Task Search()
     {
         _isSearching = true;
         var response = await UserSearchApi.GetUsers(_filter);
@@ -72,7 +72,7 @@
     private async Task OnSelectedPageChanged(int selectedPage)
     {
         _filter.PageNumber = selectedPage;
-        await UserSearch();
+        await Search();
     }
 
 }
