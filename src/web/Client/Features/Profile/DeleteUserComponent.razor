@@ -14,8 +14,11 @@
             Dette vil permanent slette din bruger og alle tilknyttede data.
             Denne handling kan ikke fortrydes.
         </MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">
+            Indtast din e-mail <code>@_userEmail</code> for at fortsætte
+        </MudText>
         <MudTextField Immediate
-                      Label="@($"Indtast din e-mail '{_userEmail}' for at fortsætte")"
+                      Label="Email"
         @bind-Value="@_inputEmail"
                       Class="mt-3" />
     </DialogContent>

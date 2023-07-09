@@ -6,15 +6,24 @@ namespace Jordnaer.Client.Features.Profile;
 public interface IDeleteUserApiClient
 {
     /// <summary>
-    /// Initiates the delete user procedure. This generates a unique user token that is sent to the user through their email.
+    /// Initiates the delete user procedure for the current user.
+    /// <para>This generates a user token that is sent to the user through their email.</para>
     /// </summary>
     [Get("/api/delete-user")]
     Task<IApiResponse> InitiateDeleteUserAsync();
 
     /// <summary>
-    /// Deletes the user.
+    /// Deletes the current user.
     /// </summary>
-    /// <param name="id">The user identifier.</param>
+    /// <param name="token">The deletion request token.</param>
     [Delete("/api/delete-user")]
     Task<IApiResponse> DeleteUserAsync(string token);
+
+    /// <summary>
+    /// Verifies that the token supplied is valid for the current user.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    [Get("/api/delete-user/verify-token")]
+    Task<IApiResponse> VerifyTokenAsync(string token);
 }

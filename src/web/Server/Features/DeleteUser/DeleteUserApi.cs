@@ -48,6 +48,22 @@ public static class DeleteUserApi
             return TypedResults.Ok();
 
         }).RequireCurrentUser();
+
+
+        group.MapGet("verify-token", async Task<Results<UnauthorizedHttpResult, Ok>> (
+                [FromQuery] string token,
+                [FromServices] IDeleteUserService deleteUserService,
+                [FromServices] CurrentUser currentUser,
+                CancellationToken cancellationToken) =>
+            {
+                bool tokenIsValid = await deleteUserService.VerifyTokenAsync(currentUser.User!, token, cancellationToken);
+
+                return tokenIsValid
+                    ? TypedResults.Ok()
+                    : TypedResults.Unauthorized();
+            })
+            .RequireCurrentUser();
+
         return group;
     }
 }

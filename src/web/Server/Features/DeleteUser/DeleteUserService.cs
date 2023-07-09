@@ -13,6 +13,7 @@ public interface IDeleteUserService
 {
     Task<bool> InitiateDeleteUserAsync(ApplicationUser user, CancellationToken cancellationToken = default);
     Task<bool> DeleteUserAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default);
+    Task<bool> VerifyTokenAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default);
 }
 
 public class DeleteUserService : IDeleteUserService
@@ -138,6 +139,12 @@ public class DeleteUserService : IDeleteUserService
             return false;
         }
     }
+
+    public async Task<bool> VerifyTokenAsync(
+        ApplicationUser user,
+        string token,
+        CancellationToken cancellationToken = default) =>
+        await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
 
 
     private static string CreateDeleteUserEmailMessage(string deletionLink) =>
