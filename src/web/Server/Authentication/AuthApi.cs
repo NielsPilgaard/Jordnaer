@@ -23,7 +23,7 @@ public static class AuthApi
             bool userCreated = await userService.CreateUserAsync(userInfo);
 
             return userCreated
-                ? SignIn(userInfo)
+                ? SignIn(userInfo, new AuthenticationProperties { RedirectUri = "/first-login" })
                 : Results.Unauthorized();
         });
 
@@ -33,7 +33,7 @@ public static class AuthApi
             bool loginIsValid = await userService.IsLoginValidAsync(userInfo);
 
             return loginIsValid
-                ? SignIn(userInfo)
+                ? SignIn(userInfo, new AuthenticationProperties { RedirectUri = "/" })
                 : Results.Unauthorized();
         });
 
@@ -90,9 +90,11 @@ public static class AuthApi
             await context.SignOutAsync(AuthConstants.ExternalScheme);
 
             // If the user was just created, redirect them to the first-login page
-            var properties = getOrCreateUserResult is GetOrCreateUserResult.UserCreated
-                ? new AuthenticationProperties { RedirectUri = "/first-login" }
-                : null;
+            string redirectUri = getOrCreateUserResult is GetOrCreateUserResult.UserCreated
+                ? "/first-login"
+                : "/";
+
+            var properties = new AuthenticationProperties { RedirectUri = redirectUri };
 
             return SignIn(provider, result.Principal.Claims, properties);
         });
@@ -100,14 +102,15 @@ public static class AuthApi
         return group;
     }
 
-    private static IResult SignIn(UserInfo userInfo)
+    private static IResult SignIn(UserInfo userInfo, AuthenticationProperties properties)
         => SignIn(providerName: null,
                 claims: new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, userInfo.Email),
                     new Claim(ClaimTypes.Email, userInfo.Email),
                     new Claim(ClaimTypes.Name, userInfo.Email)
-                });
+                },
+                properties);
 
     private static IResult SignIn(string? providerName,
         IEnumerable<Claim> claims, AuthenticationProperties? properties = null)
