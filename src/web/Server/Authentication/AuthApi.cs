@@ -67,11 +67,16 @@ public static class AuthApi
 
             string name = (result.Principal.FindFirstValue(ClaimTypes.Email) ?? result.Principal.Identity?.Name)!;
 
-            await userService.GetOrCreateUserAsync(
+            var getOrCreateUserResult = await userService.GetOrCreateUserAsync(
                 provider,
                 new ExternalUserInfo { Email = name, ProviderKey = id });
 
-            await SignIn(provider, result.Principal.Claims).ExecuteAsync(context);
+            if (getOrCreateUserResult is
+                GetOrCreateUserResult.FailedToCreateUser or
+                GetOrCreateUserResult.FailedToAddLogin)
+            {
+                return Results.Forbid();
+            }
 
             string? accessToken = result.Properties?.GetTokenValue("access_token");
             if (accessToken is not null)
@@ -84,7 +89,12 @@ public static class AuthApi
             // Delete the external cookie
             await context.SignOutAsync(AuthConstants.ExternalScheme);
 
-            return Results.Redirect("/");
+            // If the user was just created, redirect them to the first-login page
+            var properties = getOrCreateUserResult is GetOrCreateUserResult.UserCreated
+                ? new AuthenticationProperties { RedirectUri = "/first-login" }
+                : null;
+
+            return SignIn(provider, result.Principal.Claims, properties);
         });
 
         return group;
@@ -100,12 +110,12 @@ public static class AuthApi
                 });
 
     private static IResult SignIn(string? providerName,
-        IEnumerable<Claim> claims)
+        IEnumerable<Claim> claims, AuthenticationProperties? properties = null)
     {
         var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
         identity.AddClaims(claims);
 
-        var properties = new AuthenticationProperties();
+        properties ??= new AuthenticationProperties();
 
         // Store the external provider name so we can do remote sign out
         if (providerName is not null)

@@ -8,9 +8,17 @@ public interface IUserService
 {
     Task<bool> CreateUserAsync(UserInfo newUser);
 
-    Task<bool> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser);
+    Task<GetOrCreateUserResult> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser);
 
     Task<bool> IsLoginValidAsync(UserInfo userInfo);
+}
+
+public enum GetOrCreateUserResult
+{
+    UserExists = 0,
+    UserCreated = 1,
+    FailedToCreateUser = 2,
+    FailedToAddLogin = 3
 }
 
 public class UserService : IUserService
@@ -39,12 +47,12 @@ public class UserService : IUserService
         return identityResult.Succeeded;
     }
 
-    public async Task<bool> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser)
+    public async Task<GetOrCreateUserResult> GetOrCreateUserAsync(string provider, ExternalUserInfo newUser)
     {
         var user = await _userManager.FindByLoginAsync(provider, newUser.ProviderKey);
         if (user is not null)
         {
-            return true;
+            return GetOrCreateUserResult.UserExists;
         }
 
         user = new ApplicationUser { UserName = newUser.Email, Email = newUser.Email, Id = newUser.ProviderKey };
@@ -56,7 +64,7 @@ public class UserService : IUserService
                 newUser.Email,
                 identityResult.Errors);
 
-            return false;
+            return GetOrCreateUserResult.FailedToCreateUser;
         }
 
         identityResult = await _userManager.AddLoginAsync(
@@ -65,14 +73,14 @@ public class UserService : IUserService
 
         if (identityResult.Succeeded)
         {
-            return true;
+            return GetOrCreateUserResult.UserCreated;
         }
 
         _logger.LogWarning("Failed to add Login to User {userName}. Errors: {identityResultErrors}",
             newUser.Email,
             identityResult.Errors);
 
-        return false;
+        return GetOrCreateUserResult.FailedToAddLogin;
     }
 
     public async Task<bool> IsLoginValidAsync(UserInfo userInfo)
