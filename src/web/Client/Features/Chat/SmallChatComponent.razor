@@ -1,0 +1,85 @@
+@using Jordnaer.Shared.Chat
+@using System.Globalization
+@if (_activeChat is null)
+{
+    <MudList>
+        @foreach (var chat in _chats)
+        {
+            <MudListItem OnClick="@(() => SelectChat(chat))" Avatar="@ProfileConstants.Default_Profile_Picture">
+                <MudText>@chat.Recipient</MudText>
+            </MudListItem>
+        }
+    </MudList>
+
+}
+else
+{
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Primary" />
+
+    <MudText>@_activeChat!.Recipient</MudText>
+
+    <MudList>
+        @foreach (var message in _activeChat!.Messages)
+        {
+            <MudListItem>
+                @message.TimestampUtc.ToLocalTime().ToString(CultureInfo.CurrentCulture): @message.Content
+            </MudListItem>
+        }
+    </MudList>
+}
+
+@code {
+    private List<Chat> _chats = new();
+    private Chat? _activeChat;
+
+    protected override void OnInitialized()
+    {
+        _chats = new List<Chat>
+      {
+        new()
+        {
+          Recipient = "User 1",
+          Messages = new List<ChatMessage>
+          {
+            new() {Sender = "User 1", Content = "Hello!", TimestampUtc = DateTime.UtcNow.AddMinutes(-5)},
+            new() {Sender = "Me", Content = "Hi, how are you?", TimestampUtc = DateTime.UtcNow.AddMinutes(-2)},
+          }
+        },
+        new()
+        {
+          Recipient = "User 1",
+          Messages = new List<ChatMessage>
+          {
+            new() {Sender = "User 1", Content = "Hello!", TimestampUtc = DateTime.Now.AddMinutes(-125)},
+            new() {Sender = "Me", Content = "Hi, how are you?", TimestampUtc = DateTime.Now.AddMinutes(-95)},
+            new() {Sender = "User 1", Content = "I'm doing well, thank you!", TimestampUtc = DateTime.Now.AddMinutes(-75)},
+          }
+        },
+        new()
+        {
+          Recipient = "User 2",
+          Messages = new List<ChatMessage>
+          {
+            new() {Sender = "User 2", Content = "Hey, what's up?", TimestampUtc = DateTime.Now.AddMinutes(-50)},
+            new() {Sender = "Me", Content = "Not much, you?", TimestampUtc = DateTime.Now.AddMinutes(-25)},
+            new() {Sender = "User 2", Content = "Just working on a project", TimestampUtc = DateTime.Now.AddMinutes(-15)},
+          }
+        }
+      };
+    }
+
+    private void SelectChat(Chat chat) => _activeChat = chat;
+
+    private void BackToList() => _activeChat = null;
+
+    private string _newMessage = string.Empty;
+
+    private void SendMessage()
+    {
+        if (_activeChat is not null && !string.IsNullOrWhiteSpace(_newMessage))
+        {
+            _activeChat.Messages.Add(new ChatMessage { Sender = "Me", Content = _newMessage });
+            _newMessage = string.Empty;
+        }
+    }
+}
