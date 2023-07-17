@@ -12,7 +12,11 @@ public static class WebAssemblyHostBuilderExtensions
         where TClient : class
     {
         services.AddRefitClient<TClient>(settings).ConfigureHttpClient(client =>
-            client.BaseAddress = baseAddress)
+            {
+                client.BaseAddress = baseAddress;
+                // This prevents the api from redirecting to Account/Login on 401
+                client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+            })
             .AddTransientHttpErrorPolicy(policyBuilder =>
                 policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
             .AddTransientHttpErrorPolicy(policyBuilder =>
