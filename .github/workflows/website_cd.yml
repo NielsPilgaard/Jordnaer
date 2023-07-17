@@ -3,7 +3,7 @@ name: Build, test and deploy to Azure App Service
 on:
   push:
     tags:
-      - release-*
+      - release-website-*
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1

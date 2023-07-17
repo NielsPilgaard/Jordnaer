@@ -2,8 +2,9 @@ name: Build, test and deploy to Azure Functions
 
 on:
   push:
-    paths:
-      - 'src/functions/Jordnaer.Chat/**'
+    tags:
+      - release-function-chat-*
+  workflow_dispatch:
 
 env:
   AZURE_FUNCTIONAPP_NAME: JordnaerChat
