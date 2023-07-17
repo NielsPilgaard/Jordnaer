@@ -1,0 +1,18 @@
+@page "/chat"
+@using Jordnaer.Shared.Chat
+@using System.Globalization
+@attribute [Authorize]
+
+<MudPaper Class="pa-4">
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <SmallChatComponent />
+    </MudHidden>
+
+    <MudHidden Invert Breakpoint="Breakpoint.MdAndUp">
+        <LargeChatComponent />
+    </MudHidden>
+
+</MudPaper>
+
+

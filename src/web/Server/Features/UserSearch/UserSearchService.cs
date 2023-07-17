@@ -33,6 +33,7 @@ public class UserSearchService : IUserSearchService
 
     public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken)
     {
+        // TODO: Convert to Dapper
         var users = _context.UserProfiles.AsQueryable();
 
         users = ApplyChildFilters(filter, users);

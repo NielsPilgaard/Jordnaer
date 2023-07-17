@@ -133,7 +133,7 @@
         var userProfile = await ProfileCache.GetOrCreateProfileAsync();
         if (userProfile is null)
         {
-            Snackbar.Add("Det lykkedes ikke at hente dine informationer. Vent et øjeblik og genindlæs så siden.",
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh,
                 Severity.Warning, _snackbarOptions);
             return;
         }
