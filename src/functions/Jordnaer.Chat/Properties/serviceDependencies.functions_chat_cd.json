@@ -6,6 +6,10 @@
       "type": "appInsights.azure",
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING",
       "dynamicId": null
+    },
+    "appConfig2": {
+      "ignored": "true",
+      "type": "appConfig.azure"
     }
   }
 }
