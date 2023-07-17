@@ -3,7 +3,7 @@ name: Build, test and deploy to Azure Functions
 on:
   push:
     paths:
-      - src/functions/Jordnaer.Chat
+      - 'src/functions/Jordnaer.Chat'
 
 env:
   AZURE_FUNCTIONAPP_NAME: JordnaerChat

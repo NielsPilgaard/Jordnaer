@@ -3,8 +3,8 @@ name: Run Tests
 on:
   push:
     paths:
-      - 'src/**'
-      - 'tests/**'
+      - 'src/web/**'
+      - 'tests/web/**'
       - '.github/workflows/test.yml'
   workflow_dispatch:
 

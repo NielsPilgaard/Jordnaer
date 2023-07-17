@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\web\Server\Jordnaer.Server.csproj" />
+    <ProjectReference Include="..\..\..\src\web\Server\Jordnaer.Server.csproj" />
   </ItemGroup>
 
 </Project>
