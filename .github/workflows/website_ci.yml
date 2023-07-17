@@ -5,7 +5,7 @@ on:
     paths:
       - 'src/web/**'
       - 'tests/web/**'
-      - '.github/workflows/website.ci.yml'
+      - '.github/workflows/website_ci.yml'
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
