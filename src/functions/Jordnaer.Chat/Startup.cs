@@ -1,7 +1,6 @@
 using Jordnaer.Chat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -9,21 +8,16 @@ namespace Jordnaer.Chat;
 
 internal class Startup : FunctionsStartup
 {
-    private readonly IConfiguration _configuration;
-
-    public Startup(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
+    private IConfiguration _configuration = null!;
 
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
     {
-        var configuration = builder.ConfigurationBuilder
+        _configuration = builder.ConfigurationBuilder
             .AddEnvironmentVariables()
             .AddUserSecrets<Startup>()
             .Build();
 
-        string connectionString = configuration.GetConnectionString("AppConfig")
+        string connectionString = _configuration.GetConnectionString("AppConfig")
                                   ?? throw new InvalidOperationException("Connection string 'AppConfig' not found.");
 
         builder.ConfigurationBuilder.AddAzureAppConfiguration(options =>
