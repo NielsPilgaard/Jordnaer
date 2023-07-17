@@ -1,8 +1,10 @@
-name: Build and deploy .NET Core application to Function App JordnaerChat
+name: Build, test and deploy to Azure Functions
+
 on:
   push:
-    branches:
-    - chat
+    paths:
+      - src/functions/Jordnaer.Chat
+
 env:
   AZURE_FUNCTIONAPP_NAME: JordnaerChat
   AZURE_FUNCTIONAPP_PACKAGE_PATH: src/functions/Jordnaer.Chat/published
