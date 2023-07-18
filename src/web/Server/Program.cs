@@ -12,6 +12,7 @@ using Jordnaer.Server.Features.UserSearch;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.FeatureManagement;
 using Serilog;
+using Serilog.Events;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -65,7 +66,14 @@ try
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
     });
 
-    app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging(options => options.GetLevel = (context, _, exception) =>
+        context.Response.StatusCode switch
+        {
+            >= 500 when exception is not null => LogEventLevel.Error,
+            _ when exception is not null => LogEventLevel.Error,
+            >= 400 => LogEventLevel.Warning,
+            _ => LogEventLevel.Debug
+        });
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
