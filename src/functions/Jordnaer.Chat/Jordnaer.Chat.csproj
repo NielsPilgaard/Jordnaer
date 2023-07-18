@@ -29,7 +29,7 @@
 
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\web\Shared\Jordnaer.Shared.csproj" />
+    <ProjectReference Include="..\..\Jordnaer.Shared.Contracts\Jordnaer.Shared.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
