@@ -1,4 +1,4 @@
-namespace Jordnaer.Shared.Chat;
+namespace Jordnaer.Shared.Contracts.Chat;
 
 public class ChatMessage
 {
