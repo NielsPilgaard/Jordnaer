@@ -13,6 +13,7 @@ internal class Startup : FunctionsStartup
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
     {
         var userSecrets = new ConfigurationBuilder()
+            .AddEnvironmentVariables()
             .AddUserSecrets<Startup>()
             .Build();
 
