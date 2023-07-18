@@ -12,12 +12,12 @@ internal class Startup : FunctionsStartup
 
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
     {
-        var userSecrets = new ConfigurationBuilder()
+        var config = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .AddUserSecrets<Startup>()
             .Build();
 
-        string connectionString = userSecrets.GetConnectionString("AppConfig")
+        string connectionString = config.GetConnectionString("AppConfig")
                                   ?? throw new InvalidOperationException("Connection string 'AppConfig' not found.");
 
         builder.ConfigurationBuilder.AddAzureAppConfiguration(options =>
