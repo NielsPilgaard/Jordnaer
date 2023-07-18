@@ -10,11 +10,6 @@
     "storage1": {
       "type": "storage",
       "connectionId": "AzureWebJobsStorage"
-    },
-    "appConfig1": {
-      "type": "appConfig",
-      "connectionId": "AppConfig",
-      "dynamicId": null
     }
   }
 }
