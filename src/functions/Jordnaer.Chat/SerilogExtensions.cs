@@ -1,7 +1,6 @@
-using Jordnaer.Shared.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
@@ -12,15 +11,8 @@ public static class SerilogExtensions
 {
     private const string ApplicationName = "Jordnaer.Chat";
 
-    public static IServiceCollection AddSerilog(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddOptions<GrafanaLokiOptions>()
-            .BindConfiguration("GrafanaLoki")
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        var logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
+    public static void AddSerilog(this IConfiguration configuration) =>
+        Log.Logger = new LoggerConfiguration()
             .Enrich.WithProperty("Application", ApplicationName)
             .Enrich.FromLogContext()
             .Enrich.WithExceptionDetails()
@@ -29,16 +21,13 @@ public static class SerilogExtensions
             .WriteToLoki(configuration)
             .CreateLogger();
 
-        services.AddLogging(loggingBuilder => loggingBuilder.ClearProviders().AddSerilog(logger));
-
-        return services;
-    }
-
     private static LoggerConfiguration WriteToLoki(this LoggerConfiguration loggerConfiguration,
         IConfiguration configuration)
     {
         var grafanaLokiOptions = new GrafanaLokiOptions();
         configuration.GetSection(GrafanaLokiOptions.SectionName).Bind(grafanaLokiOptions);
+
+        Validator.ValidateObject(grafanaLokiOptions, new ValidationContext(grafanaLokiOptions));
 
         var labels =
             new LokiLabel[] {
@@ -67,4 +56,22 @@ public static class SerilogExtensions
 
         return loggerConfiguration;
     }
+}
+
+
+public sealed class GrafanaLokiOptions
+{
+    public const string SectionName = "GrafanaLoki";
+
+    [Required]
+    [Url]
+    public string Uri { get; set; } = null!;
+
+    [Required]
+    public string Login { get; set; } = null!;
+
+    [Required]
+    public string Password { get; set; } = null!;
+
+    public int QueueLimit { get; set; } = 500;
 }

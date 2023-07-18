@@ -12,12 +12,11 @@ internal class Startup : FunctionsStartup
 
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
     {
-        _configuration = builder.ConfigurationBuilder
-            .AddEnvironmentVariables()
+        var userSecrets = new ConfigurationBuilder()
             .AddUserSecrets<Startup>()
             .Build();
 
-        string connectionString = _configuration.GetConnectionString("AppConfig")
+        string connectionString = userSecrets.GetConnectionString("AppConfig")
                                   ?? throw new InvalidOperationException("Connection string 'AppConfig' not found.");
 
         builder.ConfigurationBuilder.AddAzureAppConfiguration(options =>
@@ -30,11 +29,13 @@ internal class Startup : FunctionsStartup
                     refreshOptions.Register("Sentinel", refreshAll: true);
                     refreshOptions.SetCacheExpiration(TimeSpan.FromMinutes(5));
                 }));
+
+        _configuration = builder.ConfigurationBuilder.Build();
     }
 
     public override void Configure(IFunctionsHostBuilder builder)
     {
-        builder.Services.AddSerilog(_configuration);
+        _configuration.AddSerilog();
         builder.Services.AddAzureAppConfiguration();
     }
 }
