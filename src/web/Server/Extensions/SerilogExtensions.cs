@@ -1,4 +1,4 @@
-using Jordnaer.Shared.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Exceptions;
@@ -61,4 +61,22 @@ public static class SerilogExtensions
             },
             queueLimit: grafanaLokiOptions.QueueLimit);
     }
+}
+
+
+public sealed class GrafanaLokiOptions
+{
+    public const string SectionName = "GrafanaLoki";
+
+    [Required]
+    [Url]
+    public string Uri { get; set; } = null!;
+
+    [Required]
+    public string Login { get; set; } = null!;
+
+    [Required]
+    public string Password { get; set; } = null!;
+
+    public int QueueLimit { get; set; } = 500;
 }
