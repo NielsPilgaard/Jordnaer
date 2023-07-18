@@ -7,7 +7,7 @@ public class ChatMessageProcessor
 {
     [FunctionName(nameof(ChatMessageProcessor))]
     public void Run(
-        [ServiceBusTrigger("jordnaer.chat.message", Connection = "ConnectionStrings:AzureServiceBus")]
+        [ServiceBusTrigger("jordnaer.chat.message", Connection = "ServiceBus")]
         string myQueueItem)
     {
         Log.ForContext("function_name", nameof(ChatMessageProcessor));
