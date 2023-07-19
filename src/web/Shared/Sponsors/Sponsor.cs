@@ -1,4 +1,4 @@
-namespace Jordnaer.Shared.Sponsors;
+namespace Jordnaer.Shared;
 
 public class Sponsor
 {

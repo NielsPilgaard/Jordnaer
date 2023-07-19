@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Refit;
 
-namespace Jordnaer.Shared.UserSearch;
+namespace Jordnaer.Shared;
 
 public static class ServiceCollectionExtensions
 {

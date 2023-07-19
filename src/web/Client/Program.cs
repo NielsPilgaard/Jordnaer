@@ -6,7 +6,7 @@ using Jordnaer.Client.Features.Email;
 using Jordnaer.Client.Features.LookingFor;
 using Jordnaer.Client.Features.Profile;
 using Jordnaer.Client.Features.UserSearch;
-using Jordnaer.Shared.UserSearch;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;

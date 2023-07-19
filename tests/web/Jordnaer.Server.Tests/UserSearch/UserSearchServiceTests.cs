@@ -4,7 +4,6 @@ using FluentAssertions;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.UserSearch;
 using Jordnaer.Shared;
-using Jordnaer.Shared.UserSearch;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

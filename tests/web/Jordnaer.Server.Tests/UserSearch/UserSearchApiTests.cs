@@ -1,7 +1,7 @@
 using System.Net;
 using FluentAssertions;
 using Jordnaer.Client.Features.UserSearch;
-using Jordnaer.Shared.UserSearch;
+using Jordnaer.Shared;
 using Refit;
 using Xunit;
 

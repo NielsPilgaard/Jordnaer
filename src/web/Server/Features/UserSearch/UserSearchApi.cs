@@ -1,6 +1,5 @@
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
-using Jordnaer.Shared.UserSearch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jordnaer.Server.Features.UserSearch;

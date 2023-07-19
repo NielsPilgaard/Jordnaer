@@ -1,4 +1,4 @@
-namespace Jordnaer.Shared.UserSearch;
+namespace Jordnaer.Shared;
 
 public class UserDto
 {

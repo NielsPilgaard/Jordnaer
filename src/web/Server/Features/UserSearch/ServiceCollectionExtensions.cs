@@ -1,4 +1,4 @@
-using Jordnaer.Shared.UserSearch;
+using Jordnaer.Shared;
 
 namespace Jordnaer.Server.Features.UserSearch;
 

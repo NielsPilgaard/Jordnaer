@@ -1,7 +1,6 @@
 using System.Globalization;
 using Jordnaer.Server.Database;
 using Jordnaer.Shared;
-using Jordnaer.Shared.UserSearch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

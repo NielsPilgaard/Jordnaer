@@ -1,4 +1,4 @@
-namespace Jordnaer.Shared.UserSearch;
+namespace Jordnaer.Shared;
 
 // ReSharper disable InconsistentNaming
 public readonly record struct AddressAutoCompleteResponse(string? Tekst, Adresse? Adresse)

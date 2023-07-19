@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Jordnaer.Shared.UserSearch;
+namespace Jordnaer.Shared;
 public class UserSearchFilter
 {
     public string? Name { get; set; }

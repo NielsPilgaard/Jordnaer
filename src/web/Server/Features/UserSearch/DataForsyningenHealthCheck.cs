@@ -1,5 +1,5 @@
 using System.Net;
-using Jordnaer.Shared.UserSearch;
+using Jordnaer.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Jordnaer.Server.Features.UserSearch;

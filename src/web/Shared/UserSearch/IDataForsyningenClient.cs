@@ -1,6 +1,6 @@
 using Refit;
 
-namespace Jordnaer.Shared.UserSearch;
+namespace Jordnaer.Shared;
 
 /// <summary>
 /// Refit Client used to interact with the Data Forsyningen API
