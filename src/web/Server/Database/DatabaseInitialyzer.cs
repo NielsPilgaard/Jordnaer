@@ -1,5 +1,5 @@
 using Bogus;
-using Jordnaer.Shared;
+using Jordnaer.Shared.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

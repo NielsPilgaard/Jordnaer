@@ -1,4 +1,5 @@
 using Jordnaer.Shared;
+using Jordnaer.Shared.Contracts;
 using Refit;
 
 namespace Jordnaer.Client.Features.Profile;

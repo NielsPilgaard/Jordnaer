@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Server.Database;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;

@@ -1,3 +1,5 @@
+using Jordnaer.Shared.Contracts;
+
 namespace Jordnaer.Shared;
 
 public class ProfileDto

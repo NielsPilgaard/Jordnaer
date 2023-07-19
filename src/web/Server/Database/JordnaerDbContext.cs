@@ -1,4 +1,4 @@
-using Jordnaer.Shared;
+using Jordnaer.Shared.Contracts;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

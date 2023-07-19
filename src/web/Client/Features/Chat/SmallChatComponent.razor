@@ -1,12 +1,12 @@
 @using System.Globalization
-@using Jordnaer.Shared.Contracts.Chat
+@using Jordnaer.Shared.Contracts
 @if (_activeChat is null)
 {
     <MudList>
         @foreach (var chat in _chats)
         {
             <MudListItem OnClick="@(() => SelectChat(chat))" Avatar="@ProfileConstants.Default_Profile_Picture">
-                <MudText>@chat.Recipient</MudText>
+                <MudText>@chat.SenderId</MudText>
             </MudListItem>
         }
     </MudList>
@@ -16,7 +16,7 @@ else
 {
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Primary" />
 
-    <MudText>@_activeChat!.Recipient</MudText>
+    <MudText>@_activeChat!.SenderId</MudText>
 
     <MudList>
         @foreach (var message in _activeChat!.Messages)
@@ -38,7 +38,7 @@ else
       {
         new()
         {
-          Recipient = "User 1",
+          SenderId = "User 1",
           Messages = new List<ChatMessage>
           {
             new() {Sender = "User 1", Content = "Hello!", TimestampUtc = DateTime.UtcNow.AddMinutes(-5)},
@@ -47,7 +47,7 @@ else
         },
         new()
         {
-          Recipient = "User 1",
+          SenderId = "User 1",
           Messages = new List<ChatMessage>
           {
             new() {Sender = "User 1", Content = "Hello!", TimestampUtc = DateTime.Now.AddMinutes(-125)},
@@ -57,7 +57,7 @@ else
         },
         new()
         {
-          Recipient = "User 2",
+          SenderId = "User 2",
           Messages = new List<ChatMessage>
           {
             new() {Sender = "User 2", Content = "Hey, what's up?", TimestampUtc = DateTime.Now.AddMinutes(-50)},

@@ -10,12 +10,12 @@ public static class LookingForApi
     {
         var group = routes.MapGroup("api/looking-for");
 
-        group.MapGet("", async Task<List<Shared.LookingFor>> ([FromServices] JordnaerDbContext context) =>
+        group.MapGet("", async Task<List<Shared.Contracts.LookingFor>> ([FromServices] JordnaerDbContext context) =>
             await context.LookingFor.AsNoTracking().ToListAsync())
             .CacheOutput(builder => builder
                 .Cache()
                 .Expire(TimeSpan.FromHours(1))
-                .Tag(nameof(Shared.LookingFor)));
+                .Tag(nameof(Shared.Contracts.LookingFor)));
 
         return group;
     }
