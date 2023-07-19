@@ -8,13 +8,19 @@
       "ignored": "true",
       "type": "identityapp"
     },
+    "secrets1": {
+      "type": "secrets.user",
+      "dynamicId": null
+    },
     "mssql1": {
+      "serviceConnectorResourceId": "",
       "containerPorts": "1433:1433",
       "secretStore": "LocalSecretsFile",
       "containerName": "mssql",
       "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
       "type": "mssql.container",
-      "connectionId": "ConnectionStrings:JordnaerDbContext"
+      "connectionId": "ConnectionStrings:JordnaerDbContext",
+      "dynamicId": null
     }
   }
 }

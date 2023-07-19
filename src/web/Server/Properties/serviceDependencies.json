@@ -4,9 +4,14 @@
       "type": "appInsights",
       "dynamicId": null
     },
+    "secrets1": {
+      "type": "secrets",
+      "dynamicId": null
+    },
     "mssql1": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:JordnaerDbContext"
+      "connectionId": "ConnectionStrings:JordnaerDbContext",
+      "dynamicId": null
     }
   }
 }
