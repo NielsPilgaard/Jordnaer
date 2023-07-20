@@ -1,8 +1,25 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Jordnaer.Shared.Contracts;
 
 public class ChatMessage
 {
-    public required string Sender { get; set; }
-    public required string Content { get; set; }
-    public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long Id { get; set; }
+
+    public required UserProfile Sender { get; set; }
+    public required string SenderId { get; set; }
+
+    public required Chat Chat { get; set; }
+    public Guid ChatId { get; set; }
+
+    public required string Text { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
+
+    public DateTime SentUtc { get; set; } = DateTime.UtcNow;
+
+    public string[] AttachmentUrls { get; set; } = Array.Empty<string>();
 }
