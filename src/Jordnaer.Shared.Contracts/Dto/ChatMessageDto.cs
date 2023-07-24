@@ -1,0 +1,14 @@
+namespace Jordnaer.Shared.Contracts;
+
+public class ChatMessageDto
+{
+    public required ChatUserDto Sender { get; init; }
+
+    public required string Text { get; init; }
+
+    public bool IsDeleted { get; init; } = false;
+
+    public DateTime SentUtc { get; init; } = DateTime.UtcNow;
+
+    public string[] AttachmentUrls { get; init; } = Array.Empty<string>();
+}

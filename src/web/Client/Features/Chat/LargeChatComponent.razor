@@ -1,5 +1,7 @@
 @using System.Globalization
+@using System.Security.Claims
 @using Jordnaer.Shared.Contracts
+
 <MudGrid>
     <MudItem md="4" lg="4" xl="4" xxl="4">
         <MudList Clickable>
@@ -9,7 +11,7 @@
             @foreach (var chat in _chats)
             {
                 <MudListItem OnClick="@(() => SelectChat(chat))" Avatar="@ProfileConstants.Default_Profile_Picture">
-                    <MudText>@chat.Sender</MudText>
+                    <MudText>@chat.DisplayName</MudText>
                 </MudListItem>
             }
         </MudList>
@@ -30,48 +32,17 @@
         }
     </MudItem>
 </MudGrid>
-
 @code {
-    private List<Chat> _chats = new();
-    private Chat? _activeChat;
+    [Parameter]
+    public required UserProfile User { get; set; }
 
-    protected override void OnInitialized()
-    {
-        _chats = new List<Chat>
-      {
-        new()
-        {
-          Sender = "User 1",
-          Messages = new List<ChatMessage>
-          {
-            new() {Sender = "User 1", Text = "Hello!", SentUtc = DateTime.UtcNow.AddMinutes(-5)},
-            new() {Sender = "Me", Text = "Hi, how are you?", SentUtc = DateTime.UtcNow.AddMinutes(-2)},
-          }
-        },
-        new()
-        {
-          Sender = "User 2",
-          Messages = new List<ChatMessage>
-          {
-            new() {Sender = "User 2", Text = "Hello!", SentUtc = DateTime.Now.AddMinutes(-125)},
-            new() {Sender = "Me", Text = "Hi, how are you?", SentUtc = DateTime.Now.AddMinutes(-95)},
-            new() {Sender = "User 2", Text = "I'm doing well, thank you!", SentUtc = DateTime.Now.AddMinutes(-75)},
-          }
-        },
-        new()
-        {
-          Sender = "User 3",
-          Messages = new List<ChatMessage>
-          {
-            new() {Sender = "User 3", Text = "Hey, what's up?", SentUtc = DateTime.Now.AddMinutes(-50)},
-            new() {Sender = "Me", Text = "Not much, you?", SentUtc = DateTime.Now.AddMinutes(-25)},
-            new() {Sender = "User 3", Text = "Just working on a project", SentUtc = DateTime.Now.AddMinutes(-15)},
-          }
-        }
-      };
-    }
+    private List<ChatUserDto> _chatUsers = TestData.ChatUserDtos;
 
-    private void SelectChat(Chat chat) => _activeChat = chat;
+    private List<ChatDto> _chats = TestData.ChatDtos.ToList();
+
+    private ChatDto? _activeChat;
+
+    private void SelectChat(ChatDto chat) => _activeChat = chat;
 
     private void BackToList() => _activeChat = null;
 
@@ -81,7 +52,17 @@
     {
         if (_activeChat is not null && !string.IsNullOrWhiteSpace(_newMessage))
         {
-            _activeChat.Messages.Add(new ChatMessage { Sender = "Me", Text = _newMessage });
+            _activeChat.Messages.Add(new ChatMessageDto
+                {
+                    Sender = new ChatUserDto
+                    {
+                        DisplayName = $"{User.FirstName} {User.LastName}",
+                        Id = User.Id,
+                        ProfilePictureUrl = User.ProfilePictureUrl
+                    },
+                    Text = _newMessage
+                });
+
             _newMessage = string.Empty;
         }
         else
@@ -97,5 +78,4 @@
             SendMessage();
         }
     }
-
 }

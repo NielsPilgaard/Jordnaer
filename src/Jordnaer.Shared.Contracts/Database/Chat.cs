@@ -15,7 +15,7 @@ public class Chat
     /// This defaults to a concatenated string of recipient names.
     /// </para>
     /// </summary>
-    public  string? DisplayName { get; set; }
+    public string? DisplayName { get; set; }
 
     public IList<ChatMessage> Messages { get; set; } = Array.Empty<ChatMessage>();
     public IList<UserProfile> Recipients { get; set; } = Array.Empty<UserProfile>();

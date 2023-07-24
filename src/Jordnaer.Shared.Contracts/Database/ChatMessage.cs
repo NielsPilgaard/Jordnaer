@@ -21,5 +21,5 @@ public class ChatMessage
 
     public DateTime SentUtc { get; set; } = DateTime.UtcNow;
 
-    public string[] AttachmentUrls { get; set; } = Array.Empty<string>();
+    public string? AttachmentUrl { get; set; }
 }
