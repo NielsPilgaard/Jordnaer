@@ -23,8 +23,8 @@
             <MudList>
                 @foreach (var message in _activeChat.Messages)
                 {
-                    <MudListItem>
-                        @message.SentUtc.ToLocalTime().ToString(CultureInfo.CurrentCulture): @message.Text
+                    <MudListItem Avatar="@message.Sender.ProfilePictureUrl">
+                        <MudChip >@message.Text</MudChip>
                     </MudListItem>
                 }
             </MudList>
@@ -39,7 +39,7 @@
     private List<ChatUserDto> _chatUsers = TestData.ChatUserDtos;
 
     private List<ChatDto> _chats = TestData.ChatDtos.ToList();
-
+    
     private ChatDto? _activeChat;
 
     private void SelectChat(ChatDto chat) => _activeChat = chat;
