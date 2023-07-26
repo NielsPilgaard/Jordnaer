@@ -23,12 +23,29 @@
             <MudList>
                 @foreach (var message in _activeChat.Messages)
                 {
-                    <MudListItem Avatar="@message.Sender.ProfilePictureUrl">
-                        <MudChip >@message.Text</MudChip>
-                    </MudListItem>
+                    @if (IsMessageFromSelf(message))
+                    {
+                        <MudListItem Class="">
+                            <MudChip>@message.Text</MudChip>
+                        </MudListItem>
+                    }
+                    else
+                    {
+                        <MudListItem Avatar="@message.Sender.ProfilePictureUrl">
+                            <MudChip >@message.Text</MudChip>
+                        </MudListItem>
+                    }
                 }
             </MudList>
-            <MudTextField @bind-Value="_newMessage" FullWidth Immediate Adornment="Adornment.End" TextUpdateSuppression="false" OnKeyDown="SendMessageOnEnter" AdornmentIcon="@Icons.Material.Filled.Send" AdornmentColor="Color.Primary" OnAdornmentClick="SendMessage" />
+            <MudTextField @bind-Value="_newMessage"
+                          FullWidth
+                          Immediate
+                          Adornment="Adornment.End"
+                          TextUpdateSuppression="false"
+                          OnKeyDown="SendMessageOnEnter"
+                          AdornmentIcon="@Icons.Material.Filled.Send"
+                          AdornmentColor="Color.Primary"
+                          OnAdornmentClick="SendMessage" />
         }
     </MudItem>
 </MudGrid>
@@ -36,9 +53,15 @@
     [Parameter]
     public required UserProfile User { get; set; }
 
-    private List<ChatUserDto> _chatUsers = TestData.ChatUserDtos;
+    protected override void OnInitialized()
+    {
+        _chatUsers = TestData.ChatUserDtos(User);
+        _chats = TestData.ChatDtos(User);
+    }
 
-    private List<ChatDto> _chats = TestData.ChatDtos.ToList();
+    private List<ChatUserDto> _chatUsers = new();
+
+    private List<ChatDto> _chats = new();
     
     private ChatDto? _activeChat;
 
@@ -78,4 +101,10 @@
             SendMessage();
         }
     }
+
+    private bool IsMessageFromSelf(ChatMessageDto message)
+    {
+        return message.Sender.Id == User.Id;
+    }
+
 }

@@ -33,9 +33,15 @@ else
     [Parameter]
     public required UserProfile User { get; set; }
 
-    private List<ChatUserDto> _chatUsers = TestData.ChatUserDtos;
+    protected override void OnInitialized()
+    {
+        _chatUsers = TestData.ChatUserDtos(User);
+        _chats = TestData.ChatDtos(User).ToList();
+    }
 
-    private List<ChatDto> _chats = TestData.ChatDtos.ToList();
+    private List<ChatUserDto> _chatUsers = new();
+
+    private List<ChatDto> _chats = new();
 
     private ChatDto? _activeChat;
 
