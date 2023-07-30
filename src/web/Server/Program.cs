@@ -72,7 +72,7 @@ try
             >= 500 when exception is not null => LogEventLevel.Error,
             _ when exception is not null => LogEventLevel.Error,
             >= 400 => LogEventLevel.Warning,
-            _ => LogEventLevel.Debug
+            _ => app.Environment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Debug
         });
 
     // Configure the HTTP request pipeline.

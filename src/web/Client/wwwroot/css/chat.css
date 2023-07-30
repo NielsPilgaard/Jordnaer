@@ -1,0 +1,4 @@
+.mud-list-item.message-from-self .mud-list-item-text {
+    display:flex;
+    justify-content:end;
+}
