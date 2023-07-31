@@ -14,7 +14,7 @@ public class Chat
     /// <summary>
     /// The display name of the chat.
     /// <para>
-    /// This defaults to a concatenated string of recipient names.
+    /// If set to <c>null</c>, this defaults to a concatenated string of recipient names.
     /// </para>
     /// </summary>
     public string? DisplayName { get; set; }
