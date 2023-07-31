@@ -2,6 +2,8 @@ namespace Jordnaer.Shared.Contracts;
 
 public class ChatMessageDto
 {
+    public required Guid Id { get; set; }
+
     public required ChatUserDto Sender { get; init; }
 
     public required string Text { get; init; }

@@ -1,6 +1,6 @@
-@    using System.Globalization
-@    using System.Security.Claims
-@    using Jordnaer.Shared.Contracts
+@using System.Globalization
+@using System.Security.Claims
+@using MassTransit
 @if (_activeChat is null)
 {
     <MudList>
@@ -57,6 +57,8 @@ else
         {
             _activeChat.Messages.Add(new ChatMessageDto
                 {
+                    Id = NewId.NextGuid(),
+                    SentUtc = DateTime.UtcNow,
                     Sender = new ChatUserDto
                     {
                         DisplayName = $"{User.FirstName} {User.LastName}",

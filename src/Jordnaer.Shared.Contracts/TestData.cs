@@ -1,3 +1,5 @@
+using MassTransit;
+
 namespace Jordnaer.Shared.Contracts;
 
 public static class TestData
@@ -11,9 +13,9 @@ public static class TestData
 
     public static List<ChatMessageDto> ChatMessageDtos(UserProfile ownProfile) => new()
     {
-        new ChatMessageDto { Sender = ChatUserDtos(ownProfile)[0], Text = "Hello from me", IsDeleted = false, SentUtc = DateTime.UtcNow, AttachmentUrl = "https://example.com/doc1.pdf"},
-        new ChatMessageDto { Sender = ChatUserDtos(ownProfile)[1], Text = "Hello from User 2", IsDeleted = false, SentUtc = DateTime.UtcNow, AttachmentUrl =  "https://example.com/doc2.pdf"  },
-        new ChatMessageDto { Sender = ChatUserDtos(ownProfile)[2], Text = "Hello from User 3", IsDeleted = false, SentUtc = DateTime.UtcNow, AttachmentUrl =  "https://example.com/doc3.pdf"  }
+        new ChatMessageDto { Id = NewId.NextGuid(),Sender = ChatUserDtos(ownProfile)[0], Text = "Hello from me", IsDeleted = false, SentUtc = DateTime.UtcNow, AttachmentUrl = "https://example.com/doc1.pdf"},
+        new ChatMessageDto { Id = NewId.NextGuid(),Sender = ChatUserDtos(ownProfile)[1], Text = "Hello from User 2", IsDeleted = false, SentUtc = DateTime.UtcNow, AttachmentUrl =  "https://example.com/doc2.pdf"  },
+        new ChatMessageDto { Id = NewId.NextGuid(),Sender = ChatUserDtos(ownProfile)[2], Text = "Hello from User 3", IsDeleted = false, SentUtc = DateTime.UtcNow, AttachmentUrl =  "https://example.com/doc3.pdf"  }
     };
 
     public static List<ChatDto> ChatDtos(UserProfile ownProfile) => new()

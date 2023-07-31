@@ -1,6 +1,7 @@
 @using System.Globalization
 @using System.Security.Claims
 @using Jordnaer.Shared.Contracts
+@using MassTransit
 
 @if (User is null)
 {
@@ -83,15 +84,17 @@
         if (_activeChat is not null && !string.IsNullOrWhiteSpace(_newMessage))
         {
             _activeChat.Messages.Add(new ChatMessageDto
+            {
+                Id = NewId.NextGuid(),
+                SentUtc = DateTime.UtcNow,
+                Sender = new ChatUserDto
                 {
-                    Sender = new ChatUserDto
-                    {
-                        DisplayName = $"{User.FirstName} {User.LastName}",
-                        Id = User.Id,
-                        ProfilePictureUrl = User.ProfilePictureUrl
-                    },
-                    Text = _newMessage
-                });
+                    DisplayName = $"{User!.FirstName} {User.LastName}",
+                    Id = User.Id,
+                    ProfilePictureUrl = User.ProfilePictureUrl
+                },
+                Text = _newMessage
+            });
 
             _newMessage = string.Empty;
         }
@@ -111,7 +114,7 @@
 
     private bool IsMessageFromSelf(ChatMessageDto message)
     {
-        return message.Sender.Id == User.Id;
+        return message.Sender.Id == User?.Id;
     }
 
 }

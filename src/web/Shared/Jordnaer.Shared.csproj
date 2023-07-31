@@ -12,7 +12,6 @@
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="7.0.9" />
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="7.0.0" />
-        <PackageReference Include="NewId" Version="4.0.1" />
         <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
     </ItemGroup>
 
