@@ -1,15 +1,13 @@
 using Jordnaer.Shared.Contracts;
 
-namespace Jordnaer.Client.Features.Chat.Extensions;
+namespace Jordnaer.Client.Extensions;
 
 public static class ChatDtoExtensions
 {
     public static string GetDisplayName(this ChatDto chat, string ownUserId)
     {
         if (chat.DisplayName is not null)
-        {
             return chat.DisplayName;
-        }
 
         var recipients = chat.Recipients.Where(recipient => recipient.Id != ownUserId).ToArray();
         if (recipients.Length > 3)
@@ -21,14 +19,10 @@ public static class ChatDtoExtensions
         }
 
         if (recipients.Length > 1)
-        {
             return string.Join(", ", chat.Recipients.Select(e => e.DisplayName));
-        }
 
         if (recipients.Length is 1)
-        {
             return recipients[0].DisplayName;
-        }
 
         return string.Empty;
     }

@@ -1,4 +1,4 @@
-namespace Jordnaer.Client.Features.Chat.Extensions;
+namespace Jordnaer.Client.Extensions;
 
 public static class DateTimeExtensions
 {
