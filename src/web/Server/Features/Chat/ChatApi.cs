@@ -1,8 +1,8 @@
+using Jordnaer.Client.Features.Chat.Extensions;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared.Contracts;
-using Jordnaer.Shared.Contracts.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
