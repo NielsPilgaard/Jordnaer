@@ -1,45 +1,63 @@
+using Jordnaer.Server.Authorization;
+using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
-using Jordnaer.Server.Features.Email;
-using Jordnaer.Shared.Email;
+using Jordnaer.Shared.Contracts;
+using Jordnaer.Shared.Contracts.Extensions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using SendGrid;
-using SendGrid.Helpers.Mail;
 
 namespace Jordnaer.Server.Features.Chat;
 
 public static class ChatApi
 {
-    public static RouteGroupBuilder MapEmail(this IEndpointRouteBuilder routes)
+    public static RouteGroupBuilder MapChat(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("api/chat");
+
+        group.RequireAuthorization(builder => builder.RequireCurrentUser());
 
         group.RequirePerUserRateLimit();
 
         // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-        group.MapPost("contact", async Task<bool> (
-            [FromBody] ContactForm contactFormModel,
-            [FromServices] ISendGridClient sendGridClient,
+        group.MapPost("new-chat", async Task<Results<NoContent, UnauthorizedHttpResult>> (
+            [FromBody] ChatDto chatDto,
+            [FromServices] CurrentUser currentUser,
+            [FromServices] JordnaerDbContext context,
             CancellationToken cancellationToken) =>
         {
-            var replyTo = new EmailAddress(contactFormModel.Email, contactFormModel.Name);
-
-            string subject = contactFormModel.Name is null
-                ? "Kontaktformular"
-                : $"Kontaktformular besked fra {contactFormModel.Name}";
-
-            var email = new SendGridMessage
+            if (!chatDto.Recipients.Select(recipient => recipient.Id).Contains(currentUser.Id))
             {
-                From = EmailConstants.ContactEmail, // Must be from a verified email
-                Subject = subject,
-                PlainTextContent = contactFormModel.Message,
-                ReplyTo = replyTo,
-            };
+                return TypedResults.Unauthorized();
+            }
 
-            email.AddTo(EmailConstants.ContactEmail);
+            context.Chats.Add(new Shared.Contracts.Chat
+            {
+                DisplayName = chatDto.GetDisplayName(),
+                LastMessageSentUtc = chatDto.LastMessageSentUtc,
+                Id = chatDto.Id,
+                StartedUtc = chatDto.StartedUtc
+            });
 
-            var response = await sendGridClient.SendEmailAsync(email, cancellationToken);
+            context.ChatMessages.AddRange(chatDto.Messages.Select(message => new ChatMessage
+            {
+                ChatId = chatDto.Id,
+                SenderId = message.Sender.Id,
+                Text = message.Text,
+                AttachmentUrl = message.AttachmentUrl,
+                IsDeleted = message.IsDeleted,
+                SentUtc = message.SentUtc
+            }));
 
-            return response.IsSuccessStatusCode;
+            context.UserChats.AddRange(chatDto.Recipients.Select(recipient =>
+                new UserChat
+                {
+                    ChatId = chatDto.Id,
+                    UserProfileId = recipient.Id
+                }));
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            return TypedResults.NoContent();
         });
 
         return group;

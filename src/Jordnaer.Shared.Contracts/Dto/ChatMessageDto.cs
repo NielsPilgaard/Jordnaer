@@ -10,5 +10,5 @@ public class ChatMessageDto
 
     public DateTime SentUtc { get; init; } = DateTime.UtcNow;
 
-    public string[] AttachmentUrls { get; init; } = Array.Empty<string>();
+    public string? AttachmentUrl { get; init; }
 }
