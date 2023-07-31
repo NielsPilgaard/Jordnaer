@@ -1,8 +1,10 @@
-namespace Jordnaer.Shared.Contracts.Extensions;
+using Jordnaer.Shared.Contracts;
+
+namespace Jordnaer.Client.Features.Chat.Extensions;
 
 public static class ChatDtoExtensions
 {
-    public static string GetDisplayName(this ChatDto chat, string ownUserId )
+    public static string GetDisplayName(this ChatDto chat, string ownUserId)
     {
         if (chat.DisplayName is not null)
         {
