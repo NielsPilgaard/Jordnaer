@@ -1,4 +1,3 @@
-using Jordnaer.Client.Features.Chat.Extensions;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
@@ -32,7 +31,6 @@ public static class ChatApi
 
             context.Chats.Add(new Shared.Contracts.Chat
             {
-                DisplayName = chatDto.GetDisplayName(),
                 LastMessageSentUtc = chatDto.LastMessageSentUtc,
                 Id = chatDto.Id,
                 StartedUtc = chatDto.StartedUtc
