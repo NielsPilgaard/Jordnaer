@@ -2,7 +2,7 @@
 @using System.Security.Claims
 @using Jordnaer.Shared.Contracts
 @using MassTransit
-
+@inject IChatApiClient ChatApiClient
 @if (User is null)
 {
     return;
@@ -79,11 +79,11 @@
 
     private string _newMessage = string.Empty;
 
-    private void SendMessage()
+    private async Task SendMessage()
     {
         if (_activeChat is not null && !string.IsNullOrWhiteSpace(_newMessage))
         {
-            _activeChat.Messages.Add(new ChatMessageDto
+            var dto = new ChatMessageDto
             {
                 Id = NewId.NextGuid(),
                 SentUtc = DateTime.UtcNow,
@@ -94,7 +94,10 @@
                     ProfilePictureUrl = User.ProfilePictureUrl
                 },
                 Text = _newMessage
-            });
+            };
+
+            await ChatApiClient.SendMessage(dto);
+            _activeChat.Messages.Add(dto);
 
             _newMessage = string.Empty;
         }
