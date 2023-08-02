@@ -55,9 +55,12 @@ try
 
     builder.AddDeleteUserFeature();
 
-    builder.Services.AddSingleton(_ => new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
+    builder.Services.AddSingleton(_ =>
+        new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
 
     builder.Services.AddHttpContextAccessor();
+
+    builder.AddMassTransit();
 
     var app = builder.Build();
 

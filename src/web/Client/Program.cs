@@ -2,11 +2,13 @@ using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Features.Authentication;
+using Jordnaer.Client.Features.Chat;
 using Jordnaer.Client.Features.Email;
 using Jordnaer.Client.Features.LookingFor;
 using Jordnaer.Client.Features.Profile;
 using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
@@ -21,12 +23,16 @@ builder.Services.AddRefitClient<IAuthApiClient>(builder.HostEnvironment.BaseAddr
 builder.Services.AddRefitClient<IDeleteUserApiClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IUserSearchApiClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IImageApiClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IChatApiClient>(builder.HostEnvironment.BaseAddress);
 
 builder.AddLookingForServices();
 
 builder.AddProfileServices();
 
 builder.AddEmailServices();
+
+// Allows using NewId in Blazor WASM
+NewId.SetProcessIdProvider(null);
 
 builder.Services.AddMudServices(configuration =>
 {
