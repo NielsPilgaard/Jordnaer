@@ -38,7 +38,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Server.Benchmarks"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{B4EAF579-8327-4B92-8357-8FF12C21755F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "functions", "functions", "{64BD34CA-4E7C-4496-825C-844F1B121959}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "container_apps", "container_apps", "{64BD34CA-4E7C-4496-825C-844F1B121959}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Server.Tests", "tests\web\Jordnaer.Server.Tests\Jordnaer.Server.Tests.csproj", "{204EA027-0E1D-4B6F-9B01-C3228B02E901}"
 EndProject
@@ -46,7 +46,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Shared.Contracts",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "container_apps", "container_apps", "{6BE03F12-3430-4DBC-B669-EE6A4E81D519}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat", "src\container_apps\Chat\Chat.csproj", "{3F988107-CAF6-4424-B8CC-B8F2E63E6C02}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat", "src\container_apps\Chat\Chat.csproj", "{3F988107-CAF6-4424-B8CC-B8F2E63E6C02}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
