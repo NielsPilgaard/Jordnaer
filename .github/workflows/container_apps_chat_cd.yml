@@ -1,18 +1,47 @@
-name: Publish Chat Docker Image to Docker Hub
+name: Test & Publish Chat Docker Image to Docker Hub
 
 on:
   push:
     tags:
       - release-chat-*
   workflow_dispatch:
-  
-env:
-  IMAGE_NAME: chat
-  IMAGE_VERSION: latest
 
 jobs:
+  
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
+      WORKING_DIRECTORY: tests/container_apps/Jordnaer.Chat.Tests
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          SA_PASSWORD: "${{ env.MSSQL_SA_PASSWORD }}"
+          ACCEPT_EULA: 'Y'
+        ports:
+          - 1433:1433
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'
+          include-prerelease: true
+          
+      - name: Test
+        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --filter Category!=ManualTest
+        env:
+          ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
+          ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
+
   build:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: chat
+      IMAGE_VERSION: latest
     steps:
     - name: Checkout code
     - uses: actions/checkout@v3
