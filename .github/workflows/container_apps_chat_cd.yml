@@ -1,4 +1,4 @@
-name: Build and Publish Chat Docker Image to Docker Hub
+name: Publish Chat Docker Image to Docker Hub
 
 on:
   push:
