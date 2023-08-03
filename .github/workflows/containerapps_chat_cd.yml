@@ -3,7 +3,7 @@ name: Build, test and deploy to Azure Functions
 on:
   push:
     tags:
-      - release-function-chat-*
+      - release-chat-*
   workflow_dispatch:
 
 env:
