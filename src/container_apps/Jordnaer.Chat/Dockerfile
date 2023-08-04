@@ -8,16 +8,16 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["Directory.Build.props", "."]
-COPY ["src/container_apps/Chat/Chat.csproj", "src/container_apps/Chat/"]
-RUN dotnet restore "src/container_apps/Chat/Chat.csproj"
+COPY ["src/container_apps/Jordnaer.Chat/Jordnaer.Chat.csproj", "src/container_apps/Jordnaer.Chat/"]
+RUN dotnet restore "src/container_apps/Jordnaer.Chat/Jordnaer.Chat.csproj"
 COPY . .
-WORKDIR "/src/container_apps/Chat"
-RUN dotnet build "Chat.csproj" -c Release -o /app/build
+WORKDIR "/src/container_apps/Jordnaer.Chat"
+RUN dotnet build "Jordnaer.Chat.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Chat.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Jordnaer.Chat.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Chat.dll"]
+ENTRYPOINT ["dotnet", "Jordnaer.Chat.dll"]
