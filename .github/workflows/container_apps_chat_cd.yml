@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: chat
-      DOCKERFILE_PATH: ./src/container_apps/Jordnaer.Chat
+      DOCKER_CONTEXT: ./src/container_apps/Jordnaer.Chat
     steps:
 
     - name: Checkout code
@@ -84,7 +84,7 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: ${{ env.DOCKERFILE_PATH }}
         push: true
+        context: ${{ env.DOCKER_CONTEXT }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
