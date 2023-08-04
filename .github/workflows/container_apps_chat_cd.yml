@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
-      WORKING_DIRECTORY: tests/container_apps/Jordnaer.Chat.Tests
+      TEST_DIRECTORY: tests/container_apps/Jordnaer.Chat.Tests
       DOCKERFILE_PATH: src/container_apps/Jordnaer.Chat/Dockerfile
     services:
       mssql:
@@ -33,7 +33,7 @@ jobs:
           include-prerelease: true
           
       - name: Test
-        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --filter Category!=ManualTest
+        run: dotnet test "${{ env.TEST_DIRECTORY }}" --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
           ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
@@ -65,10 +65,7 @@ jobs:
            type=semver,pattern={{major}}.{{minor}}
            type=semver,pattern={{major}}
            type=sha
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
-
+           
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -83,7 +80,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        file: ${{ env.DOCKERFILE_PATH}}
         push: true
+        file: ${{ env.DOCKERFILE_PATH }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
