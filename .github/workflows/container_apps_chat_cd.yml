@@ -29,7 +29,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.x'
-          include-prerelease: true
           
       - name: Test
         run: dotnet test "${{ env.TEST_DIRECTORY }}" --filter Category!=ManualTest
