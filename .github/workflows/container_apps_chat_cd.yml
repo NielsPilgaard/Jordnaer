@@ -13,7 +13,7 @@ jobs:
     env:
       MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
       WORKING_DIRECTORY: tests/container_apps/Jordnaer.Chat.Tests
-      PROJECT_DIRECTORY: src/container_apps/Jordnaer.Chat
+      DOCKERFILE_PATH: src/container_apps/Jordnaer.Chat/Dockerfile
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:2019-latest
@@ -82,7 +82,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: ${{ env.PROJECT_DIRECTORY }}
+        context: .
+        file: ${{ env.DOCKERFILE_PATH}}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
