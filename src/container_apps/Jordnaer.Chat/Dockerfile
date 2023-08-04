@@ -7,11 +7,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["Directory.Build.props", "."]
-COPY ["src/container_apps/Jordnaer.Chat/Jordnaer.Chat.csproj", "src/container_apps/Jordnaer.Chat/"]
-RUN dotnet restore "src/container_apps/Jordnaer.Chat/Jordnaer.Chat.csproj"
+COPY ["Directory.Build.props", "src/"]
+COPY ["src/container_apps/Jordnaer.Chat/Jordnaer.Chat.csproj", "src/"]
+WORKDIR /src
+RUN dotnet restore "Jordnaer.Chat.csproj"
 COPY . .
-WORKDIR "/src/container_apps/Jordnaer.Chat"
 RUN dotnet build "Jordnaer.Chat.csproj" -c Release -o /app/build
 
 FROM build AS publish
