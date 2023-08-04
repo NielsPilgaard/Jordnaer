@@ -10,9 +10,8 @@ WORKDIR /src
 COPY ["Directory.Build.props", "."]
 COPY ["src/container_apps/Jordnaer.Chat/Jordnaer.Chat.csproj", "Jordnaer.Chat/"]
 RUN dotnet restore "Jordnaer.Chat/Jordnaer.Chat.csproj"
-COPY . .
-WORKDIR "/src/Jordnaer.Chat"
-RUN dotnet build "Jordnaer.Chat.csproj" -c Release -o /app/build
+COPY [".", "Jordnaer.Chat/"]
+RUN dotnet build "Jordnaer.Chat/Jordnaer.Chat.csproj" -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "Jordnaer.Chat.csproj" -c Release -o /app/publish /p:UseAppHost=false
