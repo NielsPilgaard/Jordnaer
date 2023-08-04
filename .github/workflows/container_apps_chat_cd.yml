@@ -42,7 +42,7 @@ jobs:
     env:
       IMAGE_NAME: chat
       IMAGE_VERSION: latest
-      DOCKER_CONTEXT: src/container_apps/Jordnaer.Chat
+      DOCKERFILE_PATH: src/container_apps/Jordnaer.Chat/DockerFile
     steps:
 
     - name: Checkout code
@@ -79,8 +79,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: ${{ env.DOCKER_CONTEXT }}
+        context: .
         push: true
-        file: Dockerfile
+        file: ${{ env.DOCKERFILE_PATH }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
