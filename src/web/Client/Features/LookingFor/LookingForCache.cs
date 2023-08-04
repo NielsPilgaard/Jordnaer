@@ -4,7 +4,7 @@ namespace Jordnaer.Client.Features.LookingFor;
 
 public interface ILookingForCache
 {
-    Task<List<Jordnaer.Shared.Contracts.LookingFor>> GetOrCreateLookingForAsync();
+    Task<List<Jordnaer.Shared.LookingFor>> GetOrCreateLookingForAsync();
 }
 
 public class LookingForCache : ILookingForCache
@@ -19,7 +19,7 @@ public class LookingForCache : ILookingForCache
     }
 
 #pragma warning disable CS8603 // Possible null reference return.
-    public async Task<List<Jordnaer.Shared.Contracts.LookingFor>> GetOrCreateLookingForAsync() =>
+    public async Task<List<Jordnaer.Shared.LookingFor>> GetOrCreateLookingForAsync() =>
         await _memoryCache.GetOrCreateAsync(nameof(LookingFor), async entry =>
         {
             var result = await _lookingForApi.GetLookingFor();
@@ -29,14 +29,14 @@ public class LookingForCache : ILookingForCache
                 return result.Content!;
             }
 
-            if (entry.Value is List<Jordnaer.Shared.Contracts.LookingFor> oldEntry)
+            if (entry.Value is List<Jordnaer.Shared.LookingFor> oldEntry)
             {
                 // Set this cache entry to expire in quickly to retry early
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1);
                 return oldEntry;
             }
 
-            return new List<Jordnaer.Shared.Contracts.LookingFor>();
+            return new List<Jordnaer.Shared.LookingFor>();
         });
 #pragma warning restore CS8603 // Possible null reference return.
 }

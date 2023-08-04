@@ -1,5 +1,4 @@
 using Jordnaer.Shared;
-using Jordnaer.Shared.Contracts;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Jordnaer.Client.Features.Profile;

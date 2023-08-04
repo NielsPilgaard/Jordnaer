@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Jordnaer.Shared.Auth;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Jordnaer.Client.Features.Authentication;

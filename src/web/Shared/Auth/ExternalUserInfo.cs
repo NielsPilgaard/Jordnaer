@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Jordnaer.Shared.Auth;
+namespace Jordnaer.Shared;
 
 public class ExternalUserInfo
 {

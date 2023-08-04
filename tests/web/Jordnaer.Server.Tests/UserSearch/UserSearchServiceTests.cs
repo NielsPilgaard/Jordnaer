@@ -4,7 +4,6 @@ using FluentAssertions;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.UserSearch;
 using Jordnaer.Shared;
-using Jordnaer.Shared.Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -56,7 +55,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
         var filter = new UserSearchFilter { LookingFor = new[] { _faker.Lorem.Word() } };
         var users = CreateTestUsers(5);
         // Ensure at least one user is looking for the specified activity
-        users[0].LookingFor.Add(new Shared.Contracts.LookingFor { Name = filter.LookingFor.First() });
+        users[0].LookingFor.Add(new Shared.LookingFor { Name = filter.LookingFor.First() });
         _context.UserProfiles.AddRange(users);
         await _context.SaveChangesAsync();
 

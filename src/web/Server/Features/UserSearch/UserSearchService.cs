@@ -1,7 +1,6 @@
 using System.Globalization;
 using Jordnaer.Server.Database;
 using Jordnaer.Shared;
-using Jordnaer.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

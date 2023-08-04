@@ -1,6 +1,6 @@
 using Bogus;
 using FluentAssertions;
-using Jordnaer.Shared.Auth;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 

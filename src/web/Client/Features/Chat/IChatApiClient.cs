@@ -1,4 +1,4 @@
-using Jordnaer.Shared.Contracts;
+using Jordnaer.Shared;
 using Refit;
 
 namespace Jordnaer.Client.Features.Chat;

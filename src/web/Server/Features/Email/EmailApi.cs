@@ -1,5 +1,5 @@
 using Jordnaer.Server.Extensions;
-using Jordnaer.Shared.Email;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Mvc;
 using SendGrid;
 using SendGrid.Helpers.Mail;

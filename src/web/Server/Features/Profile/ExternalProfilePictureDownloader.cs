@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
-using Jordnaer.Shared.Contracts;
 using Mediator;
 
 namespace Jordnaer.Server.Features.Profile;

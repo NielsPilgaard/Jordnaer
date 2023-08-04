@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Jordnaer.Shared.Contracts;
+namespace Jordnaer.Shared;
 
 public class LookingFor
 {

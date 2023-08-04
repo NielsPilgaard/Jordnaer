@@ -1,6 +1,6 @@
-using Jordnaer.Shared.Contracts;
+using Jordnaer.Shared;
 
-namespace Jordnaer.Client.Extensions;
+namespace Jordnaer.Client;
 
 public static class ChatDtoExtensions
 {

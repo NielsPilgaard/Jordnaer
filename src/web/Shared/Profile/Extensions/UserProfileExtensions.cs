@@ -1,5 +1,3 @@
-using Jordnaer.Shared.Contracts;
-
 namespace Jordnaer.Shared;
 
 public static class UserProfileExtensions

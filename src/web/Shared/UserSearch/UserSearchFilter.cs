@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Jordnaer.Shared.Contracts;
 
 namespace Jordnaer.Shared;
 public class UserSearchFilter

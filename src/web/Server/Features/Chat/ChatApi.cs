@@ -1,7 +1,7 @@
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
-using Jordnaer.Shared.Contracts;
+using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +37,7 @@ public static class ChatApi
                 return TypedResults.Unauthorized();
             }
 
-            context.Chats.Add(new Shared.Contracts.Chat
+            context.Chats.Add(new Shared.Chat
             {
                 LastMessageSentUtc = chat.LastMessageSentUtc,
                 Id = chat.Id,

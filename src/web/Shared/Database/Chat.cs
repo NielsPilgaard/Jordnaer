@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Jordnaer.Shared.Contracts;
+namespace Jordnaer.Shared;
 
 [Index(nameof(LastMessageSentUtc))]
 public class Chat

@@ -3,7 +3,7 @@ using FluentAssertions;
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.DeleteUser;
-using Jordnaer.Shared.Contracts;
+using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

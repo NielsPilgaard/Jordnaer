@@ -1,4 +1,4 @@
-namespace Jordnaer.Shared.Contracts;
+namespace Jordnaer.Shared;
 
 public class UserContact
 {
