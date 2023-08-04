@@ -1,4 +1,4 @@
-using Jordnaer.Shared.Auth;
+using Jordnaer.Shared;
 using Refit;
 
 namespace Jordnaer.Client.Features.Authentication;

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Jordnaer.Server.Database;
-using Jordnaer.Shared.Auth;
+using Jordnaer.Shared;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 

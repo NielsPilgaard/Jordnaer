@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Server.Features.Profile;
-using Jordnaer.Shared.Auth;
+using Jordnaer.Shared;
 using Mediator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

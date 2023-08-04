@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Jordnaer.Shared.Contracts;
+namespace Jordnaer.Shared;
 
 public enum Gender
 {

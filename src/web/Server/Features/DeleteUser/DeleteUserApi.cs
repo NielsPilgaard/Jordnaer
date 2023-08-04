@@ -18,17 +18,17 @@ public static class DeleteUserApi
         group.RequirePerUserRateLimit();
 
         group.MapGet("", async Task<Results<UnauthorizedHttpResult, Ok>> (
-                    [FromServices] IDeleteUserService deleteUserService,
-                    [FromServices] CurrentUser currentUser,
-                    CancellationToken cancellationToken) =>
-            {
-                bool deletionInitiated = await deleteUserService.InitiateDeleteUserAsync(currentUser.User!, cancellationToken);
+            [FromServices] IDeleteUserService deleteUserService,
+            [FromServices] CurrentUser currentUser,
+            CancellationToken cancellationToken) =>
+        {
+            bool deletionInitiated =
+                await deleteUserService.InitiateDeleteUserAsync(currentUser.User!, cancellationToken);
 
-                return deletionInitiated
-                    ? TypedResults.Ok()
-                    : TypedResults.Unauthorized();
-            })
-            .RequireCurrentUser();
+            return deletionInitiated
+                ? TypedResults.Ok()
+                : TypedResults.Unauthorized();
+        });
 
         group.MapDelete("", async Task<Results<UnauthorizedHttpResult, Ok>> (
             HttpContext httpContext,
@@ -46,23 +46,21 @@ public static class DeleteUserApi
             await httpContext.SignOutFromAllAccountsAsync();
 
             return TypedResults.Ok();
-
-        }).RequireCurrentUser();
+        });
 
 
         group.MapGet("verify-token", async Task<Results<UnauthorizedHttpResult, Ok>> (
-                [FromQuery] string token,
-                [FromServices] IDeleteUserService deleteUserService,
-                [FromServices] CurrentUser currentUser,
-                CancellationToken cancellationToken) =>
-            {
-                bool tokenIsValid = await deleteUserService.VerifyTokenAsync(currentUser.User!, token, cancellationToken);
+            [FromQuery] string token,
+            [FromServices] IDeleteUserService deleteUserService,
+            [FromServices] CurrentUser currentUser,
+            CancellationToken cancellationToken) =>
+        {
+            bool tokenIsValid = await deleteUserService.VerifyTokenAsync(currentUser.User!, token, cancellationToken);
 
-                return tokenIsValid
-                    ? TypedResults.Ok()
-                    : TypedResults.Unauthorized();
-            })
-            .RequireCurrentUser();
+            return tokenIsValid
+                ? TypedResults.Ok()
+                : TypedResults.Unauthorized();
+        });
 
         return group;
     }

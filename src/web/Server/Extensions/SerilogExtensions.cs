@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
 using Serilog;
+using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
 
@@ -30,6 +31,16 @@ public static class SerilogExtensions
 
         return builder;
     }
+
+    public static IApplicationBuilder UseSerilog(this WebApplication app) =>
+        app.UseSerilogRequestLogging(options => options.GetLevel = (context, _, exception) =>
+            context.Response.StatusCode switch
+            {
+                >= 500 when exception is not null => LogEventLevel.Error,
+                _ when exception is not null => LogEventLevel.Error,
+                >= 400 => LogEventLevel.Warning,
+                _ => app.Environment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Debug
+            });
 
     private static void WriteToLoki(this LoggerConfiguration loggerConfiguration,
         IServiceProvider provider)

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Jordnaer.Shared.Email;
+namespace Jordnaer.Shared;
 public class ContactForm
 {
     public string? Name { get; set; } = null!;

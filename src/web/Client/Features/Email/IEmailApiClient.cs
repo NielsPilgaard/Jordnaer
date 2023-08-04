@@ -1,4 +1,4 @@
-using Jordnaer.Shared.Email;
+using Jordnaer.Shared;
 using Refit;
 
 namespace Jordnaer.Client.Features.Email;

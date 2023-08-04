@@ -4,7 +4,6 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Shared;
-using Jordnaer.Shared.Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +14,7 @@ using SendGrid;
 using SendGrid.Helpers.Mail;
 using Serilog;
 using Xunit;
+using Response = SendGrid.Response;
 
 namespace Jordnaer.Server.Tests.Authentication;
 
