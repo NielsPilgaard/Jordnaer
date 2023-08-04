@@ -13,7 +13,6 @@ jobs:
     env:
       MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
       TEST_DIRECTORY: tests/container_apps/Jordnaer.Chat.Tests
-      DOCKER_CONTEXT: src/container_apps/Jordnaer.Chat
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:2019-latest
@@ -43,6 +42,7 @@ jobs:
     env:
       IMAGE_NAME: chat
       IMAGE_VERSION: latest
+      DOCKER_CONTEXT: src/container_apps/Jordnaer.Chat
     steps:
 
     - name: Checkout code
