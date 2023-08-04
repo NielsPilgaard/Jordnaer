@@ -36,7 +36,11 @@ jobs:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
           ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
 
-  build:
+  push:
+    if: |
+      always() && 
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    needs: [test]
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: chat
