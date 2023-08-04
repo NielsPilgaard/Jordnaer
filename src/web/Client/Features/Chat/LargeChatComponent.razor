@@ -1,6 +1,5 @@
 @using System.Globalization
 @using System.Security.Claims
-@using Jordnaer.Shared.Contracts
 @using MassTransit
 @inject IChatApiClient ChatApiClient
 @if (User is null)
@@ -107,11 +106,11 @@
         }
     }
 
-    private void SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
+    private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
     {
         if (keyboardEventArgs.Key is "Enter")
         {
-            SendMessage();
+            await SendMessage();
         }
     }
 
