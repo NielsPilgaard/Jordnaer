@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <LangVersion>preview</LangVersion>
         <RootNamespace>Jordnaer.Shared</RootNamespace>
     </PropertyGroup>
 
@@ -13,10 +12,7 @@
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="7.0.0" />
         <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\Jordnaer.Shared.Contracts\Jordnaer.Shared.Contracts.csproj" />
+        <PackageReference Include="MassTransit.Abstractions" Version="8.0.16" />
     </ItemGroup>
 
     <ItemGroup>
