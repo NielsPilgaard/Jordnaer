@@ -78,7 +78,6 @@ public static class ChatApi
             [FromServices] ISendEndpointProvider sendEndpointProvider,
             CancellationToken cancellationToken) =>
         {
-
             if (await context.ChatMessages.AnyAsync(message => message.Id == chatMessage.Id, cancellationToken))
             {
                 return TypedResults.BadRequest();
@@ -126,6 +125,8 @@ public static class ChatApi
             {
                 return TypedResults.Unauthorized();
             }
+
+            // TODO: Actually set chat name
 
             var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
                 new Uri($"queue:{MessagingConstants.SetChatName}"));
