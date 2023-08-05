@@ -4,6 +4,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.Chat;
 using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Server.Features.Email;
 using Jordnaer.Server.Features.LookingFor;
@@ -105,6 +106,7 @@ try
     app.MapEmail();
     app.MapImages();
     app.MapDeleteUsers();
+    app.MapChat();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
