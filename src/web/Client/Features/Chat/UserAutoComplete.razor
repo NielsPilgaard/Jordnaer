@@ -1,29 +1,62 @@
 @inject IUserSearchClient UserSearchClient
+@inject ISnackbar Snackbar
 
-
-<MudAutocomplete T="string"
+<MudAutocomplete T="UserDto"
                  Label="Søg efter bruger"
-                 @bind-Value="_searchString"
+@bind-Value="_searchString"
                  SearchFuncWithCancel="@SearchForUsers"
-                 SelectValueOnTab
-                 ShowProgressIndicator
+                      SelectValueOnTab
+                      ShowProgressIndicator
                  OpenIcon="@string.Empty"
                  DebounceInterval="1000"
-                 Clearable
-                 MinCharacters="2" />
+                      Clearable
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 MinCharacters="2">
+    <ItemTemplate Context="user">
+
+    </ItemTemplate>
+
+    <MoreItemsTemplate>
+        <MudText Align="Align.Center" Class="px-4 py-1">
+            Only the first 10 items are shown
+        </MudText>
+    </MoreItemsTemplate>
+
+    <NoItemsTemplate>
+        <MudText Align="Align.Center" Class="px-4 py-1">
+            No items found
+        </MudText>
+    </NoItemsTemplate>
+</MudAutocomplete>
 
 
 @code {
 
     private string? _searchString;
+    private UserSearchResult? _searchResult;
 
-    private async Task<IEnumerable<string>> SearchForUsers(string arg1, CancellationToken arg2)
+    private async Task<IEnumerable<UserDto>> SearchForUsers(string searchString, CancellationToken cancellationToken)
     {
-        var searchResponse = await UserSearchClient.GetUsersWithAutoComplete(_searchString, arg2);
+        if (string.IsNullOrWhiteSpace(_searchString))
+        {
+            return Array.Empty<UserDto>();
+        }
 
-        return searchResponse.IsSuccessStatusCode
-            ? searchResponse.Content!.Select(response => response.ToString())
-            : Array.Empty<string>();
+        var response = await UserSearchClient.GetUsersWithAutoComplete(_searchString, cancellationToken);
+        switch (response.StatusCode)
+        {
+            case var _ when response.IsSuccessStatusCode:
+                _searchResult = response.Content;
+                return response.Content!.Users;
+            case HttpStatusCode.TooManyRequests:
+                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
+                break;
+            default:
+                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+                break;
+        }
+
+        return Enumerable.Empty<UserDto>();
     }
 
 }

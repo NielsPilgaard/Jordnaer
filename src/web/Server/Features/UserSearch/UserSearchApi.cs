@@ -52,7 +52,7 @@ public static class UserSearchApi
             [FromQuery] string searchString,
             CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrEmpty(searchString))
+            if (string.IsNullOrWhiteSpace(searchString))
             {
                 return TypedResults.BadRequest();
             }

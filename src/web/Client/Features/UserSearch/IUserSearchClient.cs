@@ -9,5 +9,5 @@ public interface IUserSearchClient
     Task<IApiResponse<UserSearchResult>> GetUsers(UserSearchFilter filter);
 
     [Get("/api/users/search/autocomplete")]
-    Task<IApiResponse<UserSearchResult>> GetUsersWithAutoComplete(string searchString);
+    Task<IApiResponse<UserSearchResult>> GetUsersWithAutoComplete(string searchString, CancellationToken cancellationToken = default);
 }
