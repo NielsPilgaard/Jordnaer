@@ -1,0 +1,42 @@
+name: Trigger auto deployment for chat
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - 'src/container_apps/Jordnaer.Chat/**'
+    - '.github/workflows/chat-AutoDeployTrigger-746a2562-288b-4550-b894-12d9bed12dfe.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.CHAT_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}src/container_apps/Jordnaer.Chat 
+          registryUrl: ghcr.io
+          registryUsername: ${{ secrets.CHAT_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CHAT_REGISTRY_PASSWORD }}
+          containerAppName: chat
+          resourceGroup: Jordnaer
+          imageToBuild: ghcr.io/chat:${{ github.sha }}
+          dockerfilePath: Dockerfile
+
+     
+
