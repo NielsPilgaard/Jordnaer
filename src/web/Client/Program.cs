@@ -19,11 +19,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddRefitClient<IAuthApiClient>(builder.HostEnvironment.BaseAddress);
-builder.Services.AddRefitClient<IDeleteUserApiClient>(builder.HostEnvironment.BaseAddress);
-builder.Services.AddRefitClient<IUserSearchApiClient>(builder.HostEnvironment.BaseAddress);
-builder.Services.AddRefitClient<IImageApiClient>(builder.HostEnvironment.BaseAddress);
-builder.Services.AddRefitClient<IChatApiClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IAuthClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IDeleteUserClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IUserSearchClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IImageClient>(builder.HostEnvironment.BaseAddress);
+builder.Services.AddRefitClient<IChatClient>(builder.HostEnvironment.BaseAddress);
 
 builder.AddLookingForServices();
 

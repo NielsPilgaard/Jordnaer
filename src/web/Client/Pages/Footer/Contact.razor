@@ -1,6 +1,6 @@
 @page "/contact"
 @using Jordnaer.Client.Features.Email
-@inject IEmailApiClient EmailApiClient
+@inject IEmailClient EmailClient
 @inject ISnackbar Snackbar
 
 
@@ -37,7 +37,7 @@
     private async Task SubmitForm()
     {
         _isSending = true;
-        var response = await EmailApiClient.SendEmailFromContactForm(_contactForm);
+        var response = await EmailClient.SendEmailFromContactForm(_contactForm);
         if (response is { IsSuccessStatusCode: true, Content: true })
         {
             Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",

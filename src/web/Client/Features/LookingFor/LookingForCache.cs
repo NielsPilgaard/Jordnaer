@@ -10,9 +10,9 @@ public interface ILookingForCache
 public class LookingForCache : ILookingForCache
 {
     private readonly IMemoryCache _memoryCache;
-    private readonly ILookingForApiClient _lookingForApi;
+    private readonly ILookingForClient _lookingForApi;
 
-    public LookingForCache(IMemoryCache memoryCache, ILookingForApiClient lookingForApi)
+    public LookingForCache(IMemoryCache memoryCache, ILookingForClient lookingForApi)
     {
         _memoryCache = memoryCache;
         _lookingForApi = lookingForApi;

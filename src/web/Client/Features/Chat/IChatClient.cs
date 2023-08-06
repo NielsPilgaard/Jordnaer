@@ -3,7 +3,7 @@ using Refit;
 
 namespace Jordnaer.Client.Features.Chat;
 
-public interface IChatApiClient
+public interface IChatClient
 {
     [Post($"/api/chat/{MessagingConstants.StartChat}")]
     Task<IApiResponse> StartChat([Body] ChatDto chat);

@@ -6,7 +6,7 @@ public static class WebAssemblyHostBuilderExtensions
 {
     public static WebAssemblyHostBuilder AddEmailServices(this WebAssemblyHostBuilder builder)
     {
-        builder.Services.AddRefitClient<IEmailApiClient>(builder.HostEnvironment.BaseAddress);
+        builder.Services.AddRefitClient<IEmailClient>(builder.HostEnvironment.BaseAddress);
 
         return builder;
     }

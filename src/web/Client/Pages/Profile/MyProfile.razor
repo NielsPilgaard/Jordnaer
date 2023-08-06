@@ -2,7 +2,7 @@
 @using MudExtensions.Enums
 @inject ILookingForCache LookingForCache
 @inject IProfileCache ProfileCache
-@inject IProfileApiClient ProfileApiClient
+@inject IProfileClient ProfileClient
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
@@ -146,7 +146,7 @@
     private async Task UpdateUserProfile()
     {
         _isLoading = true;
-        var response = await ProfileApiClient.UpdateUserProfile(_userProfile!);
+        var response = await ProfileClient.UpdateUserProfile(_userProfile!);
         if (response.IsSuccessStatusCode)
         {
             ProfileCache.SetProfile(_userProfile!);

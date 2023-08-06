@@ -1,7 +1,7 @@
 @using System.Globalization
 @using System.Security.Claims
 @using MassTransit
-@inject IChatApiClient ChatApiClient
+@inject IChatClient ChatClient
 @if (User is null)
 {
     return;
@@ -95,7 +95,7 @@
                 Text = _newMessage
             };
 
-            await ChatApiClient.SendMessage(dto);
+            await ChatClient.SendMessage(dto);
             _activeChat.Messages.Add(dto);
 
             _newMessage = string.Empty;
