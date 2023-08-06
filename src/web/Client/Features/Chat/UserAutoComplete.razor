@@ -9,21 +9,22 @@
                  OpenIcon="@string.Empty"
                  DebounceInterval="1000"
                       Clearable
-                 AdornmentIcon="@Icons.Material.Filled.Search"
+AdornmentIcon="@Icons.Material.Filled.Search"
+ValueChanged="UserSelected"
                  MinCharacters="2">
     <ItemTemplate Context="user">
-
+        @user.FirstName @user.LastName
     </ItemTemplate>
 
     <MoreItemsTemplate>
         <MudText Align="Align.Center" Class="px-4 py-1">
-            Only the first 10 items are shown
+            Kun de første 10 brugere vises
         </MudText>
     </MoreItemsTemplate>
 
     <NoItemsTemplate>
         <MudText Align="Align.Center" Class="px-4 py-1">
-            No items found
+            Ingen brugere fundet
         </MudText>
     </NoItemsTemplate>
 </MudAutocomplete>
@@ -31,7 +32,8 @@
 
 @code {
 
-    private UserSearchResult? _searchResult;
+    [Parameter]
+    public EventCallback<UserDto> SelectedUserChanged { get; set; }
 
     private async Task<IEnumerable<UserDto>> SearchForUsers(string searchString, CancellationToken cancellationToken)
     {
@@ -44,17 +46,18 @@
         switch (response.StatusCode)
         {
             case var _ when response.IsSuccessStatusCode:
-                _searchResult = response.Content;
                 return response.Content!.Users;
+
             case HttpStatusCode.TooManyRequests:
                 Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                break;
+                return Enumerable.Empty<UserDto>();
+
             default:
                 Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                break;
+                return Enumerable.Empty<UserDto>();
         }
-
-        return Enumerable.Empty<UserDto>();
     }
+
+    private async Task UserSelected(UserDto user) => await SelectedUserChanged.InvokeAsync(user);
 
 }

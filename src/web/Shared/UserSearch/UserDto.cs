@@ -10,4 +10,6 @@ public class UserDto
     public required string ProfilePictureUrl { get; set; }
     public List<string> LookingFor { get; set; } = new();
     public List<ChildDto> Children { get; set; } = new();
+
+    public override string ToString() => $"{FirstName} {LastName}";
 }

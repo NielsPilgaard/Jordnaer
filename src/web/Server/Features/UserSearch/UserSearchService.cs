@@ -41,6 +41,9 @@ public class UserSearchService : IUserSearchService
 
         users = ApplyNameFilter(searchString, users);
 
+        var localEmptyChildDtoList = _emptyChildDtoList;
+        var localEmptyStringList = _emptyStringList;
+
         var paginatedUsers = await users
             .OrderBy(user => user.CreatedUtc)
             .Take(10)
@@ -52,8 +55,8 @@ public class UserSearchService : IUserSearchService
                 LastName = user.LastName,
                 ZipCode = user.ZipCode,
                 City = user.City,
-                Children = _emptyChildDtoList,
-                LookingFor = _emptyStringList
+                Children = localEmptyChildDtoList,
+                LookingFor = localEmptyStringList
             })
             .AsNoTracking()
             .ToListAsync(cancellationToken);
