@@ -3,7 +3,6 @@
 
 <MudAutocomplete T="UserDto"
                  Label="Søg efter bruger"
-@bind-Value="_searchString"
                  SearchFuncWithCancel="@SearchForUsers"
                       SelectValueOnTab
                       ShowProgressIndicator
@@ -32,17 +31,16 @@
 
 @code {
 
-    private string? _searchString;
     private UserSearchResult? _searchResult;
 
     private async Task<IEnumerable<UserDto>> SearchForUsers(string searchString, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_searchString))
+        if (string.IsNullOrWhiteSpace(searchString))
         {
             return Array.Empty<UserDto>();
         }
 
-        var response = await UserSearchClient.GetUsersWithAutoComplete(_searchString, cancellationToken);
+        var response = await UserSearchClient.GetUsersWithAutoComplete(searchString, cancellationToken);
         switch (response.StatusCode)
         {
             case var _ when response.IsSuccessStatusCode:
