@@ -88,3 +88,10 @@ jobs:
         file: ./src/container_apps/Jordnaer.Chat/Dockerfile
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Deploy pushed image to Azure Container Apps
+      uses: azure/container-apps-deploy-action@v1
+      with:
+            containerAppName: chat
+            resourceGroup: Jordnaer
+            imageToDeploy: ghcr.io/nielspilgaard/chat:${{ github.sha }}
