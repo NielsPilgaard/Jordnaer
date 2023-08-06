@@ -9,10 +9,14 @@ namespace Jordnaer.Server.Features.UserSearch;
 public interface IUserSearchService
 {
     Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken);
+    Task<UserSearchResult> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken);
 }
 
 public class UserSearchService : IUserSearchService
 {
+    private static readonly List<string> _emptyStringList = new();
+    private static readonly List<ChildDto> _emptyChildDtoList = new();
+
     private readonly ILogger<UserSearchService> _logger;
     private readonly JordnaerDbContext _context;
     private readonly IDataForsyningenClient _dataForsyningenClient;
@@ -30,13 +34,42 @@ public class UserSearchService : IUserSearchService
         _options = options.Value;
     }
 
+    public async Task<UserSearchResult> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken)
+    {
+
+        var users = _context.UserProfiles.AsQueryable();
+
+        users = ApplyNameFilter(searchString, users);
+
+        var paginatedUsers = await users
+            .OrderBy(user => user.CreatedUtc)
+            .Take(10)
+            .Select(user => new UserDto
+            {
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                UserName = user.UserName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ZipCode = user.ZipCode,
+                City = user.City,
+                Children = _emptyChildDtoList,
+                LookingFor = _emptyStringList
+            })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        int totalCount = await users.AsNoTracking().CountAsync(cancellationToken);
+
+        return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
+    }
+
     public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken)
     {
         // TODO: Convert to Dapper
         var users = _context.UserProfiles.AsQueryable();
 
         users = ApplyChildFilters(filter, users);
-        users = ApplyNameFilter(filter, users);
+        users = ApplyNameFilter(filter.Name, users);
         users = ApplyLookingForFilter(filter, users);
         (users, bool isOrdered) = await ApplyLocationFilterAsync(filter, users);
 
@@ -152,11 +185,11 @@ public class UserSearchService : IUserSearchService
         return users;
     }
 
-    private static IQueryable<UserProfile> ApplyNameFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
+    private static IQueryable<UserProfile> ApplyNameFilter(string? filter, IQueryable<UserProfile> users)
     {
-        if (!string.IsNullOrWhiteSpace(filter.Name))
+        if (!string.IsNullOrWhiteSpace(filter))
         {
-            string trimmedNameFilter = new(filter.Name.Where(c => !char.IsWhiteSpace(c)).ToArray());
+            string trimmedNameFilter = new(filter.Where(c => !char.IsWhiteSpace(c)).ToArray());
 
             users = users.Where(user => !string.IsNullOrEmpty(user.SearchableName) &&
                                         EF.Functions.Like(user.SearchableName, $"%{trimmedNameFilter}%"));

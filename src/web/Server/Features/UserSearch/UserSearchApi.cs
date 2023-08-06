@@ -1,5 +1,6 @@
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jordnaer.Server.Features.UserSearch;
@@ -43,6 +44,22 @@ public static class UserSearchApi
             var users = await userService.GetUsersAsync(searchFilter, cancellationToken);
 
             return users;
+        });
+
+
+        group.MapGet("autocomplete", async Task<Results<Ok<UserSearchResult>, BadRequest>> (
+            [FromServices] IUserSearchService userService,
+            [FromQuery] string searchString,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrEmpty(searchString))
+            {
+                return TypedResults.BadRequest();
+            }
+
+            var users = await userService.GetUsersByNameAsync(searchString, cancellationToken);
+
+            return TypedResults.Ok(users);
         });
 
         return group;
