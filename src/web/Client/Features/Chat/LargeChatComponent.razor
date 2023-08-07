@@ -130,28 +130,30 @@
 
     private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == User?.Id;
 
-    private void StartNewChat(UserSlim user)
+    private void StartNewChat(IEnumerable<UserSlim> users)
     {
         // TODO: This should only add a new chat to the list, not actually post it yet
         // Add "isActiveChatPosted" bool to check whether the chat should be posted before sending messages
         var newChat = new ChatDto
+        {
             Id = NewId.NextGuid(),
-            Recipients = new List<ChatUserDto>
+            Recipients = new List<UserSlim>
+        {
+            _currentUser
+        },
+            LastMessageSentUtc = DateTime.UtcNow,
+            StartedUtc = DateTime.UtcNow
+        };
+
+        foreach (var user in users)
+        {
+            newChat.Recipients.Add(new UserSlim
             {
-                Id = NewId.NextGuid(),
-                Recipients = new List<UserSlim>
-            {
-                _currentUser,
-                new()
-                {
-                    DisplayName = user.DisplayName,
-                    Id = user.Id,
-                    ProfilePictureUrl = user.ProfilePictureUrl
-                }
-            },
-                LastMessageSentUtc = DateTime.UtcNow,
-                StartedUtc = DateTime.UtcNow
-            };
+                DisplayName = user.DisplayName,
+                Id = user.Id,
+                ProfilePictureUrl = user.ProfilePictureUrl
+            });
+        }
 
         _chats.Add(newChat);
         _activeChat = newChat;
