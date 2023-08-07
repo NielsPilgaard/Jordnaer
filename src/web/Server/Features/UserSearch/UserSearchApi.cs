@@ -47,7 +47,7 @@ public static class UserSearchApi
         });
 
 
-        group.MapGet("autocomplete", async Task<Results<Ok<UserSearchResult>, BadRequest>> (
+        group.MapGet("autocomplete", async Task<Results<Ok<List<UserSlim>>, BadRequest>> (
             [FromServices] IUserSearchService userService,
             [FromQuery] string searchString,
             CancellationToken cancellationToken) =>

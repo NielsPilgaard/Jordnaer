@@ -4,11 +4,11 @@ namespace Jordnaer.Shared;
 
 public static class TestData
 {
-    public static List<ChatUserDto> ChatUserDtos(UserProfile ownProfile) => new()
+    public static List<UserSlim> ChatUserDtos(UserProfile ownProfile) => new()
     {
-        new ChatUserDto { Id = ownProfile.Id, DisplayName =$"{ownProfile.FirstName} {ownProfile.LastName}", ProfilePictureUrl = ownProfile.ProfilePictureUrl },
-        new ChatUserDto { Id = "2", DisplayName = "User 2", ProfilePictureUrl = "https://example.com/user2.jpg" },
-        new ChatUserDto { Id = "3", DisplayName = "User 3", ProfilePictureUrl = "https://example.com/user3.jpg" }
+        new UserSlim { Id = ownProfile.Id, DisplayName =$"{ownProfile.FirstName} {ownProfile.LastName}", ProfilePictureUrl = ownProfile.ProfilePictureUrl },
+        new UserSlim { Id = "2", DisplayName = "User 2", ProfilePictureUrl = "https://example.com/user2.jpg" },
+        new UserSlim { Id = "3", DisplayName = "User 3", ProfilePictureUrl = "https://example.com/user3.jpg" }
     };
 
     public static List<ChatMessageDto> ChatMessageDtos(UserProfile ownProfile) => new()

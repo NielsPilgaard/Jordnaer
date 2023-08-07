@@ -39,7 +39,7 @@ else
         _chats = TestData.ChatDtos(User).ToList();
     }
 
-    private List<ChatUserDto> _chatUsers = new();
+    private List<UserSlim> _chatUsers = new();
 
     private List<ChatDto> _chats = new();
 
@@ -59,7 +59,7 @@ else
                 {
                     Id = NewId.NextGuid(),
                     SentUtc = DateTime.UtcNow,
-                    Sender = new ChatUserDto
+                    Sender = new UserSlim
                     {
                         DisplayName = $"{User.FirstName} {User.LastName}",
                         Id = User.Id,

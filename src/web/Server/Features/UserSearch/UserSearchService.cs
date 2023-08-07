@@ -9,7 +9,7 @@ namespace Jordnaer.Server.Features.UserSearch;
 public interface IUserSearchService
 {
     Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken);
-    Task<UserSearchResult> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken);
+    Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken);
 }
 
 public class UserSearchService : IUserSearchService
@@ -34,36 +34,23 @@ public class UserSearchService : IUserSearchService
         _options = options.Value;
     }
 
-    public async Task<UserSearchResult> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken)
+    public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken)
     {
+        var users = ApplyNameFilter(searchString, _context.UserProfiles);
 
-        var users = _context.UserProfiles.AsQueryable();
+        var firstTenUsers = await users
+           .OrderBy(user => user.CreatedUtc)
+           .Take(10)
+           .Select(user => new UserSlim
+           {
+               ProfilePictureUrl = user.ProfilePictureUrl,
+               DisplayName = $"{user.FirstName} {user.LastName}",
+               Id = user.Id
+           })
+           .AsNoTracking()
+           .ToListAsync(cancellationToken);
 
-        users = ApplyNameFilter(searchString, users);
-
-        var localEmptyChildDtoList = _emptyChildDtoList;
-        var localEmptyStringList = _emptyStringList;
-
-        var paginatedUsers = await users
-            .OrderBy(user => user.CreatedUtc)
-            .Take(10)
-            .Select(user => new UserDto
-            {
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                UserName = user.UserName,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                ZipCode = user.ZipCode,
-                City = user.City,
-                Children = localEmptyChildDtoList,
-                LookingFor = localEmptyStringList
-            })
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-        int totalCount = await users.AsNoTracking().CountAsync(cancellationToken);
-
-        return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
+        return firstTenUsers;
     }
 
     public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken)

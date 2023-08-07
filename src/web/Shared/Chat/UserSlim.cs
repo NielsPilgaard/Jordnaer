@@ -1,6 +1,6 @@
 namespace Jordnaer.Shared;
 
-public class ChatUserDto
+public class UserSlim
 {
     public required string Id { get; init; }
 
