@@ -132,7 +132,11 @@
 
     private void StartNewChat(UserSlim user)
     {
+        // TODO: This should only add a new chat to the list, not actually post it yet
+        // Add "isActiveChatPosted" bool to check whether the chat should be posted before sending messages
         var newChat = new ChatDto
+            Id = NewId.NextGuid(),
+            Recipients = new List<ChatUserDto>
             {
                 Id = NewId.NextGuid(),
                 Recipients = new List<UserSlim>
