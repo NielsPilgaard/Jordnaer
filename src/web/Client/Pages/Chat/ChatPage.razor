@@ -1,33 +1,15 @@
 @page "/chat"
-
-@inject IProfileCache ProfileCache
 @attribute [Authorize]
 
-<MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <MudPaper Class="pa-4">
 
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
-            <SmallChatComponent User="_user" />
+            <SmallChatComponent  />
         </MudHidden>
 
         <MudHidden Invert Breakpoint="Breakpoint.MdAndUp">
-            <LargeChatComponent User="_user" />
+            <LargeChatComponent />
         </MudHidden>
 
     </MudPaper>
-</MudLoading>
 
-
-@code
-{
-    private UserProfile? _user;
-    private bool _isLoading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _user = await ProfileCache.GetOrCreateProfileAsync();
-
-        _isLoading = false;
-    }
-
-}

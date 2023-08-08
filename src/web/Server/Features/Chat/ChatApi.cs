@@ -47,6 +47,7 @@ public static class ChatApi
             context.ChatMessages.AddRange(chat.Messages.Select(message =>
                 new ChatMessage
                 {
+                    Id = message.Id,
                     ChatId = chat.Id,
                     SenderId = message.Sender.Id,
                     Text = message.Text,

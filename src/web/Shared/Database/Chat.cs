@@ -19,8 +19,8 @@ public class Chat
     /// </summary>
     public string? DisplayName { get; set; }
 
-    public IList<ChatMessage> Messages { get; set; } = Array.Empty<ChatMessage>();
-    public IList<UserProfile> Recipients { get; set; } = Array.Empty<UserProfile>();
+    public IList<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+    public IList<UserProfile> Recipients { get; set; } = new List<UserProfile>();
 
     public DateTime LastMessageSentUtc { get; set; }
     public DateTime StartedUtc { get; set; } = DateTime.UtcNow;

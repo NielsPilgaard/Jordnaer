@@ -2,10 +2,16 @@
 @using System.Security.Claims
 @using MassTransit
 @inject IChatClient ChatClient
-@if (User is null)
+@inject IProfileCache ProfileCache
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+@if (_currentUser is null)
 {
     return;
 }
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
 <MudGrid>
     <MudItem md="4" lg="4" xl="4" xxl="4">
@@ -15,7 +21,13 @@
             </MudListSubheader>
             @foreach (var chat in _chats)
             {
-                <MudListItem OnClick="@(() => SelectChat(chat))" Avatar="@ProfileConstants.Default_Profile_Picture">
+                <MudListItem OnClick="@(() => SelectChat(chat))">
+                    
+                    <MudImage ObjectPosition="ObjectPosition.Center"
+                              loading="lazy"
+                              Fluid
+                              Src="@chat.Recipients.FirstOrDefault(recipient => recipient.Id != _currentUser.Id).ProfilePictureUrl"
+                              Alt="Avatar" />
                     <MudText>@chat.DisplayName</MudText>
                 </MudListItem>
             }
@@ -26,7 +38,7 @@
         @if (_activeChat != null)
         {
             <MudList DisablePadding Dense>
-            @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
+                @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
                 {
                     @if (IsMessageFromSelf(message))
                     {
@@ -36,15 +48,20 @@
                     }
                     else
                     {
-                        <MudListItem Avatar="@message.Sender.ProfilePictureUrl">
+                        <MudListItem>
+                            <MudImage ObjectPosition="ObjectPosition.Center"
+                                      loading="lazy"
+                                      Fluid
+                                      Src="@message.Sender.ProfilePictureUrl"
+                                      Alt="Avatar" />
                             <MudChip>@message.Text</MudChip>
                         </MudListItem>
                     }
                 }
             </MudList>
             <MudTextField @bind-Value="_userText"
-                            FullWidth
-                            Immediate
+                          FullWidth
+                          Immediate
                           Adornment="Adornment.End"
                           TextUpdateSuppression="false"
                           OnKeyDown="SendMessageOnEnter"
@@ -54,37 +71,41 @@
         }
     </MudItem>
 </MudGrid>
+
+</MudLoading>
 @code {
-    [Parameter]
-    public UserProfile? User { get; set; }
+    private UserProfile _currentUser = null!;
+    private UserSlim _currentUserSlim = null!;
+    private List<ChatDto> _chats = new();
+    private ChatDto? _activeChat;
 
     private bool _isActiveChatPublished = true;
+    private bool _isLoading = true;
 
-    protected override void OnParametersSet()
+    protected override async Task OnInitializedAsync()
     {
-        if (User is null) return;
+        _currentUser = (await ProfileCache.GetOrCreateProfileAsync())!;
+        _currentUserSlim = _currentUser.ToUserSlim();
 
-        _chatUsers = TestData.ChatUserDtos(User);
-        _chats = TestData.ChatDtos(User);
+        var response = await ChatClient.GetChats(_currentUser.Id);
+        switch (response.StatusCode)
+        {
+            case var _ when response.IsSuccessStatusCode:
+                _chats = response.Content!;
+                break;
+
+            case HttpStatusCode.TooManyRequests:
+                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
+                break;
+
+            default:
+                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+                break;
+        }
+
+        _isLoading = false;
     }
 
-    protected override void OnInitialized()
-    {
-        _currentUser = new UserSlim
-            {
-                DisplayName = $"{User!.FirstName} {User.LastName}",
-                Id = User.Id,
-                ProfilePictureUrl = User.ProfilePictureUrl
-            };
-    }
-
-    private UserSlim _currentUser = null!;
-
-    private List<UserSlim> _chatUsers = new();
-
-    private List<ChatDto> _chats = new();
-
-    private ChatDto? _activeChat;
 
     private void SelectChat(ChatDto chat) => _activeChat = chat;
 
@@ -103,7 +124,7 @@
             {
                 Id = NewId.NextGuid(),
                 SentUtc = DateTime.UtcNow,
-                Sender = _currentUser,
+                Sender = _currentUserSlim!,
                 Text = _userText
             };
 
@@ -128,7 +149,7 @@
         }
     }
 
-    private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == User?.Id;
+    private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == _currentUser?.Id;
 
     private void StartNewChat(IEnumerable<UserSlim> users)
     {
@@ -139,13 +160,13 @@
             Id = NewId.NextGuid(),
             Recipients = new List<UserSlim>
         {
-            _currentUser
+            _currentUserSlim!
         },
             LastMessageSentUtc = DateTime.UtcNow,
             StartedUtc = DateTime.UtcNow
         };
 
-        foreach (var user in users)
+        foreach (var user in users.Where(u => u.Id != _currentUser!.Id))
         {
             newChat.Recipients.Add(new UserSlim
             {
@@ -156,8 +177,12 @@
         }
 
         _chats.Add(newChat);
-        _activeChat = newChat;
+
+        SelectChat(newChat);
+
         _isActiveChatPublished = false;
+
+        StateHasChanged();
     }
 
 }

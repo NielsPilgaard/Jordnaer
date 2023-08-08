@@ -1,19 +1,21 @@
 @inject IUserSearchClient UserSearchClient
 @inject ISnackbar Snackbar
 
-<MudAutocomplete T="UserDto"
+<MudAutocomplete T="UserSlim"
                  Label="Søg efter bruger"
                  SearchFuncWithCancel="@SearchForUsers"
-                      SelectValueOnTab
-                      ShowProgressIndicator
+                 ShowProgressIndicator
                  OpenIcon="@string.Empty"
                  DebounceInterval="1000"
-                      Clearable
-AdornmentIcon="@Icons.Material.Filled.Search"
-ValueChanged="UserSelected"
+                 Clearable
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 MaxItems="10"
                  MinCharacters="2">
+
     <ItemTemplate Context="user">
-        @user.FirstName @user.LastName
+        <MudListItem OnClick="@(async () => await UserSelected(user))" Avatar="@user.ProfilePictureUrl">
+            <MudText>@user.DisplayName</MudText>
+        </MudListItem>
     </ItemTemplate>
 
     <MoreItemsTemplate>
@@ -27,37 +29,38 @@ ValueChanged="UserSelected"
             Ingen brugere fundet
         </MudText>
     </NoItemsTemplate>
+
 </MudAutocomplete>
 
 
 @code {
 
     [Parameter]
-    public EventCallback<UserDto> SelectedUserChanged { get; set; }
+    public EventCallback<IEnumerable<UserSlim>> SelectedUserChanged { get; set; }
 
-    private async Task<IEnumerable<UserDto>> SearchForUsers(string searchString, CancellationToken cancellationToken)
+    private async Task<IEnumerable<UserSlim>> SearchForUsers(string searchString, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(searchString))
         {
-            return Array.Empty<UserDto>();
+            return Array.Empty<UserSlim>();
         }
 
         var response = await UserSearchClient.GetUsersWithAutoComplete(searchString, cancellationToken);
         switch (response.StatusCode)
         {
             case var _ when response.IsSuccessStatusCode:
-                return response.Content!.Users;
+                return response.Content!;
 
             case HttpStatusCode.TooManyRequests:
                 Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                return Enumerable.Empty<UserDto>();
+                return Enumerable.Empty<UserSlim>();
 
             default:
                 Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                return Enumerable.Empty<UserDto>();
+                return Enumerable.Empty<UserSlim>();
         }
     }
 
-    private async Task UserSelected(UserDto user) => await SelectedUserChanged.InvokeAsync(user);
+    private async Task UserSelected(UserSlim user) => await SelectedUserChanged.InvokeAsync(new[] { user });
 
 }

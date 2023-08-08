@@ -39,8 +39,8 @@ public class UserSearchService : IUserSearchService
         var users = ApplyNameFilter(searchString, _context.UserProfiles);
 
         var firstTenUsers = await users
-           .OrderBy(user => user.CreatedUtc)
-           .Take(10)
+           .OrderBy(user => searchString.StartsWith(searchString))
+           .Take(11)
            .Select(user => new UserSlim
            {
                ProfilePictureUrl = user.ProfilePictureUrl,
