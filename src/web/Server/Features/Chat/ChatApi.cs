@@ -1,4 +1,4 @@
-using Jordnaer.Client;
+using System.Linq.Expressions;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
@@ -21,10 +21,10 @@ public static class ChatApi
         group.RequirePerUserRateLimit();
 
         group.MapGet("{userId}",
-            async Task<Results<Ok<ChatResult>, UnauthorizedHttpResult>> (
+            async Task<Results<Ok<List<ChatDto>>, UnauthorizedHttpResult>> (
                     [FromRoute] string userId,
-                    [FromQuery] int page,
-                    [FromQuery] int pageSize,
+                    [FromQuery] int skip,
+                    [FromQuery] int take,
                     [FromServices] CurrentUser currentUser,
                     [FromServices] JordnaerDbContext context,
                         CancellationToken cancellationToken) =>
@@ -34,31 +34,36 @@ public static class ChatApi
                     return TypedResults.Unauthorized();
                 }
 
-                int chatsToSkip = page == 1 ? 0 : page * pageSize - 1;
-
-                var chats = context.Chats
+                var chats = await context.Chats
                     .AsNoTracking()
-                    .Where(chat => chat.ContainsUser(userId));
-
-                var paginatedChats = await chats
+                    .Where(ContainsUsers(userId))
                     .OrderByDescending(chat => chat.LastMessageSentUtc)
-                    .Skip(chatsToSkip)
-                    .Take(pageSize)
-                    .Include(chat => chat.Messages.Take(1))
-                    .Select(chat => chat.ToChatDto())
+                    .Skip(skip)
+                    .Take(take)
+                    .Include(chat => chat.Recipients)
+                    .Include(chat => chat.Messages
+                        .OrderByDescending(chatMessage => chatMessage.SentUtc)
+                        .Take(1))
+                    .ThenInclude(chatMessage => chatMessage.Sender)
+                    .Select(chat => new ChatDto
+                    {
+                        DisplayName = chat.DisplayName,
+                        Id = chat.Id,
+                        LastMessageSentUtc = chat.LastMessageSentUtc,
+                        StartedUtc = chat.StartedUtc,
+                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
+                        Messages = chat.Messages.Select(chatMessage => chatMessage.ToChatMessageDto()).ToList()
+                    })
+                    .AsSingleQuery()
                     .ToListAsync(cancellationToken);
 
-                return TypedResults.Ok(new ChatResult
-                {
-                    Chats = paginatedChats,
-                    TotalCount = await chats.CountAsync(cancellationToken)
-                });
+                return TypedResults.Ok(chats);
             });
         group.MapGet($"{MessagingConstants.GetChatMessages}/{{chatId:guid}}",
-            async Task<Results<Ok<ChatMessageResult>, UnauthorizedHttpResult>> (
+            async Task<Results<Ok<List<ChatMessageDto>>, UnauthorizedHttpResult>> (
                     [FromRoute] Guid chatId,
-                    [FromQuery] int page,
-                    [FromQuery] int pageSize,
+                    [FromQuery] int skip,
+                    [FromQuery] int take,
                     [FromServices] CurrentUser currentUser,
                     [FromServices] JordnaerDbContext context,
                 CancellationToken cancellationToken) =>
@@ -73,16 +78,29 @@ public static class ChatApi
                     var chat = await context.Chats
                         .FirstOrDefaultAsync(chat =>
                             chat.Id == chatId &&
-                            chat.ContainsUser(currentUser.Id), cancellationToken);
+                            chat.Recipients
+                                .Select(recipient => recipient.Id)
+                                .Contains(currentUser.Id), cancellationToken);
 
                     // If null, the Chat does not exist, or the current user is not a part of it
                     return chat is null;
                 }
 
+                var chatMessages = await context.ChatMessages.AsNoTracking()
+                    .Where(message => message.ChatId == chatId)
+                    .OrderByDescending(message => message.SentUtc)
+                    .Skip(skip)
+                    .Take(take)
+                    .Select(message => message.ToChatMessageDto(new UserSlim
+                    {
+                        DisplayName = $"{message.Sender.FirstName} {message.Sender.LastName}",
+                        Id = message.SenderId,
+                        ProfilePictureUrl = message.Sender.ProfilePictureUrl
+                    }))
+                    .ToListAsync(cancellationToken);
 
 
-
-                return TypedResults.Ok();
+                return TypedResults.Ok(chatMessages);
             });
         group.MapPost(MessagingConstants.StartChat, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
             [FromBody] ChatDto chat,
@@ -203,4 +221,9 @@ public static class ChatApi
 
         return group;
     }
+
+    private static Expression<Func<Shared.Chat, bool>> ContainsUsers(string userId) =>
+        chat => chat.Recipients
+            .Select(recipient => recipient.Id)
+            .Contains(userId);
 }

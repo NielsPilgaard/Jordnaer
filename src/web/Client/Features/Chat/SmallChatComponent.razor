@@ -35,8 +35,6 @@ else
 
     protected override void OnInitialized()
     {
-        _chatUsers = TestData.ChatUserDtos(User);
-        _chats = TestData.ChatDtos(User).ToList();
     }
 
     private List<UserSlim> _chatUsers = new();
@@ -53,27 +51,6 @@ else
 
     private void SendMessage()
     {
-        if (_activeChat is not null && !string.IsNullOrWhiteSpace(_newMessage))
-        {
-            _activeChat.Messages.Add(new ChatMessageDto
-                {
-                    Id = NewId.NextGuid(),
-                    SentUtc = DateTime.UtcNow,
-                    Sender = new UserSlim
-                    {
-                        DisplayName = $"{User.FirstName} {User.LastName}",
-                        Id = User.Id,
-                        ProfilePictureUrl = User.ProfilePictureUrl
-                    },
-                    Text = _newMessage
-                });
-
-            _newMessage = string.Empty;
-        }
-        else
-        {
-            //TODO: Add error message
-        }
     }
 
     private void SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)

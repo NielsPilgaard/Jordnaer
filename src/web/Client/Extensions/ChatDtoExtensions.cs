@@ -4,12 +4,12 @@ namespace Jordnaer.Client;
 
 public static class ChatDtoExtensions
 {
-    public static string GetDisplayName(this ChatDto chat, string ownUserId)
+    public static string GetDisplayName(this ChatDto chat, string currentUserId)
     {
         if (chat.DisplayName is not null)
             return chat.DisplayName;
 
-        var recipients = chat.Recipients.Where(recipient => recipient.Id != ownUserId).ToArray();
+        var recipients = chat.Recipients.Where(recipient => recipient.Id != currentUserId).ToArray();
         if (recipients.Length > 3)
         {
             const int recipientNamesToDisplay = 3;
@@ -21,9 +21,8 @@ public static class ChatDtoExtensions
         if (recipients.Length > 1)
             return string.Join(", ", chat.Recipients.Select(e => e.DisplayName));
 
-        if (recipients.Length is 1)
-            return recipients[0].DisplayName;
-
-        return string.Empty;
+        return recipients.Length is 1
+            ? recipients[0].DisplayName
+            : string.Empty;
     }
 }

@@ -2,11 +2,6 @@ namespace Jordnaer.Shared;
 
 public static class ChatExtensions
 {
-    public static bool ContainsUser(this Chat chat, string userId) =>
-        chat.Recipients
-            .Select(recipient => recipient.Id)
-            .Contains(userId);
-
     public static ChatDto ToChatDto(this Chat chat) =>
         new()
         {

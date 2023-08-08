@@ -5,11 +5,11 @@ namespace Jordnaer.Client.Features.Chat;
 
 public interface IChatClient
 {
-    [Get("/api/chat")]
-    Task<IApiResponse<ChatResult>> GetChats(string userId, int page = 1, int pageSize = 15);
+    [Get("/api/chat/{userId}")]
+    Task<IApiResponse<List<ChatDto>>> GetChats(string userId, int skip = 0, int take = 15);
 
     [Get($"/api/chat/{MessagingConstants.GetChatMessages}")]
-    Task<IApiResponse<ChatMessageResult>> GetChat(Guid chatId, int page = 1, int pageSize = 15);
+    Task<IApiResponse<List<ChatMessageDto>>> GetChat(Guid chatId, int skip = 0, int take = 15);
 
     [Post($"/api/chat/{MessagingConstants.StartChat}")]
     Task<IApiResponse> StartChat([Body] ChatDto chat);

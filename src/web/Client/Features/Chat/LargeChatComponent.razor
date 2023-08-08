@@ -26,9 +26,9 @@
                         <MudImage ObjectPosition="ObjectPosition.Center"
                                   loading="lazy"
                                 Fluid
-                                  Src="@chat.Recipients.FirstOrDefault(recipient => recipient.Id != _currentUser.Id).ProfilePictureUrl"
+                                  Src="@GetChatImage(chat)"
                                   Alt="Avatar" />
-                        <MudText>@chat.DisplayName</MudText>
+                        <MudText>@chat.GetDisplayName(_currentUser.Id)</MudText>
                     </MudListItem>
                 }
             </MudList>
@@ -38,8 +38,8 @@
             @if (_activeChat != null)
             {
                 <MudLoading @bind-Loading="_isLoadingMessages" Darken>
-                    <MudList DisablePadding Dense>
-                        @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
+                <MudList DisablePadding Dense>
+                    @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
                         {
                             @if (IsMessageFromSelf(message))
                             {
@@ -52,7 +52,7 @@
                                 <MudListItem>
                                     <MudImage ObjectPosition="ObjectPosition.Center"
                                               loading="lazy"
-                                              Fluid
+                                            Fluid
                                               Src="@message.Sender.ProfilePictureUrl"
                                               Alt="Avatar" />
                                     <MudChip>@message.Text</MudChip>
@@ -84,6 +84,19 @@
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
     private bool _isLoadingMessages;
+
+    public string? GetChatImage(ChatDto chat)
+    {
+        if (chat.Recipients.Count > 1)
+        {
+            return chat.Recipients
+                .FirstOrDefault(recipient =>
+                    recipient.Id != _currentUser!.Id)?.ProfilePictureUrl
+                   ?? ProfileConstants.Default_Profile_Picture;
+        }
+
+        return chat.Recipients.FirstOrDefault()?.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,12 +143,13 @@
         }
 
         var message = new ChatMessageDto
-            {
-                Id = NewId.NextGuid(),
-                SentUtc = DateTime.UtcNow,
-                Sender = _currentUserSlim,
-                Text = _userText
-            };
+        {
+            ChatId = _activeChat.Id,
+            Id = NewId.NextGuid(),
+            SentUtc = DateTime.UtcNow,
+            Sender = _currentUserSlim,
+            Text = _userText
+        };
 
         if (_isActiveChatPublished is false)
         {
