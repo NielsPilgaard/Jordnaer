@@ -19,7 +19,20 @@ public static class ChatApi
 
         group.RequirePerUserRateLimit();
 
-        // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
+        group.MapGet("{userId}",
+            async Task<Results<Ok<ChatResult>, UnauthorizedHttpResult>>
+                ([FromRoute] string userId, [FromQuery] int page, [FromQuery] int pageSize) =>
+            {
+
+                return TypedResults.Ok();
+            });
+        group.MapGet($"{MessagingConstants.GetChatMessages}/{{chatId}}",
+            async Task<Results<Ok<ChatMessageResult>, UnauthorizedHttpResult>>
+                ([FromRoute] Guid chatId, [FromQuery] int page, [FromQuery] int pageSize) =>
+            {
+
+                return TypedResults.Ok();
+            });
         group.MapPost(MessagingConstants.StartChat, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
             [FromBody] ChatDto chat,
             [FromServices] CurrentUser currentUser,
@@ -65,6 +78,7 @@ public static class ChatApi
 
             await context.SaveChangesAsync(cancellationToken);
 
+            // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
             var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
                 new Uri($"queue:{MessagingConstants.StartChat}"));
             await publishEndpoint.Send(chat, cancellationToken);
@@ -89,9 +103,6 @@ public static class ChatApi
                 return TypedResults.Unauthorized();
             }
 
-            var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
-                new Uri($"queue:{MessagingConstants.SendMessage}"));
-            await publishEndpoint.Send(chatMessage, cancellationToken);
 
             context.ChatMessages.Add(
                 new ChatMessage
@@ -105,6 +116,11 @@ public static class ChatApi
                 });
 
             await context.SaveChangesAsync(cancellationToken);
+
+            // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
+            var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
+                new Uri($"queue:{MessagingConstants.SendMessage}"));
+            await publishEndpoint.Send(chatMessage, cancellationToken);
 
             return TypedResults.NoContent();
         });
@@ -128,7 +144,7 @@ public static class ChatApi
             }
 
             // TODO: Actually set chat name
-
+            // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
             var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
                 new Uri($"queue:{MessagingConstants.SetChatName}"));
             await publishEndpoint.Send(chatMessage, cancellationToken);

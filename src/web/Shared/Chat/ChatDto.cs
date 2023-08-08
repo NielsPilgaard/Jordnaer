@@ -18,4 +18,3 @@ public class ChatDto
     public DateTime LastMessageSentUtc { get; init; }
     public DateTime StartedUtc { get; init; } = DateTime.UtcNow;
 }
-

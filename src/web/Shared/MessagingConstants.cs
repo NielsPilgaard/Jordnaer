@@ -7,4 +7,5 @@ public static class MessagingConstants
     public const string StartChat = "start-chat";
     public const string SendMessage = "send-message";
     public const string SetChatName = "set-chat-name";
+    public const string GetChatMessages = "messages";
 }

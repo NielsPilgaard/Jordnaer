@@ -13,78 +13,87 @@
 }
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
-<MudGrid>
-    <MudItem md="4" lg="4" xl="4" xxl="4">
-        <MudList Clickable>
-            <MudListSubheader>
-                <UserAutoComplete SelectedUserChanged="StartNewChat" />
-            </MudListSubheader>
-            @foreach (var chat in _chats)
-            {
-                <MudListItem OnClick="@(() => SelectChat(chat))">
-                    
-                    <MudImage ObjectPosition="ObjectPosition.Center"
-                              loading="lazy"
-                              Fluid
-                              Src="@chat.Recipients.FirstOrDefault(recipient => recipient.Id != _currentUser.Id).ProfilePictureUrl"
-                              Alt="Avatar" />
-                    <MudText>@chat.DisplayName</MudText>
-                </MudListItem>
-            }
-        </MudList>
-    </MudItem>
-
-    <MudItem md="8" lg="8" xl="8" xxl="8">
-        @if (_activeChat != null)
-        {
-            <MudList DisablePadding Dense>
-                @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
+    <MudGrid>
+        <MudItem md="4" lg="4" xl="4" xxl="4">
+            <MudList Clickable>
+                <MudListSubheader>
+                    <UserAutoComplete SelectedUserChanged="StartNewChat" />
+                </MudListSubheader>
+                @foreach (var chat in _chats)
                 {
-                    @if (IsMessageFromSelf(message))
-                    {
-                        <MudListItem Class="message-from-self">
-                            <MudChip>@message.Text</MudChip>
-                        </MudListItem>
-                    }
-                    else
-                    {
-                        <MudListItem>
-                            <MudImage ObjectPosition="ObjectPosition.Center"
-                                      loading="lazy"
-                                      Fluid
-                                      Src="@message.Sender.ProfilePictureUrl"
-                                      Alt="Avatar" />
-                            <MudChip>@message.Text</MudChip>
-                        </MudListItem>
-                    }
+                    <MudListItem OnClick="@(() => SelectChat(chat))">
+
+                        <MudImage ObjectPosition="ObjectPosition.Center"
+                                  loading="lazy"
+                                Fluid
+                                  Src="@chat.Recipients.FirstOrDefault(recipient => recipient.Id != _currentUser.Id).ProfilePictureUrl"
+                                  Alt="Avatar" />
+                        <MudText>@chat.DisplayName</MudText>
+                    </MudListItem>
                 }
             </MudList>
-            <MudTextField @bind-Value="_userText"
-                          FullWidth
-                          Immediate
-                          Adornment="Adornment.End"
-                          TextUpdateSuppression="false"
-                          OnKeyDown="SendMessageOnEnter"
-                          AdornmentIcon="@Icons.Material.Filled.Send"
-                          AdornmentColor="Color.Primary"
-                          OnAdornmentClick="SendMessage" />
-        }
-    </MudItem>
-</MudGrid>
+        </MudItem>
+
+        <MudItem md="8" lg="8" xl="8" xxl="8">
+            @if (_activeChat != null)
+            {
+                <MudLoading @bind-Loading="_isLoadingMessages" Darken>
+                    <MudList DisablePadding Dense>
+                        @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
+                        {
+                            @if (IsMessageFromSelf(message))
+                            {
+                                <MudListItem Class="message-from-self">
+                                    <MudChip>@message.Text</MudChip>
+                                </MudListItem>
+                            }
+                            else
+                            {
+                                <MudListItem>
+                                    <MudImage ObjectPosition="ObjectPosition.Center"
+                                              loading="lazy"
+                                              Fluid
+                                              Src="@message.Sender.ProfilePictureUrl"
+                                              Alt="Avatar" />
+                                    <MudChip>@message.Text</MudChip>
+                                </MudListItem>
+                            }
+                        }
+                    </MudList>
+                </MudLoading>
+                <MudTextField @bind-Value="_userText"
+                                FullWidth
+                                Immediate
+                              Adornment="Adornment.End"
+                              TextUpdateSuppression="false"
+                              OnKeyDown="SendMessageOnEnter"
+                              AdornmentIcon="@Icons.Material.Filled.Send"
+                              AdornmentColor="Color.Primary"
+                              OnAdornmentClick="SendMessage" />
+            }
+        </MudItem>
+    </MudGrid>
 
 </MudLoading>
 @code {
-    private UserProfile _currentUser = null!;
+    private UserProfile? _currentUser;
     private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
 
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
+    private bool _isLoadingMessages;
 
     protected override async Task OnInitializedAsync()
     {
-        _currentUser = (await ProfileCache.GetOrCreateProfileAsync())!;
+        _currentUser = await ProfileCache.GetOrCreateProfileAsync();
+        if (_currentUser is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+            return;
+        }
+
         _currentUserSlim = _currentUser.ToUserSlim();
 
         var response = await ChatClient.GetChats(_currentUser.Id);
@@ -124,7 +133,7 @@
             {
                 Id = NewId.NextGuid(),
                 SentUtc = DateTime.UtcNow,
-                Sender = _currentUserSlim!,
+                Sender = _currentUserSlim,
                 Text = _userText
             };
 
@@ -149,31 +158,26 @@
         }
     }
 
-    private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == _currentUser?.Id;
+    private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == _currentUser!.Id;
 
     private void StartNewChat(IEnumerable<UserSlim> users)
     {
-        // TODO: This should only add a new chat to the list, not actually post it yet
-        // Add "isActiveChatPosted" bool to check whether the chat should be posted before sending messages
         var newChat = new ChatDto
-        {
-            Id = NewId.NextGuid(),
-            Recipients = new List<UserSlim>
-        {
-            _currentUserSlim!
-        },
-            LastMessageSentUtc = DateTime.UtcNow,
-            StartedUtc = DateTime.UtcNow
-        };
+            {
+                Id = NewId.NextGuid(),
+                Recipients = new List<UserSlim> { _currentUserSlim },
+                LastMessageSentUtc = DateTime.UtcNow,
+                StartedUtc = DateTime.UtcNow
+            };
 
         foreach (var user in users.Where(u => u.Id != _currentUser!.Id))
         {
             newChat.Recipients.Add(new UserSlim
-            {
-                DisplayName = user.DisplayName,
-                Id = user.Id,
-                ProfilePictureUrl = user.ProfilePictureUrl
-            });
+                {
+                    DisplayName = user.DisplayName,
+                    Id = user.Id,
+                    ProfilePictureUrl = user.ProfilePictureUrl
+                });
         }
 
         _chats.Add(newChat);
