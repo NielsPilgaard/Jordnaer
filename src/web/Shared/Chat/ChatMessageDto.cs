@@ -2,7 +2,9 @@ namespace Jordnaer.Shared;
 
 public class ChatMessageDto
 {
-    public required Guid Id { get; set; }
+    public required Guid Id { get; init; }
+
+    public required Guid ChatId { get; init; }
 
     public required UserSlim Sender { get; init; }
 

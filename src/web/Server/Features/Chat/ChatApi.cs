@@ -1,3 +1,4 @@
+using Jordnaer.Client;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
@@ -20,16 +21,66 @@ public static class ChatApi
         group.RequirePerUserRateLimit();
 
         group.MapGet("{userId}",
-            async Task<Results<Ok<ChatResult>, UnauthorizedHttpResult>>
-                ([FromRoute] string userId, [FromQuery] int page, [FromQuery] int pageSize) =>
+            async Task<Results<Ok<ChatResult>, UnauthorizedHttpResult>> (
+                    [FromRoute] string userId,
+                    [FromQuery] int page,
+                    [FromQuery] int pageSize,
+                    [FromServices] CurrentUser currentUser,
+                    [FromServices] JordnaerDbContext context,
+                        CancellationToken cancellationToken) =>
             {
+                if (currentUser.Id != userId)
+                {
+                    return TypedResults.Unauthorized();
+                }
 
-                return TypedResults.Ok();
+                int chatsToSkip = page == 1 ? 0 : page * pageSize - 1;
+
+                var chats = context.Chats
+                    .AsNoTracking()
+                    .Where(chat => chat.ContainsUser(userId));
+
+                var paginatedChats = await chats
+                    .OrderByDescending(chat => chat.LastMessageSentUtc)
+                    .Skip(chatsToSkip)
+                    .Take(pageSize)
+                    .Include(chat => chat.Messages.Take(1))
+                    .Select(chat => chat.ToChatDto())
+                    .ToListAsync(cancellationToken);
+
+                return TypedResults.Ok(new ChatResult
+                {
+                    Chats = paginatedChats,
+                    TotalCount = await chats.CountAsync(cancellationToken)
+                });
             });
-        group.MapGet($"{MessagingConstants.GetChatMessages}/{{chatId}}",
-            async Task<Results<Ok<ChatMessageResult>, UnauthorizedHttpResult>>
-                ([FromRoute] Guid chatId, [FromQuery] int page, [FromQuery] int pageSize) =>
+        group.MapGet($"{MessagingConstants.GetChatMessages}/{{chatId:guid}}",
+            async Task<Results<Ok<ChatMessageResult>, UnauthorizedHttpResult>> (
+                    [FromRoute] Guid chatId,
+                    [FromQuery] int page,
+                    [FromQuery] int pageSize,
+                    [FromServices] CurrentUser currentUser,
+                    [FromServices] JordnaerDbContext context,
+                CancellationToken cancellationToken) =>
             {
+                if (await CurrentUserIsNotPartOfChat())
+                {
+                    return TypedResults.Unauthorized();
+                }
+
+                async Task<bool> CurrentUserIsNotPartOfChat()
+                {
+                    var chat = await context.Chats
+                        .FirstOrDefaultAsync(chat =>
+                            chat.Id == chatId &&
+                            chat.ContainsUser(currentUser.Id), cancellationToken);
+
+                    // If null, the Chat does not exist, or the current user is not a part of it
+                    return chat is null;
+                }
+
+
+
 
                 return TypedResults.Ok();
             });
@@ -54,20 +105,9 @@ public static class ChatApi
             {
                 LastMessageSentUtc = chat.LastMessageSentUtc,
                 Id = chat.Id,
-                StartedUtc = chat.StartedUtc
+                StartedUtc = chat.StartedUtc,
+                Messages = chat.Messages.Select(message => message.ToChatMessage(chat.Id)).ToList()
             });
-
-            context.ChatMessages.AddRange(chat.Messages.Select(message =>
-                new ChatMessage
-                {
-                    Id = message.Id,
-                    ChatId = chat.Id,
-                    SenderId = message.Sender.Id,
-                    Text = message.Text,
-                    AttachmentUrl = message.AttachmentUrl,
-                    IsDeleted = message.IsDeleted,
-                    SentUtc = message.SentUtc
-                }));
 
             context.UserChats.AddRange(chat.Recipients.Select(recipient =>
                 new UserChat
@@ -103,11 +143,13 @@ public static class ChatApi
                 return TypedResults.Unauthorized();
             }
 
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
             context.ChatMessages.Add(
                 new ChatMessage
                 {
-                    ChatId = chatMessage.Id,
+                    ChatId = chatMessage.ChatId,
+                    Id = chatMessage.Id,
                     SenderId = chatMessage.Sender.Id,
                     Text = chatMessage.Text,
                     AttachmentUrl = chatMessage.AttachmentUrl,
@@ -115,7 +157,14 @@ public static class ChatApi
                     SentUtc = chatMessage.SentUtc
                 });
 
+            await context.Chats
+                .ExecuteUpdateAsync(call =>
+                    call.SetProperty(chat => chat.LastMessageSentUtc, DateTime.UtcNow),
+                    cancellationToken);
+
             await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
 
             // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
             var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
