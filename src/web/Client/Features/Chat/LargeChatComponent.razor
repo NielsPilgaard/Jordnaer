@@ -11,6 +11,7 @@
 {
     return;
 }
+
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
     <MudGrid>
@@ -21,24 +22,24 @@
                 </MudListSubheader>
                 @foreach (var chat in _chats)
                 {
-                    <MudListItem OnClick="@(() => SelectChat(chat))">
+                    @*TODO: The active chat needs to have the active class assigned when selected from dropdown*@
+                    <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="@(chat == _activeChat ? _activeChatClass : _inactiveChatClass)">
 
-                        <MudImage ObjectPosition="ObjectPosition.Center"
-                                  loading="lazy"
-                                Fluid
-                                  Src="@GetChatImage(chat)"
-                                  Alt="Avatar" />
+                        <MudAvatar Size="Size.Large" Class="mr-3">
+                            <MudImage Src="@GetChatImage(chat)" loading="lazy" Alt="Avatar" />
+                        </MudAvatar>
                         <MudText>@chat.GetDisplayName(_currentUser.Id)</MudText>
+
                     </MudListItem>
                 }
             </MudList>
         </MudItem>
+        <MudLoading @bind-Loading="_isLoadingMessages" Darken>
 
-        <MudItem md="8" lg="8" xl="8" xxl="8">
-            @if (_activeChat != null)
-            {
-                <MudLoading @bind-Loading="_isLoadingMessages" Darken>
-                <MudList DisablePadding Dense>
+            <MudItem md="8" lg="8" xl="8" xxl="8">
+                @if (_activeChat != null)
+                {
+                    <MudList DisablePadding Dense>
                     @foreach (var message in _activeChat.Messages.Where(message => !message.IsDeleted))
                         {
                             @if (IsMessageFromSelf(message))
@@ -50,28 +51,28 @@
                             else
                             {
                                 <MudListItem>
-                                    <MudImage ObjectPosition="ObjectPosition.Center"
-                                              loading="lazy"
-                                            Fluid
-                                              Src="@message.Sender.ProfilePictureUrl"
-                                              Alt="Avatar" />
-                                    <MudChip>@message.Text</MudChip>
+                                    <MudChip Class="pl-0">
+                                        <MudAvatar Size="Size.Medium" Class="mr-2">
+                                            <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                                        </MudAvatar>
+                                        @message.Text
+                                    </MudChip>
                                 </MudListItem>
                             }
                         }
                     </MudList>
-                </MudLoading>
-                <MudTextField @bind-Value="_userText"
-                                FullWidth
-                                Immediate
-                              Adornment="Adornment.End"
-                              TextUpdateSuppression="false"
-                              OnKeyDown="SendMessageOnEnter"
-                              AdornmentIcon="@Icons.Material.Filled.Send"
-                              AdornmentColor="Color.Primary"
-                              OnAdornmentClick="SendMessage" />
-            }
-        </MudItem>
+                    <MudTextField @bind-Value="_userText"
+                                    FullWidth
+                                    Immediate
+                                  Adornment="Adornment.End"
+                                  TextUpdateSuppression="false"
+                                  OnKeyDown="SendMessageOnEnter"
+                                  AdornmentIcon="@Icons.Material.Filled.Send"
+                                  AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
+                                  OnAdornmentClick="SendMessage" />
+                }
+            </MudItem>
+        </MudLoading>
     </MudGrid>
 
 </MudLoading>
@@ -81,11 +82,14 @@
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
 
+    private string _activeChatClass = "chat-selector active";
+    private string _inactiveChatClass = "chat-selector";
+
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
     private bool _isLoadingMessages;
 
-    public string? GetChatImage(ChatDto chat)
+    public string GetChatImage(ChatDto chat)
     {
         if (chat.Recipients.Count > 1)
         {
@@ -128,8 +132,33 @@
         _isLoading = false;
     }
 
+    private async Task SelectChat(ChatDto chat)
+    {
+        _isLoadingMessages = true;
 
-    private void SelectChat(ChatDto chat) => _activeChat = chat;
+        _activeChat = chat;
+
+        if (chat.Messages.Count is 0 && _isActiveChatPublished)
+        {
+            var response = await ChatClient.GetChatMessages(chat.Id);
+            switch (response.StatusCode)
+            {
+                case var _ when response.IsSuccessStatusCode:
+                    chat.Messages.AddRange(response.Content!);
+                    break;
+
+                case HttpStatusCode.TooManyRequests:
+                    Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
+                    break;
+
+                default:
+                    Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+                    break;
+            }
+        }
+
+        _isLoadingMessages = false;
+    }
 
     private void BackToList() => _activeChat = null;
 
@@ -143,25 +172,25 @@
         }
 
         var message = new ChatMessageDto
-        {
-            ChatId = _activeChat.Id,
-            Id = NewId.NextGuid(),
-            SentUtc = DateTime.UtcNow,
-            Sender = _currentUserSlim,
-            Text = _userText
-        };
+            {
+                ChatId = _activeChat.Id,
+                Id = NewId.NextGuid(),
+                SentUtc = DateTime.UtcNow,
+                Sender = _currentUserSlim,
+                Text = _userText
+            };
 
-        if (_isActiveChatPublished is false)
-        {
-            _activeChat.Messages.Add(message);
-            await ChatClient.StartChat(_activeChat);
-        }
-
-        await ChatClient.SendMessage(message);
         _activeChat.Messages.Add(message);
-
         _userText = string.Empty;
 
+        if (_isActiveChatPublished)
+        {
+            await ChatClient.SendMessage(message);
+        }
+        else
+        {
+            await ChatClient.StartChat(_activeChat);
+        }
     }
 
     private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
@@ -174,8 +203,24 @@
 
     private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == _currentUser!.Id;
 
-    private void StartNewChat(IEnumerable<UserSlim> users)
+    private async Task StartNewChat(IEnumerable<UserSlim> users)
     {
+        if (users.Count() == 1)
+        {
+            var userIdsToFind = new[] { users.First().Id, _currentUser!.Id };
+            var existingChat = _chats.FirstOrDefault(chat => chat.Recipients.Count == 2 &&
+                                                             userIdsToFind.All(id => chat.Recipients.Any(recipient => recipient.Id == id)));
+            if (existingChat is not null)
+            {
+                await SelectChat(existingChat);
+
+                StateHasChanged();
+
+                return;
+            }
+        }
+
+        // TODO: Check the backend if the chat already exists, return it and mark it as active
         var newChat = new ChatDto
             {
                 Id = NewId.NextGuid(),
@@ -194,13 +239,12 @@
                 });
         }
 
-        _chats.Add(newChat);
-
-        SelectChat(newChat);
+        _chats.Insert(0, newChat);
 
         _isActiveChatPublished = false;
 
+        await SelectChat(newChat);
+
         StateHasChanged();
     }
-
 }

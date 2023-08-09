@@ -8,8 +8,8 @@ public interface IChatClient
     [Get("/api/chat/{userId}")]
     Task<IApiResponse<List<ChatDto>>> GetChats(string userId, int skip = 0, int take = 15);
 
-    [Get($"/api/chat/{MessagingConstants.GetChatMessages}")]
-    Task<IApiResponse<List<ChatMessageDto>>> GetChat(Guid chatId, int skip = 0, int take = 15);
+    [Get($"/api/chat/{MessagingConstants.GetChatMessages}/{{chatId}}")]
+    Task<IApiResponse<List<ChatMessageDto>>> GetChatMessages(Guid chatId, int skip = 0, int take = 15);
 
     [Post($"/api/chat/{MessagingConstants.StartChat}")]
     Task<IApiResponse> StartChat([Body] ChatDto chat);

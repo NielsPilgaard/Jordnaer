@@ -9,14 +9,11 @@ namespace Jordnaer.Server.Features.UserSearch;
 public interface IUserSearchService
 {
     Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken);
-    Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken);
+    Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken);
 }
 
 public class UserSearchService : IUserSearchService
 {
-    private static readonly List<string> _emptyStringList = new();
-    private static readonly List<ChildDto> _emptyChildDtoList = new();
-
     private readonly ILogger<UserSearchService> _logger;
     private readonly JordnaerDbContext _context;
     private readonly IDataForsyningenClient _dataForsyningenClient;
@@ -34,19 +31,20 @@ public class UserSearchService : IUserSearchService
         _options = options.Value;
     }
 
-    public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken)
+    public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken)
     {
         var users = ApplyNameFilter(searchString, _context.UserProfiles);
 
         var firstTenUsers = await users
-           .OrderBy(user => searchString.StartsWith(searchString))
-           .Take(11)
-           .Select(user => new UserSlim
-           {
-               ProfilePictureUrl = user.ProfilePictureUrl,
-               DisplayName = $"{user.FirstName} {user.LastName}",
-               Id = user.Id
-           })
+            .Where(user => user.Id != omitById)
+            .OrderBy(user => searchString.StartsWith(searchString))
+            .Take(11)
+            .Select(user => new UserSlim
+            {
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                DisplayName = $"{user.FirstName} {user.LastName}",
+                Id = user.Id
+            })
            .AsNoTracking()
            .ToListAsync(cancellationToken);
 

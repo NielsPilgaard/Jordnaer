@@ -41,18 +41,13 @@ public static class ChatApi
                     .Skip(skip)
                     .Take(take)
                     .Include(chat => chat.Recipients)
-                    .Include(chat => chat.Messages
-                        .OrderByDescending(chatMessage => chatMessage.SentUtc)
-                        .Take(1))
-                    .ThenInclude(chatMessage => chatMessage.Sender)
                     .Select(chat => new ChatDto
                     {
                         DisplayName = chat.DisplayName,
                         Id = chat.Id,
                         LastMessageSentUtc = chat.LastMessageSentUtc,
                         StartedUtc = chat.StartedUtc,
-                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
-                        Messages = chat.Messages.Select(chatMessage => chatMessage.ToChatMessageDto()).ToList()
+                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList()
                     })
                     .AsSingleQuery()
                     .ToListAsync(cancellationToken);
@@ -86,7 +81,8 @@ public static class ChatApi
                     return chat is null;
                 }
 
-                var chatMessages = await context.ChatMessages.AsNoTracking()
+                var chatMessages = await context.ChatMessages
+                    .AsNoTracking()
                     .Where(message => message.ChatId == chatId)
                     .OrderByDescending(message => message.SentUtc)
                     .Skip(skip)
@@ -99,17 +95,17 @@ public static class ChatApi
                     }))
                     .ToListAsync(cancellationToken);
 
-
                 return TypedResults.Ok(chatMessages);
             });
-        group.MapPost(MessagingConstants.StartChat, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
+        group.MapPost(MessagingConstants.StartChat,
+            async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
             [FromBody] ChatDto chat,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
             [FromServices] ISendEndpointProvider sendEndpointProvider,
             CancellationToken cancellationToken) =>
         {
-            if (await context.Chats.AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken))
+            if (await context.Chats.AsNoTracking().AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken))
             {
                 return TypedResults.BadRequest();
             }
