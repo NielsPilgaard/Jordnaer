@@ -15,7 +15,7 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
     <MudGrid>
-        <MudItem md="4" lg="4" xl="4" xxl="4">
+        <MudItem md="4" lg="4" xl="4" xxl="4" Style="overflow: auto; height: 100%">
             <MudList Clickable>
                 <MudListSubheader>
                     <UserAutoComplete SelectedUserChanged="StartNewChat" />
@@ -23,7 +23,7 @@
                 @foreach (var chat in _chats)
                 {
                     @*TODO: The active chat needs to have the active class assigned when selected from dropdown*@
-                    <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="@(chat == _activeChat ? _activeChatClass : _inactiveChatClass)">
+                    <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="@(chat.Id == _activeChat?.Id ? _activeChatClass : _inactiveChatClass)">
 
                         <MudAvatar Size="Size.Large" Class="mr-3">
                             <MudImage Src="@GetChatImage(chat)" loading="lazy" Alt="Avatar" />
@@ -31,12 +31,14 @@
                         <MudText>@chat.GetDisplayName(_currentUser.Id)</MudText>
 
                     </MudListItem>
+                    <MudDivider DividerType="DividerType.FullWidth"/>
+
                 }
             </MudList>
         </MudItem>
         <MudLoading @bind-Loading="_isLoadingMessages" Darken>
 
-            <MudItem md="8" lg="8" xl="8" xxl="8">
+            <MudItem md="8" lg="8" xl="8" xxl="8" Style="overflow: auto; height: 100%">
                 @if (_activeChat != null)
                 {
                     <MudList DisablePadding Dense>
@@ -45,13 +47,13 @@
                             @if (IsMessageFromSelf(message))
                             {
                                 <MudListItem Class="message-from-self">
-                                    <MudChip>@message.Text</MudChip>
+                                    <MudChip Style="max-width:30%">@message.Text</MudChip>
                                 </MudListItem>
                             }
                             else
                             {
                                 <MudListItem>
-                                    <MudChip Class="pl-0">
+                                    <MudChip Style="max-width:30%" Class="pl-0">
                                         <MudAvatar Size="Size.Medium" Class="mr-2">
                                             <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
                                         </MudAvatar>
