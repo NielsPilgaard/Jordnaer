@@ -4,6 +4,18 @@ namespace Jordnaer.Client;
 
 public static class ChatDtoExtensions
 {
+    public static string GetChatImage(this ChatDto chat, string currentUserId)
+    {
+        if (chat.Recipients.Count > 1)
+        {
+            return chat.Recipients
+                       .FirstOrDefault(recipient =>
+                           recipient.Id != currentUserId)?.ProfilePictureUrl
+                   ?? ProfileConstants.Default_Profile_Picture;
+        }
+
+        return chat.Recipients.FirstOrDefault()?.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture;
+    }
     public static string GetDisplayName(this ChatDto chat, string currentUserId)
     {
         if (chat.DisplayName is not null)

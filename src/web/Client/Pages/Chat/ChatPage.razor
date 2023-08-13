@@ -1,10 +1,11 @@
 @page "/chat"
 @attribute [Authorize]
 
-    <MudPaper Class="pa-4" Style="height: 600px;">
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudPaper Class="pa-6" Elevation="5">
 
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
-            <SmallChatComponent  />
+            <SmallChatComponent />
         </MudHidden>
 
         <MudHidden Invert Breakpoint="Breakpoint.MdAndUp">
@@ -12,4 +13,4 @@
         </MudHidden>
 
     </MudPaper>
-
+</MudContainer>

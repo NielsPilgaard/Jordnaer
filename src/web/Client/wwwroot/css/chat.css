@@ -1,9 +1,43 @@
 .mud-list-item.message-from-self .mud-list-item-text {
-    display: flex;
     justify-content: end;
+    display: flex;
+}
+
+.mud-list-item .mud-list-item-text {
+    width: 100%;
 }
 
 .mud-list-item.chat-selector .mud-typography {
     display: flex;
     align-items: center;
+}
+
+.chat-chip {
+    display: inline-block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    height: 100% !important;
+}
+
+.mud-chip-content {
+    word-break: break-word;
+    display: flex !important;
+}
+
+.chat-message-window {
+    overflow: auto;
+    height: 100%;
+}
+
+.chat-selector-window {
+    overflow: auto;
+    height: 100%;
+}
+
+.chat-message-list {
+    overflow-anchor: none;
+}
+
+.chat-message-input {
+    overflow-anchor: auto;
 }
