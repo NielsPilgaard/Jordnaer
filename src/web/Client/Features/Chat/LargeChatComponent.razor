@@ -6,6 +6,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
+@inject IScrollManager ScrollManager
 @attribute [Authorize]
 
 @if (_currentUser is null)
@@ -136,7 +137,8 @@
         _isLoading = false;
     }
 
-    private async Task LoadMessages()
+    [JSInvokable(nameof(LoadMessages))]
+    public async Task LoadMessages()
     {
         _isLoadingMessages = true;
 
@@ -269,12 +271,8 @@
         {
             return;
         }
-        
-        var isAtTopOfChat = await JsRuntime.InvokeAsync<bool>("scrollFunctions.isChatContainerAtTheTop");
-        if (isAtTopOfChat)
-        {
-            await LoadMessages();
-        }
+        DotNetObjectReference.Create(this);
+        await JsRuntime.InvokeVoidAsync("scrollFunctions.handleChatScrolling");
     }
 
 }
