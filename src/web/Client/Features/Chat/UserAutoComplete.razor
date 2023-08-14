@@ -2,25 +2,26 @@
 @inject ISnackbar Snackbar
 
 <MudAutocomplete T="UserSlim"
-                 @ref="_autocomplete"
+@ref="_autocomplete"
                  Label="Søg efter bruger"
                  SearchFuncWithCancel="@SearchForUsers"
                  ShowProgressIndicator
                  OpenIcon="@string.Empty"
-                 DebounceInterval="1000"
+                 DebounceInterval="750"
                  Clearable
+                 SelectValueOnTab
                  AdornmentIcon="@Icons.Material.Filled.Search"
                  MaxItems="10"
-                 SelectOnClick
+                 ValueChanged="SelectedValueChanged"
                  MinCharacters="2">
-                 
+
     <ItemTemplate Context="user">
-        <MudListItem OnClick="@(async () => await UserSelected(user))" Dense="true" Class="chat-selector">
-            
+        <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector">
+
             <MudAvatar Size="Size.Large" Class="mr-3">
-                <MudImage Src="@user.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                <MudImage Src="@user?.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
             </MudAvatar>
-            <MudText>@user.DisplayName</MudText>
+            <MudText>@user?.DisplayName</MudText>
 
         </MudListItem>
     </ItemTemplate>
@@ -41,7 +42,6 @@
 
 
 @code {
-
     [Parameter]
     public EventCallback<IEnumerable<UserSlim>> SelectedUserChanged { get; set; }
 
@@ -51,7 +51,7 @@
     {
         if (string.IsNullOrWhiteSpace(searchString))
         {
-            return Array.Empty<UserSlim>();
+            return Enumerable.Empty<UserSlim>();
         }
 
         var response = await UserSearchClient.GetUsersWithAutoComplete(searchString, cancellationToken);
@@ -70,10 +70,15 @@
         }
     }
 
-    // TODO: run this on Enter as well
     private async Task UserSelected(UserSlim user)
     {
         await _autocomplete.ToggleMenu();
         await SelectedUserChanged.InvokeAsync(new[] { user });
     }
+
+    private async Task SelectedValueChanged(UserSlim user)
+    {
+        await UserSelected(user);
+    }
+
 }
