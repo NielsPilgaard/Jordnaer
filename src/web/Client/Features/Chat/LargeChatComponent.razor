@@ -8,7 +8,6 @@
 @inject IJSRuntime JsRuntime
 @inject IScrollManager ScrollManager
 @attribute [Authorize]
-
 @if (_currentUser is null)
 {
     return;
@@ -47,31 +46,28 @@
             @if (_activeChat != null)
             {
                 <MudList Class="chat-message-list" DisablePadding Dense>
-                <MudLoading @bind-Loading="_isLoadingMessages" Darken>
 
-                    @foreach (var message in _activeChat.Messages)
+                @foreach (var message in _activeChat.Messages)
+                    {
+                        @if (IsMessageFromSelf(message))
                         {
-                            @if (IsMessageFromSelf(message))
-                            {
-                                <MudListItem Class="message-from-self">
-                                    <MudChip Text="@message.Text"
-                                             Class="chat-chip px-2 py-1" />
-                                </MudListItem>
-                            }
-                            else
-                            {
-                                <MudListItem>
-                                    <MudChip Class="pl-0 pb-0 chat-chip">
-                                        <MudAvatar Size="Size.Medium" Class="mr-2">
-                                            <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
-                                        </MudAvatar>
-                                        @message.Text
-                                    </MudChip>
-                                </MudListItem>
-                            }
+                            <MudListItem Class="message-from-self">
+                                <MudChip Text="@message.Text"
+                                         Class="chat-chip px-2 py-1" />
+                            </MudListItem>
                         }
-                        <div class="anchor"></div>
-                    </MudLoading>
+                        else
+                        {
+                            <MudListItem>
+                                <MudChip Class="pl-0 pb-0 chat-chip">
+                                    <MudAvatar Size="Size.Medium" Class="mr-2">
+                                        <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                                    </MudAvatar>
+                                    @message.Text
+                                </MudChip>
+                            </MudListItem>
+                        }
+                    }
 
                 </MudList>
                 <MudTextField @bind-Value="_userText"
@@ -103,7 +99,6 @@
     private bool _enableScrollListener = false;
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
-    private bool _isLoadingMessages;
 
     private ElementReference _chatContainer;
 
@@ -137,15 +132,11 @@
         _isLoading = false;
     }
 
-    [JSInvokable(nameof(LoadMessages))]
     public async Task LoadMessages()
     {
-        _isLoadingMessages = true;
-
         if (_activeChat is null)
         {
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-            _isLoadingMessages = false;
             return;
         }
 
@@ -164,8 +155,6 @@
                 Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
                 break;
         }
-
-        _isLoadingMessages = false;
     }
 
     private async Task SelectChat(ChatDto chat)
@@ -178,7 +167,7 @@
         }
 
         await JsRuntime.InvokeVoidAsync("scrollFunctions.scrollToTheBottomOfChat");
-        
+
         _enableScrollListener = true;
     }
 
@@ -271,8 +260,11 @@
         {
             return;
         }
-        DotNetObjectReference.Create(this);
-        await JsRuntime.InvokeVoidAsync("scrollFunctions.handleChatScrolling");
-    }
 
+        var isAtTheTop = await JsRuntime.InvokeAsync<bool>("scrollFunctions.isChatContainerAtTheTop");
+        if (isAtTheTop)
+        {
+            await LoadMessages();
+        }
+    }
 }

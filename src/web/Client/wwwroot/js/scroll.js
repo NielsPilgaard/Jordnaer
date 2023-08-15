@@ -22,21 +22,11 @@ window.scrollFunctions = {
             });
         }, 500);
     },
-    handleChatScrolling: function () {
+    isChatContainerAtTheTop: function () {
         const chatContainer = document.querySelector('.chat-message-window');
 
         if (!chatContainer) return;
 
-        if (chatContainer.scrollTop !== 0) return;
-
-        var oldScrollHeight = chatContainer.scrollHeight;
-        var oldScrollTop = chatContainer.scrollTop;
-
-        DotNet.invokeMethodAsync('Jordnaer.Client', 'LoadMessages');
-
-        var newScrollHeight = chatContainer.scrollHeight;
-        var heightDifference = newScrollHeight - oldScrollHeight;
-
-        chatContainer.scrollTop = oldScrollTop + heightDifference;
+        return chatContainer.scrollTop === 0;
     }
 };
