@@ -23,7 +23,13 @@
                 </MudListSubheader>
                 @foreach (var chat in _chats)
                 {
-                    @*TODO: The active chat needs to have the active class assigned when selected from dropdown*@
+                    @* TODO
+                - Fetch all messages now found in cache
+                - Fetch all chats not found in cache
+                - Virtualize chat (load at the top with scroll listener)
+                - Update selected chat classes
+                - Select active chat with url to enable chat links
+                    *@
                     <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="@(chat.Id == _activeChat?.Id ? _activeChatClass : _inactiveChatClass)">
 
                         <MudAvatar Size="Size.Large" Class="mr-3">
