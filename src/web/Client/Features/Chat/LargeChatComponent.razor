@@ -8,6 +8,7 @@
 @inject IJSRuntime JsRuntime
 @inject IScrollManager ScrollManager
 @attribute [Authorize]
+
 @if (_currentUser is null)
 {
     return;
@@ -27,10 +28,8 @@
                 - Fetch all messages now found in cache
                 - Fetch all chats not found in cache
                 - Virtualize chat (load at the top with scroll listener)
-                - Update selected chat classes
-                - Select active chat with url to enable chat links
                     *@
-                    <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="@(chat.Id == _activeChat?.Id ? _activeChatClass : _inactiveChatClass)">
+                    <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
 
                         <MudAvatar Size="Size.Large" Class="mr-3">
                             <MudImage Src="@chat.GetChatImage(_currentUser.Id)" loading="lazy" Alt="Avatar" />
@@ -97,9 +96,7 @@
     private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
-
-    private string _activeChatClass = "chat-selector active";
-    private string _inactiveChatClass = "chat-selector";
+    
     private string _userText = string.Empty;
 
     private bool _enableScrollListener = false;
@@ -107,6 +104,10 @@
     private bool _isLoading = true;
 
     private ElementReference _chatContainer;
+
+    // TODO: Select currently displayed chat using this, when we update to dotnet 8
+    [SupplyParameterFromQuery]
+    public Guid? ChatId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
