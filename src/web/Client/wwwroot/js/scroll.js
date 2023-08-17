@@ -10,23 +10,10 @@ window.scrollFunctions = {
         }, 500);
     },
     scrollToTheBottomOfChat: function () {
-
-        setTimeout(function () {
-            const chatContainer = document.querySelector('.chat-message-window');
-
-            if (!chatContainer) return;
-
-            chatContainer.scrollTo({
-                top: chatContainer.scrollHeight,
-                behavior: 'smooth'
-            });
-        }, 500);
-    },
-    isChatContainerAtTheTop: function () {
         const chatContainer = document.querySelector('.chat-message-window');
 
         if (!chatContainer) return;
 
-        return chatContainer.scrollTop === 0;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 };

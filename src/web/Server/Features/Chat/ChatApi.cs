@@ -84,7 +84,8 @@ public static class ChatApi
                 var chatMessages = await context.ChatMessages
                     .AsNoTracking()
                     .Where(message => message.ChatId == chatId)
-                    .OrderByDescending(message => message.SentUtc)
+                    // Oldest messages first, so we get the right order in the chat
+                    .OrderBy(message => message.SentUtc)
                     .Skip(skip)
                     .Take(take)
                     .Select(message => message.ToChatMessageDto(new UserSlim

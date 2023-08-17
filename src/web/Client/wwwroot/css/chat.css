@@ -24,20 +24,7 @@
     display: flex !important;
 }
 
-.chat-message-window {
+.chat-message-window, .chat-selector-window {
     overflow: auto;
     height: 100%;
-}
-
-.chat-selector-window {
-    overflow: auto;
-    height: 100%;
-}
-
-.chat-message-list {
-    overflow-anchor: none;
-}
-
-.chat-message-input {
-    overflow-anchor: auto;
 }

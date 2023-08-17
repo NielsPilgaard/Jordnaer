@@ -1,6 +1,8 @@
 @using System.Globalization
+@using System.Linq.Expressions
 @using System.Security.Claims
 @using MassTransit
+@using Microsoft.VisualBasic.CompilerServices
 @inject IChatClient ChatClient
 @inject IProfileCache ProfileCache
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -28,7 +30,7 @@
                 - Fetch all messages now found in cache
                 - Fetch all chats not found in cache
                 - Virtualize chat (load at the top with scroll listener)
-                    *@
+                *@
                     <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
 
                         <MudAvatar Size="Size.Large" Class="mr-3">
@@ -47,14 +49,12 @@
             <MudDivider Vertical DividerType="DividerType.FullWidth" />
         </MudItem>
 
-        <MudItem Class="chat-message-window" md="8" lg="8" xl="8" xxl="8" @onscroll="HandleScroll">
+        <MudItem id="chat-message-window" Class="chat-message-window" md="8" lg="8" xl="8" xxl="8">
             @if (_activeChat != null)
             {
                 <MudList Class="chat-message-list" DisablePadding Dense>
-
-                @foreach (var message in _activeChat.Messages)
-                    {
-                        @if (IsMessageFromSelf(message))
+                <Virtualize Items="_activeChat.Messages" Context="message" OverscanCount="8" ItemSize="80">
+                    @if (IsMessageFromSelf(message))
                         {
                             <MudListItem Class="message-from-self">
                                 <MudChip Text="@message.Text"
@@ -72,21 +72,23 @@
                                 </MudChip>
                             </MudListItem>
                         }
-                    }
 
+                    </Virtualize>
+                    <MudTextField @bind-Value="_userText"
+                                  FullWidth
+                                  Immediate
+                                  AutoFocus
+                                  id="chat-message-input"
+                                  Class="chat-message-input"
+                                  Adornment="Adornment.End"
+                                  TextUpdateSuppression="false"
+                                  OnKeyDown="SendMessageOnEnter"
+                                  AdornmentIcon="@Icons.Material.Filled.Send"
+                                  AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
+                                  OnAdornmentClick="SendMessage" />
                 </MudList>
-                <MudTextField @bind-Value="_userText"
-                                FullWidth
-                                Immediate
-                                AutoFocus
-                              Class="chat-message-input"
-                              Adornment="Adornment.End"
-                              TextUpdateSuppression="false"
-                              OnKeyDown="SendMessageOnEnter"
-                              AdornmentIcon="@Icons.Material.Filled.Send"
-                              AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
-                              OnAdornmentClick="SendMessage" />
             }
+
         </MudItem>
     </MudGrid>
 
@@ -96,14 +98,12 @@
     private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
-    
+
     private string _userText = string.Empty;
 
-    private bool _enableScrollListener = false;
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
 
-    private ElementReference _chatContainer;
 
     // TODO: Select currently displayed chat using this, when we update to dotnet 8
     [SupplyParameterFromQuery]
@@ -147,11 +147,13 @@
             return;
         }
 
-        var response = await ChatClient.GetChatMessages(_activeChat.Id, _activeChat.Messages.Count);
+        var response = await ChatClient.GetChatMessages(_activeChat.Id, _activeChat.Messages.Count, int.MaxValue);
         switch (response.StatusCode)
         {
             case var _ when response.IsSuccessStatusCode:
-                _activeChat.Messages.InsertRange(0, response.Content!);
+                _activeChat.Messages.AddRange(response.Content!);
+                StateHasChanged();
+                await ScrollToBottom();
                 break;
 
             case HttpStatusCode.TooManyRequests:
@@ -166,17 +168,14 @@
 
     private async Task SelectChat(ChatDto chat)
     {
-        _enableScrollListener = false;
         _activeChat = chat;
-        if (_activeChat.Messages.Count is 0 && _isActiveChatPublished)
+        if (_isActiveChatPublished)
         {
             await LoadMessages();
         }
-
-        await JsRuntime.InvokeVoidAsync("scrollFunctions.scrollToTheBottomOfChat");
-
-        _enableScrollListener = true;
     }
+
+    private async Task ScrollToBottom() => await JsRuntime.InvokeVoidAsync("scrollFunctions.scrollToTheBottomOfChat");
 
     private void BackToList() => _activeChat = null;
 
@@ -209,6 +208,8 @@
             // TODO: Error handling
             await ChatClient.StartChat(_activeChat);
         }
+
+        await ScrollToBottom();
     }
 
     private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
@@ -259,19 +260,5 @@
         _isActiveChatPublished = false;
 
         await SelectChat(newChat);
-    }
-
-    private async Task HandleScroll()
-    {
-        if (!_enableScrollListener)
-        {
-            return;
-        }
-
-        var isAtTheTop = await JsRuntime.InvokeAsync<bool>("scrollFunctions.isChatContainerAtTheTop");
-        if (isAtTheTop)
-        {
-            await LoadMessages();
-        }
     }
 }
