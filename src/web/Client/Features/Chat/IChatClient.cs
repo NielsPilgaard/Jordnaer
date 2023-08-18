@@ -9,7 +9,7 @@ public interface IChatClient
     Task<IApiResponse<List<ChatDto>>> GetChats(string userId, int skip = 0, int take = int.MaxValue);
 
     [Get($"/api/chat/{MessagingConstants.GetChatMessages}/{{chatId}}")]
-    Task<IApiResponse<List<ChatMessageDto>>> GetChatMessages(Guid chatId, int skip = 0, int take = 15);
+    Task<IApiResponse<List<ChatMessageDto>>> GetChatMessages(Guid chatId, int skip = 0, int take = int.MaxValue);
 
     [Post($"/api/chat/{MessagingConstants.StartChat}")]
     Task<IApiResponse> StartChat([Body] ChatDto chat);

@@ -1,14 +1,7 @@
-@using System.Globalization
-@using System.Linq.Expressions
-@using System.Security.Claims
-@using MassTransit
-@using Microsoft.VisualBasic.CompilerServices
-@inject IChatClient ChatClient
+@inject IChatService ChatService
 @inject IProfileCache ProfileCache
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
-@inject IScrollManager ScrollManager
 @attribute [Authorize]
 
 @if (_currentUser is null)
@@ -26,11 +19,6 @@
                 </MudListSubheader>
                 @foreach (var chat in _chats)
                 {
-                    @* TODO
-                - Fetch all messages now found in cache
-                - Fetch all chats not found in cache
-                - Virtualize chat (load at the top with scroll listener)
-                *@
                     <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
 
                         <MudAvatar Size="Size.Large" Class="mr-3">
@@ -104,7 +92,6 @@
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
 
-
     // TODO: Select currently displayed chat using this, when we update to dotnet 8
     [SupplyParameterFromQuery]
     public Guid? ChatId { get; set; }
@@ -120,21 +107,7 @@
 
         _currentUserSlim = _currentUser.ToUserSlim();
 
-        var response = await ChatClient.GetChats(_currentUser.Id);
-        switch (response.StatusCode)
-        {
-            case var _ when response.IsSuccessStatusCode:
-                _chats = response.Content!;
-                break;
-
-            case HttpStatusCode.TooManyRequests:
-                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                break;
-
-            default:
-                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                break;
-        }
+        _chats = await ChatService.GetChats(_currentUser.Id);
 
         _isLoading = false;
     }
@@ -147,23 +120,11 @@
             return;
         }
 
-        var response = await ChatClient.GetChatMessages(_activeChat.Id, _activeChat.Messages.Count, int.MaxValue);
-        switch (response.StatusCode)
-        {
-            case var _ when response.IsSuccessStatusCode:
-                _activeChat.Messages.AddRange(response.Content!);
-                StateHasChanged();
-                await ScrollToBottom();
-                break;
+        _activeChat.Messages = await ChatService.GetChatMessages(_activeChat.Id);
 
-            case HttpStatusCode.TooManyRequests:
-                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                break;
+        StateHasChanged();
 
-            default:
-                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                break;
-        }
+        await ScrollToBottom();
     }
 
     private async Task SelectChat(ChatDto chat)
@@ -172,6 +133,8 @@
         if (_isActiveChatPublished)
         {
             await LoadMessages();
+            // We call this twice to ensure we're at the very bottom. Silly but easy
+            await ScrollToBottom();
         }
     }
 
@@ -200,13 +163,12 @@
 
         if (_isActiveChatPublished)
         {
-            // TODO: Error handling
-            await ChatClient.SendMessage(message);
+            await ChatService.SendMessage(message);
         }
         else
         {
-            // TODO: Error handling
-            await ChatClient.StartChat(_activeChat);
+            await ChatService.StartChat(_activeChat);
+            _isActiveChatPublished = true;
         }
 
         await ScrollToBottom();

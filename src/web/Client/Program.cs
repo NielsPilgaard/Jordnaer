@@ -65,6 +65,8 @@ builder.Services.AddDataForsyningenClient();
 builder.Services.Configure<DataForsyningenOptions>(
     builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
 
+builder.Services.AddScoped<IChatService, ChatService>();
+
 var host = builder.Build();
 
 await host.RunAsync();
