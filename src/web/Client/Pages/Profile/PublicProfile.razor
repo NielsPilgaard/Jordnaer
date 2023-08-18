@@ -14,11 +14,17 @@
     {
         return;
     }
+
     <MetadataComponent Title="@($"{UserName}'s profil")"
                        Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
                        Image="@_profile?.ProfilePictureUrl" />
 
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
+
+    @*
+        TODO: This button should open a popup that starts a chat with the person when the message is sent
+    *@
+    <MudButton EndIcon="@Icons.Material.Filled.Message">Send Besked</MudButton>
 
     <MudPaper Elevation="1" Class="pa-4">
         <MudGrid>
@@ -77,7 +83,6 @@
                 _profile = response.Content;
                 break;
             case HttpStatusCode.NotFound:
-                _profile = null;
                 break;
             case HttpStatusCode.TooManyRequests:
                 Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
