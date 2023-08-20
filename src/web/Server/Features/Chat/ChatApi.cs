@@ -133,7 +133,6 @@ public static class ChatApi
                 {
                     context.UnreadMessages.Add(new UnreadMessage
                     {
-                        SenderId = message.Sender.Id,
                         RecipientId = recipient.Id,
                         ChatId = chat.Id,
                         MessageSentUtc = message.SentUtc
@@ -194,7 +193,6 @@ public static class ChatApi
             context.UnreadMessages.AddRange(recipientIds.Select(recipientId => new UnreadMessage
             {
                 RecipientId = recipientId,
-                SenderId = chatMessage.Sender.Id,
                 ChatId = chatMessage.ChatId,
                 MessageSentUtc = chatMessage.SentUtc
             }));
