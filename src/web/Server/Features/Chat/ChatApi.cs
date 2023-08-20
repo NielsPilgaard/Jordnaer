@@ -47,7 +47,9 @@ public static class ChatApi
                         Id = chat.Id,
                         LastMessageSentUtc = chat.LastMessageSentUtc,
                         StartedUtc = chat.StartedUtc,
-                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList()
+                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
+                        IsUnread = context.UnreadMessages.Any(unreadMessage => unreadMessage.ChatId == chat.Id &&
+                                                                               unreadMessage.RecipientId == userId)
                     })
                     .AsSingleQuery()
                     .ToListAsync(cancellationToken);
@@ -92,6 +94,7 @@ public static class ChatApi
                     {
                         DisplayName = $"{message.Sender.FirstName} {message.Sender.LastName}",
                         Id = message.SenderId,
+                        // TODO: only 1 url should be sent per unique chat participant
                         ProfilePictureUrl = message.Sender.ProfilePictureUrl
                     }))
                     .ToListAsync(cancellationToken);
@@ -100,10 +103,10 @@ public static class ChatApi
             });
         group.MapPost(MessagingConstants.StartChat,
             async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
-            [FromBody] ChatDto chat,
+            [FromBody] StartChat chat,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
-            [FromServices] ISendEndpointProvider sendEndpointProvider,
+            [FromServices] IPublishEndpoint publishEndpoint,
             CancellationToken cancellationToken) =>
         {
             if (await context.Chats.AsNoTracking().AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken))
@@ -124,6 +127,21 @@ public static class ChatApi
                 Messages = chat.Messages.Select(message => message.ToChatMessage(chat.Id)).ToList()
             });
 
+            // Every recipient 
+            foreach (var message in chat.Messages)
+            {
+                foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))
+                {
+                    context.UnreadMessages.Add(new UnreadMessage
+                    {
+                        SenderId = message.Sender.Id,
+                        RecipientId = recipient.Id,
+                        ChatId = chat.Id,
+                        MessageSentUtc = message.SentUtc
+                    });
+                }
+            }
+
             context.UserChats.AddRange(chat.Recipients.Select(recipient =>
                 new UserChat
                 {
@@ -134,18 +152,16 @@ public static class ChatApi
             await context.SaveChangesAsync(cancellationToken);
 
             // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-            var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
-                new Uri($"queue:{MessagingConstants.StartChat}"));
-            await publishEndpoint.Send(chat, cancellationToken);
+            await publishEndpoint.Publish(chat, cancellationToken);
 
             return TypedResults.NoContent();
         });
 
         group.MapPost(MessagingConstants.SendMessage, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
-            [FromBody] ChatMessageDto chatMessage,
+            [FromBody] SendMessage chatMessage,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
-            [FromServices] ISendEndpointProvider sendEndpointProvider,
+            [FromServices] IPublishEndpoint publishEndpoint,
             CancellationToken cancellationToken) =>
         {
             if (await context.ChatMessages.AnyAsync(message => message.Id == chatMessage.Id, cancellationToken))
@@ -168,9 +184,21 @@ public static class ChatApi
                     SenderId = chatMessage.Sender.Id,
                     Text = chatMessage.Text,
                     AttachmentUrl = chatMessage.AttachmentUrl,
-                    IsDeleted = chatMessage.IsDeleted,
                     SentUtc = chatMessage.SentUtc
                 });
+
+            var recipientIds = await context.UserChats
+                .Where(userChat => userChat.ChatId == chatMessage.ChatId)
+                .Select(userChat => userChat.UserProfileId)
+                .ToListAsync(cancellationToken);
+
+            context.UnreadMessages.AddRange(recipientIds.Select(recipientId => new UnreadMessage
+            {
+                RecipientId = recipientId,
+                SenderId = chatMessage.Sender.Id,
+                ChatId = chatMessage.ChatId,
+                MessageSentUtc = chatMessage.SentUtc
+            }));
 
             await context.Chats
                 .ExecuteUpdateAsync(call =>
@@ -180,38 +208,27 @@ public static class ChatApi
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-
             // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-            var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
-                new Uri($"queue:{MessagingConstants.SendMessage}"));
-            await publishEndpoint.Send(chatMessage, cancellationToken);
+            await publishEndpoint.Publish(chatMessage, cancellationToken);
 
             return TypedResults.NoContent();
         });
 
-        group.MapPut(MessagingConstants.SetChatName, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
-            [FromBody] ChatMessageDto chatMessage,
+        group.MapPut(MessagingConstants.SetChatName, async Task<Results<NoContent, NotFound>> (
+            [FromBody] SetChatName setChatName,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
-            [FromServices] ISendEndpointProvider sendEndpointProvider,
+            [FromServices] IPublishEndpoint publishEndpoint,
             CancellationToken cancellationToken) =>
         {
-
-            if (await context.ChatMessages.AnyAsync(message => message.Id == chatMessage.Id, cancellationToken))
+            if (!await context.Chats.AnyAsync(chat => chat.Id == setChatName.ChatId, cancellationToken))
             {
-                return TypedResults.BadRequest();
-            }
-
-            if (chatMessage.Sender.Id != currentUser.Id)
-            {
-                return TypedResults.Unauthorized();
+                return TypedResults.NotFound();
             }
 
             // TODO: Actually set chat name
             // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-            var publishEndpoint = await sendEndpointProvider.GetSendEndpoint(
-                new Uri($"queue:{MessagingConstants.SetChatName}"));
-            await publishEndpoint.Send(chatMessage, cancellationToken);
+            await publishEndpoint.Publish(setChatName, cancellationToken);
 
             return TypedResults.NoContent();
         });
