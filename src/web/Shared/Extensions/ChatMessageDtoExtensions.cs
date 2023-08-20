@@ -9,7 +9,6 @@ public static class ChatMessageDtoExtensions
         SenderId = message.Sender.Id,
         Text = message.Text,
         AttachmentUrl = message.AttachmentUrl,
-        IsDeleted = message.IsDeleted,
         SentUtc = message.SentUtc
     };
 }

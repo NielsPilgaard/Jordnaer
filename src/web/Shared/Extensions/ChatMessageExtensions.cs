@@ -10,8 +10,7 @@ public static class ChatMessageExtensions
             AttachmentUrl = chatMessage.AttachmentUrl,
             Sender = chatMessage.Sender.ToUserSlim(),
             Text = chatMessage.Text,
-            SentUtc = chatMessage.SentUtc,
-            IsDeleted = chatMessage.IsDeleted
+            SentUtc = chatMessage.SentUtc
         };
 
     public static ChatMessageDto ToChatMessageDto(this ChatMessage chatMessage, UserSlim sender) =>
@@ -22,7 +21,6 @@ public static class ChatMessageExtensions
             AttachmentUrl = chatMessage.AttachmentUrl,
             Sender = sender,
             Text = chatMessage.Text,
-            SentUtc = chatMessage.SentUtc,
-            IsDeleted = chatMessage.IsDeleted
+            SentUtc = chatMessage.SentUtc
         };
 }
