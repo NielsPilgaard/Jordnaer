@@ -103,7 +103,8 @@ namespace Jordnaer.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LastMessageSentUtc");
+                    b.HasIndex("LastMessageSentUtc")
+                        .IsDescending();
 
                     b.ToTable("Chats");
                 });
@@ -118,9 +119,6 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<Guid>("ChatId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("SenderId")
                         .IsRequired()
@@ -138,6 +136,9 @@ namespace Jordnaer.Server.Migrations
                     b.HasIndex("ChatId");
 
                     b.HasIndex("SenderId");
+
+                    b.HasIndex("SentUtc")
+                        .IsDescending();
 
                     b.ToTable("ChatMessages");
                 });
@@ -215,6 +216,29 @@ namespace Jordnaer.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("LookingFor");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.UnreadMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("MessageSentUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UnreadMessages");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.UserChat", b =>
@@ -463,7 +487,7 @@ namespace Jordnaer.Server.Migrations
 
             modelBuilder.Entity("Jordnaer.Shared.ChatMessage", b =>
                 {
-                    b.HasOne("Jordnaer.Shared.Chat", "Chat")
+                    b.HasOne("Jordnaer.Shared.Chat", null)
                         .WithMany("Messages")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -474,8 +498,6 @@ namespace Jordnaer.Server.Migrations
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Chat");
 
                     b.Navigation("Sender");
                 });
