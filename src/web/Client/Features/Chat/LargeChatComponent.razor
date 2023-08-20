@@ -24,7 +24,16 @@
                         <MudAvatar Size="Size.Large" Class="mr-3">
                             <MudImage Src="@chat.GetChatImage(_currentUser.Id)" loading="lazy" Alt="Avatar" />
                         </MudAvatar>
-                        <MudText>@chat.GetDisplayName(_currentUser.Id)</MudText>
+                        <MudText>
+                            @if (chat.HasUnreadMessages)
+                            {
+                                <b>@chat.GetDisplayName(_currentUser.Id) (@chat.UnreadMessageCount}</b>
+                            }
+                            else
+                            {
+                                @chat.GetDisplayName(_currentUser.Id)
+                            }
+                        </MudText>
 
                     </MudListItem>
                     <MudDivider DividerType="DividerType.FullWidth" />
@@ -63,9 +72,9 @@
 
                     </Virtualize>
                     <MudTextField @bind-Value="_userText"
-                                  FullWidth
-                                  Immediate
-                                  AutoFocus
+                                    FullWidth
+                                    Immediate
+                                    AutoFocus
                                   id="chat-message-input"
                                   Class="chat-message-input"
                                   Adornment="Adornment.End"
@@ -95,6 +104,8 @@
     // TODO: Select currently displayed chat using this, when we update to dotnet 8
     [SupplyParameterFromQuery]
     public Guid? ChatId { get; set; }
+
+    // TODO: Implement logic for marking messages as read, make sure to update the local cache
 
     protected override async Task OnInitializedAsync()
     {

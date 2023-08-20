@@ -48,10 +48,12 @@ public class ChatService : IChatService
         var newChats = HandleApiResponse(await _chatClient.GetChats(userId, cachedChats?.Count ?? 0));
         if (cachedChats is null)
         {
-            return newChats;
+            return newChats.OrderByDescending(chat => chat.HasUnreadMessages).ToList();
         }
 
         cachedChats.AddRange(newChats);
+
+        cachedChats = cachedChats.OrderByDescending(chat => chat.HasUnreadMessages).ToList();
 
         return cachedChats;
     }

@@ -12,11 +12,13 @@ public class ChatDto
     /// </summary>
     public string? DisplayName { get; init; }
 
-    public bool IsUnread { get; init; } = false;
+    public int UnreadMessageCount { get; init; }
 
     public List<ChatMessageDto> Messages { get; set; } = new();
     public List<UserSlim> Recipients { get; init; } = new();
 
     public DateTime LastMessageSentUtc { get; init; }
     public DateTime StartedUtc { get; init; } = DateTime.UtcNow;
+
+    public bool HasUnreadMessages => UnreadMessageCount > 0;
 }

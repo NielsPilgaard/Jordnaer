@@ -48,8 +48,10 @@ public static class ChatApi
                         LastMessageSentUtc = chat.LastMessageSentUtc,
                         StartedUtc = chat.StartedUtc,
                         Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
-                        IsUnread = context.UnreadMessages.Any(unreadMessage => unreadMessage.ChatId == chat.Id &&
-                                                                               unreadMessage.RecipientId == userId)
+                        UnreadMessageCount = context.UnreadMessages
+                            .Count(unreadMessage =>
+                                unreadMessage.ChatId == chat.Id &&
+                                unreadMessage.RecipientId == userId)
                     })
                     .AsSingleQuery()
                     .ToListAsync(cancellationToken);
