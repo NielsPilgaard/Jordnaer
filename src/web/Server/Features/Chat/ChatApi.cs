@@ -127,7 +127,6 @@ public static class ChatApi
                 Messages = chat.Messages.Select(message => message.ToChatMessage(chat.Id)).ToList()
             });
 
-            // Every recipient 
             foreach (var message in chat.Messages)
             {
                 foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))

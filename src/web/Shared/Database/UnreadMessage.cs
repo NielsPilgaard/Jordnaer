@@ -13,9 +13,6 @@ public class UnreadMessage
     public Guid ChatId { get; init; }
 
     [ForeignKey(nameof(UserProfile))]
-    public required string SenderId { get; init; }
-
-    [ForeignKey(nameof(UserProfile))]
     public required string RecipientId { get; init; }
 
     public DateTime MessageSentUtc { get; init; }
