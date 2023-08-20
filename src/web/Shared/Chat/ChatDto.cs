@@ -12,6 +12,8 @@ public class ChatDto
     /// </summary>
     public string? DisplayName { get; init; }
 
+    public bool IsUnread { get; init; } = false;
+
     public List<ChatMessageDto> Messages { get; set; } = new();
     public List<UserSlim> Recipients { get; init; } = new();
 
