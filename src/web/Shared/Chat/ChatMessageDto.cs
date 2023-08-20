@@ -10,8 +10,6 @@ public class ChatMessageDto
 
     public required string Text { get; init; }
 
-    public bool IsDeleted { get; init; } = false;
-
     public DateTime SentUtc { get; init; } = DateTime.UtcNow;
 
     public string? AttachmentUrl { get; init; }
