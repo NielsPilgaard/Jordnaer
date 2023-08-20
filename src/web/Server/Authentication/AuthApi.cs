@@ -7,6 +7,7 @@ using Mediator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Claim = System.Security.Claims.Claim;
 
 namespace Jordnaer.Server.Authentication;
 
@@ -50,9 +51,7 @@ public static class AuthApi
         });
 
         group.MapGet("current-user", ([FromServices] CurrentUser? currentUser)
-            => currentUser is null
-                ? null
-                : CurrentUserDto.From(currentUser.Principal));
+            => currentUser?.Principal?.ToCurrentUser());
 
         group.MapGet("signin/{provider}", async ([FromRoute] string provider, [FromServices] IUserService userService, [FromServices] IMediator mediator, HttpContext context) =>
         {
