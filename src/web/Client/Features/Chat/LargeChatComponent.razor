@@ -126,6 +126,7 @@
             .OrderByDescending(chat => _unreadMessages.ContainsKey(chat.Id))
             .ToList();
 
+        //TODO: Add SignalR!
         _isLoading = false;
     }
 
