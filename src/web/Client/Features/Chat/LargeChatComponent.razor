@@ -25,9 +25,9 @@
                             <MudImage Src="@chat.GetChatImage(_currentUser.Id)" loading="lazy" Alt="Avatar" />
                         </MudAvatar>
                         <MudText>
-                            @if (chat.HasUnreadMessages)
+                            @if (_unreadMessages.TryGetValue(chat.Id, out var unreadMessageCount) && unreadMessageCount > 0)
                             {
-                                <b>@chat.GetDisplayName(_currentUser.Id) (@chat.UnreadMessageCount}</b>
+                                <b>@chat.GetDisplayName(_currentUser.Id) (@unreadMessageCount)</b>
                             }
                             else
                             {
@@ -50,6 +50,7 @@
             @if (_activeChat != null)
             {
                 <MudList Class="chat-message-list" DisablePadding Dense>
+                @* ReSharper disable once UnusedParameter.Local *@
                 <Virtualize Items="_activeChat.Messages" Context="message" OverscanCount="8" ItemSize="80">
                     @if (IsMessageFromSelf(message))
                         {
@@ -95,6 +96,7 @@
     private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
+    private Dictionary<Guid, int>? _unreadMessages;
 
     private string _userText = string.Empty;
 
@@ -104,8 +106,6 @@
     // TODO: Select currently displayed chat using this, when we update to dotnet 8
     [SupplyParameterFromQuery]
     public Guid? ChatId { get; set; }
-
-    // TODO: Implement logic for marking messages as read, make sure to update the local cache
 
     protected override async Task OnInitializedAsync()
     {
@@ -119,7 +119,13 @@
         _currentUserSlim = _currentUser.ToUserSlim();
 
         _chats = await ChatService.GetChats(_currentUser.Id);
-        // TODO: Fetch a dictionary of [chatId] { unreadMessageCount } to work around caching
+
+        _unreadMessages = await ChatService.GetUnreadMessages(_currentUser.Id);
+
+        _chats = _chats
+            .OrderByDescending(chat => _unreadMessages.ContainsKey(chat.Id))
+            .ToList();
+
         _isLoading = false;
     }
 
@@ -146,6 +152,9 @@
             await LoadMessages();
             // We call this twice to ensure we're at the very bottom. Silly but easy
             await ScrollToBottom();
+
+            await ChatService.MarkMessagesAsRead(_activeChat.Id);
+            _unreadMessages?.Remove(_activeChat.Id);
         }
     }
 
@@ -178,7 +187,7 @@
         }
         else
         {
-            await ChatService.StartChat(_activeChat);
+            await ChatService.StartChat(_activeChat.ToStartChatCommand(_currentUser!.Id));
             _isActiveChatPublished = true;
         }
 
@@ -197,9 +206,10 @@
 
     private async Task StartNewChat(IEnumerable<UserSlim> users)
     {
-        if (users.Count() == 1)
+        var userList = users.ToList();
+        if (userList.Count() == 1)
         {
-            var userIdsToFind = new[] { users.First().Id, _currentUser!.Id };
+            var userIdsToFind = new[] { userList.First().Id, _currentUser!.Id };
             var existingChat = _chats.FirstOrDefault(chat => chat.Recipients.Count == 2 &&
                                                              userIdsToFind.All(id => chat.Recipients.Any(recipient => recipient.Id == id)));
             if (existingChat is not null)
@@ -218,7 +228,7 @@
                 StartedUtc = DateTime.UtcNow
             };
 
-        foreach (var user in users.Where(u => u.Id != _currentUser!.Id))
+        foreach (var user in userList.Where(u => u.Id != _currentUser!.Id))
         {
             newChat.Recipients.Add(new UserSlim
                 {

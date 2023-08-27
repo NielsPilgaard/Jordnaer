@@ -10,9 +10,11 @@ namespace Jordnaer.Client.Features.Chat;
 public interface IChatService
 {
     ValueTask<List<ChatDto>> GetChats(string userId);
+    ValueTask<Dictionary<Guid, int>> GetUnreadMessages(string userId);
     ValueTask<List<ChatMessageDto>> GetChatMessages(Guid chatId);
-    ValueTask StartChat(ChatDto chat);
+    ValueTask StartChat(StartChat chat);
     ValueTask SendMessage(ChatMessageDto message);
+    ValueTask MarkMessagesAsRead(Guid chatId);
 }
 
 public class ChatService : IChatService
@@ -48,15 +50,16 @@ public class ChatService : IChatService
         var newChats = HandleApiResponse(await _chatClient.GetChats(userId, cachedChats?.Count ?? 0));
         if (cachedChats is null)
         {
-            return newChats.OrderByDescending(chat => chat.HasUnreadMessages).ToList();
+            return newChats;
         }
 
         cachedChats.AddRange(newChats);
 
-        cachedChats = cachedChats.OrderByDescending(chat => chat.HasUnreadMessages).ToList();
-
         return cachedChats;
     }
+
+    public async ValueTask<Dictionary<Guid, int>> GetUnreadMessages(string userId)
+        => HandleApiResponse(await _chatClient.GetUnreadMessages(userId));
 
     public async ValueTask<List<ChatMessageDto>> GetChatMessages(Guid chatId)
     {
@@ -86,12 +89,14 @@ public class ChatService : IChatService
         return cachedMessages;
     }
 
-    public async ValueTask StartChat(ChatDto chat) => HandleApiResponse(await _chatClient.StartChat(chat));
+    public async ValueTask StartChat(StartChat chat) => HandleApiResponse(await _chatClient.StartChat(chat));
 
     public async ValueTask SendMessage(ChatMessageDto message) => HandleApiResponse(await _chatClient.SendMessage(message));
 
+    public async ValueTask MarkMessagesAsRead(Guid chatId) => await _chatClient.MarkMessagesAsRead(chatId);
+
     /// <summary>
-    /// Checks the <c>StatusCode</c> of the <see cref="IApiResponse"/> and shows a popup if <c>IsSuccessStatusCode</c> is false..
+    /// Checks the <c>StatusCode</c> of the <see cref="IApiResponse"/> and shows a popup if <c>IsSuccessStatusCode</c> is false.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="response"></param>
@@ -99,8 +104,8 @@ public class ChatService : IChatService
     {
         switch (response.StatusCode)
         {
-            case { } when response.IsSuccessStatusCode:
-                return response.Content!;
+            case { } when response is { IsSuccessStatusCode: true, Content: not null }:
+                return response.Content;
 
             case HttpStatusCode.TooManyRequests:
                 _snackbar.Add(ErrorMessages.High_Load, Severity.Info);
@@ -116,7 +121,7 @@ public class ChatService : IChatService
 
 
     /// <summary>
-    /// Checks the <c>StatusCode</c> of the <see cref="IApiResponse"/> and shows a popup if <c>IsSuccessStatusCode</c> is false..
+    /// Checks the <c>StatusCode</c> of the <see cref="IApiResponse"/> and shows a popup if <c>IsSuccessStatusCode</c> is false.
     /// </summary>
     /// <param name="response"></param>
     private void HandleApiResponse(IApiResponse response)

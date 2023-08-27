@@ -47,17 +47,55 @@ public static class ChatApi
                         Id = chat.Id,
                         LastMessageSentUtc = chat.LastMessageSentUtc,
                         StartedUtc = chat.StartedUtc,
-                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
-                        UnreadMessageCount = context.UnreadMessages
-                            .Count(unreadMessage =>
-                                unreadMessage.ChatId == chat.Id &&
-                                unreadMessage.RecipientId == userId)
+                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList()
                     })
                     .AsSingleQuery()
                     .ToListAsync(cancellationToken);
 
                 return TypedResults.Ok(chats);
             });
+
+        group.MapGet($"{MessagingConstants.GetUnreadMessages}/{{userId}}",
+            async Task<Results<Ok<Dictionary<Guid, int>>, UnauthorizedHttpResult>> (
+                [FromRoute] string userId,
+                [FromServices] CurrentUser currentUser,
+                [FromServices] JordnaerDbContext context,
+                CancellationToken cancellationToken) =>
+            {
+                if (currentUser.Id != userId)
+                {
+                    return TypedResults.Unauthorized();
+                }
+
+                var chatsWithUnreadMessages = await context.UnreadMessages
+                    .AsNoTracking()
+                    .Where(unreadMessage => unreadMessage.RecipientId == currentUser.Id)
+                    .GroupBy(message => message.ChatId)
+                    .ToDictionaryAsync(unreadMessages => unreadMessages.Key,
+                        unreadMessages => unreadMessages.Count(),
+                        cancellationToken);
+
+                return TypedResults.Ok(chatsWithUnreadMessages);
+            });
+
+        group.MapPost($"{MessagingConstants.MarkMessagesAsRead}/{{chatId:guid}}",
+            async Task<Results<NoContent, BadRequest>> (
+                [FromRoute] Guid chatId,
+                [FromServices] CurrentUser currentUser,
+                [FromServices] JordnaerDbContext context,
+                CancellationToken cancellationToken) =>
+            {
+                int rowsModified = await context
+                    .UnreadMessages
+                    .Where(unreadMessage => unreadMessage.ChatId == chatId &&
+                                            unreadMessage.RecipientId == currentUser.Id)
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                return rowsModified > 0
+                    ? TypedResults.NoContent()
+                    : TypedResults.BadRequest();
+            });
+
         group.MapGet($"{MessagingConstants.GetChatMessages}/{{chatId:guid}}",
             async Task<Results<Ok<List<ChatMessageDto>>, UnauthorizedHttpResult>> (
                     [FromRoute] Guid chatId,
@@ -103,6 +141,7 @@ public static class ChatApi
 
                 return TypedResults.Ok(chatMessages);
             });
+
         group.MapPost(MessagingConstants.StartChat,
             async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
             [FromBody] StartChat chat,
@@ -192,14 +231,17 @@ public static class ChatApi
                 .Select(userChat => userChat.UserProfileId)
                 .ToListAsync(cancellationToken);
 
-            context.UnreadMessages.AddRange(recipientIds.Select(recipientId => new UnreadMessage
-            {
-                RecipientId = recipientId,
-                ChatId = chatMessage.ChatId,
-                MessageSentUtc = chatMessage.SentUtc
-            }));
+            context.UnreadMessages.AddRange(recipientIds
+                .Where(recipientId => recipientId != chatMessage.Sender.Id)
+                .Select(recipientId => new UnreadMessage
+                {
+                    RecipientId = recipientId,
+                    ChatId = chatMessage.ChatId,
+                    MessageSentUtc = chatMessage.SentUtc
+                }));
 
             await context.Chats
+                .Where(chat => chat.Id == chatMessage.ChatId)
                 .ExecuteUpdateAsync(call =>
                     call.SetProperty(chat => chat.LastMessageSentUtc, DateTime.UtcNow),
                     cancellationToken);
