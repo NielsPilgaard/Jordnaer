@@ -154,8 +154,11 @@
             // We call this twice to ensure we're at the very bottom. Silly but easy
             await ScrollToBottom();
 
-            await ChatService.MarkMessagesAsRead(_activeChat.Id);
-            _unreadMessages?.Remove(_activeChat.Id);
+            if (_unreadMessages?.TryGetValue(_activeChat.Id, out _) is true)
+            {
+                await ChatService.MarkMessagesAsRead(_activeChat.Id);
+                _unreadMessages.Remove(_activeChat.Id);
+            }
         }
     }
 
