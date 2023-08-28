@@ -63,7 +63,8 @@ try
 
     builder.AddMassTransit();
 
-    builder.Services.AddSignalR();
+    builder.Services.AddSignalR().AddAzureSignalR(options =>
+        options.ServerStickyMode = ServerStickyMode.Required);
     if (!builder.Environment.IsDevelopment())
     {
         builder.Services.AddResponseCompression(options =>
@@ -125,6 +126,8 @@ try
     app.MapChat();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
+
+    app.MapHub<ChatHub>("/chathub");
 
     app.MapFallbackToFile("index.html");
 

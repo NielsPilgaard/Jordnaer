@@ -11,7 +11,8 @@ public static class WebAssemblyHostBuilderExtensions
         RefitSettings? settings = null)
         where TClient : class
     {
-        services.AddRefitClient<TClient>(settings).ConfigureHttpClient(client =>
+        services.AddRefitClient<TClient>(settings)
+            .ConfigureHttpClient(client =>
             {
                 client.BaseAddress = baseAddress;
                 // This prevents the api from redirecting to Account/Login on 401

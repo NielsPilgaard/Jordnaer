@@ -8,7 +8,8 @@
       "applicationUrl": "https://localhost:7116;http://localhost:5235",
         "environmentVariables": {
             "ASPNETCORE_ENVIRONMENT": "Development",
-            "ConnectionStrings_JordnaerDbContext": "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=6efe173b-3e33-4d6c-8f50-3e5f7cadd54c;Persist Security Info=False;TrustServerCertificate=true;"
+            "ConnectionStrings_JordnaerDbContext": "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=6efe173b-3e33-4d6c-8f50-3e5f7cadd54c;Persist Security Info=False;TrustServerCertificate=true;",
+            "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
         }
     }
   }
