@@ -14,9 +14,8 @@
       "dynamicId": null
     },
     "signalr1": {
-        "type": "signalr",
-        "connectionId": "ConnectionStrings:AzureSignalR",
-        "dynamicId": null
+      "type": "signalr",
+      "connectionId": "ConnectionStrings:AzureSignalR"
     }
   }
 }
