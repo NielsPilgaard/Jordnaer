@@ -11,7 +11,6 @@ using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Azure.SignalR;
 using Microsoft.FeatureManagement;
 using Serilog;
@@ -64,17 +63,7 @@ try
 
     builder.AddMassTransit();
 
-    builder.Services.AddSignalR().AddAzureSignalR(options =>
-        options.ServerStickyMode = ServerStickyMode.Required);
-
-    if (!builder.Environment.IsDevelopment())
-    {
-        builder.Services.AddResponseCompression(options =>
-        {
-            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-                new[] { "application/octet-stream" });
-        });
-    }
+    builder.AddAzureSignalR();
 
     var app = builder.Build();
 

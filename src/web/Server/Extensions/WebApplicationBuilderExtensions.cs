@@ -1,5 +1,7 @@
 using Jordnaer.Server.Database;
 using MassTransit;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Azure.SignalR;
 
 namespace Jordnaer.Server.Extensions;
 
@@ -13,6 +15,25 @@ public static class WebApplicationBuilderExtensions
                 azureServiceBus.Host(builder.Configuration.GetConnectionString("AzureServiceBus"))
             );
         });
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddAzureSignalR(this WebApplicationBuilder builder)
+    {
+        builder.Services
+            .AddSignalR()
+            .AddAzureSignalR(options =>
+            {
+                options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
+                options.ServerStickyMode = ServerStickyMode.Required;
+            });
+
+        if (!builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddResponseCompression(options =>
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
+        }
 
         return builder;
     }
