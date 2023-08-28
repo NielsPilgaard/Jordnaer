@@ -118,7 +118,7 @@ try
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
-    app.MapHub<ChatHub>("hubs/chat");
+    app.MapHub<ChatHub>("/hubs/chat");
 
     app.MapFallbackToFile("index.html");
 

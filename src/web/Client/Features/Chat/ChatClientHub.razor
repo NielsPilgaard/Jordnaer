@@ -8,7 +8,7 @@
     protected override async Task OnInitializedAsync()
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("hubs/chat"))
+            .WithUrl(Navigation.ToAbsoluteUri("/hubs/chat"))
             .WithAutomaticReconnect()
             .Build();
             
