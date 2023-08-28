@@ -21,19 +21,22 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddAzureSignalR(this WebApplicationBuilder builder)
     {
-        builder.Services
-            .AddSignalR()
-            .AddAzureSignalR(options =>
-            {
-                options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
-                options.ServerStickyMode = ServerStickyMode.Required;
-            });
+        var signalRBuilder = builder.Services.AddSignalR(options => options.EnableDetailedErrors = true);
 
-        if (!builder.Environment.IsDevelopment())
+        if (builder.Environment.IsDevelopment())
         {
-            builder.Services.AddResponseCompression(options =>
-                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
+            return builder;
         }
+
+        signalRBuilder.AddAzureSignalR(options =>
+        {
+            options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
+            options.ServerStickyMode = ServerStickyMode.Required;
+        });
+
+        builder.Services.AddResponseCompression(options =>
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
+
 
         return builder;
     }

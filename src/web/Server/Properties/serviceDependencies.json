@@ -12,10 +12,6 @@
       "type": "mssql",
       "connectionId": "ConnectionStrings:JordnaerDbContext",
       "dynamicId": null
-    },
-    "signalr1": {
-      "type": "signalr",
-      "connectionId": "ConnectionStrings:AzureSignalR"
     }
   }
 }

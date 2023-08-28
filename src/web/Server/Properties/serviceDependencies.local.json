@@ -21,13 +21,6 @@
       "type": "mssql.container",
       "connectionId": "ConnectionStrings:JordnaerDbContext",
       "dynamicId": null
-    },
-    "signalr1": {
-      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ServiceLinker/locations/swedencentral/connectors/ConnectionStringsAzureSignalR_33750E4577",
-      "secretStore": null,
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.SignalRService/SignalR/jordnaer",
-      "type": "signalr.azure",
-      "connectionId": "ConnectionStrings:AzureSignalR"
     }
   }
 }
