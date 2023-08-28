@@ -11,6 +11,7 @@ using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.FeatureManagement;
 using Serilog;
 
@@ -62,7 +63,22 @@ try
 
     builder.AddMassTransit();
 
+    builder.Services.AddSignalR();
+    if (!builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddResponseCompression(options =>
+        {
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                new[] { "application/octet-stream" });
+        });
+    }
+
     var app = builder.Build();
+
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseResponseCompression();
+    }
 
     app.UseForwardedHeaders(new ForwardedHeadersOptions
     {

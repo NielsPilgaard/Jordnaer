@@ -25,7 +25,7 @@
                             <MudImage Src="@chat.GetChatImage(_currentUser.Id)" loading="lazy" Alt="Avatar" />
                         </MudAvatar>
                         <MudText>
-                            @if (_unreadMessages.TryGetValue(chat.Id, out var unreadMessageCount) && unreadMessageCount > 0)
+                            @if (_unreadMessages?.TryGetValue(chat.Id, out var unreadMessageCount) is true && unreadMessageCount > 0)
                             {
                                 <b>@chat.GetDisplayName(_currentUser.Id) (@unreadMessageCount)</b>
                             }
