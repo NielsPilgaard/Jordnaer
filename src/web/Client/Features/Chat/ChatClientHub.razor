@@ -8,16 +8,10 @@
     protected override async Task OnInitializedAsync()
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+            .WithUrl(Navigation.ToAbsoluteUri("hubs/chat"))
             .WithAutomaticReconnect()
             .Build();
             
-        _hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
-        {
-            var encodedMsg = $"{user}: {message}";
-            //messages.Add(encodedMsg);
-            StateHasChanged();
-        });
 
         await _hubConnection.StartAsync();
     }
