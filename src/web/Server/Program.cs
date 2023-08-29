@@ -11,7 +11,6 @@ using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Azure.SignalR;
 using Microsoft.FeatureManagement;
 using Serilog;
 
@@ -130,7 +129,7 @@ catch (Exception exception)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
 
 public partial class Program { }
