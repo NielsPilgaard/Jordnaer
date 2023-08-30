@@ -66,6 +66,7 @@ builder.Services.Configure<DataForsyningenOptions>(
     builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
 
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<ChatSignalRClient>();
 
 var host = builder.Build();
 

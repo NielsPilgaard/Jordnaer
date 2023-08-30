@@ -2,6 +2,7 @@
 @inject IProfileCache ProfileCache
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
+@inject ChatSignalRClient ChatSignalRClient
 @attribute [Authorize]
 
 @if (_currentUser is null)
@@ -10,7 +11,6 @@
 }
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
-    <ChatClientHub/>
     <MudGrid Style="height: 600px">
         <MudItem Class="chat-selector-window" md="3" lg="3" xl="3" xxl="3">
             <MudList Clickable>
@@ -27,7 +27,7 @@
                         <MudText>
                             @if (chat.HasUnreadMessages)
                             {
-                                <b>@chat.GetDisplayName(_currentUser.Id) (@chat.UnreadMessageCount}</b>
+                                <b>@chat.GetDisplayName(_currentUser.Id) (@chat.UnreadMessageCount)</b>
                             }
                             else
                             {
@@ -50,9 +50,9 @@
             @if (_activeChat != null)
             {
                 <MudList Class="chat-message-list" DisablePadding Dense>
-                    @* ReSharper disable once UnusedParameter.Local *@
-                    <Virtualize Items="_activeChat.Messages" Context="message" OverscanCount="8" ItemSize="80">
-                        @if (IsMessageFromSelf(message))
+                @* ReSharper disable once UnusedParameter.Local *@
+                <Virtualize Items="_activeChat.Messages" Context="message" OverscanCount="8" ItemSize="80">
+                    @if (IsMessageFromSelf(message))
                         {
                             <MudListItem Class="message-from-self">
                                 <MudChip Text="@message.Text"
@@ -73,9 +73,9 @@
 
                     </Virtualize>
                     <MudTextField @bind-Value="_userText"
-                                  FullWidth
-                                  Immediate
-                                  AutoFocus
+                                    FullWidth
+                                    Immediate
+                                    AutoFocus
                                   id="chat-message-input"
                                   Class="chat-message-input"
                                   Adornment="Adornment.End"
@@ -119,7 +119,50 @@
 
         _chats = await ChatService.GetChats(_currentUser.Id);
 
-        //TODO: Add SignalR!
+        ChatSignalRClient.OnChatStarted(chat =>
+        {
+            if (chat.InitiatorId == _currentUser.Id)
+            {
+                return;
+            }
+
+            var chatDto = chat.ToChatDto();
+            chatDto.UnreadMessageCount++;
+            _chats.Insert(0, chatDto);
+
+            StateHasChanged();
+        });
+
+        ChatSignalRClient.OnMessageReceived(async message =>
+        {
+            var chat = _chats.FirstOrDefault(chat => chat.Id == message.ChatId);
+            if (chat is null)
+            {
+                return;
+            }
+            if (message.Sender.Id == _currentUser.Id)
+            {
+                // TODO: Message should be shown as sent
+                return;
+            }
+
+            chat.Messages.Add(message);
+
+            if (_activeChat?.Id == chat.Id)
+            {
+                await ChatService.MarkMessagesAsRead(message.ChatId);
+                StateHasChanged();
+                await ScrollToBottom();
+            }
+            else
+            {
+                _chats = _chats.OrderByDescending(chat => chat.UnreadMessageCount).ToList();
+                chat.UnreadMessageCount++;
+                StateHasChanged();
+            }
+        });
+        await ChatSignalRClient.StartAsync();
+
         _isLoading = false;
     }
 
