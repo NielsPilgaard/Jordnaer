@@ -11,17 +11,24 @@
             .WithUrl(Navigation.ToAbsoluteUri("/hubs/chat"))
             .WithAutomaticReconnect()
             .Build();
-            
+
+        _hubConnection.On(nameof(IChatHub.StartChat), (StartChat startChat) =>
+        {
+            if (startChat.InitiatorId == CurrentUserId)
+            {
+
+            }
+        });
+
+        _hubConnection.On(nameof(IChatHub.ReceiveChatMessage), (ChatMessageDto chatMessage) =>
+        {
+            if (chatMessage.Sender.Id == CurrentUserId)
+            {
+
+            }
+        });
 
         await _hubConnection.StartAsync();
-    }
-
-    private async Task Send()
-    {
-        if (_hubConnection is not null)
-        {
-            await _hubConnection.SendAsync("SendMessage");
-        }
     }
 
     public bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;

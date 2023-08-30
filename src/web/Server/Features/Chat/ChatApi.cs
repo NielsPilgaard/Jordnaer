@@ -6,6 +6,7 @@ using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Server.Features.Chat;
@@ -129,6 +130,7 @@ public static class ChatApi
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
             [FromServices] IPublishEndpoint publishEndpoint,
+                [FromServices] IHubContext<ChatHub, IChatHub> chatHub,
             CancellationToken cancellationToken) =>
         {
             if (await context.Chats.AsNoTracking().AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken))
@@ -171,6 +173,8 @@ public static class ChatApi
 
             await context.SaveChangesAsync(cancellationToken);
 
+            await chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
+
             // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
             await publishEndpoint.Publish(chat, cancellationToken);
 
@@ -178,10 +182,11 @@ public static class ChatApi
         });
 
         group.MapPost(MessagingConstants.SendMessage, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
-            [FromBody] SendMessage chatMessage,
+            [FromBody] ChatMessageDto chatMessage,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
             [FromServices] IPublishEndpoint publishEndpoint,
+            [FromServices] IHubContext<ChatHub, IChatHub> chatHub,
             CancellationToken cancellationToken) =>
         {
             if (await context.ChatMessages.AnyAsync(message => message.Id == chatMessage.Id, cancellationToken))
@@ -229,6 +234,11 @@ public static class ChatApi
 
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
+
+            foreach (string recipientId in recipientIds)
+            {
+                await chatHub.Clients.User(recipientId).ReceiveChatMessage(chatMessage);
+            }
 
             // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
             await publishEndpoint.Publish(chatMessage, cancellationToken);

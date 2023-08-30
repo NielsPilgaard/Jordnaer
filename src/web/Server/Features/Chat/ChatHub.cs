@@ -5,17 +5,18 @@ using Microsoft.AspNetCore.SignalR;
 namespace Jordnaer.Server.Features.Chat;
 
 [Authorize]
-public class ChatHub : Hub
+public class ChatHub : Hub<IChatHub>
 {
-    public async Task SendMessage(string user, string message)
+    public async Task SendChatMessageAsync(ChatMessageDto chatMessage, string userId)
     {
-        //TODO: Add azure signalR
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        await Clients.User(userId).ReceiveChatMessage(chatMessage);
     }
-
-    public override Task OnConnectedAsync()
+    public async Task StartChatAsync(StartChat startChat)
     {
-        Context.User.GetId();
-        return base.OnConnectedAsync();
+        await Clients
+            .Users(startChat
+                .Recipients
+                .Select(user => user.Id))
+            .StartChat(startChat);
     }
 }
