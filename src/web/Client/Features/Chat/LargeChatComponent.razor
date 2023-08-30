@@ -25,9 +25,9 @@
                             <MudImage Src="@chat.GetChatImage(_currentUser.Id)" loading="lazy" Alt="Avatar" />
                         </MudAvatar>
                         <MudText>
-                            @if (_unreadMessages?.TryGetValue(chat.Id, out var unreadMessageCount) is true && unreadMessageCount > 0)
+                            @if (chat.HasUnreadMessages)
                             {
-                                <b>@chat.GetDisplayName(_currentUser.Id) (@unreadMessageCount)</b>
+                                <b>@chat.GetDisplayName(_currentUser.Id) (@chat.UnreadMessageCount}</b>
                             }
                             else
                             {
@@ -96,7 +96,6 @@
     private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
-    private Dictionary<Guid, int>? _unreadMessages;
 
     private string _userText = string.Empty;
 
@@ -119,12 +118,6 @@
         _currentUserSlim = _currentUser.ToUserSlim();
 
         _chats = await ChatService.GetChats(_currentUser.Id);
-
-        _unreadMessages = await ChatService.GetUnreadMessages(_currentUser.Id);
-
-        _chats = _chats
-            .OrderByDescending(chat => _unreadMessages.ContainsKey(chat.Id))
-            .ToList();
 
         //TODO: Add SignalR!
         _isLoading = false;
@@ -154,10 +147,10 @@
             // We call this twice to ensure we're at the very bottom. Silly but easy
             await ScrollToBottom();
 
-            if (_unreadMessages?.TryGetValue(_activeChat.Id, out _) is true)
+            if (chat.HasUnreadMessages)
             {
                 await ChatService.MarkMessagesAsRead(_activeChat.Id);
-                _unreadMessages.Remove(_activeChat.Id);
+                chat.UnreadMessageCount = 0;
             }
         }
     }

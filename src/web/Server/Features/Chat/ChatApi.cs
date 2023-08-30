@@ -47,35 +47,16 @@ public static class ChatApi
                         Id = chat.Id,
                         LastMessageSentUtc = chat.LastMessageSentUtc,
                         StartedUtc = chat.StartedUtc,
-                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList()
+                        Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
+                        UnreadMessageCount = context.UnreadMessages
+                            .Count(unreadMessage =>
+                                unreadMessage.ChatId == chat.Id &&
+                                unreadMessage.RecipientId == userId)
                     })
                     .AsSingleQuery()
                     .ToListAsync(cancellationToken);
 
                 return TypedResults.Ok(chats);
-            });
-
-        group.MapGet($"{MessagingConstants.GetUnreadMessages}/{{userId}}",
-            async Task<Results<Ok<Dictionary<Guid, int>>, UnauthorizedHttpResult>> (
-                [FromRoute] string userId,
-                [FromServices] CurrentUser currentUser,
-                [FromServices] JordnaerDbContext context,
-                CancellationToken cancellationToken) =>
-            {
-                if (currentUser.Id != userId)
-                {
-                    return TypedResults.Unauthorized();
-                }
-
-                var chatsWithUnreadMessages = await context.UnreadMessages
-                    .AsNoTracking()
-                    .Where(unreadMessage => unreadMessage.RecipientId == currentUser.Id)
-                    .GroupBy(message => message.ChatId)
-                    .ToDictionaryAsync(unreadMessages => unreadMessages.Key,
-                        unreadMessages => unreadMessages.Count(),
-                        cancellationToken);
-
-                return TypedResults.Ok(chatsWithUnreadMessages);
             });
 
         group.MapPost($"{MessagingConstants.MarkMessagesAsRead}/{{chatId:guid}}",

@@ -10,7 +10,6 @@ namespace Jordnaer.Client.Features.Chat;
 public interface IChatService
 {
     ValueTask<List<ChatDto>> GetChats(string userId);
-    ValueTask<Dictionary<Guid, int>> GetUnreadMessages(string userId);
     ValueTask<List<ChatMessageDto>> GetChatMessages(Guid chatId);
     ValueTask StartChat(StartChat chat);
     ValueTask SendMessage(ChatMessageDto message);
@@ -31,35 +30,7 @@ public class ChatService : IChatService
     }
 
     public async ValueTask<List<ChatDto>> GetChats(string userId)
-    {
-        string key = $"{userId}-chats";
-        bool cacheWasEmpty = false;
-        var cachedChats = await _cache.GetOrCreateAsync(key, async entry =>
-        {
-            cacheWasEmpty = true;
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);
-
-            return HandleApiResponse(await _chatClient.GetChats(userId));
-        });
-
-        if (cacheWasEmpty)
-        {
-            return cachedChats ?? new List<ChatDto>();
-        }
-
-        var newChats = HandleApiResponse(await _chatClient.GetChats(userId, cachedChats?.Count ?? 0));
-        if (cachedChats is null)
-        {
-            return newChats;
-        }
-
-        cachedChats.AddRange(newChats);
-
-        return cachedChats;
-    }
-
-    public async ValueTask<Dictionary<Guid, int>> GetUnreadMessages(string userId)
-        => HandleApiResponse(await _chatClient.GetUnreadMessages(userId));
+        => HandleApiResponse(await _chatClient.GetChats(userId));
 
     public async ValueTask<List<ChatMessageDto>> GetChatMessages(Guid chatId)
     {
