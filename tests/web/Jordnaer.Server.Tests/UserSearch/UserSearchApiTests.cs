@@ -22,7 +22,7 @@ public class UserSearchApi_Should
     public async Task Return_UserSearchResult_WhenCallIsValid()
     {
         // Arrange
-        var client = RestService.For<IUserSearchApiClient>(_factory.CreateClient());
+        var client = RestService.For<IUserSearchClient>(_factory.CreateClient());
 
         // Act
         var response = await client.GetUsers(new UserSearchFilter());
@@ -36,7 +36,7 @@ public class UserSearchApi_Should
     public async Task Return_429TooManyRequests_When_Too_Many_Requests_Are_Sent_By_The_Same_Client()
     {
         // Arrange
-        var client = RestService.For<IUserSearchApiClient>(_factory.CreateClient());
+        var client = RestService.For<IUserSearchClient>(_factory.CreateClient());
 
         var tasks = new List<Task>();
 

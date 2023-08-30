@@ -12,7 +12,7 @@ namespace Jordnaer.Server.Benchmarks;
 [MemoryDiagnoser]
 public class UserSearchBenchmark
 {
-    private IUserSearchApiClient _client = null!;
+    private IUserSearchClient _client = null!;
     private JordnaerDbContext _context = null!;
     private UserProfile _randomUser = null!;
     private List<LookingFor> _lookingFor = new();
@@ -43,7 +43,7 @@ public class UserSearchBenchmark
             .Take(1)
             .FirstOrDefaultAsync())!;
 
-        _client = RestService.For<IUserSearchApiClient>(httpClient);
+        _client = RestService.For<IUserSearchClient>(httpClient);
     }
 
     [Benchmark]

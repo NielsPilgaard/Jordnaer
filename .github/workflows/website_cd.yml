@@ -1,4 +1,4 @@
-name: Build, test and deploy to Azure App Service
+name: Website - Deploy
 
 on:
   push:
@@ -18,7 +18,7 @@ env:
   WORKING_DIRECTORY: src/web/Server
   MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     services:
       mssql:
@@ -36,7 +36,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.x'
-          include-prerelease: true
 
       - name: Restore Nugets
         run: dotnet restore "${{ env.WORKING_DIRECTORY }}"

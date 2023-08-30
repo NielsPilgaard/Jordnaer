@@ -1,6 +1,6 @@
 @page "/delete-user/{token}"
 @attribute [Authorize]
-@inject IDeleteUserApiClient DeleteUserApiClient
+@inject IDeleteUserClient DeleteUserClient
 @inject NavigationManager Navigation
 
 <MetadataComponent Title="Mini Møder - Slet bruger"
@@ -65,7 +65,7 @@
         }
         else
         {
-            var tokenIsValid = await DeleteUserApiClient.VerifyTokenAsync(Token);
+            var tokenIsValid = await DeleteUserClient.VerifyTokenAsync(Token);
 
             _userDeletionState = tokenIsValid.IsSuccessStatusCode
               ? UserDeletionState.PendingUserConfirmation
@@ -78,7 +78,7 @@
     private async Task DeleteAccount()
     {
         _isLoading = true;
-        var result = await DeleteUserApiClient.DeleteUserAsync(Token);
+        var result = await DeleteUserClient.DeleteUserAsync(Token);
         if (result.IsSuccessStatusCode)
         {
             _userDeletionState = UserDeletionState.Completed;

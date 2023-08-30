@@ -248,7 +248,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230430201410_Initial', N'7.0.8');
+    VALUES (N'20230430201410_Initial', N'7.0.9');
 END;
 GO
 
@@ -315,7 +315,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505180341_UserContacts', N'7.0.8');
+    VALUES (N'20230505180341_UserContacts', N'7.0.9');
 END;
 GO
 
@@ -356,7 +356,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505181748_DefaultProfilePicture', N'7.0.8');
+    VALUES (N'20230505181748_DefaultProfilePicture', N'7.0.9');
 END;
 GO
 
@@ -387,7 +387,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505190358_AddUserName', N'7.0.8');
+    VALUES (N'20230505190358_AddUserName', N'7.0.9');
 END;
 GO
 
@@ -424,7 +424,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230514200453_AddSearchableName', N'7.0.8');
+    VALUES (N'20230514200453_AddSearchableName', N'7.0.9');
 END;
 GO
 
@@ -451,7 +451,7 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230607211415_ConvertZipCodeToInt')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230607211415_ConvertZipCodeToInt', N'7.0.8');
+    VALUES (N'20230607211415_ConvertZipCodeToInt', N'7.0.9');
 END;
 GO
 
@@ -476,7 +476,140 @@ GO
 IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230626113357_Ages', N'7.0.8');
+    VALUES (N'20230626113357_Ages', N'7.0.9');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE TABLE [Chats] (
+        [Id] uniqueidentifier NOT NULL,
+        [DisplayName] nvarchar(max) NULL,
+        [LastMessageSentUtc] datetime2 NOT NULL,
+        [StartedUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_Chats] PRIMARY KEY ([Id])
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE TABLE [ChatMessages] (
+        [Id] uniqueidentifier NOT NULL,
+        [SenderId] nvarchar(450) NOT NULL,
+        [ChatId] uniqueidentifier NOT NULL,
+        [Text] nvarchar(max) NOT NULL,
+        [IsDeleted] bit NOT NULL,
+        [SentUtc] datetime2 NOT NULL,
+        [AttachmentUrl] nvarchar(max) NULL,
+        CONSTRAINT [PK_ChatMessages] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ChatMessages_Chats_ChatId] FOREIGN KEY ([ChatId]) REFERENCES [Chats] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_ChatMessages_UserProfiles_SenderId] FOREIGN KEY ([SenderId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE TABLE [UserChats] (
+        [UserProfileId] nvarchar(450) NOT NULL,
+        [ChatId] uniqueidentifier NOT NULL,
+        CONSTRAINT [PK_UserChats] PRIMARY KEY ([ChatId], [UserProfileId]),
+        CONSTRAINT [FK_UserChats_Chats_ChatId] FOREIGN KEY ([ChatId]) REFERENCES [Chats] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_UserChats_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE INDEX [IX_ChatMessages_ChatId] ON [ChatMessages] ([ChatId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE INDEX [IX_ChatMessages_SenderId] ON [ChatMessages] ([SenderId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE INDEX [IX_Chats_LastMessageSentUtc] ON [Chats] ([LastMessageSentUtc]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    CREATE INDEX [IX_UserChats_UserProfileId] ON [UserChats] ([UserProfileId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230805201628_Chat', N'7.0.9');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+BEGIN
+    DROP INDEX [IX_Chats_LastMessageSentUtc] ON [Chats];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+BEGIN
+    DECLARE @var4 sysname;
+    SELECT @var4 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[ChatMessages]') AND [c].[name] = N'IsDeleted');
+    IF @var4 IS NOT NULL EXEC(N'ALTER TABLE [ChatMessages] DROP CONSTRAINT [' + @var4 + '];');
+    ALTER TABLE [ChatMessages] DROP COLUMN [IsDeleted];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+BEGIN
+    CREATE TABLE [UnreadMessages] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ChatId] uniqueidentifier NOT NULL,
+        [RecipientId] nvarchar(max) NOT NULL,
+        [MessageSentUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_UnreadMessages] PRIMARY KEY ([Id])
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+BEGIN
+    CREATE INDEX [IX_Chats_LastMessageSentUtc] ON [Chats] ([LastMessageSentUtc] DESC);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+BEGIN
+    CREATE INDEX [IX_ChatMessages_SentUtc] ON [ChatMessages] ([SentUtc] DESC);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230820210649_UnreadMessages', N'7.0.9');
 END;
 GO
 

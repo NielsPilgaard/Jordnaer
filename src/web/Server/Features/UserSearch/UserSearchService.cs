@@ -9,6 +9,7 @@ namespace Jordnaer.Server.Features.UserSearch;
 public interface IUserSearchService
 {
     Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken);
+    Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken);
 }
 
 public class UserSearchService : IUserSearchService
@@ -30,13 +31,33 @@ public class UserSearchService : IUserSearchService
         _options = options.Value;
     }
 
+    public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken)
+    {
+        var users = ApplyNameFilter(searchString, _context.UserProfiles);
+
+        var firstTenUsers = await users
+            .Where(user => user.Id != omitById)
+            .OrderBy(user => searchString.StartsWith(searchString))
+            .Take(11)
+            .Select(user => new UserSlim
+            {
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                DisplayName = $"{user.FirstName} {user.LastName}",
+                Id = user.Id
+            })
+           .AsNoTracking()
+           .ToListAsync(cancellationToken);
+
+        return firstTenUsers;
+    }
+
     public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken)
     {
         // TODO: Convert to Dapper
         var users = _context.UserProfiles.AsQueryable();
 
         users = ApplyChildFilters(filter, users);
-        users = ApplyNameFilter(filter, users);
+        users = ApplyNameFilter(filter.Name, users);
         users = ApplyLookingForFilter(filter, users);
         (users, bool isOrdered) = await ApplyLocationFilterAsync(filter, users);
 
@@ -152,11 +173,11 @@ public class UserSearchService : IUserSearchService
         return users;
     }
 
-    private static IQueryable<UserProfile> ApplyNameFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
+    private static IQueryable<UserProfile> ApplyNameFilter(string? filter, IQueryable<UserProfile> users)
     {
-        if (!string.IsNullOrWhiteSpace(filter.Name))
+        if (!string.IsNullOrWhiteSpace(filter))
         {
-            string trimmedNameFilter = new(filter.Name.Where(c => !char.IsWhiteSpace(c)).ToArray());
+            string trimmedNameFilter = new(filter.Where(c => !char.IsWhiteSpace(c)).ToArray());
 
             users = users.Where(user => !string.IsNullOrEmpty(user.SearchableName) &&
                                         EF.Functions.Like(user.SearchableName, $"%{trimmedNameFilter}%"));

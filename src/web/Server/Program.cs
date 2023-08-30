@@ -4,6 +4,7 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.Chat;
 using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Server.Features.Email;
 using Jordnaer.Server.Features.LookingFor;
@@ -61,7 +62,14 @@ try
 
     builder.AddMassTransit();
 
+    builder.AddAzureSignalR();
+
     var app = builder.Build();
+
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseResponseCompression();
+    }
 
     app.UseForwardedHeaders(new ForwardedHeadersOptions
     {
@@ -105,8 +113,11 @@ try
     app.MapEmail();
     app.MapImages();
     app.MapDeleteUsers();
+    app.MapChat();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
+
+    app.MapHub<ChatHub>("/hubs/chat");
 
     app.MapFallbackToFile("index.html");
 
@@ -118,7 +129,7 @@ catch (Exception exception)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
 
 public partial class Program { }

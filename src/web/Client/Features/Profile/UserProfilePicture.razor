@@ -1,5 +1,5 @@
 @inject ISnackbar Snackbar
-@inject IImageApiClient ImageApiClient
+@inject IImageClient ImageClient
 
 <MudFileUpload T="IBrowserFile"
                Accept="image/jpeg, image/png"
@@ -44,7 +44,7 @@
         await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
         var bytes = ms.ToArray();
 
-        var response = await ImageApiClient.SetUserProfilePicture(new SetUserProfilePicture(UserProfile, bytes));
+        var response = await ImageClient.SetUserProfilePicture(new SetUserProfilePicture(UserProfile, bytes));
         if (response.IsSuccessStatusCode)
         {
             UserProfile.ProfilePictureUrl = response.Content!;

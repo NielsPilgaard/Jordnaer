@@ -114,7 +114,12 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Failed to retrieve the Microsoft profile picture for user with id {userId}. " +
-                             "Response: {@response}", userId, response);
+                             "StatusCode: {statusCode}. " +
+                             "Reason: {reasonPhrase}",
+                             userId,
+                             response.StatusCode,
+                             response.ReasonPhrase);
+
             return null;
         }
 

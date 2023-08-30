@@ -12,18 +12,18 @@ public interface IProfileCache
 public class ProfileCache : IProfileCache
 {
     private readonly IMemoryCache _memoryCache;
-    private readonly IProfileApiClient _profileApiClient;
+    private readonly IProfileClient _profileClient;
 
-    public ProfileCache(IMemoryCache memoryCache, IProfileApiClient profileApiClient)
+    public ProfileCache(IMemoryCache memoryCache, IProfileClient profileClient)
     {
         _memoryCache = memoryCache;
-        _profileApiClient = profileApiClient;
+        _profileClient = profileClient;
     }
 
     public async ValueTask<UserProfile?> GetOrCreateProfileAsync() =>
         await _memoryCache.GetOrCreateAsync(nameof(UserProfile), async entry =>
         {
-            var result = await _profileApiClient.GetOwnProfile();
+            var result = await _profileClient.GetOwnProfile();
             if (result.IsSuccessStatusCode)
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);

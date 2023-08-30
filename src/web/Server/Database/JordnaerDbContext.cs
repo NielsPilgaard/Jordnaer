@@ -13,6 +13,7 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserContact> UserContacts { get; set; } = default!;
     public DbSet<Chat> Chats { get; set; } = default!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
+    public DbSet<UnreadMessage> UnreadMessages { get; set; } = default;
     public DbSet<UserChat> UserChats { get; set; } = default!;
 
     //TODO

@@ -6,14 +6,14 @@ namespace Jordnaer.Client.Features.Authentication;
 
 public class AuthStateProvider : AuthenticationStateProvider
 {
-    private readonly IAuthApiClient _authApiClient;
+    private readonly IAuthClient _authClient;
     private readonly ILogger<AuthStateProvider> _logger;
     private AuthenticationState _currentAuthenticationState;
     private bool _authenticationStateChanged = true;
 
-    public AuthStateProvider(IAuthApiClient authApiClient, ILogger<AuthStateProvider> logger)
+    public AuthStateProvider(IAuthClient authClient, ILogger<AuthStateProvider> logger)
     {
-        _authApiClient = authApiClient;
+        _authClient = authClient;
         _logger = logger;
         _currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal());
     }
@@ -25,7 +25,7 @@ public class AuthStateProvider : AuthenticationStateProvider
             return _currentAuthenticationState;
 
         CurrentUserDto? currentUser;
-        var response = await _authApiClient.GetCurrentUserAsync();
+        var response = await _authClient.GetCurrentUserAsync();
         if (response.IsSuccessStatusCode)
         {
             currentUser = response.Content;
@@ -48,7 +48,7 @@ public class AuthStateProvider : AuthenticationStateProvider
 
     public async Task<bool> LoginAsync(UserInfo userInfo)
     {
-        var response = await _authApiClient.LoginAsync(userInfo);
+        var response = await _authClient.LoginAsync(userInfo);
         if (response is { IsSuccessStatusCode: true, Content: true })
         {
             _authenticationStateChanged = true;
@@ -60,7 +60,7 @@ public class AuthStateProvider : AuthenticationStateProvider
 
     public async Task<bool> CreateUserAsync(UserInfo userInfo)
     {
-        var response = await _authApiClient.CreateUserAsync(userInfo);
+        var response = await _authClient.CreateUserAsync(userInfo);
         if (response is { IsSuccessStatusCode: true, Content: true })
         {
             _authenticationStateChanged = true;
@@ -72,7 +72,7 @@ public class AuthStateProvider : AuthenticationStateProvider
 
     public async Task<bool> LogoutAsync()
     {
-        var response = await _authApiClient.LogoutAsync();
+        var response = await _authClient.LogoutAsync();
         if (response.IsSuccessStatusCode)
         {
             _authenticationStateChanged = true;

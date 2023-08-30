@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-[Index(nameof(LastMessageSentUtc))]
+[Index(nameof(LastMessageSentUtc), IsDescending = new[] { true })]
 public class Chat
 {
     [Key]
@@ -19,8 +19,8 @@ public class Chat
     /// </summary>
     public string? DisplayName { get; set; }
 
-    public IList<ChatMessage> Messages { get; set; } = Array.Empty<ChatMessage>();
-    public IList<UserProfile> Recipients { get; set; } = Array.Empty<UserProfile>();
+    public List<ChatMessage> Messages { get; set; } = new();
+    public List<UserProfile> Recipients { get; set; } = new();
 
     public DateTime LastMessageSentUtc { get; set; }
     public DateTime StartedUtc { get; set; } = DateTime.UtcNow;
