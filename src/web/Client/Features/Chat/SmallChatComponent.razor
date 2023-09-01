@@ -23,7 +23,7 @@ else
         @foreach (var message in _activeChat!.Messages)
         {
             <MudListItem>
-                @message.SentUtc.GetTimePassed(): @message.Text
+                @message.SentUtc.DisplayTimePassed(): @message.Text
             </MudListItem>
         }
     </MudList>

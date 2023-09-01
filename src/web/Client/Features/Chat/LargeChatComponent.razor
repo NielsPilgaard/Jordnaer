@@ -55,19 +55,28 @@
                     @if (IsMessageFromSelf(message))
                         {
                             <MudListItem Class="message-from-self">
-                                <MudChip Text="@message.Text"
-                                         Class="chat-chip px-2 py-1" />
-                            </MudListItem>
+
+                                <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
+                                <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
+                                    <MudChip Text="@message.Text"
+                                             Class="chat-chip px-2 py-1" />
+                                </MudTooltip>
+                            </MudTooltip>
+                        </MudListItem>
                         }
                         else
                         {
                             <MudListItem>
-                                <MudChip Class="pl-0 pb-0 chat-chip">
-                                    <MudAvatar Size="Size.Medium" Class="mr-2">
-                                        <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
-                                    </MudAvatar>
-                                    @message.Text
-                                </MudChip>
+                                <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
+                                    <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
+                                    <MudChip Class="pl-0 pb-0 chat-chip">
+                                        <MudAvatar Size="Size.Medium" Class="mr-2">
+                                            <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                                        </MudAvatar>
+                                        @message.Text
+                                    </MudChip>
+                                </MudTooltip>
+                            </MudTooltip>
                             </MudListItem>
                         }
 
