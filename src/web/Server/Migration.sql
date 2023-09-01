@@ -616,3 +616,36 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230901174739_AlwaysAddSearchableName')
+BEGIN
+    DROP INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles];
+    DECLARE @var5 sysname;
+    SELECT @var5 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[UserProfiles]') AND [c].[name] = N'SearchableName');
+    IF @var5 IS NOT NULL EXEC(N'ALTER TABLE [UserProfiles] DROP CONSTRAINT [' + @var5 + '];');
+    ALTER TABLE [UserProfiles] DROP COLUMN [SearchableName];
+    EXEC(N'ALTER TABLE [UserProfiles] ADD [SearchableName] AS ISNULL([FirstName], '''') + '' '' + ISNULL([LastName], '''') + '' '' + ISNULL([UserName], '''') PERSISTED');
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230901174739_AlwaysAddSearchableName')
+BEGIN
+    CREATE INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles] ([SearchableName]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230901174739_AlwaysAddSearchableName')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20230901174739_AlwaysAddSearchableName', N'7.0.9');
+END;
+GO
+
+COMMIT;
+GO
+
