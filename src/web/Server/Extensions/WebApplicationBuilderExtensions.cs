@@ -21,7 +21,11 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddAzureSignalR(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSignalR(options => options.EnableDetailedErrors = true)
+        builder.Services.AddSignalR(options =>
+            {
+                options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
+                options.KeepAliveInterval = TimeSpan.FromMinutes(1);
+            })
             .AddAzureSignalR(options =>
             {
                 options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
