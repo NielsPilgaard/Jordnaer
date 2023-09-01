@@ -50,9 +50,10 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<UserProfile>()
             .Property(user => user.SearchableName)
             .HasComputedColumnSql(
-                $"[{nameof(UserProfile.FirstName)}] + " +
-                $"[{nameof(UserProfile.LastName)}] + " +
-                $"[{nameof(UserProfile.UserName)}]",
+                $"ISNULL([{nameof(UserProfile.FirstName)}], '') + " +
+                "' ' + " +
+                $"ISNULL([{nameof(UserProfile.LastName)}], '') + ' ' + " +
+                $"ISNULL([{nameof(UserProfile.UserName)}], '')",
                 stored: true);
 
 
