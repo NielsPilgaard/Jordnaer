@@ -21,7 +21,7 @@ public static class DateTimeExtensions
 
         switch (timeSpan.TotalMinutes)
         {
-            case 1:
+            case < 2:
                 return $"sendt for 1 minut siden";
             case < 60:
                 return $"sendt for {Math.Floor(timeSpan.TotalMinutes)} minutter siden";
@@ -29,7 +29,7 @@ public static class DateTimeExtensions
 
         switch (timeSpan.TotalHours)
         {
-            case 1:
+            case < 2:
                 return $"sendt for 1 time siden";
             case < 24:
                 return $"sendt for {Math.Floor(timeSpan.TotalHours)} timer siden";
@@ -37,7 +37,7 @@ public static class DateTimeExtensions
 
         switch (timeSpan.TotalDays)
         {
-            case 1:
+            case < 2:
                 return "sendt igår";
             case < 7:
                 return $"sendt for {Math.Floor(timeSpan.TotalDays)} dage siden";
