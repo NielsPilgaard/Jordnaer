@@ -68,19 +68,27 @@
                         {
                             <MudListItem>
                                 <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
-                                    <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
+                                <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
                                     <MudChip Class="pl-0 pb-0 chat-chip">
                                         <MudAvatar Size="Size.Medium" Class="mr-2">
-                                            <MudImage Src="@message.Sender.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                                            <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar" />
                                         </MudAvatar>
                                         @message.Text
                                     </MudChip>
                                 </MudTooltip>
                             </MudTooltip>
-                            </MudListItem>
+                        </MudListItem>
                         }
 
                     </Virtualize>
+                    @if (LastMessageWasSentSuccessfully)
+                    {
+                        <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
+                            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
+                                     Class="message-sent-successfully" />
+                        </div>
+                    }
+
                     <MudTextField @bind-Value="_userText"
                                     FullWidth
                                     Immediate
@@ -110,6 +118,29 @@
 
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
+
+    private Dictionary<Guid, Guid> _lastSuccessfullySentMessageForChat = new();
+    private bool LastMessageWasSentSuccessfully
+    {
+        get
+        {
+            if (_activeChat is null)
+            {
+                return false;
+            }
+            var lastMessage = _activeChat.Messages.LastOrDefault();
+            if (lastMessage is null)
+            {
+                return false;
+            }
+            var lastMessageIsFromCurrentUser = lastMessage.SenderId == _currentUser!.Id;
+
+            var lastMessageWasSuccessfullySent = _lastSuccessfullySentMessageForChat.TryGetValue(_activeChat.Id, out var lastSuccessfullySentMessage) &&
+                                                 lastSuccessfullySentMessage == lastMessage.Id;
+
+            return lastMessageIsFromCurrentUser && lastMessageWasSuccessfullySent;
+        }
+    }
 
     // TODO: Select currently displayed chat using this, when we update to dotnet 8
     [SupplyParameterFromQuery]
@@ -149,9 +180,9 @@
             {
                 return;
             }
-            if (message.Sender.Id == _currentUser.Id)
+            if (message.SenderId == _currentUser.Id)
             {
-                // TODO: Message should be shown as sent
+                _lastSuccessfullySentMessageForChat[chat.Id] = message.Id;
                 return;
             }
 
@@ -165,7 +196,7 @@
             }
             else
             {
-                _chats = _chats.OrderByDescending(chat => chat.UnreadMessageCount).ToList();
+                _chats = _chats.OrderByDescending(c => c.UnreadMessageCount).ToList();
                 chat.UnreadMessageCount++;
                 StateHasChanged();
             }
@@ -223,7 +254,7 @@
                 ChatId = _activeChat.Id,
                 Id = NewId.NextGuid(),
                 SentUtc = DateTime.UtcNow,
-                Sender = _currentUserSlim,
+                SenderId = _currentUserSlim.Id,
                 Text = _userText
             };
 
@@ -251,7 +282,7 @@
         }
     }
 
-    private bool IsMessageFromSelf(ChatMessageDto message) => message.Sender.Id == _currentUser!.Id;
+    private bool IsMessageFromSelf(ChatMessageDto message) => message.SenderId == _currentUser!.Id;
 
     private async Task StartNewChat(IEnumerable<UserSlim> users)
     {
@@ -293,4 +324,10 @@
 
         await SelectChat(newChat);
     }
+
+    private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
+    {
+        return _activeChat?.Recipients.FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture;
+    }
+
 }

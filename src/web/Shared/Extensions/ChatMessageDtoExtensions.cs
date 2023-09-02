@@ -2,11 +2,11 @@ namespace Jordnaer.Shared;
 
 public static class ChatMessageDtoExtensions
 {
-    public static ChatMessage ToChatMessage(this ChatMessageDto message, Guid chatId) => new()
+    public static ChatMessage ToChatMessage(this ChatMessageDto message) => new()
     {
         Id = message.Id,
-        ChatId = chatId,
-        SenderId = message.Sender.Id,
+        ChatId = message.ChatId,
+        SenderId = message.SenderId,
         Text = message.Text,
         AttachmentUrl = message.AttachmentUrl,
         SentUtc = message.SentUtc

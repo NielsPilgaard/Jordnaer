@@ -28,3 +28,15 @@
     overflow: auto;
     height: 100%;
 }
+
+.message-sent-successfully-container {
+    display: flex;
+    justify-content: end;
+    margin-right: 10px;
+    margin-top: -20px;
+    padding-bottom: 5px;
+}
+
+.message-sent-successfully {
+    font-size: 14px;
+}

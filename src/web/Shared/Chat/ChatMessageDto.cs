@@ -6,7 +6,7 @@ public class ChatMessageDto
 
     public required Guid ChatId { get; init; }
 
-    public required UserSlim Sender { get; init; }
+    public required string SenderId { get; init; }
 
     public required string Text { get; init; }
 

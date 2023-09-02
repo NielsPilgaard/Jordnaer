@@ -112,13 +112,7 @@ public static class ChatApi
                     .OrderBy(message => message.SentUtc)
                     .Skip(skip)
                     .Take(take)
-                    .Select(message => message.ToChatMessageDto(new UserSlim
-                    {
-                        DisplayName = $"{message.Sender.FirstName} {message.Sender.LastName}",
-                        Id = message.SenderId,
-                        // TODO: only 1 url should be sent per unique chat participant
-                        ProfilePictureUrl = message.Sender.ProfilePictureUrl
-                    }))
+                    .Select(message => message.ToChatMessageDto())
                     .ToListAsync(cancellationToken);
 
                 return TypedResults.Ok(chatMessages);
@@ -148,7 +142,7 @@ public static class ChatApi
                 LastMessageSentUtc = chat.LastMessageSentUtc,
                 Id = chat.Id,
                 StartedUtc = chat.StartedUtc,
-                Messages = chat.Messages.Select(message => message.ToChatMessage(chat.Id)).ToList()
+                Messages = chat.Messages.Select(static message => message.ToChatMessage()).ToList()
             });
 
             foreach (var message in chat.Messages)
@@ -194,7 +188,7 @@ public static class ChatApi
                 return TypedResults.BadRequest();
             }
 
-            if (chatMessage.Sender.Id != currentUser.Id)
+            if (chatMessage.SenderId != currentUser.Id)
             {
                 return TypedResults.Unauthorized();
             }
@@ -206,7 +200,7 @@ public static class ChatApi
                 {
                     ChatId = chatMessage.ChatId,
                     Id = chatMessage.Id,
-                    SenderId = chatMessage.Sender.Id,
+                    SenderId = chatMessage.SenderId,
                     Text = chatMessage.Text,
                     AttachmentUrl = chatMessage.AttachmentUrl,
                     SentUtc = chatMessage.SentUtc
@@ -218,7 +212,7 @@ public static class ChatApi
                 .ToListAsync(cancellationToken);
 
             context.UnreadMessages.AddRange(recipientIds
-                .Where(recipientId => recipientId != chatMessage.Sender.Id)
+                .Where(recipientId => recipientId != chatMessage.SenderId)
                 .Select(recipientId => new UnreadMessage
                 {
                     RecipientId = recipientId,
