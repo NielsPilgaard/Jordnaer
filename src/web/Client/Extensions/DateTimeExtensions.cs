@@ -1,11 +1,10 @@
-using System.Globalization;
-
 namespace Jordnaer.Client.Extensions;
 
 public static class DateTimeExtensions
 {
     public static string DisplayExactTime(this DateTime date) =>
-        $"afsendt {date.ToLocalTime().ToString("d/M yyyy kl. HH:mm", new CultureInfo("da-DK"))}";
+        // Example of this format: 1/9 2017 kl. 07:45
+        $"afsendt {date.ToLocalTime():d/M yyyy kl. HH:mm}";
 
     public static string DisplayTimePassed(this DateTime date)
     {
@@ -46,10 +45,14 @@ public static class DateTimeExtensions
         int weeks = (int)Math.Floor(timeSpan.TotalDays / 7);
 
         if (weeks is 1)
+        {
             return "sendt i sidste uge";
+        }
 
         if (timeSpan.TotalDays < 365)
+        {
             return $"sendt for {weeks} uger siden";
+        }
 
         return $"afsendt {date.ToLocalTime():dd/MM/yyyy HH:mm:ss}";
     }
