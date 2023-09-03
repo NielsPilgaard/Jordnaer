@@ -89,10 +89,13 @@
                                 Delay="500"
                                 Selector=".message-sent-successfully-container" />
 
-                    <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
-                        <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
-                                 Class="message-sent-successfully" />
-                    </div>
+                   @if (LastMessageWasSentSuccessfullyByCurrentUser)
+                   {
+                       <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
+                           <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
+                                    Class="message-sent-successfully" />
+                       </div>
+                   }
 
                     <MudTextField @bind-Value="_userText"
                                     FullWidth
@@ -130,7 +133,7 @@
 
     private MudAnimate _messageSuccessfullySentAnimation = null!;
     private Dictionary<Guid, Guid> _lastSuccessfullySentMessageForChat = new();
-    private bool LastMessageWasSentSuccessfully
+    private bool LastMessageWasSentSuccessfullyByCurrentUser
     {
         get
         {
