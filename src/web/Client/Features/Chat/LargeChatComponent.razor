@@ -1,3 +1,4 @@
+@using MudExtensions.Enums
 @inject IChatService ChatService
 @inject IProfileCache ProfileCache
 @inject ISnackbar Snackbar
@@ -81,13 +82,17 @@
                         }
 
                     </Virtualize>
-                    @if (LastMessageWasSentSuccessfully)
-                    {
-                        <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
-                            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
-                                     Class="message-sent-successfully" />
-                        </div>
-                    }
+
+                    <MudAnimate @ref="_messageSuccessfullySentAnimation"
+                                AnimationType="AnimationType.Fade"
+                                AnimationTiming="AnimationTiming.EaseIn"
+                                Delay="500"
+                                Selector=".message-sent-successfully-container" />
+
+                    <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
+                        <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
+                                 Class="message-sent-successfully" />
+                    </div>
 
                     <MudTextField @bind-Value="_userText"
                                     FullWidth
@@ -109,6 +114,10 @@
 
 </MudLoading>
 @code {
+    // TODO: Select currently displayed chat using this, when we update to dotnet 8
+    [SupplyParameterFromQuery]
+    public Guid? ChatId { get; set; }
+
     private UserProfile? _currentUser;
     private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
@@ -119,6 +128,7 @@
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
 
+    private MudAnimate _messageSuccessfullySentAnimation = null!;
     private Dictionary<Guid, Guid> _lastSuccessfullySentMessageForChat = new();
     private bool LastMessageWasSentSuccessfully
     {
@@ -141,10 +151,6 @@
             return lastMessageIsFromCurrentUser && lastMessageWasSuccessfullySent;
         }
     }
-
-    // TODO: Select currently displayed chat using this, when we update to dotnet 8
-    [SupplyParameterFromQuery]
-    public Guid? ChatId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -183,6 +189,8 @@
             if (message.SenderId == _currentUser.Id)
             {
                 _lastSuccessfullySentMessageForChat[chat.Id] = message.Id;
+                StateHasChanged();
+                await _messageSuccessfullySentAnimation.Refresh();
                 return;
             }
 
@@ -321,13 +329,12 @@
         _chats.Insert(0, newChat);
 
         _isActiveChatPublished = false;
-
         await SelectChat(newChat);
     }
 
     private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
-    {
-        return _activeChat?.Recipients.FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture;
-    }
-
+        => _activeChat?
+            .Recipients
+            .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
+          ?? ProfileConstants.Default_Profile_Picture;
 }
