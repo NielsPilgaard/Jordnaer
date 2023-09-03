@@ -96,13 +96,12 @@
                                     Class="message-sent-successfully" />
                        </div>
                    }
+                <div class="flex-spacer"></div>
 
                     <MudTextField @bind-Value="_userText"
                                     FullWidth
                                     Immediate
                                     AutoFocus
-                                  id="chat-message-input"
-                                  Class="chat-message-input"
                                   Adornment="Adornment.End"
                                   TextUpdateSuppression="false"
                                   OnKeyDown="SendMessageOnEnter"

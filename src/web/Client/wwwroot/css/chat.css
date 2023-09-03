@@ -40,3 +40,14 @@
 .message-sent-successfully {
     font-size: 14px;
 }
+.flex-spacer {
+    flex-grow: 1;
+}
+.chat-message-list .mud-input-control {
+    flex: none; /* or flex: none; depending on what you want */
+}
+.chat-message-list {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
