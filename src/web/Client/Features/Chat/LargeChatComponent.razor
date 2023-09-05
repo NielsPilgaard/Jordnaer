@@ -3,6 +3,7 @@
 @inject IProfileCache ProfileCache
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
+@inject IBrowserViewportService BrowserViewportService
 @inject ChatSignalRClient ChatSignalRClient
 @attribute [Authorize]
 
@@ -14,18 +15,35 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <MudGrid Style="height: 600px">
 
-        <ChatSelector CurrentUser="_currentUser" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat"/>
+        @if ((_activeChat is null && _isMobile) || _isMobile is false)
+        {
+            <ChatSelector CurrentUser="_currentUser" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat"/>
+        }
 
-        <MudItem md="1" lg="1" xl="1" xxl="1">
-            <MudDivider Vertical DividerType="DividerType.FullWidth"/>
-        </MudItem>
+        @if (_isMobile is false)
+        {
+            <MudItem md="1" lg="1" xl="1" xxl="1">
+                <MudDivider Vertical DividerType="DividerType.FullWidth"/>
+            </MudItem>
+        }
 
-        <MudItem Class="chat-message-window" md="8" lg="8" xl="8" xxl="8">
-            @if (_activeChat != null)
-            {
+        @if (_activeChat is not null)
+        {
+            <MudItem Class="chat-message-window" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
+                @if (_isMobile)
+                {
+                    @*something like a banner is needed here, with display name and back button
+                        Use MudAppBar
+                    *@
+                    <MudScrollToTop OnClick="BackToList"></MudScrollToTop>
+                    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Primary"/>
+                    <MudText>@_activeChat.GetDisplayName(_currentUser.Id)</MudText>
+
+                }
+
                 <MudList Class="chat-message-list" DisablePadding Dense>
 
-                <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat" />
+                    <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat"/>
 
 
                     <MudAnimate @ref="_messageSuccessfullySentAnimation"
@@ -56,8 +74,8 @@
                                   AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
                                   OnAdornmentClick="SendMessage"/>
                 </MudList>
-            }
-        </MudItem>
+            </MudItem>
+        }
     </MudGrid>
 </MudLoading>
 
@@ -73,9 +91,11 @@
 
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
+    private bool _isMobile = true;
 
     private MudAnimate _messageSuccessfullySentAnimation = null!;
     private Dictionary<Guid, Guid> _lastSuccessfullySentMessageForChat = new();
+
     private bool LastMessageWasSentSuccessfullyByCurrentUser
     {
         get
@@ -106,6 +126,9 @@
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
             return;
         }
+
+        var currentBreakpoint = await BrowserViewportService.GetCurrentBreakpointAsync();
+        _isMobile = currentBreakpoint <= Breakpoint.SmAndDown;
 
         _chats = await ChatService.GetChats(_currentUser.Id);
         if (ChatId is not null)
