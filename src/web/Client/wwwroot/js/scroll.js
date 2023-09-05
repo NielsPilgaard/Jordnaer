@@ -15,5 +15,12 @@ window.scrollFunctions = {
         if (!chatContainer) return;
 
         chatContainer.scrollTop = chatContainer.scrollHeight;
+    },
+    focusMessageInput: function () {
+        const chatMessageInput = document.querySelector('#chat-message-input');
+
+        if (!chatMessageInput) return;
+
+        chatMessageInput.focus();
     }
 };

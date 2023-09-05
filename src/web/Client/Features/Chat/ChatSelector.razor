@@ -1,0 +1,53 @@
+<MudItem Class="chat-selector-window" md="3" lg="3" xl="3" xxl="3">
+    <MudList Clickable>
+        <MudListSubheader>
+            <UserAutoComplete SelectedUserChanged="StartNewChat" />
+        </MudListSubheader>
+        @foreach (var chat in Chats)
+        {
+            <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
+
+                <MudAvatar Size="Size.Large" Class="mr-3">
+                    <MudImage Src="@chat.GetChatImage(CurrentUser.Id)" loading="lazy" Alt="Avatar" />
+                </MudAvatar>
+                <MudText>
+                    @if (chat.HasUnreadMessages)
+                    {
+                        <b>@chat.GetDisplayName(CurrentUser.Id) (@chat.UnreadMessageCount)</b>
+                    }
+                    else
+                    {
+                        @chat.GetDisplayName(CurrentUser.Id)
+                    }
+                </MudText>
+
+            </MudListItem>
+            <MudDivider DividerType="DividerType.FullWidth" />
+
+        }
+    </MudList>
+</MudItem>
+
+@code{
+    [Parameter]
+    public required UserProfile CurrentUser { get; set; } = null!;
+    [Parameter]
+    public required List<ChatDto> Chats { get; set; } = null!;
+
+    [Parameter]
+    public required EventCallback<ChatDto> SelectChatCallback { get; set; }
+    [Parameter]
+    public required EventCallback<IEnumerable<UserSlim>> StartNewChatCallback { get; set; }
+
+
+    private async Task StartNewChat(IEnumerable<UserSlim> users)
+    {
+        await StartNewChatCallback.InvokeAsync(users);
+    }
+
+    private async Task SelectChat(ChatDto chat)
+    {
+        await SelectChatCallback.InvokeAsync(chat);
+    }
+
+}

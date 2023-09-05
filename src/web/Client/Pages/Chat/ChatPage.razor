@@ -1,4 +1,6 @@
 @page "/chat"
+@page "/chat/{chatId:guid}"
+
 @attribute [Authorize]
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -9,8 +11,14 @@
         </MudHidden>
 
         <MudHidden Invert Breakpoint="Breakpoint.MdAndUp">
-            <LargeChatComponent />
+            <LargeChatComponent ChatId="ChatId"/>
         </MudHidden>
 
     </MudPaper>
 </MudContainer>
+
+@code
+{
+    [Parameter]
+    public Guid? ChatId { get; set; }
+}
