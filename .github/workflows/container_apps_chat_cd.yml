@@ -23,7 +23,7 @@ jobs:
           - 1433:1433
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up dotnet
         uses: actions/setup-dotnet@v3
@@ -47,7 +47,7 @@ jobs:
     steps:
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
       # Apply tags and labels based on GitHub Actions events and Git metadata
     - name: Apply Docker Image tags & labels
