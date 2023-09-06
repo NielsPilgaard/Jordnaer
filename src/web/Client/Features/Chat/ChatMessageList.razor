@@ -6,8 +6,9 @@
 
             <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
                 <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                    <MudChip Text="@message.Text"
-                             Class="chat-chip px-2 py-1" />
+                    <MudChip Class="chat-chip px-2 py-1">
+                        <MudText Typo="Typo.h6">@message.Text</MudText>
+                    </MudChip>
                 </MudTooltip>
             </MudTooltip>
         </MudListItem>
@@ -21,7 +22,7 @@
                         <MudAvatar Size="Size.Medium" Class="mr-2">
                             <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar" />
                         </MudAvatar>
-                        @message.Text
+                        <MudText Typo="Typo.h6">@message.Text</MudText>
                     </MudChip>
                 </MudTooltip>
             </MudTooltip>
