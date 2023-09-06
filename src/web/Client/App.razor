@@ -21,7 +21,9 @@
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
-            <NotFoundComponent />
+            <LayoutView Layout="typeof(MainLayout)">
+                <NotFoundComponent />
+            </LayoutView>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
