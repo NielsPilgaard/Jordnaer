@@ -1,16 +1,15 @@
 @page "/chat"
+
 @attribute [Authorize]
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudPaper Class="pa-6" Elevation="5">
-
-        <MudHidden Breakpoint="Breakpoint.MdAndUp">
-            <SmallChatComponent />
-        </MudHidden>
-
-        <MudHidden Invert Breakpoint="Breakpoint.MdAndUp">
-            <LargeChatComponent />
-        </MudHidden>
-
+        <ChatComponent ChatId="ActiveChat"/>
     </MudPaper>
 </MudContainer>
+
+@code
+{
+    [SupplyParameterFromQuery]
+    public Guid? ActiveChat { get; set; }
+}

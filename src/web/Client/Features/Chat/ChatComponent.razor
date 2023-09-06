@@ -3,7 +3,10 @@
 @inject IProfileCache ProfileCache
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
+@inject IBrowserViewportService BrowserViewportService
 @inject ChatSignalRClient ChatSignalRClient
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
 @attribute [Authorize]
 
 @if (_currentUser is null)
@@ -12,116 +15,80 @@
 }
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
-    <MudGrid Style="height: 600px">
-        <MudItem Class="chat-selector-window" md="3" lg="3" xl="3" xxl="3">
-            <MudList Clickable>
-                <MudListSubheader>
-                    <UserAutoComplete SelectedUserChanged="StartNewChat" />
-                </MudListSubheader>
-                @foreach (var chat in _chats)
+    <MudGrid Style="height: 80vh">
+
+        @if ((_activeChat is null && _isMobile) || _isMobile is false)
+        {
+            <ChatSelector CurrentUser="_currentUser" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
+        }
+
+        @if (_isMobile is false)
+        {
+            <MudItem md="1" lg="1" xl="1" xxl="1">
+                <MudDivider Vertical DividerType="DividerType.FullWidth" />
+            </MudItem>
+        }
+
+        @if (_activeChat is not null)
+        {
+            <MudItem Class="chat-message-window" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
+                @if (_isMobile)
                 {
-                    <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
-
-                        <MudAvatar Size="Size.Large" Class="mr-3">
-                            <MudImage Src="@chat.GetChatImage(_currentUser.Id)" loading="lazy" Alt="Avatar" />
-                        </MudAvatar>
-                        <MudText>
-                            @if (chat.HasUnreadMessages)
-                            {
-                                <b>@chat.GetDisplayName(_currentUser.Id) (@chat.UnreadMessageCount)</b>
-                            }
-                            else
-                            {
-                                @chat.GetDisplayName(_currentUser.Id)
-                            }
-                        </MudText>
-
-                    </MudListItem>
-                    <MudDivider DividerType="DividerType.FullWidth" />
-
+                    <MudAppBar Dense ToolBarClass="justify-space-between" Color="Color.Primary" Elevation="5">
+                        <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
+                                OnClick="BackToList"
+                                Color="Color.Info"
+                                Size="Size.Small" />
+                        <MudText Typo="Typo.h5">@_activeChat.GetDisplayName(_currentUser.Id)</MudText>
+                    </MudAppBar>
                 }
-            </MudList>
-        </MudItem>
 
-        <MudItem md="1" lg="1" xl="1" xxl="1">
-            <MudDivider Vertical DividerType="DividerType.FullWidth" />
-        </MudItem>
-
-        <MudItem id="chat-message-window" Class="chat-message-window" md="8" lg="8" xl="8" xxl="8">
-            @if (_activeChat != null)
-            {
                 <MudList Class="chat-message-list" DisablePadding Dense>
-                @* ReSharper disable once UnusedParameter.Local *@
-                <Virtualize Items="_activeChat.Messages" Context="message" OverscanCount="8" ItemSize="80">
-                    @if (IsMessageFromSelf(message))
-                        {
-                            <MudListItem Class="message-from-self">
 
-                                <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
-                                <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                                    <MudChip Text="@message.Text"
-                                             Class="chat-chip px-2 py-1" />
-                                </MudTooltip>
-                            </MudTooltip>
-                        </MudListItem>
-                        }
-                        else
-                        {
-                            <MudListItem>
-                                <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
-                                <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                                    <MudChip Class="pl-0 pb-0 chat-chip">
-                                        <MudAvatar Size="Size.Medium" Class="mr-2">
-                                            <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar" />
-                                        </MudAvatar>
-                                        @message.Text
-                                    </MudChip>
-                                </MudTooltip>
-                            </MudTooltip>
-                        </MudListItem>
-                        }
+                <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat" />
 
-                    </Virtualize>
 
-                    <MudAnimate @ref="_messageSuccessfullySentAnimation"
-                                AnimationType="AnimationType.Fade"
-                                AnimationTiming="AnimationTiming.EaseIn"
-                                Delay="500"
-                                Selector=".message-sent-successfully-container" />
+                <MudAnimate @ref="_messageSuccessfullySentAnimation"
+                            AnimationType="AnimationType.Fade"
+                            AnimationTiming="AnimationTiming.EaseIn"
+                            Delay="500"
+                            Selector=".message-sent-successfully-container" />
 
-                   @if (LastMessageWasSentSuccessfullyByCurrentUser)
-                   {
-                       <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
-                           <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
-                                    Class="message-sent-successfully" />
-                       </div>
-                   }
-                <div class="flex-spacer"></div>
+                @if (LastMessageWasSentSuccessfullyByCurrentUser)
+                    {
+                        <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
+                            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
+                                     Class="message-sent-successfully" />
+                        </div>
+                    }
 
+                    <MudSpacer />
+
+                    <MudToolBar Dense>
                     <MudTextField @bind-Value="_userText"
-                                    FullWidth
-                                    Immediate
-                                    AutoFocus
-                                  Adornment="Adornment.End"
-                                  TextUpdateSuppression="false"
-                                  OnKeyDown="SendMessageOnEnter"
-                                  AdornmentIcon="@Icons.Material.Filled.Send"
-                                  AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
-                                  OnAdornmentClick="SendMessage" />
+                                  id="chat-message-input"
+                                        FullWidth
+                                        Immediate
+                                        AutoFocus
+                                      Adornment="Adornment.End"
+                                      TextUpdateSuppression="false"
+                                      OnKeyDown="SendMessageOnEnter"
+                                      AdornmentIcon="@Icons.Material.Filled.Send"
+                                      AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
+                                      OnAdornmentClick="SendMessage" />
+                    </MudToolBar>
+
                 </MudList>
-            }
-
-        </MudItem>
+            </MudItem>
+        }
     </MudGrid>
-
 </MudLoading>
+
 @code {
-    // TODO: Select currently displayed chat using this, when we update to dotnet 8
-    [SupplyParameterFromQuery]
+    [Parameter]
     public Guid? ChatId { get; set; }
 
     private UserProfile? _currentUser;
-    private UserSlim _currentUserSlim = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
 
@@ -129,9 +96,12 @@
 
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
+    private bool _isMobile = true;
+    private Guid _breakpointObserverId = Guid.NewGuid();
 
     private MudAnimate _messageSuccessfullySentAnimation = null!;
     private Dictionary<Guid, Guid> _lastSuccessfullySentMessageForChat = new();
+
     private bool LastMessageWasSentSuccessfullyByCurrentUser
     {
         get
@@ -163,13 +133,33 @@
             return;
         }
 
-        _currentUserSlim = _currentUser.ToUserSlim();
+        await HideFooter();
+
+        await BrowserViewportService.SubscribeAsync(
+            observerId: _breakpointObserverId,
+            lambda: args => _isMobile = args.Breakpoint <= Breakpoint.Sm,
+            fireImmediately: true);
 
         _chats = await ChatService.GetChats(_currentUser.Id);
+        if (ChatId is not null)
+        {
+            var chatFromRoute = _chats.FirstOrDefault(chat => chat.Id == ChatId);
+            if (chatFromRoute is not null)
+            {
+                await SelectChat(chatFromRoute);
+            }
+        }
 
+        await StartSignalR();
+
+        _isLoading = false;
+    }
+
+    private async Task StartSignalR()
+    {
         ChatSignalRClient.OnChatStarted(chat =>
         {
-            if (chat.InitiatorId == _currentUser.Id)
+            if (chat.InitiatorId == _currentUser!.Id)
             {
                 return;
             }
@@ -188,7 +178,8 @@
             {
                 return;
             }
-            if (message.SenderId == _currentUser.Id)
+
+            if (message.SenderId == _currentUser!.Id)
             {
                 _lastSuccessfullySentMessageForChat[chat.Id] = message.Id;
                 StateHasChanged();
@@ -212,8 +203,6 @@
             }
         });
         await ChatSignalRClient.StartAsync();
-
-        _isLoading = false;
     }
 
     public async Task LoadMessages()
@@ -227,8 +216,6 @@
         _activeChat.Messages = await ChatService.GetChatMessages(_activeChat.Id);
 
         StateHasChanged();
-
-        await ScrollToBottom();
     }
 
     private async Task SelectChat(ChatDto chat)
@@ -237,8 +224,10 @@
         if (_isActiveChatPublished)
         {
             await LoadMessages();
-            // We call this twice to ensure we're at the very bottom. Silly but easy
+
             await ScrollToBottom();
+
+            await FocusMessageInput();
 
             if (chat.HasUnreadMessages)
             {
@@ -246,11 +235,19 @@
                 chat.UnreadMessageCount = 0;
             }
         }
+
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("activeChat", _activeChat.Id));
     }
 
-    private async Task ScrollToBottom() => await JsRuntime.InvokeVoidAsync("scrollFunctions.scrollToTheBottomOfChat");
+    private async Task HideFooter() => await JsRuntime.InvokeVoidAsync("utilities.hideElement", ".footer");
+    private async Task FocusMessageInput() => await JsRuntime.InvokeVoidAsync("utilities.focusElement", "#chat-message-input");
+    private async Task ScrollToBottom() => await JsRuntime.InvokeVoidAsync("scrollFunctions.scrollToBottomOfElement", ".chat-message-window");
 
-    private void BackToList() => _activeChat = null;
+    private void BackToList()
+    {
+        _activeChat = null;
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("activeChat", (Guid?)null));
+    }
 
     private async Task SendMessage()
     {
@@ -264,7 +261,7 @@
                 ChatId = _activeChat.Id,
                 Id = NewId.NextGuid(),
                 SentUtc = DateTime.UtcNow,
-                SenderId = _currentUserSlim.Id,
+                SenderId = _currentUser!.Id,
                 Text = _userText
             };
 
@@ -292,12 +289,10 @@
         }
     }
 
-    private bool IsMessageFromSelf(ChatMessageDto message) => message.SenderId == _currentUser!.Id;
-
     private async Task StartNewChat(IEnumerable<UserSlim> users)
     {
         var userList = users.ToList();
-        if (userList.Count() == 1)
+        if (userList.Count == 1)
         {
             var userIdsToFind = new[] { userList.First().Id, _currentUser!.Id };
             var existingChat = _chats.FirstOrDefault(chat => chat.Recipients.Count == 2 &&
@@ -313,7 +308,7 @@
         var newChat = new ChatDto
             {
                 Id = NewId.NextGuid(),
-                Recipients = new List<UserSlim> { _currentUserSlim },
+                Recipients = new List<UserSlim> { _currentUser!.ToUserSlim() },
                 LastMessageSentUtc = DateTime.UtcNow,
                 StartedUtc = DateTime.UtcNow
             };
@@ -331,12 +326,9 @@
         _chats.Insert(0, newChat);
 
         _isActiveChatPublished = false;
+
         await SelectChat(newChat);
     }
 
-    private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
-        => _activeChat?
-            .Recipients
-            .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
-          ?? ProfileConstants.Default_Profile_Picture;
+    public async ValueTask DisposeAsync() => await BrowserViewportService.UnsubscribeAsync(_breakpointObserverId);
 }

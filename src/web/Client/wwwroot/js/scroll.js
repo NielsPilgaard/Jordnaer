@@ -9,11 +9,11 @@ window.scrollFunctions = {
             window.scrollTo(0, sessionStorage.getItem('scrollPosition'));
         }, 500);
     },
-    scrollToTheBottomOfChat: function () {
-        const chatContainer = document.querySelector('.chat-message-window');
+    scrollToBottomOfElement: function (selector) {
+        const element = document.querySelector(selector);
 
-        if (!chatContainer) return;
+        if (!element) return;
 
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        element.scrollTop = element.scrollHeight;
     }
 };
