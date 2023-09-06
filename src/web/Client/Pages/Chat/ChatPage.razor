@@ -1,19 +1,15 @@
 @page "/chat"
-@page "/chat/{chatId:guid}"
 
 @attribute [Authorize]
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <MudPaper Class="pa-6" Elevation="5">
-        
-
-            <LargeChatComponent ChatId="ChatId"/>
-
+        <ChatComponent ChatId="ActiveChat"/>
     </MudPaper>
 </MudContainer>
 
 @code
 {
-    [Parameter]
-    public Guid? ChatId { get; set; }
+    [SupplyParameterFromQuery]
+    public Guid? ActiveChat { get; set; }
 }
