@@ -1,6 +1,7 @@
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.Email;
+using Jordnaer.Server.Features.Profile;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SendGrid;
@@ -27,13 +28,15 @@ public class DeleteUserService : IDeleteUserService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JordnaerDbContext _context;
     private readonly IDiagnosticContext _diagnosticContext;
+    private readonly IImageService _imageService;
 
     public DeleteUserService(UserManager<ApplicationUser> userManager,
         ILogger<UserService> logger,
         ISendGridClient sendGridClient,
         IHttpContextAccessor httpContextAccessor,
         JordnaerDbContext context,
-        IDiagnosticContext diagnosticContext)
+        IDiagnosticContext diagnosticContext,
+        IImageService imageService)
     {
         _userManager = userManager;
         _logger = logger;
@@ -41,6 +44,7 @@ public class DeleteUserService : IDeleteUserService
         _httpContextAccessor = httpContextAccessor;
         _context = context;
         _diagnosticContext = diagnosticContext;
+        _imageService = imageService;
     }
 
     public async Task<bool> InitiateDeleteUserAsync(ApplicationUser user, CancellationToken cancellationToken = default)
@@ -115,6 +119,11 @@ public class DeleteUserService : IDeleteUserService
                 return false;
             }
 
+            var childrenIds = await _context.ChildProfiles
+                .Where(child => child.UserProfileId == user.Id)
+                .Select(child => child.Id)
+                .ToListAsync(cancellationToken);
+
             int modifiedRows = await _context.UserProfiles
                 .Where(userProfile => userProfile.Id == user.Id)
                 .ExecuteDeleteAsync(cancellationToken);
@@ -130,6 +139,12 @@ public class DeleteUserService : IDeleteUserService
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
+            // Delete all saved images owned by the user
+            await _imageService.DeleteImageAsync(user.Id, ImageService.UserProfilePicturesContainerName, cancellationToken);
+            foreach (var id in childrenIds)
+            {
+                await _imageService.DeleteImageAsync(id.ToString(), ImageService.ChildProfilePicturesContainerName, cancellationToken);
+            }
             return true;
         }
         catch (Exception exception)
