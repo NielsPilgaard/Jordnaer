@@ -2,7 +2,7 @@ using Azure.Storage.Blobs;
 
 namespace Jordnaer.Server.Features.Profile;
 
-public interface IImageUploader
+public interface IImageService
 {
     /// <summary>
     /// Uploads an image to Azure Blob Storage an returns the url.
@@ -22,14 +22,14 @@ public interface IImageUploader
         byte[] fileBytes);
 }
 
-public class ImageUploader : IImageUploader
+public class ImageService : IImageService
 {
     public const string ChildProfilePicturesContainerName = "childprofile-pictures";
     public const string UserProfilePicturesContainerName = "userprofile-pictures";
 
     private readonly BlobServiceClient _blobServiceClient;
 
-    public ImageUploader(BlobServiceClient blobServiceClient)
+    public ImageService(BlobServiceClient blobServiceClient)
     {
         _blobServiceClient = blobServiceClient;
     }

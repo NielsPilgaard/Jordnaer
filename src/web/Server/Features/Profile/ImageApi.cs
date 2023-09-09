@@ -20,7 +20,7 @@ public static class ImageApi
             (
                 [FromBody] SetChildProfilePicture dto,
                 [FromServices] JordnaerDbContext context,
-                [FromServices] IImageUploader imageUploader,
+                [FromServices] IImageService imageUploader,
                 [FromServices] CurrentUser currentUser) =>
             {
                 if (currentUser.Id != dto.ChildProfile.UserProfileId)
@@ -30,7 +30,7 @@ public static class ImageApi
 
                 string uri = await imageUploader.UploadImageAsync(
                     dto.ChildProfile.Id.ToString("N"),
-                    ImageUploader.ChildProfilePicturesContainerName,
+                    ImageService.ChildProfilePicturesContainerName,
                     dto.FileBytes);
 
                 await SetChildProfilePictureAsync(context, dto, uri);
@@ -45,7 +45,7 @@ public static class ImageApi
             (
                 [FromBody] SetUserProfilePicture dto,
                 [FromServices] JordnaerDbContext context,
-                [FromServices] IImageUploader imageUploader,
+                [FromServices] IImageService imageUploader,
                 [FromServices] CurrentUser currentUser) =>
             {
                 if (currentUser.Id != dto.UserProfile.Id)
@@ -55,7 +55,7 @@ public static class ImageApi
 
                 string uri = await imageUploader.UploadImageAsync(
                     dto.UserProfile.Id,
-                    ImageUploader.UserProfilePicturesContainerName,
+                    ImageService.UserProfilePicturesContainerName,
                     dto.FileBytes);
 
                 await SetUserProfilePictureAsync(context, dto, uri);

@@ -30,18 +30,18 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
     private readonly JordnaerDbContext _context;
     private readonly ILogger<ExternalProfilePictureDownloader> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IImageUploader _imageUploader;
+    private readonly IImageService _imageService;
 
     public ExternalProfilePictureDownloader(
         JordnaerDbContext context,
         ILogger<ExternalProfilePictureDownloader> logger,
         IHttpClientFactory httpClientFactory,
-        IImageUploader imageUploader)
+        IImageService imageService)
     {
         _context = context;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _imageUploader = imageUploader;
+        _imageService = imageService;
     }
 
     public async ValueTask Handle(AccessTokenAcquired notification, CancellationToken cancellationToken)
@@ -140,8 +140,8 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             cancellationToken);
 
         string imageUrl =
-            await _imageUploader.UploadImageAsync(userId,
-                ImageUploader.UserProfilePicturesContainerName,
+            await _imageService.UploadImageAsync(userId,
+                ImageService.UserProfilePicturesContainerName,
                 imageAsBytes);
 
         return imageUrl;
@@ -182,8 +182,8 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             cancellationToken);
 
         string imageUrl =
-            await _imageUploader.UploadImageAsync(userId,
-                ImageUploader.UserProfilePicturesContainerName,
+            await _imageService.UploadImageAsync(userId,
+                ImageService.UserProfilePicturesContainerName,
                 imageAsBytes);
 
         return imageUrl;
@@ -212,8 +212,8 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 
         byte[] imageAsBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
-        string imageUrl = await _imageUploader.UploadImageAsync(userId,
-            ImageUploader.UserProfilePicturesContainerName,
+        string imageUrl = await _imageService.UploadImageAsync(userId,
+            ImageService.UserProfilePicturesContainerName,
             imageAsBytes);
 
         return imageUrl;

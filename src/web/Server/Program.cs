@@ -64,7 +64,7 @@ try
 
     builder.AddAzureSignalR();
 
-    builder.Services.AddScoped<IImageUploader, ImageUploader>();
+    builder.Services.AddScoped<IImageService, ImageService>();
 
     var app = builder.Build();
 
