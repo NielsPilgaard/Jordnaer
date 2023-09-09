@@ -126,16 +126,25 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             await response.Content.ReadFromJsonAsync<FacebookProfilePictureResponse>(
                 cancellationToken: cancellationToken);
 
-        if (profilePictureResponse?.Data?.Url is not null)
+        if (profilePictureResponse?.Data?.Url is null)
         {
-            return profilePictureResponse.Data?.Url;
+            _logger.LogWarning("Failed to retrieve the Facebook profile picture for user with id {userId}." +
+                               "The response was successful, but was not in the expected format." +
+                               "Received JSON: {response}", userId,
+                await response.Content.ReadAsStringAsync(cancellationToken));
+            return null;
         }
 
-        _logger.LogWarning("Failed to retrieve the Facebook profile picture for user with id {userId}." +
-                           "The response was successful, but was not in the expected format." +
-                           "Received JSON: {response}", userId,
-            await response.Content.ReadAsStringAsync(cancellationToken));
-        return null;
+        byte[] imageAsBytes = await GetImageByteArrayFromUrlAsync(
+            profilePictureResponse.Data.Url,
+            cancellationToken);
+
+        string imageUrl =
+            await _imageUploader.UploadImageAsync(userId,
+                ImageUploader.UserProfilePicturesContainerName,
+                imageAsBytes);
+
+        return imageUrl;
     }
 
     private async Task<string?> GetGoogleProfilePictureUrlAsync(string userId, string accessToken,
@@ -159,17 +168,25 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             await response.Content.ReadFromJsonAsync<GooglePictureResponse>(
                 cancellationToken: cancellationToken);
 
-        if (profilePictureResponse?.Picture is not null)
+        if (profilePictureResponse?.Picture is null)
         {
-            return profilePictureResponse.Picture;
+            _logger.LogWarning("Failed to retrieve the Google profile picture for user with id {userId}." +
+                               "The response was successful, but was not in the expected format." +
+                               "Received JSON: {response}", userId,
+                await response.Content.ReadAsStringAsync(cancellationToken));
+            return null;
         }
 
-        _logger.LogWarning("Failed to retrieve the Google profile picture for user with id {userId}." +
-                           "The response was successful, but was not in the expected format." +
-                           "Received JSON: {response}", userId,
-            await response.Content.ReadAsStringAsync(cancellationToken));
+        byte[] imageAsBytes = await GetImageByteArrayFromUrlAsync(
+            profilePictureResponse.Picture,
+            cancellationToken);
 
-        return null;
+        string imageUrl =
+            await _imageUploader.UploadImageAsync(userId,
+                ImageUploader.UserProfilePicturesContainerName,
+                imageAsBytes);
+
+        return imageUrl;
     }
 
     private async Task<string?> GetMicrosoftProfilePictureUrlAsync(string userId, string accessToken,
@@ -193,12 +210,26 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             return null;
         }
 
-        byte[] profilePictureResponse =
-            await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        byte[] imageAsBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
-        string imageUrl = await _imageUploader.UploadImageAsync(userId, ImageUploader.UserProfilePicturesContainerName,
-            profilePictureResponse);
+        string imageUrl = await _imageUploader.UploadImageAsync(userId,
+            ImageUploader.UserProfilePicturesContainerName,
+            imageAsBytes);
 
         return imageUrl;
+    }
+
+    private async Task<byte[]> GetImageByteArrayFromUrlAsync(string url, CancellationToken cancellationToken)
+    {
+        var client = _httpClientFactory.CreateClient(HttpClients.External);
+        var response = await client.GetAsync(url, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Failed to get image as byte array from url {url}", url);
+            return Array.Empty<byte>();
+        }
+
+        return await response.Content.ReadAsByteArrayAsync(cancellationToken);
     }
 }
