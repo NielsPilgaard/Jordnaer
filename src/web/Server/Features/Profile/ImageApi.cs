@@ -1,4 +1,3 @@
-using Azure.Storage.Blobs;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
@@ -11,6 +10,7 @@ namespace Jordnaer.Server.Features.Profile;
 public static class ImageApi
 {
     public const string ChildProfilePicturesContainerName = "childprofile-pictures";
+    public const string UserProfilePicturesContainerName = "userprofile-pictures";
 
     public static RouteGroupBuilder MapImages(this IEndpointRouteBuilder routes)
     {
@@ -23,7 +23,7 @@ public static class ImageApi
             (
                 [FromBody] SetChildProfilePicture dto,
                 [FromServices] JordnaerDbContext context,
-                [FromServices] BlobServiceClient blobServiceClient,
+                [FromServices] IImageUploader imageUploader,
                 [FromServices] CurrentUser currentUser) =>
             {
                 if (currentUser.Id != dto.ChildProfile.UserProfileId)
@@ -31,7 +31,10 @@ public static class ImageApi
                     return null;
                 }
 
-                string uri = await UploadImageAsync(blobServiceClient, dto.ChildProfile.Id.ToString("N"), dto.FileBytes);
+                string uri = await imageUploader.UploadImageAsync(
+                    dto.ChildProfile.Id.ToString("N"),
+                    ChildProfilePicturesContainerName,
+                    dto.FileBytes);
 
                 await SetChildProfilePictureAsync(context, dto, uri);
 
@@ -45,7 +48,7 @@ public static class ImageApi
             (
                 [FromBody] SetUserProfilePicture dto,
                 [FromServices] JordnaerDbContext context,
-                [FromServices] BlobServiceClient blobServiceClient,
+                [FromServices] IImageUploader imageUploader,
                 [FromServices] CurrentUser currentUser) =>
             {
                 if (currentUser.Id != dto.UserProfile.Id)
@@ -53,7 +56,10 @@ public static class ImageApi
                     return null;
                 }
 
-                string uri = await UploadImageAsync(blobServiceClient, dto.UserProfile.Id, dto.FileBytes);
+                string uri = await imageUploader.UploadImageAsync(
+                    dto.UserProfile.Id,
+                    UserProfilePicturesContainerName,
+                    dto.FileBytes);
 
                 await SetUserProfilePictureAsync(context, dto, uri);
 
@@ -85,7 +91,6 @@ public static class ImageApi
         }
     }
 
-
     private static async Task SetUserProfilePictureAsync(JordnaerDbContext context, SetUserProfilePicture dto, string uri)
     {
         var currentUserProfile = await context.UserProfiles.FindAsync(dto.UserProfile.Id);
@@ -106,22 +111,4 @@ public static class ImageApi
             await context.SaveChangesAsync();
         }
     }
-
-    private static async Task<string> UploadImageAsync(BlobServiceClient blobServiceClient, string blobName, byte[] fileBytes)
-    {
-        var containerClient = blobServiceClient.GetBlobContainerClient(ChildProfilePicturesContainerName);
-        await containerClient.CreateIfNotExistsAsync();
-
-        var blobClient = containerClient.GetBlobClient(blobName);
-
-        // Convert file bytes to MemoryStream and upload
-        using var memoryStream = new MemoryStream(fileBytes);
-
-        await blobClient.UploadAsync(memoryStream, overwrite: true);
-
-        memoryStream.Close();
-
-        return blobClient.Uri.AbsoluteUri;
-    }
 }
-

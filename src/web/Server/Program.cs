@@ -64,6 +64,8 @@ try
 
     builder.AddAzureSignalR();
 
+    builder.Services.AddScoped<IImageUploader, ImageUploader>();
+
     var app = builder.Build();
 
     if (!app.Environment.IsDevelopment())
@@ -125,10 +127,12 @@ try
 }
 catch (Exception exception)
 {
-    Log.Fatal(exception, "An unhandled exception occurred during application startup.");
+    Log.Fatal(exception, "An unhandled exception occurred.");
 }
 finally
 {
+    // Wait 0.5 seconds before closing and flushing, to gather the last few logs.
+    await Task.Delay(TimeSpan.FromMilliseconds(500));
     await Log.CloseAndFlushAsync();
 }
 
