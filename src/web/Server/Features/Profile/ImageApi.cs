@@ -9,9 +9,6 @@ namespace Jordnaer.Server.Features.Profile;
 
 public static class ImageApi
 {
-    public const string ChildProfilePicturesContainerName = "childprofile-pictures";
-    public const string UserProfilePicturesContainerName = "userprofile-pictures";
-
     public static RouteGroupBuilder MapImages(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("api/images");
@@ -33,7 +30,7 @@ public static class ImageApi
 
                 string uri = await imageUploader.UploadImageAsync(
                     dto.ChildProfile.Id.ToString("N"),
-                    ChildProfilePicturesContainerName,
+                    ImageUploader.ChildProfilePicturesContainerName,
                     dto.FileBytes);
 
                 await SetChildProfilePictureAsync(context, dto, uri);
@@ -58,7 +55,7 @@ public static class ImageApi
 
                 string uri = await imageUploader.UploadImageAsync(
                     dto.UserProfile.Id,
-                    UserProfilePicturesContainerName,
+                    ImageUploader.UserProfilePicturesContainerName,
                     dto.FileBytes);
 
                 await SetUserProfilePictureAsync(context, dto, uri);
