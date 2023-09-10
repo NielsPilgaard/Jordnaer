@@ -88,7 +88,9 @@ public static class ProfileApi
         return group;
     }
 
-    public static async Task UpdateExistingUserProfileAsync(this UserProfile userProfile, UserProfile dto, JordnaerDbContext context)
+    private static async Task UpdateExistingUserProfileAsync(this UserProfile userProfile,
+        UserProfile dto,
+        JordnaerDbContext context)
     {
         userProfile.FirstName = dto.FirstName;
         userProfile.LastName = dto.LastName;
