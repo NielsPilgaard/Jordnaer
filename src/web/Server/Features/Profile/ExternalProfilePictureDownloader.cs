@@ -4,6 +4,7 @@ using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
 using Mediator;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Jordnaer.Server.Features.Profile;
 
@@ -58,6 +59,12 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             new object[] { notification.UserId },
             cancellationToken);
 
+        if (user is not null && user.ProfilePictureUrl is not ProfileConstants.Default_Profile_Picture)
+        {
+            _logger.LogDebug("User already has a profile picture, no need to download one.");
+            return;
+        }
+
         bool userIsKnown = user is not null;
 
         user ??= new UserProfile { Id = notification.UserId };
@@ -100,7 +107,6 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             _context.UserProfiles.Add(user);
         }
 
-
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -109,7 +115,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
     {
         var client = _httpClientFactory.CreateClient(HttpClients.External);
         string facebookUrl = $"https://graph.facebook.com/v13.0/{userId}/picture?" +
-                             $"type=normal&" +
+                             $"type=large&" +
                              $"redirect=false&" +
                              $"access_token={accessToken}";
 
@@ -135,14 +141,19 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             return null;
         }
 
-        byte[] imageAsBytes = await GetImageByteArrayFromUrlAsync(
+        var imageStream = await GetImageStreamFromUrlAsync(
             profilePictureResponse.Data.Url,
             cancellationToken);
+
+        var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
 
         string imageUrl =
             await _imageService.UploadImageAsync(userId,
                 ImageService.UserProfilePicturesContainerName,
-                imageAsBytes);
+                resizedImage,
+                cancellationToken);
+
+        await resizedImage.DisposeAsync();
 
         return imageUrl;
     }
@@ -177,14 +188,19 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             return null;
         }
 
-        byte[] imageAsBytes = await GetImageByteArrayFromUrlAsync(
+        var imageStream = await GetImageStreamFromUrlAsync(
             profilePictureResponse.Picture,
             cancellationToken);
+
+        var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
 
         string imageUrl =
             await _imageService.UploadImageAsync(userId,
                 ImageService.UserProfilePicturesContainerName,
-                imageAsBytes);
+                resizedImage,
+                cancellationToken);
+
+        await resizedImage.DisposeAsync();
 
         return imageUrl;
     }
@@ -192,7 +208,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
     private async Task<string?> GetMicrosoftProfilePictureUrlAsync(string userId, string accessToken,
         CancellationToken cancellationToken)
     {
-        const string microsoftUrl = $"https://graph.microsoft.com/v1.0/me/photo/$value";
+        const string microsoftUrl = "https://graph.microsoft.com/v1.0/me/photo/$value";
 
         var client = _httpClientFactory.CreateClient(HttpClients.External);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -210,16 +226,41 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             return null;
         }
 
-        byte[] imageAsBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        await using var imageAsStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        var resizedImage = await ResizeImageAsync(imageAsStream, cancellationToken);
 
         string imageUrl = await _imageService.UploadImageAsync(userId,
             ImageService.UserProfilePicturesContainerName,
-            imageAsBytes);
+            resizedImage,
+            cancellationToken);
+
+        await resizedImage.DisposeAsync();
 
         return imageUrl;
     }
 
-    private async Task<byte[]> GetImageByteArrayFromUrlAsync(string url, CancellationToken cancellationToken)
+    private static async Task<Stream> ResizeImageAsync(Stream imageAsStream, CancellationToken cancellationToken)
+    {
+        // 0 maintains aspect ratio
+        const int width = 0;
+        const int height = 200;
+
+        using var image = await Image.LoadAsync(imageAsStream, cancellationToken);
+
+        var outputStream = new MemoryStream();
+
+        image.Mutate(img => img.Resize(width, height));
+
+        await image.SaveAsync(outputStream, new WebpEncoder(), cancellationToken);
+
+        // Allow the stream to be read again
+        outputStream.Position = 0;
+
+        return outputStream;
+    }
+
+    private async Task<Stream> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken)
     {
         var client = _httpClientFactory.CreateClient(HttpClients.External);
         var response = await client.GetAsync(url, cancellationToken);
@@ -227,9 +268,9 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Failed to get image as byte array from url {url}", url);
-            return Array.Empty<byte>();
+            return Stream.Null;
         }
 
-        return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 }
