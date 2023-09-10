@@ -60,7 +60,9 @@ public class ImageService : IImageService
     public async Task<string> UploadImageAsync(string blobName, string containerName, Stream fileStream, CancellationToken cancellationToken = default)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-        await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+        await containerClient.CreateIfNotExistsAsync(
+            publicAccessType: PublicAccessType.Blob,
+            cancellationToken: cancellationToken);
 
         var blobClient = containerClient.GetBlobClient(blobName);
 
