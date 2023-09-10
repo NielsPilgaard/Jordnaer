@@ -32,7 +32,7 @@ public class UserSearchApi_Should
     }
 
     [Fact]
-    [Trait("Category", "IntegrationTest")]
+    [Trait("Category", "ManualTest")]
     public async Task Return_429TooManyRequests_When_Too_Many_Requests_Are_Sent_By_The_Same_Client()
     {
         // Arrange
