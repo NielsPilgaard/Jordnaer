@@ -3,6 +3,7 @@ using FluentAssertions;
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Features.DeleteUser;
+using Jordnaer.Server.Features.Profile;
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -27,12 +28,13 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
     private readonly JordnaerDbContext _context;
     private readonly IDiagnosticContext _diagnosticContext = Substitute.For<IDiagnosticContext>();
     private readonly IDeleteUserService _deleteUserService;
+    private readonly IImageService _imageService = Substitute.For<IImageService>();
 
     public DeleteUserService_Should(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
     {
         _context = sqlServerContainer.Context;
 
-        _deleteUserService = new DeleteUserService(_userManager, _logger, _sendGridClient, _httpContextAccessor, _context, _diagnosticContext);
+        _deleteUserService = new DeleteUserService(_userManager, _logger, _sendGridClient, _httpContextAccessor, _context, _diagnosticContext, _imageService);
     }
 
     [Fact]
