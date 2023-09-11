@@ -2,8 +2,6 @@ using MassTransit;
 
 namespace Jordnaer.Chat;
 
-//TODO: Implement
-
 public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddMassTransit(this WebApplicationBuilder builder)

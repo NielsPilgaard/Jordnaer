@@ -1,4 +1,6 @@
+using Jordnaer.Server.Database;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace Jordnaer.Server.Authorization;
 
@@ -24,20 +26,33 @@ public static class AuthorizationHandlerExtensions
     private class CheckCurrentUserAuthHandler : AuthorizationHandler<CheckCurrentUserRequirement>
     {
         private readonly CurrentUser _currentUser;
-        public CheckCurrentUserAuthHandler(CurrentUser currentUser)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public CheckCurrentUserAuthHandler(CurrentUser currentUser, UserManager<ApplicationUser> userManager)
         {
             _currentUser = currentUser;
+            _userManager = userManager;
         }
 
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, CheckCurrentUserRequirement requirement)
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
+            CheckCurrentUserRequirement requirement)
         {
-            // TODO: Check user if the user is locked out as well
-            if (_currentUser.User is not null)
+            if (_currentUser.User is null)
             {
+                return;
+            }
+
+            if (!_userManager.SupportsUserLockout)
+            {
+                // User cannot be locked out
                 context.Succeed(requirement);
             }
 
-            return Task.CompletedTask;
+            bool userIsLockedOut = await _userManager.IsLockedOutAsync(_currentUser.User);
+            if (!userIsLockedOut)
+            {
+                context.Succeed(requirement);
+            }
         }
     }
 }
