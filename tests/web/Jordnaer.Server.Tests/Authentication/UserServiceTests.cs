@@ -4,24 +4,28 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.Authentication;
 
-[Trait("Category", "UnitTest")]
-public class UserService_Should
+[Trait("Category", "IntegrationTest")]
+public class UserService_Should : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
 {
+    private readonly JordnaerDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserService _userService;
     private const string VALID_PASSWORD = "123456789ABCabc";
 
-    public UserService_Should()
+    public UserService_Should(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
     {
-        _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+        _context = sqlServerContainer.Context;
+        _userManager = Substitute.For<UserManager<ApplicationUser>>(new UserStore<ApplicationUser>(_context), null, null, null, null, null, null, null, null);
 
-        _userService = new UserService(_userManager, Substitute.For<ILogger<UserService>>());
+        _userService = new UserService(_userManager, Substitute.For<ILogger<UserService>>(), _context);
     }
 
     [Fact]
@@ -32,10 +36,10 @@ public class UserService_Should
         _userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>()).Returns(IdentityResult.Success);
 
         // Act
-        bool result = await _userService.CreateUserAsync(userInfo);
+        string? result = await _userService.CreateUserAsync(userInfo);
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().NotBeNull();
     }
 
     [Fact]
@@ -46,10 +50,10 @@ public class UserService_Should
         _userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>()).Returns(IdentityResult.Failed(new IdentityError()));
 
         // Act
-        bool result = await _userService.CreateUserAsync(userInfo);
+        string? result = await _userService.CreateUserAsync(userInfo);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -61,10 +65,10 @@ public class UserService_Should
         _userManager.CheckPasswordAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>()).Returns(true);
 
         // Act
-        bool result = await _userService.IsLoginValidAsync(userInfo);
+        string? result = await _userService.IsLoginValidAsync(userInfo);
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().NotBeNull();
     }
 
     [Fact]
@@ -75,10 +79,10 @@ public class UserService_Should
         _userManager.FindByEmailAsync(Arg.Any<string>()).Returns((ApplicationUser)null!);
 
         // Act
-        bool result = await _userService.IsLoginValidAsync(userInfo);
+        string? result = await _userService.IsLoginValidAsync(userInfo);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -90,10 +94,10 @@ public class UserService_Should
         _userManager.CheckPasswordAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>()).Returns(false);
 
         // Act
-        bool result = await _userService.IsLoginValidAsync(userInfo);
+        string? result = await _userService.IsLoginValidAsync(userInfo);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -106,9 +110,14 @@ public class UserService_Should
         _userManager.IsLockedOutAsync(Arg.Any<ApplicationUser>()).Returns(true);
 
         // Act
-        bool result = await _userService.IsLoginValidAsync(userInfo);
+        string? result = await _userService.IsLoginValidAsync(userInfo);
 
         // Assert
-        result.Should().BeFalse();
+        result.Should().BeNull();
     }
+
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _context.UserProfiles.ExecuteDeleteAsync();
 }
