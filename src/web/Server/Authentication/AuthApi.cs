@@ -21,20 +21,20 @@ public static class AuthApi
 
         group.MapPost("register", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
         {
-            bool userCreated = await userService.CreateUserAsync(userInfo);
+            string? userId = await userService.CreateUserAsync(userInfo);
 
-            return userCreated
-                ? SignIn(userInfo, new AuthenticationProperties { RedirectUri = "/first-login" })
+            return userId is not null
+                ? SignIn(userId, userInfo, new AuthenticationProperties { RedirectUri = "/first-login" })
                 : Results.Unauthorized();
         });
 
         group.MapPost("login", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
         {
             // Check whether the user exists
-            bool loginIsValid = await userService.IsLoginValidAsync(userInfo);
+            string? userId = await userService.IsLoginValidAsync(userInfo);
 
-            return loginIsValid
-                ? SignIn(userInfo, new AuthenticationProperties { RedirectUri = "/" })
+            return userId is not null
+                ? SignIn(userId, userInfo, new AuthenticationProperties { RedirectUri = "/" })
                 : Results.Unauthorized();
         });
 
@@ -101,11 +101,11 @@ public static class AuthApi
         return group;
     }
 
-    private static IResult SignIn(UserInfo userInfo, AuthenticationProperties properties)
+    private static IResult SignIn(string userId, UserInfo userInfo, AuthenticationProperties properties)
         => SignIn(providerName: null,
                 claims: new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, userInfo.Email),
+                    new Claim(ClaimTypes.NameIdentifier, userId),
                     new Claim(ClaimTypes.Email, userInfo.Email),
                     new Claim(ClaimTypes.Name, userInfo.Email)
                 },
