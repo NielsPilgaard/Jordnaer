@@ -88,7 +88,7 @@ public static class ProfileApi
         return group;
     }
 
-    private static async Task UpdateExistingUserProfileAsync(this UserProfile userProfile,
+    internal static async Task UpdateExistingUserProfileAsync(this UserProfile userProfile,
         UserProfile dto,
         JordnaerDbContext context)
     {
