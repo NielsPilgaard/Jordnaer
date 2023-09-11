@@ -90,7 +90,6 @@ public class DeleteUserService : IDeleteUserService
         return emailSentResponse.IsSuccessStatusCode;
     }
 
-    // TODO: Perform all cleanup to delete a user completely
     public async Task<bool> DeleteUserAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default)
     {
         _diagnosticContext.Set("userId", user.Id);
@@ -106,8 +105,7 @@ public class DeleteUserService : IDeleteUserService
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            // TODO: Make sure all user data is deleted here,
-            // and that owned groups are assigned new admins
+            // TODO: Make sure all user data is deleted here, and that owned groups are assigned new admins
 
             var identityResult = await _userManager.DeleteAsync(user);
             if (identityResult.Succeeded is false)
