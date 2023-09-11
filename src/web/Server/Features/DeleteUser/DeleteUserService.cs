@@ -148,7 +148,7 @@ public class DeleteUserService : IDeleteUserService
         catch (Exception exception)
         {
             await transaction.RollbackAsync(cancellationToken);
-            _logger.LogError(exception, exception.Message);
+            _logger.LogError(exception, "Exception occurred in function {functionName}", nameof(DeleteUserAsync));
             return false;
         }
     }

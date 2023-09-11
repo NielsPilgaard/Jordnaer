@@ -110,7 +110,14 @@ public class UserSearchService : IUserSearchService
         var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(filter.Location);
         if (!searchResponse.IsSuccessStatusCode)
         {
-            _logger.LogError(searchResponse.Error, searchResponse.Error?.Message);
+            _logger.LogError(searchResponse.Error,
+                "Exception occurred in function {functionName} " +
+                "while calling external API through {externalApiFunction}. " +
+                "{statusCode}: {reasonPhrase}",
+                nameof(ApplyLocationFilterAsync),
+                nameof(IDataForsyningenClient.GetAddressesWithAutoComplete),
+                searchResponse.Error.StatusCode,
+                searchResponse.Error.ReasonPhrase);
             return (users, false);
         }
 
