@@ -25,6 +25,7 @@ public static class UserProfileExtensions
     public static ProfileDto ToProfileDto(this UserProfile userProfile)
         => new()
         {
+            Id = userProfile.Id,
             FirstName = userProfile.FirstName,
             LastName = userProfile.LastName,
             Address = userProfile.Address,
