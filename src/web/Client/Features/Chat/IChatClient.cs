@@ -8,15 +8,18 @@ public interface IChatClient
     [Get("/api/chat/{userId}")]
     Task<IApiResponse<List<ChatDto>>> GetChats(string userId, int skip = 0, int take = int.MaxValue);
 
-    [Get($"/api/chat/{MessagingConstants.GetChatMessages}/{{chatId}}")]
+    [Get("/api/chat/messages/{chatId}")]
     Task<IApiResponse<List<ChatMessageDto>>> GetChatMessages(Guid chatId, int skip = 0, int take = int.MaxValue);
 
-    [Post($"/api/chat/{MessagingConstants.StartChat}")]
+    [Post("/api/chat/start-chat")]
     Task<IApiResponse> StartChat([Body] StartChat startChat);
 
-    [Post($"/api/chat/{MessagingConstants.SendMessage}")]
+    [Get("/api/chat/get-chat")]
+    Task<IApiResponse<Guid?>> GetChat([Query(CollectionFormat.Multi)] string[] userIds);
+
+    [Post("/api/chat/send-message")]
     Task<IApiResponse> SendMessage([Body] ChatMessageDto message);
 
-    [Post($"/api/chat/{MessagingConstants.MarkMessagesAsRead}/{{chatId}}")]
+    [Post("/api/chat/messages-read/{chatId}")]
     Task<IApiResponse> MarkMessagesAsRead(Guid chatId);
 }

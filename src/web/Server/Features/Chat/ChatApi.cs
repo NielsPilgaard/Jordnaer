@@ -60,7 +60,7 @@ public static class ChatApi
                 return TypedResults.Ok(chats);
             });
 
-        group.MapPost($"{MessagingConstants.MarkMessagesAsRead}/{{chatId:guid}}",
+        group.MapPost("messages-read/{chatId:guid}",
             async Task<Results<NoContent, BadRequest>> (
                 [FromRoute] Guid chatId,
                 [FromServices] CurrentUser currentUser,
@@ -78,7 +78,7 @@ public static class ChatApi
                     : TypedResults.BadRequest();
             });
 
-        group.MapGet($"{MessagingConstants.GetChatMessages}/{{chatId:guid}}",
+        group.MapGet("messages/{chatId:guid}",
             async Task<Results<Ok<List<ChatMessageDto>>, UnauthorizedHttpResult>> (
                     [FromRoute] Guid chatId,
                     [FromQuery] int skip,
@@ -118,64 +118,65 @@ public static class ChatApi
                 return TypedResults.Ok(chatMessages);
             });
 
-        group.MapPost(MessagingConstants.StartChat,
-            async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
-            [FromBody] StartChat chat,
-            [FromServices] CurrentUser currentUser,
-            [FromServices] JordnaerDbContext context,
-            [FromServices] IPublishEndpoint publishEndpoint,
+        group.MapPost("start-chat",
+            async Task<Results<Ok<Guid>, BadRequest, UnauthorizedHttpResult>> (
+                [FromBody] StartChat chat,
+                [FromServices] CurrentUser currentUser,
+                [FromServices] JordnaerDbContext context,
+                [FromServices] IPublishEndpoint publishEndpoint,
                 [FromServices] IHubContext<ChatHub, IChatHub> chatHub,
-            CancellationToken cancellationToken) =>
-        {
-            if (await context.Chats.AsNoTracking().AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken))
+                CancellationToken cancellationToken)
+                =>
             {
-                return TypedResults.BadRequest();
-            }
+                if (await context.Chats.AsNoTracking().AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken))
+                {
+                    return TypedResults.BadRequest();
+                }
 
-            if (!chat.Recipients.Select(recipient => recipient.Id).Contains(currentUser.Id))
-            {
-                return TypedResults.Unauthorized();
-            }
+                if (!chat.Recipients.Select(recipient => recipient.Id).Contains(currentUser.Id))
+                {
+                    return TypedResults.Unauthorized();
+                }
 
-            context.Chats.Add(new Shared.Chat
-            {
-                LastMessageSentUtc = chat.LastMessageSentUtc,
-                Id = chat.Id,
-                StartedUtc = chat.StartedUtc,
-                Messages = chat.Messages.Select(static message => message.ToChatMessage()).ToList()
+                context.Chats.Add(new Shared.Chat
+                {
+                    LastMessageSentUtc = chat.LastMessageSentUtc,
+                    Id = chat.Id,
+                    StartedUtc = chat.StartedUtc,
+                    Messages = chat.Messages.Select(static message => message.ToChatMessage()).ToList()
+                });
+
+                foreach (var message in chat.Messages)
+                {
+                    foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))
+                    {
+                        context.UnreadMessages.Add(new UnreadMessage
+                        {
+                            RecipientId = recipient.Id,
+                            ChatId = chat.Id,
+                            MessageSentUtc = message.SentUtc
+                        });
+                    }
+                }
+
+                context.UserChats.AddRange(chat.Recipients.Select(recipient =>
+                    new UserChat
+                    {
+                        ChatId = chat.Id,
+                        UserProfileId = recipient.Id
+                    }));
+
+                await context.SaveChangesAsync(cancellationToken);
+
+                await chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
+
+                // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
+                await publishEndpoint.Publish(chat, cancellationToken);
+
+                return TypedResults.Ok(chat.Id);
             });
 
-            foreach (var message in chat.Messages)
-            {
-                foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))
-                {
-                    context.UnreadMessages.Add(new UnreadMessage
-                    {
-                        RecipientId = recipient.Id,
-                        ChatId = chat.Id,
-                        MessageSentUtc = message.SentUtc
-                    });
-                }
-            }
-
-            context.UserChats.AddRange(chat.Recipients.Select(recipient =>
-                new UserChat
-                {
-                    ChatId = chat.Id,
-                    UserProfileId = recipient.Id
-                }));
-
-            await context.SaveChangesAsync(cancellationToken);
-
-            await chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
-
-            // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-            await publishEndpoint.Publish(chat, cancellationToken);
-
-            return TypedResults.NoContent();
-        });
-
-        group.MapPost(MessagingConstants.SendMessage, async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
+        group.MapPost("send-message", async Task<Results<NoContent, BadRequest, UnauthorizedHttpResult>> (
             [FromBody] ChatMessageDto chatMessage,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
@@ -240,7 +241,7 @@ public static class ChatApi
             return TypedResults.NoContent();
         });
 
-        group.MapPut(MessagingConstants.SetChatName, async Task<Results<NoContent, NotFound>> (
+        group.MapPut("set-chat-name", async Task<Results<NoContent, NotFound>> (
             [FromBody] SetChatName setChatName,
             [FromServices] CurrentUser currentUser,
             [FromServices] JordnaerDbContext context,
@@ -258,6 +259,24 @@ public static class ChatApi
 
             return TypedResults.NoContent();
         });
+        group.MapGet("get-chat",
+            async Task<Results<Ok<Guid>, NotFound>> (
+                [FromQuery] string[] userIds,
+                [FromServices] CurrentUser currentUser,
+                [FromServices] JordnaerDbContext context,
+                CancellationToken cancellationToken) =>
+            {
+                // Look for an existing chat with the exact same recipients
+                var existingChat = await context.Chats
+                    .Where(chat => chat.Recipients.Select(recipients => recipients.Id).Contains(currentUser.Id))
+                    .FirstOrDefaultAsync(chat => chat.Recipients.Count == userIds.Length &&
+                                                 chat.Recipients.Select(recipients => recipients.Id)
+                            .All(recipientId => userIds.Contains(recipientId)), cancellationToken);
+
+                return existingChat is not null
+                    ? TypedResults.Ok(existingChat.Id)
+                    : TypedResults.NotFound();
+            });
 
         return group;
     }
