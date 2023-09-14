@@ -163,7 +163,7 @@
             {
                 return;
             }
-
+            
             var chatDto = chat.ToChatDto();
             chatDto.UnreadMessageCount++;
             _chats.Insert(0, chatDto);
@@ -236,7 +236,10 @@
             }
         }
 
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("activeChat", _activeChat.Id));
+        if (!Navigation.Uri.EndsWith($"/chat/{_activeChat.Id}"))
+        {
+            Navigation.NavigateTo($"/chat/{_activeChat.Id}");
+        }
     }
 
     private async Task HideFooter() => await JsRuntime.InvokeVoidAsync("utilities.hideElement", ".footer");
