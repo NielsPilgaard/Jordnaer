@@ -30,5 +30,4 @@ public class LookingForApi_Should
         response.Content.Should().NotBeNullOrEmpty();
         response.Content!.Count.Should().BeGreaterThan(0);
     }
-
 }
