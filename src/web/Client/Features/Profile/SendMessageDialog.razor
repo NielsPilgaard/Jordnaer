@@ -1,0 +1,59 @@
+@inject IChatClient ChatClient
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="_userText"
+                            FullWidth
+                            Immediate
+                      Lines="10"
+                            AutoFocus
+                      Adornment="Adornment.End"
+                      TextUpdateSuppression="false"
+                      OnKeyDown="StartChatOnEnter"
+                      AdornmentIcon="@Icons.Material.Filled.Send"
+                      AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
+                      OnAdornmentClick="StartChat" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Annullér</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public required string InitiatorId { get; set; }
+    [Parameter] public required List<UserSlim> Recipients { get; set; }
+
+    private string _userText = string.Empty;
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task StartChatOnEnter(KeyboardEventArgs keyboardEventArgs)
+    {
+        if (keyboardEventArgs is { Key: "Enter", ShiftKey: false })
+        {
+            await StartChat();
+        }
+    }
+    public async Task StartChat()
+    {
+        var chatId = NewId.NextGuid();
+        await ChatClient.StartChat(new StartChat
+            {
+                LastMessageSentUtc = DateTime.UtcNow,
+                StartedUtc = DateTime.UtcNow,
+                Id = chatId,
+                InitiatorId = InitiatorId,
+                Recipients = Recipients,
+                Messages = new List<ChatMessageDto> {new()
+                {
+                    ChatId = chatId,
+                    Id = NewId.NextGuid(),
+                    Text = _userText,
+                    SentUtc = DateTime.UtcNow,
+                    SenderId = InitiatorId
+                }}
+            });
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

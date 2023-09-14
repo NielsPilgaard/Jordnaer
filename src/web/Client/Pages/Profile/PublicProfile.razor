@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IProfileClient ProfileClient
 @inject IJSRuntime JsRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null && _isLoading is false)
@@ -21,10 +22,7 @@
 
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
 
-    @*
-        TODO: This button should open a popup that starts a chat with the person when the message is sent
-    *@
-    <MudButton EndIcon="@Icons.Material.Filled.Message">Send Besked</MudButton>
+    <OpenChat Disabled="@_disableOpenChatButton" UserIds="_userIds"/>
 
     <MudPaper Elevation="1" Class="pa-4">
         <MudGrid>
@@ -69,6 +67,8 @@
 @code {
     private ProfileDto? _profile;
     private bool _isLoading = true;
+    private bool _disableOpenChatButton = true;
+    private readonly List<string> _userIds = new();
 
     [Parameter]
     public required string UserName { get; set; }
@@ -81,6 +81,7 @@
         {
             case var _ when response.IsSuccessStatusCode:
                 _profile = response.Content;
+                _userIds.Add(_profile!.Id);
                 break;
             case HttpStatusCode.NotFound:
                 break;
@@ -92,6 +93,12 @@
                 break;
         }
 
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authenticationState.User.Identity?.IsAuthenticated is true)
+        {
+            _disableOpenChatButton = false;
+            _userIds.Add(authenticationState.User.GetId());
+        }
         _isLoading = false;
     }
 
