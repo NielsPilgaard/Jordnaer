@@ -55,7 +55,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.21.6" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.21.7" />
 
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
   </ItemGroup>
