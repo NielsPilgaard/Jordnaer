@@ -39,7 +39,8 @@ public static class UserProfileExtensions
             PhoneNumber = userProfile.PhoneNumber,
             ZipCode = userProfile.ZipCode,
             ProfilePictureUrl = userProfile.ProfilePictureUrl,
-            CreatedUtc = userProfile.CreatedUtc
+            CreatedUtc = userProfile.CreatedUtc,
+            Age = userProfile.Age
         };
 
     public static UserSlim ToUserSlim(this UserProfile userProfile)

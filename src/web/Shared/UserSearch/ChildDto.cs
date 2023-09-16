@@ -6,4 +6,5 @@ public class ChildDto
     public string? LastName { get; set; }
     public Gender? Gender { get; set; }
     public DateTime? DateOfBirth { get; set; }
+    public int? Age { get; set; }
 }

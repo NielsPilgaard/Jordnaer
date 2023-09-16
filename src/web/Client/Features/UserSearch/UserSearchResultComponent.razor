@@ -67,8 +67,7 @@ else
 
     private string GetAgeString(ChildDto child)
     {
-        var age = child.DateOfBirth.GetAge();
-        return age is not null ? $"{age} år" : "?";
+        return child.Age is not null ? $"{child.Age} år" : "?";
     }
 
     private async Task SaveScrollPosition(UserDto user)

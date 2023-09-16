@@ -12,6 +12,7 @@ public static class ChildProfileExtensions
         mapInto.Gender = mapFrom.Gender;
         mapInto.PictureUrl = mapFrom.PictureUrl;
         mapInto.Id = mapFrom.Id;
+        mapInto.Age = mapFrom.Age;
     }
 
     public static ChildProfileDto ToChildProfileDto(this ChildProfile childProfile) =>
@@ -22,6 +23,7 @@ public static class ChildProfileExtensions
             Gender = childProfile.Gender,
             PictureUrl = childProfile.PictureUrl,
             DateOfBirth = childProfile.DateOfBirth,
-            Description = childProfile.Description
+            Description = childProfile.Description,
+            Age = childProfile.Age
         };
 }

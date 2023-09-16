@@ -24,9 +24,9 @@ public class ProfileDto
 
     public DateTime? DateOfBirth { get; set; }
 
-    public string? ProfilePictureUrl { get; set; }
+    public string ProfilePictureUrl { get; set; } = null!;
 
-    public int? GetAge() => DateOfBirth.GetAge();
+    public int? Age { get; set; }
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
