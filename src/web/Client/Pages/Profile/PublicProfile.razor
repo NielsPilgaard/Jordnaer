@@ -3,7 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IProfileClient ProfileClient
 @inject IJSRuntime JsRuntime
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IProfileCache ProfileCache
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null && _isLoading is false)
@@ -22,15 +22,14 @@
 
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
 
-    <OpenChat Disabled="@_disableOpenChatButton" UserIds="_userIds"/>
-
-    <MudPaper Elevation="1" Class="pa-4">
+    <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" InitiatorId="@_currentUserId" />
+    
         <MudGrid>
             <MudItem xs="12">
                 <UserProfileCard Profile="_profile" UserName="@UserName" />
             </MudItem>
 
-            @if (_profile!.ChildProfiles.Any())
+            @if (_profile!.ChildProfiles.Count > 0)
             {
                 <MudDivider Class="my-5" />
                 <MudText Typo="Typo.h5" Class="d-sm-none mt-3">
@@ -53,7 +52,7 @@
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-start">
                     <MudChipSet ReadOnly>
-                    @foreach (var lookingFor in _profile.LookingFor)
+                     @foreach (var lookingFor in _profile.LookingFor)
                         {
                             <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
                         }
@@ -61,14 +60,14 @@
                 </MudItem>
             }
         </MudGrid>
-    </MudPaper>
 </MudLoading>
 
 @code {
     private ProfileDto? _profile;
     private bool _isLoading = true;
     private bool _disableOpenChatButton = true;
-    private readonly List<string> _userIds = new();
+    private readonly List<UserSlim> _userIds = new();
+    private string? _currentUserId;
 
     [Parameter]
     public required string UserName { get; set; }
@@ -79,26 +78,36 @@
 
         switch (response.StatusCode)
         {
-            case var _ when response.IsSuccessStatusCode:
+            case var _ when response is { IsSuccessStatusCode: true, Content: not null }:
                 _profile = response.Content;
-                _userIds.Add(_profile!.Id);
+                _userIds.Add(new UserSlim
+                {
+                    DisplayName = $"{_profile.FirstName} {_profile.LastName}",
+                    Id = _profile.Id,
+                    ProfilePictureUrl = _profile.ProfilePictureUrl
+                });
                 break;
+
             case HttpStatusCode.NotFound:
                 break;
+
             case HttpStatusCode.TooManyRequests:
                 Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
                 break;
+
             default:
                 Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
                 break;
         }
 
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (authenticationState.User.Identity?.IsAuthenticated is true)
+        var currentUserProfile = await ProfileCache.GetOrCreateProfileAsync();
+        if (currentUserProfile is not null)
         {
             _disableOpenChatButton = false;
-            _userIds.Add(authenticationState.User.GetId());
+            _userIds.Add(currentUserProfile.ToUserSlim());
+            _currentUserId = currentUserProfile.Id;
         }
+
         _isLoading = false;
     }
 

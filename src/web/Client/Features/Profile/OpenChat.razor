@@ -2,12 +2,20 @@
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
-<MudButton Disabled="Disabled" EndIcon="@Icons.Material.Filled.Message" OnClick="OpenOrStartChat" Color="@(_isMessageSent ? Color.Success : Color.Primary)">@(_isMessageSent ? "Besked sendt!" : "Send Besked")</MudButton>
+<MudButton
+    Disabled="Disabled"
+    EndIcon="@(_isMessageSent ? Icons.Material.Filled.Check : Icons.Material.Filled.Message)"
+    OnClick="OpenOrStartChat"
+    Color="@(_isMessageSent ? Color.Success : Color.Primary)"
+    Size="Size.Large"
+    Class="mb-5">
+    @(_isMessageSent ? "Besked sendt" : "Send Besked")
+</MudButton>
 
-@code
-{
+    @code
+    {
     [Parameter]
-    public required List<string> UserIds { get; set; }
+    public required List<UserSlim> Recipients { get; set; }
 
     [Parameter]
     public required string InitiatorId { get; set; }
@@ -19,26 +27,19 @@
 
     private async Task OpenOrStartChat()
     {
-        var getChatResponse = await ChatClient.GetChat(UserIds.ToArray());
+        var getChatResponse = await ChatClient.GetChat(Recipients.Select(recipient => recipient.Id).ToArray());
         if (getChatResponse is { IsSuccessStatusCode: true, Content: { } chatId })
         {
             NavigationManager.NavigateTo($"/chat/{chatId}");
+            return;
         }
-        else if (getChatResponse is { IsSuccessStatusCode: true, Content: null })
+
+        if (getChatResponse.StatusCode is HttpStatusCode.NotFound)
         {
             var parameters = new DialogParameters<SendMessageDialog>
             {
-                {
-                    dialog => dialog.InitiatorId, InitiatorId
-                },
-                {
-                    dialog => dialog.Recipients, UserIds.Select(id => new UserSlim
-                    {
-                        DisplayName = string.Empty,
-                        ProfilePictureUrl = string.Empty,
-                        Id = id
-                    })
-                }
+                { dialog => dialog.InitiatorId, InitiatorId },
+                { dialog => dialog.Recipients, Recipients }
             };
             var options = new DialogOptions
             {
@@ -52,11 +53,11 @@
 
             var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters, options);
 
-            var dialogResult =await dialogReference.Result;
+            var dialogResult = await dialogReference.Result;
             if (!dialogResult.Canceled && dialogResult.Data is true)
             {
                 _isMessageSent = true;
-            } 
+            }
         }
     }
 }

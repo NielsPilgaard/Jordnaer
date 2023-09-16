@@ -1,21 +1,19 @@
 @inject IChatClient ChatClient
 
-<MudDialog>
+<MudDialog DefaultFocus="DefaultFocus.FirstChild" Style="Width:90vw">
     <DialogContent>
-        <MudTextField @bind-Value="_userText"
+        <MudTextFieldExtended @bind-Value="_userText"
                             FullWidth
                             Immediate
-                      Lines="10"
+                            AutoSize
+                      Lines="3"
                             AutoFocus
-                      Adornment="Adornment.End"
-                      TextUpdateSuppression="false"
-                      OnKeyDown="StartChatOnEnter"
-                      AdornmentIcon="@Icons.Material.Filled.Send"
-                      AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
-                      OnAdornmentClick="StartChat" />
+                            TextUpdateSuppression="false"
+                      OnKeyDown="StartChatOnEnter" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Annullér</MudButton>
+         <MudIconButton Color="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)" Icon="@Icons.Material.Filled.Send" OnClick="StartChat" />
     </DialogActions>
 </MudDialog>
 @code {
