@@ -1,19 +1,23 @@
 @inject IChatClient ChatClient
 
-<MudDialog DefaultFocus="DefaultFocus.FirstChild" Style="Width:90vw">
+<MudDialog DefaultFocus="DefaultFocus.FirstChild" Style="width: 500px">
     <DialogContent>
-        <MudTextFieldExtended @bind-Value="_userText"
-                            FullWidth
-                            Immediate
-                            AutoSize
-                      Lines="3"
-                            AutoFocus
-                            TextUpdateSuppression="false"
-                      OnKeyDown="StartChatOnEnter" />
+        <MudTextFieldExtended
+            Disabled="_startingChat"
+            @bind-Value="_userText"
+            FullWidth
+            Immediate
+            AutoSize
+            Lines="3"
+            AutoFocus
+            TextUpdateSuppression="false"
+            OnKeyDown="StartChatOnEnter"/>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Annullér</MudButton>
-         <MudIconButton Color="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)" Icon="@Icons.Material.Filled.Send" OnClick="StartChat" />
+        <MudIconButton
+            Color="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
+            Icon="@Icons.Material.Filled.Send"
+            OnClick="StartChat"/>
     </DialogActions>
 </MudDialog>
 @code {
@@ -21,12 +25,16 @@
     [Parameter] public required string InitiatorId { get; set; }
     [Parameter] public required List<UserSlim> Recipients { get; set; }
 
+    private bool _startingChat = false;
     private string _userText = string.Empty;
-
-    void Cancel() => MudDialog.Cancel();
 
     private async Task StartChatOnEnter(KeyboardEventArgs keyboardEventArgs)
     {
+        if (_startingChat)
+        {
+            return;
+        }
+
         if (keyboardEventArgs is { Key: "Enter", ShiftKey: false })
         {
             await StartChat();
@@ -34,6 +42,12 @@
     }
     public async Task StartChat()
     {
+        if (_startingChat)
+        {
+            return;
+        }
+        _startingChat = true;
+
         var chatId = NewId.NextGuid();
         await ChatClient.StartChat(new StartChat
             {

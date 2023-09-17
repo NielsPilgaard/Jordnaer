@@ -41,17 +41,8 @@
                 { dialog => dialog.InitiatorId, InitiatorId },
                 { dialog => dialog.Recipients, Recipients }
             };
-            var options = new DialogOptions
-            {
-                CloseOnEscapeKey = true,
-                DisableBackdropClick = false,
-                NoHeader = true,
-                Position = DialogPosition.Center,
-                MaxWidth = MaxWidth.Small,
-                CloseButton = false
-            };
 
-            var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters, options);
+            var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
 
             var dialogResult = await dialogReference.Result;
             if (!dialogResult.Canceled && dialogResult.Data is true)

@@ -1,6 +1,10 @@
 @inherits LayoutComponentBase
 
-<MudDialogProvider />
+<MudDialogProvider CloseOnEscapeKey="true"
+                   DisableBackdropClick="false"
+                   Position="DialogPosition.Center"
+                   MaxWidth="MaxWidth.Large"
+                   CloseButton="true"/>
 <MudSnackbarProvider />
 
 <MudLayout>
