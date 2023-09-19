@@ -17,8 +17,9 @@ public class ImageService_Should
 
     public ImageService_Should(JordnaerWebApplicationFactory factory)
     {
-        _blobServiceClient = factory.Services.GetRequiredService<BlobServiceClient>();
-        _sut = factory.Services.GetRequiredService<IImageService>();
+        using var scope = factory.Services.CreateScope();
+        _blobServiceClient = scope.ServiceProvider.GetRequiredService<BlobServiceClient>();
+        _sut = scope.ServiceProvider.GetRequiredService<IImageService>();
     }
 
     [Fact]
