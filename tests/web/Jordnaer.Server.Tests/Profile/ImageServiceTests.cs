@@ -2,74 +2,73 @@ using Azure.Storage.Blobs;
 using FluentAssertions;
 using Jordnaer.Server.Features.Profile;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Jordnaer.Server.Tests.Profile;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
-public class ImageServiceTests
+public class ImageService_Should
 {
     private readonly BlobServiceClient _blobServiceClient;
-    private readonly ImageService _sut;
+    private readonly IImageService _sut;
 
     private const string ContainerName = "test-container";
-    private const string BlobName = "test-blob";
 
-    public ImageServiceTests(JordnaerWebApplicationFactory factory)
+    public ImageService_Should(JordnaerWebApplicationFactory factory)
     {
         _blobServiceClient = factory.Services.GetRequiredService<BlobServiceClient>();
-        var logger = factory.Services.GetRequiredService<ILogger<ImageService>>();
-
-        _sut = new ImageService(_blobServiceClient, logger);
+        _sut = factory.Services.GetRequiredService<IImageService>();
     }
 
     [Fact]
     public async Task UploadImage_UsingFileStream_Successfully()
     {
         // Arrange
+        string blobName = nameof(UploadImage_UsingFileStream_Successfully);
         var fileStream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 
         // Act
-        string result = await _sut.UploadImageAsync(BlobName, ContainerName, fileStream);
+        string result = await _sut.UploadImageAsync(blobName, ContainerName, fileStream);
 
         // Assert
         result.Should().NotBeNullOrEmpty();
 
         // Clean up (delete the blob created during the test)
-        await _sut.DeleteImageAsync(BlobName, ContainerName);
+        await _sut.DeleteImageAsync(blobName, ContainerName);
     }
 
     [Fact]
     public async Task UploadImage_UsingByteArray_Successfully()
     {
         // Arrange
+        string blobName = nameof(UploadImage_UsingByteArray_Successfully);
         byte[] fileBytes = { 1, 2, 3, 4, 5 };
 
         // Act
-        string result = await _sut.UploadImageAsync(BlobName, ContainerName, fileBytes);
+        string result = await _sut.UploadImageAsync(blobName, ContainerName, fileBytes);
 
         // Assert
         result.Should().NotBeNullOrEmpty();
 
         // Clean up (delete the blob created during the test)
-        await _sut.DeleteImageAsync(BlobName, ContainerName);
+        await _sut.DeleteImageAsync(blobName, ContainerName);
     }
 
     [Fact]
     public async Task DeleteImage_Successfully()
     {
         // Arrange
+        string blobName = nameof(DeleteImage_Successfully);
         byte[] fileBytes = { 1, 2, 3, 4, 5 };
-        await _sut.UploadImageAsync(BlobName, ContainerName, fileBytes);
+        await _sut.UploadImageAsync(blobName, ContainerName, fileBytes);
 
         // Act
-        await _sut.DeleteImageAsync(BlobName, ContainerName);
+        await _sut.DeleteImageAsync(blobName, ContainerName);
 
         // Assert
         var blobExists = await _blobServiceClient.GetBlobContainerClient(ContainerName)
-            .GetBlobClient(BlobName)
+            .GetBlobClient(blobName)
             .ExistsAsync();
         blobExists.Value.Should().BeFalse();
     }
@@ -78,29 +77,30 @@ public class ImageServiceTests
     public async Task UploadImage_OverridesExistingBlob_Successfully()
     {
         // Arrange
+        string blobName = nameof(UploadImage_OverridesExistingBlob_Successfully);
         byte[] initialBytes = { 1, 2, 3, 4, 5 };
         byte[] newBytes = { 6, 7, 8, 9, 10 };
-        await _sut.UploadImageAsync(BlobName, ContainerName, initialBytes);
+        await _sut.UploadImageAsync(blobName, ContainerName, initialBytes);
 
         // Assert that the initial bytes are stored
         var blob = await _blobServiceClient.GetBlobContainerClient(ContainerName)
-            .GetBlobClient(BlobName)
+            .GetBlobClient(blobName)
             .DownloadContentAsync();
         blob.Value.Content.ToArray().Should().BeEquivalentTo(initialBytes);
 
         // Act
-        string result = await _sut.UploadImageAsync(BlobName, ContainerName, newBytes);
+        string result = await _sut.UploadImageAsync(blobName, ContainerName, newBytes);
 
         // Assert
         result.Should().NotBeNullOrEmpty();
 
         // Assert that the new bytes are stored
         blob = await _blobServiceClient.GetBlobContainerClient(ContainerName)
-            .GetBlobClient(BlobName)
+            .GetBlobClient(blobName)
             .DownloadContentAsync();
         blob.Value.Content.ToArray().Should().BeEquivalentTo(newBytes);
 
         // Clean up (delete the blob created during the test)
-        await _sut.DeleteImageAsync(BlobName, ContainerName);
+        await _sut.DeleteImageAsync(blobName, ContainerName);
     }
 }
