@@ -40,7 +40,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
         var filter = new UserSearchFilter();
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.Should().BeOfType<UserSearchResult>();
@@ -60,7 +60,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.TotalCount.Should().Be(1);
@@ -68,23 +68,89 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
     }
 
     [Fact]
-    public async Task Return_UserSearchResult_With_Name_Filter()
+    public async Task Return_UserSearchResult_With_FirstName_Filter()
     {
         // Arrange
-        var filter = new UserSearchFilter { Name = _faker.Name.FirstName() };
+        string? firstName = _faker.Name.FirstName();
+        var filter = new UserSearchFilter { Name = firstName };
         var users = CreateTestUsers(5);
         // Ensure at least one user has the specified name in their SearchableName
-        users[0].FirstName = filter.Name;
+        users[0].FirstName = firstName;
         _context.UserProfiles.AddRange(users);
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.TotalCount.Should().Be(1);
-        result.Users.Should().ContainSingle(user => user.FirstName != null &&
-                                                    user.FirstName.Contains(filter.Name));
+        result.Users.Should().ContainSingle(user => user.FirstName == firstName);
+    }
+
+    [Fact]
+    public async Task Return_UserSearchResult_With_LastName_Filter()
+    {
+        //TODO
+        // Arrange
+        string? lastName = _faker.Name.LastName();
+        var filter = new UserSearchFilter { Name = lastName };
+        var users = CreateTestUsers(5);
+        // Ensure at least one user has the specified name in their SearchableName
+        users[0].LastName = lastName;
+        _context.UserProfiles.AddRange(users);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetUsersAsync(filter);
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        result.Users.Should().ContainSingle(user => user.LastName == lastName);
+    }
+
+    [Fact]
+    public async Task Return_UserSearchResult_With_ProfileName_Filter()
+    {
+        //TODO
+        // Arrange
+        string? userName = _faker.Internet.UserName();
+        var filter = new UserSearchFilter { Name = userName };
+        var users = CreateTestUsers(5);
+        // Ensure at least one user has the specified name in their SearchableName
+        users[0].UserName = userName;
+        _context.UserProfiles.AddRange(users);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetUsersAsync(filter);
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        result.Users.Should().ContainSingle(user => user.UserName == userName);
+    }
+
+    [Fact]
+    public async Task Return_UserSearchResult_With_CombinedName_Filter()
+    {
+        // Arrange
+        string? firstName = _faker.Name.FirstName();
+        string? lastName = _faker.Name.LastName();
+
+        var filter = new UserSearchFilter { Name = $"{firstName} {lastName}" };
+        var users = CreateTestUsers(5);
+        // Ensure at least one user has the specified name in their SearchableName
+        users[0].FirstName = firstName;
+        users[0].LastName = lastName;
+        _context.UserProfiles.AddRange(users);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetUsersAsync(filter);
+
+        // Assert
+        result.TotalCount.Should().Be(1);
+        result.Users.Should().ContainSingle(user => user.FirstName == firstName &&
+                                                    user.LastName == lastName);
     }
 
     [Fact]
@@ -104,7 +170,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.TotalCount.Should().Be(1);
@@ -127,7 +193,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.TotalCount.Should().Be(1);
@@ -153,7 +219,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.TotalCount.Should().Be(1);
@@ -189,7 +255,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
                 new RefitSettings()));
 
         // Act
-        var result = await _sut.GetUsersAsync(filter, CancellationToken.None);
+        var result = await _sut.GetUsersAsync(filter);
 
         // Assert
         result.TotalCount.Should().Be(1);

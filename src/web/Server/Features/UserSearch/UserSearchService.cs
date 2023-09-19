@@ -8,8 +8,8 @@ namespace Jordnaer.Server.Features.UserSearch;
 
 public interface IUserSearchService
 {
-    Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken);
-    Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken);
+    Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default);
+    Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken = default);
 }
 
 public class UserSearchService : IUserSearchService
@@ -184,10 +184,8 @@ public class UserSearchService : IUserSearchService
     {
         if (!string.IsNullOrWhiteSpace(filter))
         {
-            string trimmedNameFilter = new(filter.Where(c => !char.IsWhiteSpace(c)).ToArray());
-
             users = users.Where(user => !string.IsNullOrEmpty(user.SearchableName) &&
-                                        EF.Functions.Like(user.SearchableName, $"%{trimmedNameFilter}%"));
+                                        EF.Functions.Like(user.SearchableName, $"%{filter}%"));
         }
 
         return users;
