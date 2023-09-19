@@ -87,7 +87,8 @@ public class UserSearchService : IUserSearchService
                     FirstName = child.FirstName,
                     LastName = child.LastName,
                     Gender = child.Gender,
-                    DateOfBirth = child.DateOfBirth
+                    DateOfBirth = child.DateOfBirth,
+                    Age = child.Age
                 }).ToList()
             })
             .AsNoTracking()
