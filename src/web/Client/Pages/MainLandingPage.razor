@@ -1,4 +1,12 @@
 @page "/"
+@attribute [Layout(typeof())]
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (!_authenticationStateLoaded)
+{
+    return;
+}
 
 <MudContainer MaxWidth="MaxWidth.Medium">
 
@@ -24,3 +32,19 @@
     </MudPaper>
 
 </MudContainer>
+
+@code
+{
+    private bool _authenticationStateLoaded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authenticationState.User.Identity?.IsAuthenticated is true)
+        {
+            Navigation.NavigateTo("/personal");
+        }
+
+        _authenticationStateLoaded = true;
+    }
+}
