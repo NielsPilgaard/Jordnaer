@@ -1,5 +1,5 @@
 @page "/"
-@attribute [Layout(typeof())]
+@attribute [Layout(typeof(NoLayout))]
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -7,11 +7,6 @@
 {
     return;
 }
-
-<MudContainer MaxWidth="MaxWidth.Medium">
-
-    @*    <MudImage Fluid Src="images/landing_page_with_text.png" loading="lazy" />
-    *@
 
     <MudAlert Severity="Severity.Info" Class="mt-4">
         <MudText Typo="Typo.body1">
@@ -30,8 +25,7 @@
             Med Mini Møder er det enkelt at samles, udforske, lære og skabe minder sammen i trygge og nærværende rammer.
         </MudText>
     </MudPaper>
-
-</MudContainer>
+    
 
 @code
 {

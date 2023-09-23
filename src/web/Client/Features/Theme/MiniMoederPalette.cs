@@ -2,7 +2,7 @@ using MudBlazor.Utilities;
 
 namespace Jordnaer.Client.Features.Theme;
 
-public static class Palette
+public static class MiniMoederPalette
 {
     /// <summary>
     /// Used as background for texts and headers
