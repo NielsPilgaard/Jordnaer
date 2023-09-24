@@ -1,7 +1,7 @@
 <MudCard Elevation="3">
     <MudCardContent>
         <MudImage Src="@Child.PictureUrl" loading="lazy" />
-        <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@($"{Child.FirstName} {Child.LastName}")" />
+        <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@Child.DisplayName" />
         @if (Child.DateOfBirth is not null)
         {
             <MudTextFieldExtended Label="Alder" ReadOnly T="string">
@@ -14,7 +14,7 @@
                 </AdornmentEnd>
             </MudTextFieldExtended>
         }
-        <MudTextField Label="Køn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" ReadOnly T="string" Text="@Child.Gender.GetDisplayName()" />
+        <MudTextField Label="Køn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" ReadOnly T="string" Text="@Child.Gender.ToStringFast()" />
         <MudText Typo="Typo.body1" Class="mt-3">@Child.Description</MudText>
     </MudCardContent>
 </MudCard>
