@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using NetEscapades.EnumGenerators;
 
 namespace Jordnaer.Shared;
 
+[EnumExtensions]
 public enum Gender
 {
     [Display(Name = "Ikke angivet")]
