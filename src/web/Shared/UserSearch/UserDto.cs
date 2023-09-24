@@ -11,5 +11,7 @@ public class UserDto
     public List<string> LookingFor { get; set; } = new();
     public List<ChildDto> Children { get; set; } = new();
 
-    public override string ToString() => $"{FirstName} {LastName}";
+    public string? DisplayName => FirstName is not null
+        ? $"{FirstName} {LastName}"
+        : LastName;
 }

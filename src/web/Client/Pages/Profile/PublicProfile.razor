@@ -82,7 +82,7 @@
                 _profile = response.Content;
                 _userIds.Add(new UserSlim
                 {
-                    DisplayName = $"{_profile.FirstName} {_profile.LastName}",
+                    DisplayName = _profile.DisplayName,
                     Id = _profile.Id,
                     ProfilePictureUrl = _profile.ProfilePictureUrl
                 });

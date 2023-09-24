@@ -30,18 +30,13 @@ public class ProfileDto
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
-    public string DisplayLocation()
-    {
-        if (ZipCode is not null && City is not null)
-        {
-            return $"{ZipCode}, {City}";
-        }
+    public string DisplayLocation => ZipCode is not null && City is not null
+        ? $"{ZipCode}, {City}"
+        : ZipCode is not null
+            ? ZipCode.ToString()!
+            : City ?? "Område ikke angivet";
 
-        if (ZipCode is not null)
-        {
-            return ZipCode.ToString()!;
-        }
-
-        return City ?? "Område ikke angivet";
-    }
+    public string DisplayName => FirstName is not null
+        ? $"{FirstName} {LastName}"
+        : LastName ?? string.Empty;
 }

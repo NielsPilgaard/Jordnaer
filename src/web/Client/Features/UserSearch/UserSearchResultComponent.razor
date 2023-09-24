@@ -15,7 +15,7 @@
                             <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" loading="lazy" />
                             <MudTextField Label="Brugernavn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" ReadOnly T="string" Text="@user.UserName" />
                             <MudTextField Label="Område" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@user.DisplayLocation()" />
-                            <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@($"{user.FirstName} {user.LastName}")" />
+                            <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@user.DisplayName" />
 
                             @if (user.Children.Any())
                             {

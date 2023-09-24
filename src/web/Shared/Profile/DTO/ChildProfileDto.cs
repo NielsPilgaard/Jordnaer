@@ -15,4 +15,6 @@ public class ChildProfileDto
     public string PictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
 
     public int? Age { get; set; }
+
+    public string? DisplayName => $"{FirstName} {LastName}";
 }

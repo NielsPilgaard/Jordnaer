@@ -55,6 +55,11 @@ public class UserProfile
     public int? Age { get; set; }
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+
+    [NotMapped]
+    public string DisplayName => FirstName is not null
+        ? $"{FirstName} {LastName}"
+        : LastName ?? string.Empty;
 }
 
 public class DanishZipCodeAttribute : ValidationAttribute

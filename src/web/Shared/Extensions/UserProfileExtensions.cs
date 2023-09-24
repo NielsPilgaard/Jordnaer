@@ -46,7 +46,7 @@ public static class UserProfileExtensions
     public static UserSlim ToUserSlim(this UserProfile userProfile)
         => new()
         {
-            DisplayName = $"{userProfile.FirstName} {userProfile.LastName}",
+            DisplayName = userProfile.DisplayName,
             Id = userProfile.Id,
             ProfilePictureUrl = userProfile.ProfilePictureUrl
         };
