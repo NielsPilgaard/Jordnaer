@@ -1,13 +1,9 @@
 @inherits LayoutComponentBase
-<ThemeProvider IsDarkMode="false"/>
+<ThemeProvider />
 
 <MudLayout>
     <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
-    <MudMainContent Class="mb-6">
-        <MudContainer MaxWidth="MaxWidth.Large">
-            @Body
-        </MudContainer>
-    </MudMainContent>
+    @Body
     <Footer></Footer>
     <CookieBanner/>
 </MudLayout>
