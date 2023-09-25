@@ -10,7 +10,7 @@
         <MudSelect For="() => ChildProfile.Gender" @bind-Value="ChildProfile.Gender" Label="Køn">
             @foreach (var gender in Enum.GetValues<Gender>())
             {
-                <MudSelectItem T="Gender" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                <MudSelectItem T="Gender" Value="gender">@gender.ToStringFast()</MudSelectItem>
             }
         </MudSelect>
     </MudItem>
