@@ -1,4 +1,5 @@
 @page "/"
+@using MudExtensions.Enums
 @attribute [Layout(typeof(NoLayout))]
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -7,25 +8,36 @@
 {
     return;
 }
+<MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="5" Column="5" Height="1500px" Style="background: var(--mud-palette-background-grey)">
+    <MudSection Row="1" ColSpan="2" Column="1" Class="d-flex justify-center align-center">
+        <MudImage Height="200" Src="/images/minimoeder_logo.png" />
+    </MudSection>
 
-    <MudAlert Severity="Severity.Info" Class="mt-4">
-        <MudText Typo="Typo.body1">
-            Mini Møder er under opbygning.
-            Kom gerne tilbage om et par dage og se hvor langt vi er kommet!
-        </MudText>
-    </MudAlert>
+    <MudSection Row="1" ColSpan="3" Column="3" Class="d-flex justify-center align-center">
+        <MudToolBar>
+            <MudNavLink>Events</MudNavLink>
+            <MudNavLink>Grupper</MudNavLink>
+            <MudNavLink>Brugere</MudNavLink>
+            <MudNavLink>Kontakt</MudNavLink>
+        </MudToolBar>
+    </MudSection>
+</MudPage>
+<MudAlert Severity="Severity.Info" Class="mt-4">
+    <MudText Typo="Typo.body1">
+        Mini Møder er under opbygning.
+    </MudText>
+</MudAlert>
 
-    <MudPaper Elevation="3" Class="pa-6 my-4">
-        <MudText Typo="Typo.body1">
-            Mini Møder er en tryg og hyggelig platform,
-            der gør det nemt at planlægge legeaftaler, hjemmeskoling og lignende i en hjertevarm atmosfære.
-            <MudSpacer />
-            Vi fokuserer på at styrke børns sociale netværk og læring gennem sjove aktiviteter og fællesskab.
-            <MudSpacer />
-            Med Mini Møder er det enkelt at samles, udforske, lære og skabe minder sammen i trygge og nærværende rammer.
-        </MudText>
-    </MudPaper>
-    
+<MudPaper Elevation="3" Class="pa-6 my-4">
+    <MudText Typo="Typo.body1">
+        Mini Møder er en tryg og hyggelig platform,
+        der gør det nemt at planlægge legeaftaler, hjemmeskoling og lignende i en hjertevarm atmosfære.
+        <MudSpacer />
+        Vi fokuserer på at styrke børns sociale netværk og læring gennem sjove aktiviteter og fællesskab.
+        <MudSpacer />
+        Med Mini Møder er det enkelt at samles, udforske, lære og skabe minder sammen i trygge og nærværende rammer.
+    </MudText>
+</MudPaper>
 
 @code
 {
