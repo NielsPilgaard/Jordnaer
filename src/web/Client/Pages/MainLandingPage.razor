@@ -8,10 +8,11 @@
 {
     return;
 }
-<MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="5" Column="5" Height="1500px" Style="background: var(--mud-palette-background-grey)">
+<MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="5" Column="5" Height="1200px" Style="background: var(--mud-palette-background-grey)">
     <MudSection Row="1" ColSpan="2" Column="1" Class="d-flex justify-center align-center">
         <MudImage Height="200" Src="/images/minimoeder_logo.png" />
     </MudSection>
+    <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")" />
 
     <MudSection Row="1" ColSpan="3" Column="3" Class="d-flex justify-center align-center">
         <MudToolBar>
@@ -20,6 +21,9 @@
             <MudNavLink>Brugere</MudNavLink>
             <MudNavLink>Kontakt</MudNavLink>
         </MudToolBar>
+    </MudSection>
+    <MudSection Row="2" Column="2" ColSpan="3" RowSpan="2" Class="d-flex justify-center align-center">
+        <MudImage Height="480" Class="clip-path-image" Src="/images/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg" />
     </MudSection>
 </MudPage>
 <MudAlert Severity="Severity.Info" Class="mt-4">
