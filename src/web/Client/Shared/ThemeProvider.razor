@@ -1,6 +1,6 @@
 @using Blazored.LocalStorage
 @using MudBlazor.Utilities
-@using Palette = Jordnaer.Client.Features.Theme.MiniMoederPalette
+@using Palette = Jordnaer.Client.Features.Theme.JordnaerPalette
 @inject ILocalStorageService LocalStorage
 
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDarkMode" Theme="CustomTheme" />
@@ -35,7 +35,7 @@
             },
             Palette = new PaletteLight
             {
-                Background =  MiniMoederPalette.DimBackground
+                Background =  JordnaerPalette.DimBackground
             },
             PaletteDark = new PaletteDark
             {
