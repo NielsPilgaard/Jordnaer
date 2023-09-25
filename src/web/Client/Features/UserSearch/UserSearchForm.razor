@@ -56,7 +56,7 @@
                     <MudSelect @bind-Value="Filter.ChildGender" Clearable Label="Køn" Placeholder="Filtrer ud fra køn">
                         @foreach (var gender in Enum.GetValues<Gender>())
                         {
-                            <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                            <MudSelectItem T="Gender?" Value="gender">@gender.ToStringFast()</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
