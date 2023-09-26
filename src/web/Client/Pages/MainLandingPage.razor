@@ -11,10 +11,10 @@
 <MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="5" Column="5" Height="1250px" Style="background: var(--mud-palette-background-grey)">
     @* DESKTOP *@
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
+
         <MudSection Row="1" ColSpan="2" Column="1" Class="d-flex justify-center align-center">
-            <MudImage Height="250" Src="/images/minimoeder_logo.png" />
+            <MudImage Height="250" Src="/images/minimoeder_logo.png"/>
         </MudSection>
-        <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")" />
 
         <MudSection Row="1" ColSpan="3" Column="3" Class="d-flex justify-center align-center">
             <MudToolBar Style="font-size: 24px">
@@ -24,9 +24,21 @@
                 <MudNavLink>Kontakt</MudNavLink>
             </MudToolBar>
         </MudSection>
+
+        <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")"/>
+
         <MudSection Row="2" Column="2" ColSpan="3" RowSpan="2" Class="d-flex justify-center align-center">
-            <MudImage Height="500" Class="clip-path-image" Src="/images/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg" />
+            <MudStack>
+                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}")">Velkommen</MudText>
+                <MudImage Height="400" Class="clip-path-image" Src="/images/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg"/>
+            </MudStack>
         </MudSection>
+
+        <MudSection Row="3" Column="1">
+
+        </MudSection>
+
+
     </MudHidden>
 
     @* MOBILE *@
