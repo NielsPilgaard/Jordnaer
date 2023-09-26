@@ -27,7 +27,7 @@ public static class JordnaerPalette
     /// <summary>
     /// Beige. Used as background for text where <see cref="Primary"/> and <see cref="Secondary"/> are too dark/saturated.
     /// </summary>
-    public static readonly MudColor DimBackground = "#cfc1a6";
+    public static readonly MudColor DimBackground = "#dbd2c1"; // Changed from "#cfc1a6" to "#dbd2c1"
 
     /// <summary>
     /// Pale Blue. Rarely used as background for text where <see cref="Primary"/> and <see cref="Secondary"/> are too dark/saturated.
