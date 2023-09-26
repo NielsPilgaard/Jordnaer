@@ -8,7 +8,7 @@
 {
     return;
 }
-<MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="5" Column="5" Height="1250px" Style="background: var(--mud-palette-background-grey)">
+<MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="3" Column="5" Height="1050px" Style="background: var(--mud-palette-background-grey)">
     @* DESKTOP *@
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
 
@@ -16,22 +16,22 @@
             <MudImage Height="250" Src="/images/minimoeder_logo.png"/>
         </MudSection>
 
-        <MudSection Row="1" ColSpan="3" Column="3" Class="d-flex justify-center align-center">
-            <MudToolBar Style="font-size: 24px">
-                <MudNavLink>Events</MudNavLink>
-                <MudNavLink>Grupper</MudNavLink>
+        <MudSection Row="1" ColSpan="2" Column="4" Class="d-flex justify-center align-center">
+            <MudToolBar Style="@($"color: {JordnaerPalette.Header}; font-size: 24px; overflow: hidden")">
+                <MudNavLink>Registér</MudNavLink>
                 <MudNavLink>Brugere</MudNavLink>
-                <MudNavLink>Kontakt</MudNavLink>
+                <MudNavLink>Grupper</MudNavLink>
             </MudToolBar>
         </MudSection>
 
         <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")"/>
 
-        <MudSection Row="2" Column="2" ColSpan="3" RowSpan="2" Class="d-flex justify-center align-center">
-            <MudStack>
-                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}")">Velkommen</MudText>
+        <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="d-flex justify-center align-center">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
                 <MudImage Height="400" Class="clip-path-image" Src="/images/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg"/>
-            </MudStack>
+                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 48px")">Velkommen</MudText>
+                <MudText Style="@($"color: {JordnaerPalette.Header}; font-size: 24px")">Til dit online mødested for børnefamilier</MudText>
+                </MudStack>
         </MudSection>
 
         <MudSection Row="3" Column="1">
