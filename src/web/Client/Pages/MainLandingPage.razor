@@ -9,28 +9,34 @@
     return;
 }
 <MudPage FullScreen="FullScreen.FullWithoutAppbar" Row="5" Column="5" Height="1250px" Style="background: var(--mud-palette-background-grey)">
-    <MudSection Row="1" ColSpan="2" Column="1" Class="d-flex justify-center align-center">
-        <MudImage Height="200" Src="/images/minimoeder_logo.png" />
-    </MudSection>
-    <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")" />
+    @* DESKTOP *@
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudSection Row="1" ColSpan="2" Column="1" Class="d-flex justify-center align-center">
+            <MudImage Height="250" Src="/images/minimoeder_logo.png" />
+        </MudSection>
+        <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")" />
 
-    <MudSection Row="1" ColSpan="3" Column="3" Class="d-flex justify-center align-center">
-        <MudToolBar>
-            <MudNavLink>Events</MudNavLink>
-            <MudNavLink>Grupper</MudNavLink>
-            <MudNavLink>Brugere</MudNavLink>
-            <MudNavLink>Kontakt</MudNavLink>
-        </MudToolBar>
-    </MudSection>
-    <MudSection Row="2" Column="2" ColSpan="3" RowSpan="2" Class="d-flex justify-center align-center">
-        <MudImage Height="500" Class="clip-path-image" Src="/images/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg" />
-    </MudSection>
+        <MudSection Row="1" ColSpan="3" Column="3" Class="d-flex justify-center align-center">
+            <MudToolBar Style="font-size: 24px">
+                <MudNavLink>Events</MudNavLink>
+                <MudNavLink>Grupper</MudNavLink>
+                <MudNavLink>Brugere</MudNavLink>
+                <MudNavLink>Kontakt</MudNavLink>
+            </MudToolBar>
+        </MudSection>
+        <MudSection Row="2" Column="2" ColSpan="3" RowSpan="2" Class="d-flex justify-center align-center">
+            <MudImage Height="500" Class="clip-path-image" Src="/images/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg" />
+        </MudSection>
+    </MudHidden>
+
+    @* MOBILE *@
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+
+    </MudHidden>
 </MudPage>
-<MudAlert Severity="Severity.Info" Class="mt-4">
-    <MudText Typo="Typo.body1">
-        Mini Møder er under opbygning.
-    </MudText>
-</MudAlert>
+
+
+
 
 <MudPaper Elevation="3" Class="pa-6 my-4">
     <MudText Typo="Typo.body1">
