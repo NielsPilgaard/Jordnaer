@@ -1,3 +1,8 @@
-.clip-path-image {
+.hero-clip-path-image-1 {
     clip-path: ellipse(50% 40% at 50% 50%);
+}
+
+.hero-navbar-underline .mud-nav-link.active .mud-nav-link-text {
+    white-space: nowrap;
+    border-bottom: 2px solid #dbab45;
 }
