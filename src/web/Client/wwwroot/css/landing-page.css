@@ -2,7 +2,15 @@
     clip-path: ellipse(50% 40% at 50% 50%);
 }
 
-.hero-navbar-underline .mud-nav-link.active .mud-nav-link-text {
+.hero-navbar-underline .mud-nav-link .mud-nav-link-text {
     white-space: nowrap;
     border-bottom: 2px solid #dbab45;
+}
+
+.hero-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--mud-palette-background-grey-lighten);
+    padding: 30px 0;
 }
