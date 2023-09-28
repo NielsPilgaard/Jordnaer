@@ -1,0 +1,10 @@
+@inherits LayoutComponentBase
+<ThemeProvider />
+
+<MudLayout>
+    @*TODO: Add a white app bar with login*@
+    @Body
+    <Footer></Footer>
+    <CookieBanner/>
+    <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary"/>
+</MudLayout>
