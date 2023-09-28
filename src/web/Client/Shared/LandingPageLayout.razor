@@ -1,10 +1,23 @@
 @inherits LayoutComponentBase
-<ThemeProvider />
 
 <MudLayout>
-    @*TODO: Add a white app bar with login*@
+    <MudAppBar Fixed="false" Elevation="0" Dense Style="@($"background: {JordnaerPalette.DimBackground.ColorLighten(0.1)}")">
+        <MudSpacer />
+        <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
+        <AuthorizeView>
+            <Authorized>
+                <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode" />
+            </Authorized>
+            <NotAuthorized>
+                <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Outlined" Color="Color.Transparent" />
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
     @Body
     <Footer></Footer>
     <CookieBanner/>
-    <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary"/>
 </MudLayout>
+
+@code{
+    private bool _isDarkMode = false;
+}
