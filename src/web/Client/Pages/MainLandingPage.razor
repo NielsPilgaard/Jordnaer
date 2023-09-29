@@ -1,13 +1,7 @@
 @page "/"
 @using MudExtensions.Enums
 @attribute [Layout(typeof(LandingPageLayout))]
-@inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthenticationStateProvider
 
-@if (!_authenticationStateLoaded)
-{
-    return;
-}
 <MudPage FullScreen="FullScreen.Full" Row="5" Column="5" Height="1750px" Style="background: var(--mud-palette-background-grey)">
     @* DESKTOP *@
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
@@ -18,7 +12,7 @@
 
         <MudSection Row="1" ColSpan="2" Column="4" Class="hero-section">
             <MudToolBar Style="@($"color: {JordnaerPalette.Header}; font-size: 24px; overflow: hidden")">
-                <MudNavLink Href="/posts">OPSLAG</MudNavLink>
+                <MudNavLink Href="/posts" Class="d-md-none d-lg-flex">OPSLAG</MudNavLink>
                 <MudNavLink Href="/auth/login" Class="hero-navbar-underline">VÆR' MED</MudNavLink>
                 <MudNavLink Href="/groups">GRUPPER</MudNavLink>
             </MudToolBar>
@@ -34,42 +28,45 @@
             </MudStack>
         </MudSection>
 
-        @* New Section 1: "Drømmer du om et liv uden afleveringen" *@
-        <MudSection Row="3" ColSpan="5" Class="hero-section flex-row-reverse">
-            <MudImage Src="/images/image1.jpg" Width="300"/>
+        @* New Section 1: Mød en ligesindet forælder i nærheden *@
+        <MudSection Row="3" ColSpan="5" Class="flex-row-reverse hero-section">
+            <MudImage Src="https://unsplash.com/photos/your-image-id-1" Width="300" />
             <div>
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                    Drømmer du om at bryde ud af hamsterhjulet
+                    Mød en ligesindet forælder i nærheden
                 </MudText>
                 <MudText>
-                    Få mere tid til dig selv og dem, du holder af.
+                    Oplev forældre i dit område, der søger det samme som dig.
                 </MudText>
+                <MudNavLink Href="/users">Lær mere</MudNavLink>
             </div>
         </MudSection>
 
-        @* New Section 2: "Få mere tid til familien" *@
-        <MudSection Row="4" ColSpan="5" Class="hero-section flex-row" Style="@($"background: {JordnaerPalette.DimBackground}")">
-            <MudImage Src="/images/image2.jpg" Width="300"/>
+        @* New Section 2: Find eller skab en gruppe i nærheden *@
+        <MudSection Row="4" ColSpan="5" Class="flex-row hero-section">
+            <MudImage Src="https://unsplash.com/photos/your-image-id-2" Width="300" />
             <div>
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 36px")">
-                    Få mere tid til familien
+                    Find eller skab en gruppe i nærheden
                 </MudText>
                 <MudText>
-                    Gør hverdagen nemmere med vores platform.
+                    Deltag i eller opret en lokal gruppe for legestue, hjemmeundervisning og mere.
                 </MudText>
+                <MudNavLink Href="/groups">Lær mere</MudNavLink>
             </div>
         </MudSection>
 
-        @* New Section 3: "Mød andre forældre online" *@
-        <MudSection Row="5" ColSpan="5" Class="hero-section flex-row-reverse">
-            <MudImage Src="/images/image3.jpg" Width="300"/>
+        @* New Section 3: Skab et opslag *@
+        <MudSection Row="5" ColSpan="5" Class="flex-row-reverse hero-section">
+            <MudImage Src="https://unsplash.com/photos/your-image-id-3" Width="300" />
             <div>
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                    Mød andre forældre online
+                    Skab et opslag
                 </MudText>
                 <MudText>
-                    Oplev et fællesskab af forældre som dig.
+                    Del hvad der ligger dig på sinde med vores fællesskab.
                 </MudText>
+                <MudNavLink Href="/posts">Lær mere</MudNavLink>
             </div>
         </MudSection>
 
@@ -80,20 +77,3 @@
 
     </MudHidden>
 </MudPage>
-
-
-@code
-{
-    private bool _authenticationStateLoaded = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (authenticationState.User.Identity?.IsAuthenticated is true)
-        {
-            Navigation.NavigateTo("/personal");
-        }
-
-        _authenticationStateLoaded = true;
-    }
-}
