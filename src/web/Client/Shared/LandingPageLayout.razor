@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 
 <MudLayout>
-    <MudAppBar Fixed="false" Elevation="0" Dense Style="@($"background: {JordnaerPalette.DimBackground.ColorLighten(0.1)}")">
+    <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey">
         <MudSpacer />
         <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
         <AuthorizeView>
@@ -9,7 +9,7 @@
                 <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode" />
             </Authorized>
             <NotAuthorized>
-                <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Default" />
+                <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Outlined" Color="Color.Default" />
             </NotAuthorized>
         </AuthorizeView>
     </MudAppBar>

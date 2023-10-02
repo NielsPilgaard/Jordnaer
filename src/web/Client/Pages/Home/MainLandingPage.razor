@@ -2,7 +2,7 @@
 @using MudExtensions.Enums
 @attribute [Layout(typeof(LandingPageLayout))]
 
-<MudPage FullScreen="FullScreen.Full" Row="5" Column="5" Height="1750px" Style="background: var(--mud-palette-background-grey)">
+<MudPage FullScreen="FullScreen.Full" Row="5" Column="7" Height="2450px" Style="background: var(--mud-palette-background-grey)">
     @* DESKTOP *@
     <MudHidden Breakpoint="Breakpoint.SmAndDown">
 
@@ -33,10 +33,12 @@
             <MudImage Src="https://unsplash.com/photos/your-image-id-1" Width="300" />
             <div>
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                    Mød en ligesindet forælder i nærheden
+                    Find en legeaftale i dit nærområde
                 </MudText>
                 <MudText>
-                    Oplev forældre i dit område, der søger det samme som dig.
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Praesent elementum nibh mauris. Morbi bibendum commodo faucibus.
+                    Proin laoreet auctor erat. Duis vel mi euismod, finibus ex ut, sollicitudin diam.
                 </MudText>
                 <MudNavLink Href="/users">Lær mere</MudNavLink>
             </div>
@@ -47,7 +49,7 @@
             <MudImage Src="https://unsplash.com/photos/your-image-id-2" Width="300" />
             <div>
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 36px")">
-                    Find eller skab en gruppe i nærheden
+                    Find eller skab et lokalt fællesskab
                 </MudText>
                 <MudText>
                     Deltag i eller opret en lokal gruppe for legestue, hjemmeundervisning og mere.
@@ -56,15 +58,48 @@
             </div>
         </MudSection>
 
-        @* New Section 3: Skab et opslag *@
+        @* New Section 3: Mangler du pasning *@
         <MudSection Row="5" ColSpan="5" Class="flex-row-reverse hero-section">
             <MudImage Src="https://unsplash.com/photos/your-image-id-3" Width="300" />
             <div>
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                    Skab et opslag
+                    Mangler du pasning?
                 </MudText>
                 <MudText>
-                    Del hvad der ligger dig på sinde med vores fællesskab.
+                    Bor du i en del af Danmark hvor du ikke kan få dine børn passet, når der er behov?
+                    Slå dig sammen med andre forældre om sampasning, legegruppe, privatdagpleje eller lignende.
+                </MudText>
+                <MudNavLink Href="/posts">Lær mere</MudNavLink>
+            </div>
+        </MudSection>
+
+        @* New Section 4: Skab et opslag *@
+        <MudSection Row="6" ColSpan="5" Class="flex-row-reverse hero-section">
+            <MudImage Src="https://unsplash.com/photos/your-image-id-3" Width="300" />
+            <div>
+                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
+                    Skriv et opslag
+                </MudText>
+                <MudText>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Praesent elementum nibh mauris. Morbi bibendum commodo faucibus.
+                    Proin laoreet auctor erat. Duis vel mi euismod, finibus ex ut, sollicitudin diam.
+                </MudText>
+                <MudNavLink Href="/posts">Lær mere</MudNavLink>
+            </div>
+        </MudSection>
+
+        @* New Section 5: Deltag i sport i dit nærområde *@
+        <MudSection Row="7" ColSpan="5" Class="flex-row-reverse hero-section">
+            <MudImage Src="https://unsplash.com/photos/your-image-id-3" Width="300" />
+            <div>
+                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
+                    Deltag i sport i dit nærområde
+                </MudText>
+                <MudText>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    Praesent elementum nibh mauris. Morbi bibendum commodo faucibus.
+                    Proin laoreet auctor erat. Duis vel mi euismod, finibus ex ut, sollicitudin diam.
                 </MudText>
                 <MudNavLink Href="/posts">Lær mere</MudNavLink>
             </div>
