@@ -19,11 +19,7 @@ public static class WebAssemblyHostBuilderExtensions
                 client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
             })
             .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.CircuitBreakerAsync(
-                    handledEventsAllowedBeforeBreaking: 3,
-                    durationOfBreak: TimeSpan.FromSeconds(10)));
+                policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)));
 
         return services;
     }
