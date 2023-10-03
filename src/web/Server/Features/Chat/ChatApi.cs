@@ -138,40 +138,9 @@ public static class ChatApi
                     return TypedResults.Unauthorized();
                 }
 
-                context.Chats.Add(new Shared.Chat
-                {
-                    LastMessageSentUtc = chat.LastMessageSentUtc,
-                    Id = chat.Id,
-                    StartedUtc = chat.StartedUtc,
-                    Messages = chat.Messages.Select(static message => message.ToChatMessage()).ToList()
-                });
-
-                foreach (var message in chat.Messages)
-                {
-                    foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))
-                    {
-                        context.UnreadMessages.Add(new UnreadMessage
-                        {
-                            RecipientId = recipient.Id,
-                            ChatId = chat.Id,
-                            MessageSentUtc = message.SentUtc
-                        });
-                    }
-                }
-
-                context.UserChats.AddRange(chat.Recipients.Select(recipient =>
-                    new UserChat
-                    {
-                        ChatId = chat.Id,
-                        UserProfileId = recipient.Id
-                    }));
-
-                await context.SaveChangesAsync(cancellationToken);
+                await publishEndpoint.Publish(chat, cancellationToken);
 
                 await chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
-
-                // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-                await publishEndpoint.Publish(chat, cancellationToken);
 
                 return TypedResults.Ok(chat.Id);
             });
@@ -194,49 +163,25 @@ public static class ChatApi
                 return TypedResults.Unauthorized();
             }
 
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-            context.ChatMessages.Add(
-                new ChatMessage
-                {
-                    ChatId = chatMessage.ChatId,
-                    Id = chatMessage.Id,
-                    SenderId = chatMessage.SenderId,
-                    Text = chatMessage.Text,
-                    AttachmentUrl = chatMessage.AttachmentUrl,
-                    SentUtc = chatMessage.SentUtc
-                });
+            await publishEndpoint.Publish(new SendMessage
+            {
+                ChatId = chatMessage.ChatId,
+                Id = chatMessage.Id,
+                Text = chatMessage.Text,
+                SenderId = chatMessage.SenderId,
+                AttachmentUrl = chatMessage.AttachmentUrl,
+                SentUtc = chatMessage.SentUtc
+            }, cancellationToken);
 
             var recipientIds = await context.UserChats
                 .Where(userChat => userChat.ChatId == chatMessage.ChatId)
                 .Select(userChat => userChat.UserProfileId)
                 .ToListAsync(cancellationToken);
 
-            context.UnreadMessages.AddRange(recipientIds
-                .Where(recipientId => recipientId != chatMessage.SenderId)
-                .Select(recipientId => new UnreadMessage
-                {
-                    RecipientId = recipientId,
-                    ChatId = chatMessage.ChatId,
-                    MessageSentUtc = chatMessage.SentUtc
-                }));
-
-            await context.Chats
-                .Where(chat => chat.Id == chatMessage.ChatId)
-                .ExecuteUpdateAsync(call =>
-                    call.SetProperty(chat => chat.LastMessageSentUtc, DateTime.UtcNow),
-                    cancellationToken);
-
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
             foreach (string recipientId in recipientIds)
             {
                 await chatHub.Clients.User(recipientId).ReceiveChatMessage(chatMessage);
             }
-
-            // TODO: This should send a message through an exchange to an Azure Function, which does the heavy lifting
-            await publishEndpoint.Publish(chatMessage, cancellationToken);
 
             return TypedResults.NoContent();
         });
