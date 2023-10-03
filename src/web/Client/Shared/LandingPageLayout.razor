@@ -1,7 +1,18 @@
 @inherits LayoutComponentBase
 
 <MudLayout>
-    <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey">
+    <AuthorizeView>
+        <Authorized>
+            <SideBar @bind-Open="_isDrawerOpen" />
+        </Authorized>
+    </AuthorizeView>
+
+    <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Variant="Variant.Filled" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+            </Authorized>
+        </AuthorizeView>
         <MudSpacer />
         <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
         <AuthorizeView>
@@ -15,9 +26,11 @@
     </MudAppBar>
     @Body
     <Footer></Footer>
-    <CookieBanner/>
+    <CookieBanner />
 </MudLayout>
 
-@code{
+@code {
+    private bool _isDrawerOpen = false;
+    private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
     private bool _isDarkMode = false;
 }
