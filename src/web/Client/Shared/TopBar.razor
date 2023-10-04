@@ -1,5 +1,6 @@
 @using Jordnaer.Client.Features.Authentication
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager Navigation
 
 <ThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 
@@ -16,12 +17,16 @@
         </Authorized>
     </AuthorizeView>
 
-    <MudLink Href="/">
-        <MudImage Height="40" Class="d-flex" Src="/images/mini_logo.png" loading="lazy" Alt="Logo" />
-    </MudLink>
+    @if (!_currentPageIsFrontPage)
+    {
+        <MudSpacer/>
+
+        <MudLink Href="/">
+            <MudImage Class="d-flex" Src="/images/mini_logo_small.png" loading="lazy" Alt="Logo" />
+        </MudLink>
+    }
 
     <MudSpacer/>
-
 
     <AuthorizeView>
         <Authorized>
@@ -40,5 +45,10 @@
 
     private bool _isDarkMode = true;
 
-    private readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
+    private bool _currentPageIsFrontPage;
+
+    protected override void OnInitialized()
+    {
+        _currentPageIsFrontPage = Navigation.Uri == Navigation.BaseUri;
+    }
 }
