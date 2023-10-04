@@ -1,3 +1,7 @@
+body {
+    background: var(--mud-palette-background-grey);
+}
+
 h1:focus {
   outline: none;
 }
