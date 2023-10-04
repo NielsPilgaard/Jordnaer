@@ -6,13 +6,13 @@
 
 <MudHidden Breakpoint="Breakpoint.SmAndDown">
 
-    <MudPage FullScreen="FullScreen.Full" Row="2" Column="5" Height="700px" Style="background: var(--mud-palette-background-grey)">
+    <MudPage FullScreen="FullScreen.Full" Row="2" Column="5" Height="700px">
 
-        <MudSection Row="1" ColSpan="2" Column="1" Class="hero-section">
+        <MudSection Row="1" ColSpan="2" Column="1" Class="hero-section-top">
             <MudImage Height="250" Src="/images/minimoeder_logo.png" />
         </MudSection>
 
-        <MudSection Row="1" ColSpan="2" Column="4" Class="hero-section">
+        <MudSection Row="1" ColSpan="2" Column="4" Class="hero-section-top">
             <MudToolBar Style="@($"color: {JordnaerPalette.Header}; font-size: 24px; overflow: hidden")">
                 <MudNavLink Href="/posts" Class="d-md-none d-lg-flex">OPSLAG</MudNavLink>
                 <MudNavLink Href="/auth/login" Class="hero-navbar-underline">VÆR' MED</MudNavLink>
@@ -22,7 +22,7 @@
 
         <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.DimBackground}")" />
 
-        <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section">
+        <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section-top">
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
                 <MudImage Height="400" Class="hero-clip-path-image-1" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg" />
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 48px")">Velkommen</MudText>
@@ -33,10 +33,9 @@
     </MudPage>
 
     <MudContainer MaxWidth="MaxWidth.Large">
-        <MudPage FullScreen="FullScreen.Full" Row="4" Column="5" Height="2000px" Style="background: var(--mud-palette-background-grey)">
 
             @* New Section 1: Legeaftale *@
-            <MudSection Row="1" ColSpan="5" Class="flex-row-reverse hero-section">
+            <div class="flex-row-reverse hero-section">
                 <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash.jpg" Height="400" />
                 <div>
                     <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
@@ -49,10 +48,12 @@
                     </MudText>
                     <MudNavLink Href="/users">Lær mere</MudNavLink>
                 </div>
-            </MudSection>
+            </div>
+
+            <MiniDivider Color="MiniDividerColor.Red" Center/>
 
             @* New Section 2: Find eller skab en gruppe i nærheden *@
-            <MudSection Row="2" ColSpan="5" Class="flex-row hero-section">
+            <div class="flex-row hero-section">
                 <MudImage Src="images/landing-page/daiga-ellaby-JZ51o_-UOY8-unsplash.jpg" Height="400" />
                 <div>
                     <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 36px")">
@@ -63,10 +64,12 @@
                     </MudText>
                     <MudNavLink Href="/groups">Lær mere</MudNavLink>
                 </div>
-            </MudSection>
+            </div>
+
+            <MiniDivider Color="MiniDividerColor.Blue" Center/>
 
             @* New Section 3: Mangler du pasning *@
-            <MudSection Row="3" ColSpan="5" Class="flex-row-reverse hero-section">
+            <div class="flex-row-reverse hero-section">
                 <MudImage Src="/images/landing-page/ryan-fields-Xz7MMD5tZwA-unsplash.jpg" Height="400" />
                 <div>
                     <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
@@ -78,10 +81,12 @@
                     </MudText>
                     <MudNavLink Href="/posts">Lær mere</MudNavLink>
                 </div>
-            </MudSection>
+            </div>
+
+            <MiniDivider Color="MiniDividerColor.Yellow" Center/>
 
             @* New Section 4: Deltag i sport i dit nærområde *@
-            <MudSection Row="4" ColSpan="5" Class="flex-row hero-section">  
+            <div class="flex-row hero-section">  
                 <MudImage Src="/images/landing-page/ashima-pargal-b24JhTZlxSg-unsplash.jpg" Height="400" />
                 <div>
                     <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
@@ -94,8 +99,7 @@
                     </MudText>
                     <MudNavLink Href="/posts">Lær mere</MudNavLink>
                 </div>
-            </MudSection>
-        </MudPage>
+            </div>
 
     </MudContainer>
 
