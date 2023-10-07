@@ -24,7 +24,7 @@
 
         <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section-top">
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
-                <MudImage Height="400" Class="hero-clip-path-image-1" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash.jpg" />
+                <MudImage Height="400" Class="hero-clip-path-image-1" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_small.jpg" />
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 48px")">Velkommen</MudText>
                 <MudText Style="@($"color: {JordnaerPalette.Header}; font-size: 24px")">Til dit online mødested for børnefamilier</MudText>
             </MudStack>
@@ -36,7 +36,7 @@
 
             @* New Section 1: Legeaftale *@
             <div class="flex-row-reverse hero-section">
-                <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash.jpg" Height="400" />
+                <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash.jpg" Height="400" Class="ml-15"/>
                 <div>
                     <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
                         Find en legeaftale i dit nærområde
@@ -46,7 +46,7 @@
                         Praesent elementum nibh mauris. Morbi bibendum commodo faucibus.
                         Proin laoreet auctor erat. Duis vel mi euismod, finibus ex ut, sollicitudin diam.
                     </MudText>
-                    <MudNavLink Href="/users">Lær mere</MudNavLink>
+                <MudButton Href="/users" Variant="Variant.Filled">Find et mini møde</MudButton>
                 </div>
             </div>
 
@@ -54,50 +54,20 @@
 
             @* New Section 2: Find eller skab en gruppe i nærheden *@
             <div class="flex-row hero-section">
-                <MudImage Src="images/landing-page/daiga-ellaby-JZ51o_-UOY8-unsplash.jpg" Height="400" />
-                <div>
+            <MudImage Src="images/landing-page/ryan-fields-Xz7MMD5tZwA-unsplash.jpg" Height="400" Class="mr-15" />
+            <div>
                     <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 36px")">
                         Lokale Fællesskaber
                     </MudText>
-                    <MudText>
-                        Deltag i eller opret en lokal gruppe for legestue, hjemmeundervisning og mere.
-                    </MudText>
-                    <MudNavLink Href="/groups">Lær mere</MudNavLink>
-                </div>
-            </div>
-
-            <MiniDivider Color="MiniDividerColor.Blue" Center/>
-
-            @* New Section 3: Mangler du pasning *@
-            <div class="flex-row-reverse hero-section">
-                <MudImage Src="/images/landing-page/ryan-fields-Xz7MMD5tZwA-unsplash.jpg" Height="400" />
-                <div>
-                    <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                        Sampasning
-                    </MudText>
-                    <MudText>
-                        Bor du i en del af Danmark hvor du ikke kan få dine børn passet, når der er behov?
-                        Slå dig sammen med andre forældre om sampasning, legegruppe, privatdagpleje eller lignende.
-                    </MudText>
-                    <MudNavLink Href="/posts">Lær mere</MudNavLink>
-                </div>
-            </div>
-
-            <MiniDivider Color="MiniDividerColor.Yellow" Center/>
-
-            @* New Section 4: Deltag i sport i dit nærområde *@
-            <div class="flex-row hero-section">  
-                <MudImage Src="/images/landing-page/ashima-pargal-b24JhTZlxSg-unsplash.jpg" Height="400" />
-                <div>
-                    <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                        Deltag i sport i dit nærområde
-                    </MudText>
-                    <MudText>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Praesent elementum nibh mauris. Morbi bibendum commodo faucibus.
-                        Proin laoreet auctor erat. Duis vel mi euismod, finibus ex ut, sollicitudin diam.
-                    </MudText>
-                    <MudNavLink Href="/posts">Lær mere</MudNavLink>
+                <ul>
+                    <li>
+                            Find en legegruppe I kan være en del af, eller find nye medlemmer til jeres egen gruppe.
+                    </li>
+                    <li>
+                            Slå dig sammen med andre forældre om legegruppe, privatdagpleje, hjemmeskole eller lignende.
+                    </li>
+                </ul>
+                <MudButton Href="/groups">Gå til grupper</MudButton>
                 </div>
             </div>
 
