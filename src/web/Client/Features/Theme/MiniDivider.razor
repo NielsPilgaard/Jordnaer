@@ -1,4 +1,13 @@
-<MudImage Src="@Src" Alt="Dotted line" Class="@Class" Style="@Style" />
+@if (Center is true)
+{
+    <div class="d-flex justify-center align-center">
+        <MudImage Src="@Src" Alt="Dotted line" Class="@Class" Style="@Style" />
+    </div>
+}
+else
+{
+    <MudImage Src="@Src" Alt="Dotted line" Class="@Class" Style="@Style" />
+}
 
 @code {
     [Parameter]
@@ -8,5 +17,8 @@
     [Parameter]
     public required MiniDividerColor Color { get; set; }
 
-    private string Src => $"images/dotted-line-{Color.ToString().ToLower()}.png";
+    [Parameter]
+    public bool Center { get; set; } = false;
+
+    private string Src => $"/images/dotted-line-{Color.ToString().ToLower()}.png";
 }

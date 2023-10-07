@@ -1,20 +1,39 @@
 @using Jordnaer.Client.Features.Authentication
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager Navigation
 
-<MudAppBar Class="auth" Fixed="false" Dense Elevation="5" Style="@_appBarStyle">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer.InvokeAsync" />
-    <MudSpacer />
-    <MudButton Class="d-none d-sm-flex" Color="Color.Inherit" Href="/">
-        <MudText Typo="Typo.h4" Class="font-cherry-bomb-one">Mini Møder</MudText>
-    </MudButton>
-    <MudSpacer />
-    <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
+<ThemeProvider @bind-IsDarkMode="_isDarkMode"/>
+
+<MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
+
     <AuthorizeView>
-      <Authorized>
-        <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode" />
-      </Authorized>
+        <Authorized>
+            <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                           Color="Color.Default"
+                           Variant="Variant.Filled"
+                           Edge="Edge.Start"
+                           OnClick="@ToggleDrawer.InvokeAsync"
+                           Class="mr-10"/>
+        </Authorized>
+    </AuthorizeView>
+
+    @if (!_currentPageIsFrontPage)
+    {
+        <MudSpacer/>
+
+        <MudLink Href="/">
+            <MudImage Class="d-flex" Src="/images/mini_logo_small.png" loading="lazy" Alt="Logo" />
+        </MudLink>
+    }
+
+    <MudSpacer/>
+
+    <AuthorizeView>
+        <Authorized>
+            <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode"/>
+        </Authorized>
         <NotAuthorized>
-            <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
+            <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary"/>
         </NotAuthorized>
     </AuthorizeView>
 </MudAppBar>
@@ -26,5 +45,10 @@
 
     private bool _isDarkMode = true;
 
-    private readonly string _appBarStyle = $"background: linear-gradient(90deg, {Colors.Teal.Darken2} 0%, {Colors.Teal.Darken3} 35%);";
+    private bool _currentPageIsFrontPage;
+
+    protected override void OnInitialized()
+    {
+        _currentPageIsFrontPage = Navigation.Uri == Navigation.BaseUri;
+    }
 }

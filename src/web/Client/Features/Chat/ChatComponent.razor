@@ -163,7 +163,7 @@
             {
                 return;
             }
-            
+
             var chatDto = chat.ToChatDto();
             chatDto.UnreadMessageCount++;
             _chats.Insert(0, chatDto);

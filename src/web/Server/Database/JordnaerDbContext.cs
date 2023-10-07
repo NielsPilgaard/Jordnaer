@@ -11,7 +11,7 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LookingFor> LookingFor { get; set; } = default!;
     public DbSet<UserProfileLookingFor> UserProfileLookingFor { get; set; } = default!;
     public DbSet<UserContact> UserContacts { get; set; } = default!;
-    public DbSet<Chat> Chats { get; set; } = default!;
+    public DbSet<Shared.Chat> Chats { get; set; } = default!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
     public DbSet<UnreadMessage> UnreadMessages { get; set; } = default;
     public DbSet<UserChat> UserChats { get; set; } = default!;
@@ -42,7 +42,7 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
                     .WithMany()
                     .HasForeignKey(userContact => userContact.ContactId));
 
-        modelBuilder.Entity<Chat>()
+        modelBuilder.Entity<Shared.Chat>()
             .HasMany(userProfile => userProfile.Recipients)
             .WithMany()
             .UsingEntity<UserChat>();

@@ -12,11 +12,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services
             .AddSendGrid(options => options.ApiKey = sendGridApiKey)
             .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)))
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.CircuitBreakerAsync(
-                    handledEventsAllowedBeforeBreaking: 3,
-                    durationOfBreak: TimeSpan.FromSeconds(10)));
+                policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)));
 
         builder.Services
             .AddHealthChecks()
