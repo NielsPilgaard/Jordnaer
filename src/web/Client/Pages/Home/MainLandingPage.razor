@@ -24,7 +24,7 @@
 
         <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section-top">
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
-                <MudImage Height="400" Class="hero-clip-path-image-1" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_small.jpg" />
+                <MudImage Height="400" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
                 <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 48px")">Velkommen</MudText>
                 <MudText Style="@($"color: {JordnaerPalette.Header}; font-size: 24px")">Til dit online mødested for børnefamilier</MudText>
             </MudStack>
@@ -34,42 +34,54 @@
 
     <MudContainer MaxWidth="MaxWidth.Large">
 
-            @* New Section 1: Legeaftale *@
-            <div class="flex-row-reverse hero-section">
-                <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash.jpg" Height="400" Class="ml-15"/>
-                <div>
-                    <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
-                        Find en legeaftale i dit nærområde
-                    </MudText>
-                    <MudText>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Praesent elementum nibh mauris. Morbi bibendum commodo faucibus.
-                        Proin laoreet auctor erat. Duis vel mi euismod, finibus ex ut, sollicitudin diam.
-                    </MudText>
+        @* New Section 1: Legeaftale *@
+        <div class="flex-row-reverse hero-section">
+            <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash.jpg" Height="400" Class="ml-15" />
+            <div class="content-section">
+                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
+                    Hvad kan jeg bruge Mini Møder til?
+                </MudText>
+                <MudText>
+                    Mini Møder er et online fællesskab for børnefamilier. Her kan du:
+                </MudText>
+                <ul class="custom-list">
+                    <li>Finde fællesskaber</li>
+                    <li>Finde mødregrupper</li>
+                    <li>Lave legeaftaler</li>
+                    <li>Skrive med ligesindede</li>
+                    <li>Udforske hjemmeskoling</li>
+                    <li>Finde private dagplejere</li>
+                    <li>Oprette din gruppe og finde nye medlemmer</li>
+                    <li>Finde Sampasning</li>
+                    <li>Finde andre til at dyrke lokal sport</li>
+                </ul>
                 <MudButton Href="/users" Variant="Variant.Filled">Find et mini møde</MudButton>
-                </div>
             </div>
+        </div>
 
-            <MiniDivider Color="MiniDividerColor.Red" Center/>
 
-            @* New Section 2: Find eller skab en gruppe i nærheden *@
-            <div class="flex-row hero-section">
+        <MiniDivider Color="MiniDividerColor.Red" Center />
+
+        @* New Section 2: Find eller skab en gruppe i nærheden *@
+        <div class="flex-row hero-section">
             <MudImage Src="images/landing-page/ryan-fields-Xz7MMD5tZwA-unsplash.jpg" Height="400" Class="mr-15" />
             <div>
-                    <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 36px")">
-                        Lokale Fællesskaber
-                    </MudText>
+                <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.Secondary}; font-size: 36px")">
+                    Lokale Fællesskaber
+                </MudText>
                 <ul>
                     <li>
-                            Find en legegruppe I kan være en del af, eller find nye medlemmer til jeres egen gruppe.
+                        Find en legegruppe I kan være en del af, eller find nye medlemmer til jeres egen gruppe.
                     </li>
                     <li>
-                            Slå dig sammen med andre forældre om legegruppe, privatdagpleje, hjemmeskole eller lignende.
+                        Slå dig sammen med andre forældre om legegruppe, privatdagpleje, hjemmeskole eller lignende.
                     </li>
                 </ul>
-                <MudButton Href="/groups">Gå til grupper</MudButton>
-                </div>
+                <MudButton Href="/groups" Variant="Variant.Filled">Gå til grupper</MudButton>
             </div>
+        </div>
+
+        <MiniDivider Color="MiniDividerColor.Yellow" Center />
 
     </MudContainer>
 
