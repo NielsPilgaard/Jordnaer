@@ -13,7 +13,6 @@
 }
 
 .chat-chip {
-    display: inline-block;
     white-space: pre-wrap;
     word-wrap: break-word;
     height: 100% !important;
@@ -21,9 +20,13 @@
 
 .mud-chip-content {
     word-break: break-word;
-    display: flex !important;
 }
-
+.chat-chip .mud-avatar {
+    display: flex;
+}
+.mud-chip.mud-chip-size-large .mud-avatar {
+    margin-left: -16px;
+}
 .chat-message-window, .chat-selector-window {
     overflow: auto;
     height: 100%;

@@ -3,10 +3,9 @@
     @if (IsMessageFromSelf(message))
     {
         <MudListItem Class="message-from-self">
-
-            <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
+            <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
                 <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                    <MudChip Class="chat-chip px-2 py-1">
+                    <MudChip Class="chat-chip px-2 py-1" Size="Size.Large">
                         <MudText Typo="Typo.h6">@message.Text</MudText>
                     </MudChip>
                 </MudTooltip>
@@ -16,21 +15,27 @@
     else
     {
         <MudListItem>
-            <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
+            <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
                 <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
                     @if (NextMessageIsFromSameSender(message))
                     {
-                        <MudChip Class="chat-chip">
+                        <MudChip Class="chat-chip" Size="Size.Large">
                             <MudText Typo="Typo.h6">@message.Text</MudText>
                         </MudChip>
                     }
                     else
                     {
-                        <MudChip Class="pl-0 pb-0 chat-chip">
-                            <MudAvatar Size="Size.Medium" Class="mr-2">
-                                <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar" />
-                            </MudAvatar>
-                            <MudText Typo="Typo.h6">@message.Text</MudText>
+                        <MudChip Class="chat-chip" Size="Size.Large">
+                            <AvatarContent>
+                                <MudLink Href="@GetRecipientsUserName(message)">
+                                    <MudAvatar >
+                                        <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar"/>
+                                    </MudAvatar>
+                                </MudLink>
+                            </AvatarContent>
+                            <ChildContent>
+                                <MudText Typo="Typo.h6">@message.Text</MudText>
+                            </ChildContent>
                         </MudChip>
                     }
                 </MudTooltip>
@@ -53,6 +58,11 @@
         .Recipients
         .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
        ?? ProfileConstants.Default_Profile_Picture;
+
+    private string? GetRecipientsUserName(ChatMessageDto message)
+        => ActiveChat?
+            .Recipients
+            .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.UserName;
 
     private bool NextMessageIsFromSameSender(ChatMessageDto message)
     {
