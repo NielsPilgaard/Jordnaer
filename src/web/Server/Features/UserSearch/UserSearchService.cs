@@ -43,7 +43,8 @@ public class UserSearchService : IUserSearchService
             {
                 ProfilePictureUrl = user.ProfilePictureUrl,
                 DisplayName = $"{user.FirstName} {user.LastName}",
-                Id = user.Id
+                Id = user.Id,
+                UserName = user.UserName
             })
            .AsNoTracking()
            .ToListAsync(cancellationToken);

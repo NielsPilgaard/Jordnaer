@@ -40,7 +40,8 @@ public static class UserProfileExtensions
             ZipCode = userProfile.ZipCode,
             ProfilePictureUrl = userProfile.ProfilePictureUrl,
             CreatedUtc = userProfile.CreatedUtc,
-            Age = userProfile.Age
+            Age = userProfile.Age,
+            UserName = userProfile.UserName
         };
 
     public static UserSlim ToUserSlim(this UserProfile userProfile)
@@ -48,6 +49,7 @@ public static class UserProfileExtensions
         {
             DisplayName = userProfile.DisplayName,
             Id = userProfile.Id,
-            ProfilePictureUrl = userProfile.ProfilePictureUrl
+            ProfilePictureUrl = userProfile.ProfilePictureUrl,
+            UserName = userProfile.UserName
         };
 }

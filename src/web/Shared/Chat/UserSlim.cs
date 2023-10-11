@@ -8,5 +8,7 @@ public class UserSlim
 
     public required string ProfilePictureUrl { get; init; }
 
+    public required string? UserName { get; init; }
+
     public override string ToString() => DisplayName;
 }
