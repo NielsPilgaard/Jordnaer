@@ -26,14 +26,14 @@
 </MudPage>
 <MudContainer MaxWidth="MaxWidth.Large">
 
-    <div class="flex-row-reverse hero-section">
-        <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash_small.webp" Height="400" Class="ml-15" />
+    <div class="flex-row-reverse hero-section" style="height: 600px;">
+        <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash_small.webp" Class="ml-10" Style="max-width: 50%" />
         <div class="content-section">
-            <MudText Class="font-cherry-bomb-one mb-3" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
+            <MudText Class="font-cherry-bomb-one mb-3 mt-15" Style="@($"color: {JordnaerPalette.Primary}; font-size: 36px")">
                 Hvad kan jeg bruge Mini Møder til?
             </MudText>
             <MudText Class="mb-2">
-                Mini Møder er et online fællesskab for børnefamilier. Her kan du:
+                Her kan du:
             </MudText>
             <ul class="custom-list">
                 <li>Udforske fællesskaber</li>
@@ -44,7 +44,6 @@
                 <li>Skabe din egen gruppe og invitere medlemmer</li>
                 <li>Organisere eller finde sampasning</li>
                 <li>Udforske lokale fritidsaktiviteter med andre familier</li>
-                <li>Deltage i lokale forældregrupper</li>
             </ul>
             <div class="d-flex justify-center align-center">
                 <MudButton Href="/users" Class="mt-5" Variant="Variant.Filled">Find dit næste mini møde nu!</MudButton>
@@ -52,6 +51,6 @@
         </div>
     </div>
 
-    <MiniDivider Color="MiniDividerColor.Red" Center />
+    <MiniDivider Class="mt-15" Color="MiniDividerColor.Red" Center />
 
 </MudContainer>
