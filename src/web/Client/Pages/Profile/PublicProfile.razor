@@ -22,44 +22,47 @@
 
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
 
-    <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" InitiatorId="@_currentUserId" />
-    
-        <MudGrid>
+    @if (_currentUserId != _profile?.Id)
+    {
+        <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" InitiatorId="@_currentUserId" />
+    }
+
+    <MudGrid>
+        <MudItem xs="12">
+            <UserProfileCard Profile="_profile" UserName="@UserName" />
+        </MudItem>
+
+        @if (_profile!.ChildProfiles.Count > 0)
+        {
+            <MudDivider Class="my-5" />
+            <MudText Typo="Typo.h5" Class="d-sm-none mt-3">
+                <MudIcon Class="mx-2" Icon="@Icons.Material.Filled.ChildCare" />Børn
+            </MudText>
+
+            foreach (var child in _profile.ChildProfiles)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <ChildProfileCard Child="child" />
+                </MudItem>
+            }
+        }
+
+        @if (_profile.LookingFor.Any())
+        {
+            <MudDivider Class="my-5" />
             <MudItem xs="12">
-                <UserProfileCard Profile="_profile" UserName="@UserName" />
+                <MudText Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
             </MudItem>
-
-            @if (_profile!.ChildProfiles.Count > 0)
-            {
-                <MudDivider Class="my-5" />
-                <MudText Typo="Typo.h5" Class="d-sm-none mt-3">
-                    <MudIcon Class="mx-2" Icon="@Icons.Material.Filled.ChildCare" />Børn
-                </MudText>
-
-                foreach (var child in _profile.ChildProfiles)
-                {
-                    <MudItem xs="12" sm="6" md="4" lg="3">
-                        <ChildProfileCard Child="child" />
-                    </MudItem>
-                }
-            }
-
-            @if (_profile.LookingFor.Any())
-            {
-                <MudDivider Class="my-5" />
-                <MudItem xs="12">
-                    <MudText Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
-                </MudItem>
-                <MudItem xs="12" Class="d-flex justify-start">
-                    <MudChipSet ReadOnly>
-                     @foreach (var lookingFor in _profile.LookingFor)
-                        {
-                            <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
-                        }
-                    </MudChipSet>
-                </MudItem>
-            }
-        </MudGrid>
+            <MudItem xs="12" Class="d-flex justify-start">
+                <MudChipSet ReadOnly>
+                @foreach (var lookingFor in _profile.LookingFor)
+                    {
+                        <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
+                    }
+                </MudChipSet>
+            </MudItem>
+        }
+    </MudGrid>
 </MudLoading>
 
 @code {
@@ -81,11 +84,12 @@
             case var _ when response is { IsSuccessStatusCode: true, Content: not null }:
                 _profile = response.Content;
                 _userIds.Add(new UserSlim
-                {
-                    DisplayName = _profile.DisplayName,
-                    Id = _profile.Id,
-                    ProfilePictureUrl = _profile.ProfilePictureUrl
-                });
+                    {
+                        DisplayName = _profile.DisplayName,
+                        Id = _profile.Id,
+                        ProfilePictureUrl = _profile.ProfilePictureUrl,
+                        UserName = _profile.UserName
+                    });
                 break;
 
             case HttpStatusCode.NotFound:
