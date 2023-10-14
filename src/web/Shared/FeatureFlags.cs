@@ -6,6 +6,7 @@ public static class FeatureFlags
 {
     public const string Events = "Events";
     public const string Internal_Registration = "InternalRegistration";
+    public const string Contacts = "Contacts";
 
     /// <summary>
     /// Blazor WASM doesn't support Feature Flags directly, this is used as a workaround
@@ -14,5 +15,6 @@ public static class FeatureFlags
     {
         [Events] = false,
         [Internal_Registration] = false,
+        [Contacts] = false,
     };
 }
