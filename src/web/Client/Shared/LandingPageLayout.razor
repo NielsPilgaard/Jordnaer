@@ -14,10 +14,9 @@
             </Authorized>
         </AuthorizeView>
         <MudSpacer />
-        <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
         <AuthorizeView>
             <Authorized>
-                <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode" />
+                <TopBarProfileMenu  />
             </Authorized>
             <NotAuthorized>
                 <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Outlined" Color="Color.Default" />
@@ -32,5 +31,4 @@
 @code {
     private bool _isDrawerOpen = false;
     private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
-    private bool _isDarkMode = false;
 }

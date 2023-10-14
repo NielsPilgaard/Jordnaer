@@ -39,10 +39,6 @@
     {
         if (firstRender)
         {
-            IsDarkMode = await _mudThemeProvider.GetSystemPreference();
-
-            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
-
             var savedMode = await LocalStorage.GetItemAsync<bool?>(Key);
             if (savedMode.HasValue)
             {
@@ -50,21 +46,11 @@
             }
             else
             {
+                IsDarkMode = await _mudThemeProvider.GetSystemPreference();
                 await LocalStorage.SetItemAsync(Key, IsDarkMode);
             }
 
             StateHasChanged();
         }
-    }
-
-    private async Task OnSystemPreferenceChanged(bool isDarkMode)
-    {
-        IsDarkMode = isDarkMode;
-
-        await LocalStorage.SetItemAsync(Key, IsDarkMode);
-
-        await IsDarkModeChanged.InvokeAsync(IsDarkMode);
-
-        StateHasChanged();
     }
 }

@@ -4,6 +4,8 @@
 @inject IProfileCache ProfileCache
 @inject ILocalStorageService LocalStorage
 
+<ThemeProvider @bind-IsDarkMode="_isDarkMode" />
+
 <MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
     <ActivatorContent>
         <MudAvatar>
@@ -14,8 +16,8 @@
         <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">Redigér Profil</MudMenuItem>
         <MudMenuItem AutoClose="false"
                      OnClick="UpdateDarkMode"
-                     Icon="@(IsDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
-                     IconColor="@(IsDarkMode ? Color.Dark : Color.Warning)">
+                     Icon="@(_isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
+                     IconColor="@(_isDarkMode ? Color.Dark : Color.Warning)">
             Skift tema
         </MudMenuItem>
         <MudDivider />
@@ -27,10 +29,7 @@
     </ChildContent>
 </MudMenu>
 @code {
-    [Parameter]
-    public bool IsDarkMode { get; set; }
-    [Parameter]
-    public EventCallback<bool> IsDarkModeChanged { get; set; }
+    private bool _isDarkMode { get; set; }
 
     private const string Key = "dark-mode";
 
@@ -53,10 +52,9 @@
 
     private async Task UpdateDarkMode()
     {
-        IsDarkMode = !IsDarkMode;
-        await IsDarkModeChanged.InvokeAsync(IsDarkMode);
+        _isDarkMode = !_isDarkMode;
 
-        await LocalStorage.SetItemAsync(Key, IsDarkMode);
+        await LocalStorage.SetItemAsync(Key, _isDarkMode);
 
         StateHasChanged();
     }

@@ -2,7 +2,6 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject NavigationManager Navigation
 
-<ThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 
 <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
 
@@ -30,7 +29,7 @@
 
     <AuthorizeView>
         <Authorized>
-            <TopBarProfileMenu @bind-IsDarkMode="_isDarkMode"/>
+            <TopBarProfileMenu/>
         </Authorized>
         <NotAuthorized>
             <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary"/>
@@ -42,8 +41,6 @@
 {
     [Parameter]
     public EventCallback<bool> ToggleDrawer { get; set; }
-
-    private bool _isDarkMode = true;
 
     private bool _currentPageIsFrontPage;
 
