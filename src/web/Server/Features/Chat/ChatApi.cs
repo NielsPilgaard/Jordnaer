@@ -78,6 +78,20 @@ public static class ChatApi
                     : TypedResults.BadRequest();
             });
 
+        group.MapGet("unread-messages",
+            async Task<Ok<int>> (
+                [FromServices] CurrentUser currentUser,
+                [FromServices] JordnaerDbContext context,
+                CancellationToken cancellationToken) =>
+            {
+                int unreadMessageCount = await context
+                    .UnreadMessages
+                    .Where(unreadMessage => unreadMessage.RecipientId == currentUser.Id)
+                    .CountAsync(cancellationToken);
+
+                return TypedResults.Ok(unreadMessageCount);
+            });
+
         group.MapGet("messages/{chatId:guid}",
             async Task<Results<Ok<List<ChatMessageDto>>, UnauthorizedHttpResult>> (
                     [FromRoute] Guid chatId,

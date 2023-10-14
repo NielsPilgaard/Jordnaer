@@ -22,4 +22,7 @@ public interface IChatClient
 
     [Post("/api/chat/messages-read/{chatId}")]
     Task<IApiResponse> MarkMessagesAsRead(Guid chatId);
+
+    [Get("/api/chat/unread-messages")]
+    Task<IApiResponse<int>> GetUnreadMessageCount();
 }
