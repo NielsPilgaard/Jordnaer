@@ -10,6 +10,7 @@ using Jordnaer.Server.Features.Email;
 using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
+using Jordnaer.Shared.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.FeatureManagement;
 using Serilog;
@@ -24,7 +25,6 @@ try
 
     builder.AddAzureAppConfiguration();
 
-    builder.Services.AddApplicationInsightsTelemetry();
     builder.AddSerilog();
 
     builder.Services.AddProblemDetails();

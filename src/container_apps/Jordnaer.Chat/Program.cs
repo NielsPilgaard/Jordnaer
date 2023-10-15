@@ -1,4 +1,5 @@
 using Jordnaer.Chat;
+using Jordnaer.Shared.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 

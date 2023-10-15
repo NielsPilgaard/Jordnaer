@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>6af4abd1-e8ca-4aa2-a593-15395d30dc2a</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
@@ -14,8 +12,6 @@
     <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
     <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.1.1" />
 
-    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="6.1.0" />
-
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.12">
         <PrivateAssets>all</PrivateAssets>
@@ -23,13 +19,10 @@
     </PackageReference>
 
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="7.0.0" />
-
-    <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
-    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\shared\Jordnaer.Shared.Infrastructure\Jordnaer.Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\..\web\Shared\Jordnaer.Shared.csproj" />
   </ItemGroup>
 
