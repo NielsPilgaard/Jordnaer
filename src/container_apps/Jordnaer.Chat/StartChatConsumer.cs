@@ -1,4 +1,3 @@
-using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using MassTransit;
 
@@ -6,9 +5,9 @@ namespace Jordnaer.Chat;
 
 public class StartChatConsumer : IConsumer<StartChat>
 {
-    private readonly JordnaerDbContext _context;
+    private readonly ChatDbContext _context;
 
-    public StartChatConsumer(JordnaerDbContext context)
+    public StartChatConsumer(ChatDbContext context)
     {
         _context = context;
     }
