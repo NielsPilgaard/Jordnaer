@@ -56,10 +56,10 @@ jobs:
       uses: azure/container-apps-deploy-action@v1
       with:
         appSourcePath: ${{ github.workspace }}src/container_apps/Jordnaer.Chat 
-        registryUrl: gcr.io
+        registryUrl: ghcr.io
         registryUsername: ${{ secrets.CHAT_REGISTRY_USERNAME }}
         registryPassword: ${{ secrets.CHAT_REGISTRY_PASSWORD }}
         containerAppName: chat
         resourceGroup: Jordnaer
-        imageToBuild: gcr.io/nielspilgaard/chat:${{ github.sha }}
+        imageToBuild: ghcr.io/nielspilgaard/chat:${{ github.sha }}
         dockerfilePath: Dockerfile
