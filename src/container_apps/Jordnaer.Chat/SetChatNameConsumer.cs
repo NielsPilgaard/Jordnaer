@@ -5,5 +5,8 @@ namespace Jordnaer.Chat;
 
 public class SetChatNameConsumer : IConsumer<SetChatName>
 {
-    public Task Consume(ConsumeContext<SetChatName> context) => throw new NotImplementedException();
+    public Task Consume(ConsumeContext<SetChatName> context)
+    {
+        throw new NotImplementedException();
+    }
 }
