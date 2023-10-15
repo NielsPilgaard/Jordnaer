@@ -89,19 +89,19 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.CHAT_AZURE_CREDENTIALS }}
-        
-      - name: Deploy image to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          appSourcePath: ${{ github.workspace }}src/container_apps/Jordnaer.Chat 
-          registryUrl: gcr.io
-          registryUsername: ${{ secrets.CHAT_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.CHAT_REGISTRY_PASSWORD }}
-          containerAppName: chat
-          resourceGroup: Jordnaer
-          imageToBuild: gcr.io/nielspilgaard/chat:${{ github.sha }}
-          dockerfilePath: Dockerfile
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.CHAT_AZURE_CREDENTIALS }}
+    
+    - name: Deploy image to Azure Container Apps
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        appSourcePath: ${{ github.workspace }}src/container_apps/Jordnaer.Chat 
+        registryUrl: gcr.io
+        registryUsername: ${{ secrets.CHAT_REGISTRY_USERNAME }}
+        registryPassword: ${{ secrets.CHAT_REGISTRY_PASSWORD }}
+        containerAppName: chat
+        resourceGroup: Jordnaer
+        imageToBuild: gcr.io/nielspilgaard/chat:${{ github.sha }}
+        dockerfilePath: Dockerfile
