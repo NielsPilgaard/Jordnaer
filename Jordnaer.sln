@@ -48,6 +48,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Chat", "src\contai
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Chat.Tests", "tests\container_apps\Jordnaer.Chat.Tests\Jordnaer.Chat.Tests.csproj", "{0104E957-D6C4-4FD3-8926-68D0EC9FC658}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{659DB215-49CE-4C57-8823-56AFAE2DED72}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jordnaer.Shared.Infrastructure", "src\shared\Jordnaer.Shared.Infrastructure\Jordnaer.Shared.Infrastructure.csproj", "{73928908-776A-4AE3-98A7-AAB82A9A9C19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,6 +86,10 @@ Global
 		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +106,8 @@ Global
 		{6BE03F12-3430-4DBC-B669-EE6A4E81D519} = {04718F38-85FB-4998-B2FF-AA5B8999BA5D}
 		{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF} = {6BE03F12-3430-4DBC-B669-EE6A4E81D519}
 		{0104E957-D6C4-4FD3-8926-68D0EC9FC658} = {64BD34CA-4E7C-4496-825C-844F1B121959}
+		{659DB215-49CE-4C57-8823-56AFAE2DED72} = {04718F38-85FB-4998-B2FF-AA5B8999BA5D}
+		{73928908-776A-4AE3-98A7-AAB82A9A9C19} = {659DB215-49CE-4C57-8823-56AFAE2DED72}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D91EE91A-4939-4C1D-830D-E09B985FBC2C}
