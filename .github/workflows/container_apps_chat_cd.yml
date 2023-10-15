@@ -57,8 +57,8 @@ jobs:
       with:
         appSourcePath: ${{ github.workspace }}src/container_apps/Jordnaer.Chat 
         registryUrl: gcr.io
-        registryUsername: ${{ github.repository_owner }}
-        registryPassword: ${{ secrets.GITHUB_TOKEN }}
+        registryUsername: ${{ secrets.CHAT_REGISTRY_USERNAME }}
+        registryPassword: ${{ secrets.CHAT_REGISTRY_PASSWORD }}
         containerAppName: chat
         resourceGroup: Jordnaer
         imageToBuild: gcr.io/nielspilgaard/chat:${{ github.sha }}
