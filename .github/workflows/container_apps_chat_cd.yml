@@ -88,8 +88,13 @@ jobs:
         file: ./src/container_apps/Jordnaer.Chat/Dockerfile
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-
-    - name: Deploy pushed image to Azure Container Apps
+        
+    - name: Azure Login
+      uses: Azure/login@v1.4.6
+      with:
+        creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL_CHAT }}
+        
+    - name: Deploy image to Azure Container Apps
       uses: azure/container-apps-deploy-action@v1
       with:
         containerAppName: chat
