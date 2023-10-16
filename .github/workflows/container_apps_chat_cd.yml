@@ -55,6 +55,7 @@ jobs:
     - name: Deploy image to Azure Container Apps
       uses: azure/container-apps-deploy-action@v1
       with:
+        appSourcePath: .
         registryUrl: ghcr.io
         registryUsername: ${{ github.repository_owner }}
         registryPassword: ${{ secrets.GITHUB_TOKEN }}
