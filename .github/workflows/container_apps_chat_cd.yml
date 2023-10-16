@@ -65,7 +65,8 @@ jobs:
            type=match,pattern=v(\d.\d),group=1
            type=match,pattern=v(\d),group=1
            type=sha
-           type=sha,format=long
+           type=sha,prefix=
+           type=sha,prefix=,format=long
            type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Set up QEMU
