@@ -37,7 +37,7 @@
     <PackageReference Include="Bogus" Version="34.0.2" />
     <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
 
-    <PackageReference Include="MiniValidation" Version="0.8.0" />
+    <PackageReference Include="MiniValidation" Version="0.9.0" />
 
     <PackageReference Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
 
