@@ -11,7 +11,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.AddAzureAppConfiguration("appconfig");
+    builder.AddAzureAppConfiguration();
 
     builder.AddSerilog();
 
