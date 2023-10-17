@@ -1,23 +1,25 @@
 {
-  "profiles": {
-    "https": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7224;http://localhost:5214"
-    },
-    "Docker": {
-        "commandName": "Docker",
-        "launchBrowser": true,
-        "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
+    "profiles": {
+        "https": {
+            "commandName": "Project",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ConnectionStrings_JordnaerDbContext": "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=b1509e74-7cdf-4575-96c5-70ac47115acc;Persist Security Info=False;TrustServerCertificate=true;"
+            },
+            "dotnetRunMessages": true,
+            "applicationUrl": "https://localhost:7224;http://localhost:5214"
         },
-        "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-        "publishAllPorts": true,
-        "useSSL": true
+        "Docker": {
+            "commandName": "Docker",
+            "launchBrowser": true,
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ConnectionStrings_JordnaerDbContext": "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=b1509e74-7cdf-4575-96c5-70ac47115acc;Persist Security Info=False;TrustServerCertificate=true;"
+            },
+            "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+            "publishAllPorts": true,
+            "useSSL": true
+        }
     }
-  }
 }
