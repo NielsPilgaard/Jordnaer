@@ -6,9 +6,9 @@ namespace Jordnaer.Chat;
 
 public class SendMessageConsumer : IConsumer<SendMessage>
 {
-    private readonly ChatDbContext _context;
+    private readonly JordnaerDbContext _context;
 
-    public SendMessageConsumer(ChatDbContext context)
+    public SendMessageConsumer(JordnaerDbContext context)
     {
         _context = context;
     }

@@ -27,7 +27,7 @@ public static class WebApplicationBuilderExtensions
     {
         string dbConnectionString = GetConnectionString(builder.Configuration);
 
-        builder.Services.AddSqlServer<ChatDbContext>(dbConnectionString);
+        builder.Services.AddSqlServer<JordnaerDbContext>(dbConnectionString);
 
         builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
 

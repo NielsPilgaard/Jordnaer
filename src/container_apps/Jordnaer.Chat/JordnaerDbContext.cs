@@ -1,16 +1,25 @@
-
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Chat;
 
-public class ChatDbContext : DbContext
+public class JordnaerDbContext : DbContext
 {
     public DbSet<UserProfile> UserProfiles { get; set; } = default!;
+    public DbSet<ChildProfile> ChildProfiles { get; set; } = default!;
+    public DbSet<LookingFor> LookingFor { get; set; } = default!;
+    public DbSet<UserProfileLookingFor> UserProfileLookingFor { get; set; } = default!;
+    public DbSet<UserContact> UserContacts { get; set; } = default!;
     public DbSet<Shared.Chat> Chats { get; set; } = default!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
-    public DbSet<UserChat> UserChats { get; set; } = default!;
     public DbSet<UnreadMessage> UnreadMessages { get; set; } = default;
+    public DbSet<UserChat> UserChats { get; set; } = default!;
+
+    //TODO
+    //public DbSet<Group> Groups { get; set; } = default!;
+    //public DbSet<ContactRequest> ContactRequests { get; set; } = default!;
+    //public DbSet<Notification> Notifications { get; set; } = default!;
+    //public DbSet<Event> Events { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,9 +49,9 @@ public class ChatDbContext : DbContext
         modelBuilder.Entity<UserProfile>()
             .Property(user => user.SearchableName)
             .HasComputedColumnSql(
-                $"[{nameof(UserProfile.FirstName)}] + " +
-                $"[{nameof(UserProfile.LastName)}] + " +
-                $"[{nameof(UserProfile.UserName)}]",
+                $"ISNULL([{nameof(UserProfile.FirstName)}], '') + ' ' + " +
+                $"ISNULL([{nameof(UserProfile.LastName)}], '') + ' ' + " +
+                $"ISNULL([{nameof(UserProfile.UserName)}], '')",
                 stored: true);
 
 
@@ -67,6 +76,6 @@ public class ChatDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    public ChatDbContext(DbContextOptions<ChatDbContext> options) : base(options)
+    public JordnaerDbContext(DbContextOptions<JordnaerDbContext> options) : base(options)
     { }
 }

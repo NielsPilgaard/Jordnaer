@@ -5,9 +5,9 @@ namespace Jordnaer.Chat;
 
 public class StartChatConsumer : IConsumer<StartChat>
 {
-    private readonly ChatDbContext _context;
+    private readonly JordnaerDbContext _context;
 
-    public StartChatConsumer(ChatDbContext context)
+    public StartChatConsumer(JordnaerDbContext context)
     {
         _context = context;
     }
