@@ -6,9 +6,9 @@ namespace Jordnaer.Shared.Infrastructure;
 
 public static class AzureAppConfigurationExtensions
 {
-    public static WebApplicationBuilder AddAzureAppConfiguration(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddAzureAppConfiguration(this WebApplicationBuilder builder, string configKey = "ConnectionStrings:AppConfig")
     {
-        string? connectionString = builder.Configuration.GetConnectionString("AppConfig");
+        string? connectionString = builder.Configuration[configKey];
         if (connectionString is null)
         {
             return builder.Environment.IsDevelopment()

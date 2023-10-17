@@ -136,4 +136,7 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
-public partial class Program { }
+namespace Jordnaer.Server
+{
+    public partial class Program { }
+}

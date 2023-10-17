@@ -3,7 +3,6 @@ using Jordnaer.Shared.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
-
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -12,7 +11,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.AddAzureAppConfiguration();
+    builder.AddAzureAppConfiguration("appconfig");
 
     builder.AddSerilog();
 
@@ -52,4 +51,7 @@ finally
     Log.CloseAndFlush();
 }
 
-public partial class Program { }
+namespace Jordnaer.Chat
+{
+    public partial class Program { }
+}
