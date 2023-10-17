@@ -8,10 +8,6 @@ public static class WebApplicationBuilderExtensions
     {
         builder.Services.AddMassTransit(config =>
         {
-            config.AddConsumer<StartChatConsumer>();
-            config.AddConsumer<SendMessageConsumer>();
-            config.AddConsumer<SetChatNameConsumer>();
-
             config.UsingAzureServiceBus((context, azureServiceBus) =>
             {
                 azureServiceBus.Host(builder.Configuration.GetConnectionString("AzureServiceBus"));

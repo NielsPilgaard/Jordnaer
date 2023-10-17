@@ -1,7 +1,8 @@
+using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using MassTransit;
 
-namespace Jordnaer.Chat;
+namespace Jordnaer.Server.Consumers;
 
 public class StartChatConsumer : IConsumer<StartChat>
 {
@@ -16,7 +17,7 @@ public class StartChatConsumer : IConsumer<StartChat>
     {
         var chat = consumeContext.Message;
 
-        _context.Chats.Add(new Shared.Chat
+        _context.Chats.Add(new Chat
         {
             LastMessageSentUtc = chat.LastMessageSentUtc,
             Id = chat.Id,

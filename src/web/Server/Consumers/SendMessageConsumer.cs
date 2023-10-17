@@ -1,8 +1,9 @@
+using Jordnaer.Server.Database;
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
-namespace Jordnaer.Chat;
+namespace Jordnaer.Server.Consumers;
 
 public class SendMessageConsumer : IConsumer<SendMessage>
 {

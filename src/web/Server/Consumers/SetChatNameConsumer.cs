@@ -1,7 +1,7 @@
 using Jordnaer.Shared;
 using MassTransit;
 
-namespace Jordnaer.Chat;
+namespace Jordnaer.Server.Consumers;
 
 public class SetChatNameConsumer : IConsumer<SetChatName>
 {
