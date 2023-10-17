@@ -1,0 +1,38 @@
+@inject IChatClient ChatClient
+
+<MudDivider />
+<Feature Name="@FeatureFlags.Contacts">
+    <MudNavLink Match="NavLinkMatch.All" Href="/contacts" Icon="@Icons.Material.Filled.Contacts">Mine Kontakter</MudNavLink>
+</Feature>
+
+<MudNavLink Match="NavLinkMatch.Prefix"
+            Href="/chat"
+            Icon="@Icons.Material.Filled.Chat">
+    @if (_unreadMessageCount > 0)
+    {
+        <MudBadge Origin="Origin.CenterRight" BadgeClass="ml-2" Color="Color.Error" Content="@_unreadMessageCount">
+            <MudText>Chat</MudText>
+        </MudBadge>
+    }
+    else
+    {
+        <MudText>Chat</MudText>
+    }
+</MudNavLink>
+<Feature Name="@FeatureFlags.Events">
+    <MudNavLink Match="NavLinkMatch.Prefix" Href="/events" Icon="@Icons.Material.Filled.EventAvailable">Mine Begivenheder</MudNavLink>
+</Feature>
+<MudDivider />
+@code {
+    private int _unreadMessageCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ChatClient.GetUnreadMessageCount();
+        if (response.IsSuccessStatusCode)
+        {
+            _unreadMessageCount = response.Content;
+        }
+    }
+
+}

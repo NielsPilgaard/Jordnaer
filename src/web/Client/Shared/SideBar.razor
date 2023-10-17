@@ -2,37 +2,13 @@
 @using MudBlazor.Services
 @using Refit
 @inject NavigationManager Navigation
-@inject IChatClient ChatClient
 @implements IDisposable
 
 <MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="5" Variant="DrawerVariant.Responsive">
     <MudNavMenu>
         <AuthorizeView>
             <Authorized>
-
-                <MudDivider />
-                <Feature Name="@FeatureFlags.Contacts">
-                    <MudNavLink Match="NavLinkMatch.All" Href="/contacts" Icon="@Icons.Material.Filled.Contacts">Mine Kontakter</MudNavLink>
-                </Feature>
-
-                <MudNavLink Match="NavLinkMatch.Prefix"
-                            Href="/chat"
-                            Icon="@Icons.Material.Filled.Chat">
-                    @if (_unreadMessageCount > 0)
-                    {
-                        <MudBadge Origin="Origin.CenterRight" BadgeClass="ml-2" Color="Color.Error" Content="@_unreadMessageCount">
-                            <MudText>Chat</MudText>
-                        </MudBadge>
-                    }
-                    else
-                    {
-                        <MudText>Chat</MudText>
-                    }
-                </MudNavLink>
-                <Feature Name="@FeatureFlags.Events">
-                    <MudNavLink Match="NavLinkMatch.Prefix" Href="/events" Icon="@Icons.Material.Filled.EventAvailable">Mine Begivenheder</MudNavLink>
-                </Feature>
-                <MudDivider/>
+                <AuthorizedSideBar />
             </Authorized>
         </AuthorizeView>
         <MudNavLink Match="NavLinkMatch.All" Href="/users" Icon="@Icons.Material.Filled.PersonSearch">Personer</MudNavLink>
@@ -58,12 +34,6 @@
             await OpenChanged.InvokeAsync(Open);
             StateHasChanged();
         });
-
-        var response = await ChatClient.GetUnreadMessageCount();
-        if (response.IsSuccessStatusCode)
-        {
-            _unreadMessageCount = response.Content;
-        }
     }
 
     public void Dispose() => _locationChangedHandler?.Dispose();
