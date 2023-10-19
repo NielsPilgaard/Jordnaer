@@ -1,16 +1,22 @@
 using Jordnaer.Server.Database;
+using Jordnaer.Server.Features.Chat;
 using Jordnaer.Shared;
 using MassTransit;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Jordnaer.Server.Consumers;
 
 public class StartChatConsumer : IConsumer<StartChat>
 {
     private readonly JordnaerDbContext _context;
+    private readonly ILogger<StartChatConsumer> _logger;
+    private readonly IHubContext<ChatHub, IChatHub> _chatHub;
 
-    public StartChatConsumer(JordnaerDbContext context)
+    public StartChatConsumer(JordnaerDbContext context, ILogger<StartChatConsumer> logger, IHubContext<ChatHub, IChatHub> chatHub)
     {
         _context = context;
+        _logger = logger;
+        _chatHub = chatHub;
     }
 
     public async Task Consume(ConsumeContext<StartChat> consumeContext)
@@ -22,8 +28,18 @@ public class StartChatConsumer : IConsumer<StartChat>
             LastMessageSentUtc = chat.LastMessageSentUtc,
             Id = chat.Id,
             StartedUtc = chat.StartedUtc,
-            Messages = chat.Messages.Select(static message => message.ToChatMessage()).ToList()
+            Messages = chat.Messages.Select(message => message.ToChatMessage()).ToList(),
+            DisplayName = chat.DisplayName
         });
+
+        foreach (var recipient in chat.Recipients)
+        {
+            _context.UserChats.Add(new UserChat
+            {
+                ChatId = chat.Id,
+                UserProfileId = recipient.Id
+            });
+        }
 
         foreach (var message in chat.Messages)
         {
@@ -38,15 +54,15 @@ public class StartChatConsumer : IConsumer<StartChat>
             }
         }
 
-        foreach (var recipient in chat.Recipients)
+        try
         {
-            _context.UserChats.Add(new UserChat
-            {
-                ChatId = chat.Id,
-                UserProfileId = recipient.Id
-            });
+            await _context.SaveChangesAsync(consumeContext.CancellationToken);
+            await _chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
         }
-
-        await _context.SaveChangesAsync(consumeContext.CancellationToken);
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Exception occurred while processing {command} command", nameof(StartChat));
+            throw;
+        }
     }
 }

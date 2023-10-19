@@ -154,8 +154,6 @@ public static class ChatApi
 
                 await publishEndpoint.Publish(chat, cancellationToken);
 
-                await chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
-
                 return TypedResults.Ok(chat.Id);
             });
 
@@ -177,25 +175,8 @@ public static class ChatApi
                 return TypedResults.Unauthorized();
             }
 
-            await publishEndpoint.Publish(new SendMessage
-            {
-                ChatId = chatMessage.ChatId,
-                Id = chatMessage.Id,
-                Text = chatMessage.Text,
-                SenderId = chatMessage.SenderId,
-                AttachmentUrl = chatMessage.AttachmentUrl,
-                SentUtc = chatMessage.SentUtc
-            }, cancellationToken);
+            await publishEndpoint.Publish(chatMessage.ToSendMessage(), cancellationToken);
 
-            var recipientIds = await context.UserChats
-                .Where(userChat => userChat.ChatId == chatMessage.ChatId)
-                .Select(userChat => userChat.UserProfileId)
-                .ToListAsync(cancellationToken);
-
-            foreach (string recipientId in recipientIds)
-            {
-                await chatHub.Clients.User(recipientId).ReceiveChatMessage(chatMessage);
-            }
 
             return TypedResults.NoContent();
         });

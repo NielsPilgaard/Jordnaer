@@ -1,6 +1,8 @@
 using Jordnaer.Server.Database;
+using Jordnaer.Server.Features.Chat;
 using Jordnaer.Shared;
 using MassTransit;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Server.Consumers;
@@ -8,10 +10,14 @@ namespace Jordnaer.Server.Consumers;
 public class SendMessageConsumer : IConsumer<SendMessage>
 {
     private readonly JordnaerDbContext _context;
+    private readonly ILogger<SendMessageConsumer> _logger;
+    private readonly IHubContext<ChatHub, IChatHub> _chatHub;
 
-    public SendMessageConsumer(JordnaerDbContext context)
+    public SendMessageConsumer(JordnaerDbContext context, ILogger<SendMessageConsumer> logger, IHubContext<ChatHub, IChatHub> chatHub)
     {
         _context = context;
+        _logger = logger;
+        _chatHub = chatHub;
     }
 
     public async Task Consume(ConsumeContext<SendMessage> consumeContext)
@@ -44,12 +50,25 @@ public class SendMessageConsumer : IConsumer<SendMessage>
             });
         }
 
-        await _context.SaveChangesAsync(consumeContext.CancellationToken);
+        foreach (string recipientId in recipientIds)
+        {
+            await _chatHub.Clients.User(recipientId).ReceiveChatMessage(chatMessage);
+        }
 
-        await _context.Chats
-            .Where(chat => chat.Id == chatMessage.ChatId)
-            .ExecuteUpdateAsync(call =>
-                    call.SetProperty(chat => chat.LastMessageSentUtc, DateTime.UtcNow),
-                consumeContext.CancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(consumeContext.CancellationToken);
+
+            await _context.Chats
+                .Where(chat => chat.Id == chatMessage.ChatId)
+                .ExecuteUpdateAsync(call =>
+                        call.SetProperty(chat => chat.LastMessageSentUtc, DateTime.UtcNow),
+                    consumeContext.CancellationToken);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Exception occurred while processing {command} command", nameof(SendMessage));
+            throw;
+        }
     }
 }
