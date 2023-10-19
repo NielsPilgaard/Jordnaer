@@ -25,35 +25,49 @@
     <MudNavLink Match="NavLinkMatch.Prefix" Href="/events" Icon="@Icons.Material.Filled.EventAvailable">Mine Begivenheder</MudNavLink>
 </Feature>
 <MudDivider />
+
 @code {
     private int _unreadMessageCount = 0;
     private IDisposable? _locationChangedHandler;
+    private Timer? _timer;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // TODO: Create a Singleton timer that runs every 5 minutes, polling for new unread messages
+        _timer = new Timer(
+            // ReSharper disable once AsyncVoidLambda
+            callback: async _ => await GetUnreadMessageCount(),
+            state: null,
+            dueTime: TimeSpan.Zero,
+            period: TimeSpan.FromMinutes(3));
+
         _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
         {
             // Only trigger when navigating to specific chats, not just the overall chat page
             if (_unreadMessageCount > 0 && context.TargetLocation.StartsWith("/chat") && context.TargetLocation != "/chat")
             {
                 await GetUnreadMessageCount();
-                StateHasChanged();
             }
         });
-
-        await GetUnreadMessageCount();
     }
 
     private async Task GetUnreadMessageCount()
     {
         var response = await ChatClient.GetUnreadMessageCount();
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        if (_unreadMessageCount != response.Content)
         {
             _unreadMessageCount = response.Content;
+            StateHasChanged();
         }
     }
 
-    public void Dispose() => _locationChangedHandler?.Dispose();
-
+    public void Dispose()
+    {
+        _locationChangedHandler?.Dispose();
+        _timer?.Dispose();
+    }
 }
