@@ -16,8 +16,21 @@ public static class WebApplicationBuilderExtensions
             config.AddConsumer<SendMessageConsumer>();
             config.AddConsumer<SetChatNameConsumer>();
 
+            if (builder.Environment.IsDevelopment())
+            {
+                config.SetEndpointNameFormatter(endpointNameFormatter: new DefaultEndpointNameFormatter(prefix: "dev-"));
+            }
+
             config.UsingAzureServiceBus((context, azureServiceBus) =>
             {
+                if (builder.Environment.IsDevelopment())
+                {
+                    azureServiceBus
+                        .MessageTopology
+                        .SetEntityNameFormatter(
+                            new PrefixEntityNameFormatter(AzureBusFactory.MessageTopology.EntityNameFormatter, "dev-"));
+                }
+
                 azureServiceBus.Host(builder.Configuration.GetConnectionString("AzureServiceBus"));
 
                 azureServiceBus.ConfigureEndpoints(context);
