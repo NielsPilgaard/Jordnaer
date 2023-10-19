@@ -5,34 +5,31 @@
 
 <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
 
-    <AuthorizeView>
-        <Authorized>
-            <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                           Color="Color.Default"
-                           Variant="Variant.Filled"
-                           Edge="Edge.Start"
-                           OnClick="@ToggleDrawer.InvokeAsync"
-                           Class="mr-10"/>
-        </Authorized>
-    </AuthorizeView>
+    <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                   Color="Color.Default"
+                   Variant="Variant.Filled"
+                   Edge="Edge.Start"
+                   OnClick="@ToggleDrawer.InvokeAsync"
+                   Class="mr-10" />
 
     @if (!_currentPageIsFrontPage)
     {
-        <MudSpacer/>
+        <MudSpacer />
 
         <MudLink Href="/">
             <MudImage Class="d-flex" Src="/images/mini_logo_small.png" loading="lazy" Alt="Logo" />
         </MudLink>
     }
 
-    <MudSpacer/>
+    <MudSpacer />
 
     <AuthorizeView>
         <Authorized>
-            <TopBarProfileMenu/>
+            <TopBarProfileMenu />
         </Authorized>
         <NotAuthorized>
-            <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary"/>
+            <ThemeProvider />
+            <MudIconButton Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Filled" Color="Color.Tertiary" />
         </NotAuthorized>
     </AuthorizeView>
 </MudAppBar>
