@@ -24,11 +24,10 @@
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
     private IDisposable? _locationChangedHandler;
-    private int _unreadMessageCount = 0;
 
     protected override void OnInitialized()
     {
-        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
+        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async _ =>
         {
             if (!Open)
             {
