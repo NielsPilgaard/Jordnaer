@@ -26,10 +26,15 @@
     private IDisposable? _locationChangedHandler;
     private int _unreadMessageCount = 0;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
         {
+            if (!Open)
+            {
+                return;
+            }
+
             Open = false;
             await OpenChanged.InvokeAsync(Open);
             StateHasChanged();

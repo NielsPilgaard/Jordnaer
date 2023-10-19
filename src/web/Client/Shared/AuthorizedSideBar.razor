@@ -1,4 +1,6 @@
 @inject IChatClient ChatClient
+@inject NavigationManager Navigation
+@implements IDisposable
 
 <MudDivider />
 <Feature Name="@FeatureFlags.Contacts">
@@ -25,8 +27,25 @@
 <MudDivider />
 @code {
     private int _unreadMessageCount = 0;
+    private IDisposable? _locationChangedHandler;
 
     protected override async Task OnInitializedAsync()
+    {
+        // TODO: Create a Singleton timer that runs every 5 minutes, polling for new unread messages
+        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
+        {
+            // Only trigger when navigating to specific chats, not just the overall chat page
+            if (_unreadMessageCount > 0 && context.TargetLocation.StartsWith("/chat") && context.TargetLocation != "/chat")
+            {
+                await GetUnreadMessageCount();
+                StateHasChanged();
+            }
+        });
+
+        await GetUnreadMessageCount();
+    }
+
+    private async Task GetUnreadMessageCount()
     {
         var response = await ChatClient.GetUnreadMessageCount();
         if (response.IsSuccessStatusCode)
@@ -34,5 +53,7 @@
             _unreadMessageCount = response.Content;
         }
     }
+
+    public void Dispose() => _locationChangedHandler?.Dispose();
 
 }
