@@ -36,14 +36,4 @@ public class ChatHub : Hub<IChatHub>
 
         await base.OnConnectedAsync();
     }
-
-    public async Task SendChatMessageAsync(ChatMessageDto chatMessage, string userId)
-        => await Clients.User(userId).ReceiveChatMessage(chatMessage);
-
-    public async Task StartChatAsync(StartChat startChat)
-        => await Clients
-            .Users(startChat
-                .Recipients
-                .Select(user => user.Id))
-            .StartChat(startChat);
 }
