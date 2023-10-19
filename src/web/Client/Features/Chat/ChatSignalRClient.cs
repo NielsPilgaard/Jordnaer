@@ -9,7 +9,7 @@ public class ChatSignalRClient : SignalRClientBase
 {
     public ChatSignalRClient(NavigationManager navigationManager) : base(navigationManager, "/hubs/chat") { }
 
-    public void OnMessageReceived(Func<ChatMessageDto, Task> action)
+    public void OnMessageReceived(Func<SendMessage, Task> action)
     {
         if (!Started && HubConnection is not null)
             HubConnection.On(nameof(IChatHub.ReceiveChatMessage), action);

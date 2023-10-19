@@ -2,6 +2,6 @@ namespace Jordnaer.Shared;
 
 public interface IChatHub
 {
-    Task ReceiveChatMessage(ChatMessageDto message);
+    Task ReceiveChatMessage(SendMessage message);
     Task StartChat(StartChat startChat);
 }
