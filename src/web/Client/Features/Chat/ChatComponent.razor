@@ -191,7 +191,7 @@
                 return;
             }
 
-            chat.Messages.Add(message);
+            chat.Messages.Add(message.ToChatMessageDto());
 
             if (_activeChat?.Id == chat.Id)
             {
@@ -201,8 +201,8 @@
             }
             else
             {
-                _chats = _chats.OrderByDescending(c => c.UnreadMessageCount).ToList();
                 chat.UnreadMessageCount++;
+                _chats = _chats.OrderByDescending(c => c.UnreadMessageCount).ToList();
                 StateHasChanged();
             }
         });
