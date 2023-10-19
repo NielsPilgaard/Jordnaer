@@ -159,13 +159,8 @@
     {
         ChatSignalRClient.OnChatStarted(async chat =>
         {
-            if (chat.InitiatorId == _currentUser!.Id)
-            {
-                return;
-            }
-
             var lastChatMessage = chat.Messages.LastOrDefault();
-            if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser.Id)
+            if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser?.Id)
             {
                 _lastSuccessfullySentMessageForChat[chat.Id] = lastChatMessage.Id;
                 StateHasChanged();
