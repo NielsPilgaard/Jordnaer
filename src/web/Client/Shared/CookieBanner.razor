@@ -16,11 +16,8 @@
         </MudText>
         <MudText Class="mt-3" Typo="Typo.body2">
             Du kan læse mere i vores
-            <MudLink Href="/privacy" Target="_blank">Privatlivspolitik</MudLink> og
-            <MudLink Href="/terms" Target="_blank">Servicevilkår</MudLink>.
-        </MudText>
-        <MudText Class="mt-3" Typo="Typo.body2">
-            Klik på banneret for at acceptere vores brug af cookies.
+            <MudLink Color="Color.Inherit" Href="/privacy" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Privatlivspolitik</b></MudLink> og
+            <MudLink Color="Color.Inherit" Href="/terms" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Servicevilkår</b></MudLink>.
         </MudText>
     </div>);
 
@@ -32,7 +29,7 @@
             return;
         }
 
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
         Snackbar.Add(
           message: _banner,
           severity: Severity.Normal,
@@ -43,6 +40,9 @@
               options.RequireInteraction = true;
               options.HideIcon = true;
               options.Onclick = async _ => await Consent();
+              options.BackgroundBlurred = true;
+              options.ShowCloseIcon = true;
+              options.MaximumOpacity = 75;
           });
     }
 }
