@@ -37,20 +37,23 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
         {
-            var savedMode = await LocalStorage.GetItemAsync<bool?>(Key);
-            if (savedMode.HasValue)
+            return;
+        }
+
+        var savedMode = await LocalStorage.GetItemAsync<bool?>(Key);
+        if (savedMode.HasValue)
+        {
+            if (IsDarkMode != savedMode.Value)
             {
                 IsDarkMode = savedMode.Value;
+                StateHasChanged();
             }
-            else
-            {
-                IsDarkMode = await _mudThemeProvider.GetSystemPreference();
-                await LocalStorage.SetItemAsync(Key, IsDarkMode);
-            }
-
-            StateHasChanged();
+        }
+        else
+        {
+            await LocalStorage.SetItemAsync(Key, IsDarkMode);
         }
     }
 }
