@@ -338,5 +338,9 @@
         await SelectChat(newChat);
     }
 
-    public async ValueTask DisposeAsync() => await BrowserViewportService.UnsubscribeAsync(_breakpointObserverId);
+    public async ValueTask DisposeAsync()
+    {
+        await BrowserViewportService.UnsubscribeAsync(_breakpointObserverId);
+        await ChatSignalRClient.DisposeAsync();
+    }
 }
