@@ -1,6 +1,5 @@
 @inherits LayoutComponentBase
-@inject NavigationManager Navigation
-@implements IDisposable
+
 <MudDialogProvider CloseOnEscapeKey="true"
                    DisableBackdropClick="false"
                    Position="DialogPosition.Center"
@@ -11,48 +10,17 @@
 <MudLayout>
     <TopBar ToggleDrawer="@ToggleDrawer" />
     <SideBar @bind-Open="_isDrawerOpen" />
-    @if (_isLandingPage)
-    {
-        @Body
-    }
-    else
-    {
-        <MudMainContent Class="mb-6">
-            <MudContainer MaxWidth="MaxWidth.Large">
-                @Body
-            </MudContainer>
-        </MudMainContent>
-    }
+    <MudMainContent Class="mb-6">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @Body
+        </MudContainer>
+    </MudMainContent>
     <Footer></Footer>
     <CookieBanner />
 </MudLayout>
 
 @code
 {
-    private bool _isLandingPage;
     private bool _isDrawerOpen = false;
-    private IDisposable? _locationChangedHandler;
     private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
-
-    protected override void OnInitialized()
-    {
-        _isLandingPage = Navigation.Uri == Navigation.BaseUri;
-        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(context =>
-         {
-             Console.WriteLine(Navigation.BaseUri);
-             Console.WriteLine(context.TargetLocation);
-             var isLandingPage = context.TargetLocation == Navigation.BaseUri || context.TargetLocation == $"{Navigation.BaseUri}#_=_";
-             if (isLandingPage != _isLandingPage)
-             {
-                 _isLandingPage = isLandingPage;
-                 StateHasChanged();
-             }
-             return ValueTask.CompletedTask;
-         });
-    }
-
-    public void Dispose()
-    {
-        _locationChangedHandler?.Dispose();
-    }
 }

@@ -1,0 +1,22 @@
+@inherits LayoutComponentBase
+
+<MudDialogProvider CloseOnEscapeKey="true"
+                   DisableBackdropClick="false"
+                   Position="DialogPosition.Center"
+                   MaxWidth="MaxWidth.Large"
+                   CloseButton="true" />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <TopBar ToggleDrawer="@ToggleDrawer" />
+    <SideBar @bind-Open="_isDrawerOpen" />
+        @Body
+    <Footer></Footer>
+    <CookieBanner />
+</MudLayout>
+
+@code
+{
+    private bool _isDrawerOpen = false;
+    private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
+}
