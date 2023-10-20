@@ -44,6 +44,7 @@
                 }
 
                 <MudList Class="chat-message-list" DisablePadding Dense>
+                    <MudSpacer />
 
                 <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat" />
 
@@ -62,7 +63,6 @@
                         </div>
                     }
 
-                    <MudSpacer />
 
                     <MudToolBar Dense>
                     <MudTextField @bind-Value="_userText"
