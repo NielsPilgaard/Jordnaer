@@ -6,8 +6,6 @@ on:
       - 'src/web/**'
       - 'tests/web/**'
       - '.github/workflows/website_backend_ci.yml'
-    tags:
-      - "!release-website-v*.*.*"
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
