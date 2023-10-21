@@ -15,9 +15,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		.github\workflows\container_apps_chat_cd.yml = .github\workflows\container_apps_chat_cd.yml
+		.github\workflows\container_apps_chat_ci.yml = .github\workflows\container_apps_chat_ci.yml
 		.github\dependabot.yml = .github\dependabot.yml
 		Directory.Build.props = Directory.Build.props
+		.github\workflows\github-release.yml = .github\workflows\github-release.yml
+		.github\workflows\lighthouse.yml = .github\workflows\lighthouse.yml
 		README.md = README.md
+		.github\workflows\website_backend_ci.yml = .github\workflows\website_backend_ci.yml
+		.github\workflows\website_cd.yml = .github\workflows\website_cd.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3F3B23F8-EA95-44B5-B907-5E772A2660E2}"
@@ -50,7 +56,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Chat.Tests", "test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{659DB215-49CE-4C57-8823-56AFAE2DED72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jordnaer.Shared.Infrastructure", "src\shared\Jordnaer.Shared.Infrastructure\Jordnaer.Shared.Infrastructure.csproj", "{73928908-776A-4AE3-98A7-AAB82A9A9C19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Shared.Infrastructure", "src\shared\Jordnaer.Shared.Infrastructure\Jordnaer.Shared.Infrastructure.csproj", "{73928908-776A-4AE3-98A7-AAB82A9A9C19}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,27 +1,43 @@
 using Jordnaer.Server.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Testcontainers.MsSql;
+using Xunit;
 
 namespace Jordnaer.Server.Tests;
 
-public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>
+public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    protected override void ConfigureWebHost(IWebHostBuilder builder) =>
-        builder.ConfigureServices(services => services.RemoveAll<IHostedService>());
+    public readonly MsSqlContainer Container = new MsSqlBuilder()
+        .WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
+        .Build();
 
-    public JordnaerWebApplicationFactory()
+    public async Task InitializeAsync() => await Container.StartAsync();
+
+    public new async Task DisposeAsync()
     {
-        Environment.SetEnvironmentVariable($"ConnectionStrings_{nameof(JordnaerDbContext)}",
-            "Server=localhost;" +
-            "Initial Catalog=jordnaer;" +
-            "User Id=sa;" +
-            "Password=6efe173b-3e33-4d6c-8f50-3e5f7cadd54c;" +
-            "Persist Security Info=True;" +
-            "MultipleActiveResultSets=False;" +
-            "Encrypt=False;" +
-            "TrustServerCertificate=True;" +
-            "Connection Timeout=30;");
+        await Container.DisposeAsync();
+        await base.DisposeAsync();
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IHostedService>();
+
+            services.RemoveAll<DbContext>();
+
+            services.AddSqlServer<JordnaerDbContext>(Container.GetConnectionString());
+
+        });
+
+        builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
     }
 }

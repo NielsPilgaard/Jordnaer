@@ -6,6 +6,8 @@ on:
       - 'src/web/**'
       - 'tests/web/**'
       - '.github/workflows/website_backend_ci.yml'
+    tags-ignore:
+      - "release-website-v*.*.*"
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
@@ -14,19 +16,10 @@ permissions:
   checks: write
 
 env:
-  MSSQL_SA_PASSWORD: 6efe173b-3e33-4d6c-8f50-3e5f7cadd54c
   WORKING_DIRECTORY: tests/web/Jordnaer.Server.Tests
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          SA_PASSWORD: "${{ env.MSSQL_SA_PASSWORD }}"
-          ACCEPT_EULA: 'Y'
-        ports:
-          - 1433:1433
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +36,6 @@ jobs:
         run: dotnet test "${{ env.WORKING_DIRECTORY }}" --logger "trx;LogFileName=test-results.trx" --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
-          ConnectionStrings__JordnaerDbContext: "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=${{ env.MSSQL_SA_PASSWORD }};Persist Security Info=False;TrustServerCertificate=true;"
 
       - name: Test Report
         # Dependabot cannot access secrets, so we disable this step for Dependabot

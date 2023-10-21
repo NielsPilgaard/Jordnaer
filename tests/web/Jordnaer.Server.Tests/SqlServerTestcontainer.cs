@@ -22,8 +22,8 @@ public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : 
             .CreateInstance(typeof(TDbContext),
                 new DbContextOptionsBuilder<TDbContext>().UseSqlServer(connectionString).Options)!;
 
-        await Context!.Database.EnsureCreatedAsync();
+        await Context.Database.EnsureCreatedAsync();
     }
 
-    public virtual async Task DisposeAsync() => await Container.StopAsync();
+    public virtual async Task DisposeAsync() => await Container.DisposeAsync();
 }
