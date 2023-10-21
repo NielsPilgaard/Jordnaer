@@ -6,8 +6,8 @@ on:
       - 'src/container_apps/Jordnaer.Chat/**'
       - 'tests/container_apps/Jordnaer.Chat/**'
       - '.github/workflows/container_apps_chat_ci.yml'
-    tags-ignore:
-      - 'release-chat-v*.*.*'
+    tags:
+      - '!release-chat-v*.*.*'
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1

@@ -35,7 +35,6 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
             services.RemoveAll<DbContext>();
 
             services.AddSqlServer<JordnaerDbContext>(Container.GetConnectionString());
-
         });
 
         builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
