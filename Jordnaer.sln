@@ -15,15 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		.github\workflows\container_apps_chat_cd.yml = .github\workflows\container_apps_chat_cd.yml
-		.github\workflows\container_apps_chat_ci.yml = .github\workflows\container_apps_chat_ci.yml
-		.github\dependabot.yml = .github\dependabot.yml
 		Directory.Build.props = Directory.Build.props
-		.github\workflows\github-release.yml = .github\workflows\github-release.yml
-		.github\workflows\lighthouse.yml = .github\workflows\lighthouse.yml
 		README.md = README.md
-		.github\workflows\website_backend_ci.yml = .github\workflows\website_backend_ci.yml
-		.github\workflows\website_cd.yml = .github\workflows\website_cd.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3F3B23F8-EA95-44B5-B907-5E772A2660E2}"
