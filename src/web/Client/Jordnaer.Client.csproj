@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Jordnaer.Shared.csproj" />
+    <ProjectReference Include="..\..\shared\Jordnaer.Shared\Jordnaer.Shared.csproj" />
   </ItemGroup>
 
 </Project>

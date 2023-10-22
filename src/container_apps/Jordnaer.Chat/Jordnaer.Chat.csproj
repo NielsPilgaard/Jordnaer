@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Jordnaer.Shared.Infrastructure\Jordnaer.Shared.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\web\Shared\Jordnaer.Shared.csproj" />
+    <ProjectReference Include="..\..\shared\Jordnaer.Shared\Jordnaer.Shared.csproj" />
   </ItemGroup>
 
 </Project>
