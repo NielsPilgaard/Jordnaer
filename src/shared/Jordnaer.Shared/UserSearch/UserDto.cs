@@ -8,7 +8,7 @@ public class UserDto
     public int? ZipCode { get; set; }
     public string? City { get; set; }
     public required string ProfilePictureUrl { get; set; }
-    public List<string> LookingFor { get; set; } = new();
+    public List<string> Categories { get; set; } = new();
     public List<ChildDto> Children { get; set; } = new();
 
     public string? DisplayName => FirstName is not null

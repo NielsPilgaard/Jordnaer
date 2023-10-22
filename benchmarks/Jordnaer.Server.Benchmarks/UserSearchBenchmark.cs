@@ -15,7 +15,7 @@ public class UserSearchBenchmark
     private IUserSearchClient _client = null!;
     private JordnaerDbContext _context = null!;
     private UserProfile _randomUser = null!;
-    private List<LookingFor> _lookingFor = new();
+    private List<Category> _categories = new();
 
     [GlobalSetup]
     public async Task GlobalSetupAsync()
@@ -29,9 +29,9 @@ public class UserSearchBenchmark
 
         await _context.Database.MigrateAsync();
 
-        _lookingFor = await _context.InsertLookingForDataAsync();
+        _categories = await _context.InsertCategoriesAsync();
 
-        await _context.InsertFakeUsersAsync(_lookingFor);
+        await _context.InsertFakeUsersAsync(_categories);
 
         await _context.SaveChangesAsync();
 
@@ -71,12 +71,12 @@ public class UserSearchBenchmark
     }
 
     [Benchmark]
-    public async Task UserSearch_Filter_By_LookingFor() =>
+    public async Task UserSearch_Filter_By_Category() =>
         await _client.GetUsers(new UserSearchFilter
         {
-            LookingFor = _lookingFor
-                .Select(lookingFor => lookingFor.Name)
-                .Skip(Random.Shared.Next(0, _lookingFor.Count))
+            Categories = _categories
+                .Select(category => category.Name)
+                .Skip(Random.Shared.Next(0, _categories.Count))
                 .ToArray()
         });
 

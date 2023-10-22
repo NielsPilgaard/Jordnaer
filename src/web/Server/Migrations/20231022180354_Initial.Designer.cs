@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jordnaer.Server.Migrations
 {
     [DbContext(typeof(JordnaerDbContext))]
-    [Migration("20230626113357_Ages")]
-    partial class Ages
+    [Migration("20231022180354_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.8")
+                .HasAnnotation("ProductVersion", "7.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -90,6 +90,85 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Chat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastMessageSentUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastMessageSentUtc")
+                        .IsDescending();
+
+                    b.ToTable("Chats");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("SentUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("SentUtc")
+                        .IsDescending();
+
+                    b.ToTable("ChatMessages");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.ChildProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -142,27 +221,42 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("ChildProfiles");
                 });
 
-            modelBuilder.Entity("Jordnaer.Shared.LookingFor", b =>
+            modelBuilder.Entity("Jordnaer.Shared.UnreadMessage", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedUtc")
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("MessageSentUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("RecipientId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("LookingFor");
+                    b.ToTable("UnreadMessages");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.UserChat", b =>
+                {
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserProfileId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ChatId", "UserProfileId");
+
+                    b.HasIndex("UserProfileId");
+
+                    b.ToTable("UserChats");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.UserContact", b =>
@@ -226,7 +320,7 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("SearchableName")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("nvarchar(450)")
-                        .HasComputedColumnSql("[FirstName] + [LastName] + [UserName]", true);
+                        .HasComputedColumnSql("ISNULL([FirstName], '') + ' ' + ISNULL([LastName], '') + ' ' + ISNULL([UserName], '')", true);
 
                     b.Property<string>("UserName")
                         .HasMaxLength(100)
@@ -246,19 +340,19 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("Jordnaer.Shared.UserProfileLookingFor", b =>
+            modelBuilder.Entity("Jordnaer.Shared.UserProfileCategory", b =>
                 {
-                    b.Property<int>("LookingForId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserProfileId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("LookingForId", "UserProfileId");
+                    b.HasKey("CategoryId", "UserProfileId");
 
                     b.HasIndex("UserProfileId");
 
-                    b.ToTable("UserProfileLookingFor");
+                    b.ToTable("UserProfileCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -394,10 +488,42 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.ChatMessage", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.Chat", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Jordnaer.Shared.UserProfile", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.ChildProfile", b =>
                 {
                     b.HasOne("Jordnaer.Shared.UserProfile", null)
                         .WithMany("ChildProfiles")
+                        .HasForeignKey("UserProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.UserChat", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.Chat", null)
+                        .WithMany()
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Jordnaer.Shared.UserProfile", null)
+                        .WithMany()
                         .HasForeignKey("UserProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -418,11 +544,11 @@ namespace Jordnaer.Server.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Jordnaer.Shared.UserProfileLookingFor", b =>
+            modelBuilder.Entity("Jordnaer.Shared.UserProfileCategory", b =>
                 {
-                    b.HasOne("Jordnaer.Shared.LookingFor", null)
+                    b.HasOne("Jordnaer.Shared.Category", null)
                         .WithMany()
-                        .HasForeignKey("LookingForId")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -482,6 +608,11 @@ namespace Jordnaer.Server.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Chat", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>

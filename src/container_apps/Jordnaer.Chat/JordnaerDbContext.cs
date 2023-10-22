@@ -7,8 +7,8 @@ public class JordnaerDbContext : DbContext
 {
     public DbSet<UserProfile> UserProfiles { get; set; } = default!;
     public DbSet<ChildProfile> ChildProfiles { get; set; } = default!;
-    public DbSet<LookingFor> LookingFor { get; set; } = default!;
-    public DbSet<UserProfileLookingFor> UserProfileLookingFor { get; set; } = default!;
+    public DbSet<Category> Categories { get; set; } = default!;
+    public DbSet<UserProfileCategory> UserProfileCategories { get; set; } = default!;
     public DbSet<UserContact> UserContacts { get; set; } = default!;
     public DbSet<Shared.Chat> Chats { get; set; } = default!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
@@ -24,9 +24,9 @@ public class JordnaerDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserProfile>()
-            .HasMany(userProfile => userProfile.LookingFor)
+            .HasMany(userProfile => userProfile.Categories)
             .WithMany()
-            .UsingEntity<UserProfileLookingFor>();
+            .UsingEntity<UserProfileCategory>();
 
         modelBuilder.Entity<UserProfile>()
             .HasMany(userProfile => userProfile.Contacts)

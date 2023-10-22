@@ -2,9 +2,9 @@ using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Jordnaer.Client;
 using Jordnaer.Client.Features.Authentication;
+using Jordnaer.Client.Features.Category;
 using Jordnaer.Client.Features.Chat;
 using Jordnaer.Client.Features.Email;
-using Jordnaer.Client.Features.LookingFor;
 using Jordnaer.Client.Features.Profile;
 using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Shared;
@@ -25,7 +25,7 @@ builder.Services.AddRefitClient<IUserSearchClient>(builder.HostEnvironment.BaseA
 builder.Services.AddRefitClient<IImageClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IChatClient>(builder.HostEnvironment.BaseAddress);
 
-builder.AddLookingForServices();
+builder.AddCategoryServices();
 
 builder.AddProfileServices();
 

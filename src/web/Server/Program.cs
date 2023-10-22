@@ -4,10 +4,10 @@ using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
+using Jordnaer.Server.Features.Category;
 using Jordnaer.Server.Features.Chat;
 using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Server.Features.Email;
-using Jordnaer.Server.Features.LookingFor;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
 using Jordnaer.Shared.Infrastructure;
@@ -110,7 +110,7 @@ try
     // Configure the APIs
     app.MapAuthentication();
     app.MapProfiles();
-    app.MapLookingFor();
+    app.MapCategories();
     app.MapUserSearch();
     app.MapEmail();
     app.MapImages();

@@ -1,6 +1,6 @@
 @page "/profile"
 @using MudExtensions.Enums
-@inject ILookingForCache LookingForCache
+@inject ICategoryCache CategoryCache
 @inject IProfileCache ProfileCache
 @inject IProfileClient ProfileClient
 @inject ISnackbar Snackbar
@@ -70,13 +70,13 @@
                                    Rounded />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_lookingFor.Select(e => e.Name).ToList()"
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
                                        T="string"
                                        Label="Interesseret i"
                                        MultiSelection="true"
-                                       SelectedValues="_userProfile.LookingFor.Select(e => e.Name)"
+                                       SelectedValues="_userProfile.Categories.Select(e => e.Name)"
                                        ValuePresenter="ValuePresenter.Chip"
-                                       SelectedValuesChanged="SelectedLookingForChanged">
+                                       SelectedValuesChanged="SelectedCategoriesChanged">
                     </MudSelectExtended>
                 </MudItem>
                 <MudItem xs="12">
@@ -118,7 +118,7 @@
 @code {
     private bool _isLoading = true;
     private UserProfile? _userProfile;
-    private IEnumerable<LookingFor> _lookingFor = Enumerable.Empty<LookingFor>();
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
 
     private readonly Action<SnackbarOptions> _snackbarOptions = options =>
     {
@@ -139,7 +139,7 @@
         _userProfile = userProfile;
 
         _isLoading = false;
-        _lookingFor = await LookingForCache.GetOrCreateLookingForAsync();
+        _categories = await CategoryCache.GetOrCreateCategoriesAsync();
     }
 
     private async Task UpdateUserProfile()
@@ -158,8 +158,8 @@
         _isLoading = false;
     }
 
-    private void SelectedLookingForChanged(IEnumerable<string> lookingFor)
+    private void SelectedCategoriesChanged(IEnumerable<string> categories)
     {
-        _userProfile!.LookingFor = _lookingFor.Where(e => lookingFor.Contains(e.Name)).ToList();
+        _userProfile!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
     }
 }

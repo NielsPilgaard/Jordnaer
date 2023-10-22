@@ -51,7 +51,7 @@ namespace Jordnaer.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LookingFor",
+                name: "Categories",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -62,7 +62,36 @@ namespace Jordnaer.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LookingFor", x => x.Id);
+                    table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Chats",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastMessageSentUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Chats", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UnreadMessages",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ChatId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RecipientId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MessageSentUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UnreadMessages", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -70,26 +99,23 @@ namespace Jordnaer.Server.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
+                    SearchableName = table.Column<string>(type: "nvarchar(450)", nullable: true, computedColumnSql: "ISNULL([FirstName], '') + ' ' + ISNULL([LastName], '') + ' ' + ISNULL([UserName], '')", stored: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    ZipCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ZipCode = table.Column<int>(type: "int", nullable: true),
                     City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ProfilePictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ProfilePictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Age = table.Column<int>(type: "int", nullable: true, computedColumnSql: "DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END"),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserProfiles", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserProfiles_UserProfiles_UserProfileId",
-                        column: x => x.UserProfileId,
-                        principalTable: "UserProfiles",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -199,6 +225,34 @@ namespace Jordnaer.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ChatMessages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ChatId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SentUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AttachmentUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_Chats_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Chats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_UserProfiles_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ChildProfiles",
                 columns: table => new
                 {
@@ -209,7 +263,8 @@ namespace Jordnaer.Server.Migrations
                     Gender = table.Column<int>(type: "int", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                    PictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Age = table.Column<int>(type: "int", nullable: true, computedColumnSql: "DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END"),
                     CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -224,23 +279,70 @@ namespace Jordnaer.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserProfileLookingFor",
+                name: "UserChats",
                 columns: table => new
                 {
                     UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LookingForId = table.Column<int>(type: "int", nullable: false)
+                    ChatId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserProfileLookingFor", x => new { x.LookingForId, x.UserProfileId });
+                    table.PrimaryKey("PK_UserChats", x => new { x.ChatId, x.UserProfileId });
                     table.ForeignKey(
-                        name: "FK_UserProfileLookingFor_LookingFor_LookingForId",
-                        column: x => x.LookingForId,
-                        principalTable: "LookingFor",
+                        name: "FK_UserChats_Chats_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Chats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserProfileLookingFor_UserProfiles_UserProfileId",
+                        name: "FK_UserChats_UserProfiles_UserProfileId",
+                        column: x => x.UserProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserContacts",
+                columns: table => new
+                {
+                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ContactId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserContacts", x => new { x.ContactId, x.UserProfileId });
+                    table.ForeignKey(
+                        name: "FK_UserContacts_UserProfiles_ContactId",
+                        column: x => x.ContactId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserContacts_UserProfiles_UserProfileId",
+                        column: x => x.UserProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserProfileCategories",
+                columns: table => new
+                {
+                    UserProfileId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserProfileCategories", x => new { x.CategoryId, x.UserProfileId });
+                    table.ForeignKey(
+                        name: "FK_UserProfileCategories_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserProfileCategories_UserProfiles_UserProfileId",
                         column: x => x.UserProfileId,
                         principalTable: "UserProfiles",
                         principalColumn: "Id",
@@ -287,29 +389,71 @@ namespace Jordnaer.Server.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_ChatId",
+                table: "ChatMessages",
+                column: "ChatId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_SenderId",
+                table: "ChatMessages",
+                column: "SenderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_SentUtc",
+                table: "ChatMessages",
+                column: "SentUtc",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Chats_LastMessageSentUtc",
+                table: "Chats",
+                column: "LastMessageSentUtc",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChildProfiles_DateOfBirth",
+                table: "ChildProfiles",
+                column: "DateOfBirth");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChildProfiles_Gender",
+                table: "ChildProfiles",
+                column: "Gender");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ChildProfiles_UserProfileId",
                 table: "ChildProfiles",
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserProfileLookingFor_UserProfileId",
-                table: "UserProfileLookingFor",
+                name: "IX_UserChats_UserProfileId",
+                table: "UserChats",
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserProfiles_FirstName_LastName",
-                table: "UserProfiles",
-                columns: new[] { "FirstName", "LastName" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserProfiles_UserProfileId",
-                table: "UserProfiles",
+                name: "IX_UserContacts_UserProfileId",
+                table: "UserContacts",
                 column: "UserProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserProfiles_ZipCode_City",
+                name: "IX_UserProfileCategories_UserProfileId",
+                table: "UserProfileCategories",
+                column: "UserProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserProfiles_SearchableName",
                 table: "UserProfiles",
-                columns: new[] { "ZipCode", "City" });
+                column: "SearchableName");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserProfiles_UserName",
+                table: "UserProfiles",
+                column: "UserName");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserProfiles_ZipCode",
+                table: "UserProfiles",
+                column: "ZipCode");
         }
 
         /// <inheritdoc />
@@ -331,10 +475,22 @@ namespace Jordnaer.Server.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ChatMessages");
+
+            migrationBuilder.DropTable(
                 name: "ChildProfiles");
 
             migrationBuilder.DropTable(
-                name: "UserProfileLookingFor");
+                name: "UnreadMessages");
+
+            migrationBuilder.DropTable(
+                name: "UserChats");
+
+            migrationBuilder.DropTable(
+                name: "UserContacts");
+
+            migrationBuilder.DropTable(
+                name: "UserProfileCategories");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -343,7 +499,10 @@ namespace Jordnaer.Server.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "LookingFor");
+                name: "Chats");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "UserProfiles");

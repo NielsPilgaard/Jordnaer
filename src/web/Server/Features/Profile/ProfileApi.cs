@@ -25,7 +25,7 @@ public static class ProfileApi
                     .AsNoTracking()
                     .AsSingleQuery()
                     .Include(userProfile => userProfile.ChildProfiles)
-                    .Include(userProfile => userProfile.LookingFor)
+                    .Include(userProfile => userProfile.Categories)
                     .Where(userProfile => userProfile.UserName == userName)
                     .Select(userProfile => userProfile.ToProfileDto())
                     .FirstOrDefaultAsync();
@@ -44,7 +44,7 @@ public static class ProfileApi
                     .AsNoTracking()
                     .AsSingleQuery()
                     .Include(userProfile => userProfile.ChildProfiles)
-                    .Include(userProfile => userProfile.LookingFor)
+                    .Include(userProfile => userProfile.Categories)
                     .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id);
 
                 return profile is null
@@ -65,7 +65,7 @@ public static class ProfileApi
 
                 var currentUserProfile = await context.UserProfiles
                     .AsSingleQuery()
-                    .Include(user => user.LookingFor)
+                    .Include(user => user.Categories)
                     .Include(user => user.ChildProfiles)
                     .FirstOrDefaultAsync(user => user.Id == currentUser.Id);
 
@@ -103,20 +103,20 @@ public static class ProfileApi
         userProfile.ProfilePictureUrl = dto.ProfilePictureUrl;
         userProfile.UserName = dto.UserName;
 
-        userProfile.LookingFor.Clear();
-        foreach (var lookingForDto in dto.LookingFor)
+        userProfile.Categories.Clear();
+        foreach (var categoryDto in dto.Categories)
         {
-            var lookingFor = await context.LookingFor.FindAsync(lookingForDto.Id);
-            if (lookingFor is null)
+            var category = await context.Categories.FindAsync(categoryDto.Id);
+            if (category is null)
             {
-                userProfile.LookingFor.Add(lookingForDto);
-                context.Entry(lookingForDto).State = EntityState.Added;
+                userProfile.Categories.Add(categoryDto);
+                context.Entry(categoryDto).State = EntityState.Added;
             }
             else
             {
-                lookingFor.LoadValuesFrom(lookingForDto);
-                userProfile.LookingFor.Add(lookingFor);
-                context.Entry(lookingFor).State = EntityState.Modified;
+                category.LoadValuesFrom(categoryDto);
+                userProfile.Categories.Add(category);
+                context.Entry(category).State = EntityState.Modified;
             }
         }
 

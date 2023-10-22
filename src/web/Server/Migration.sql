@@ -11,7 +11,7 @@ GO
 BEGIN TRANSACTION;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetRoles] (
         [Id] nvarchar(450) NOT NULL,
@@ -23,7 +23,7 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetUsers] (
         [Id] nvarchar(450) NOT NULL,
@@ -46,40 +46,65 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
-    CREATE TABLE [LookingFor] (
+    CREATE TABLE [Categories] (
         [Id] int NOT NULL IDENTITY,
         [Name] nvarchar(max) NOT NULL,
         [Description] nvarchar(max) NULL,
         [CreatedUtc] datetime2 NOT NULL,
-        CONSTRAINT [PK_LookingFor] PRIMARY KEY ([Id])
+        CONSTRAINT [PK_Categories] PRIMARY KEY ([Id])
     );
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE TABLE [Chats] (
+        [Id] uniqueidentifier NOT NULL,
+        [DisplayName] nvarchar(max) NULL,
+        [LastMessageSentUtc] datetime2 NOT NULL,
+        [StartedUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_Chats] PRIMARY KEY ([Id])
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE TABLE [UnreadMessages] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ChatId] uniqueidentifier NOT NULL,
+        [RecipientId] nvarchar(max) NOT NULL,
+        [MessageSentUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_UnreadMessages] PRIMARY KEY ([Id])
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [UserProfiles] (
         [Id] nvarchar(450) NOT NULL,
+        [UserName] nvarchar(100) NULL,
         [FirstName] nvarchar(100) NULL,
         [LastName] nvarchar(250) NULL,
+        [SearchableName] AS ISNULL([FirstName], '') + ' ' + ISNULL([LastName], '') + ' ' + ISNULL([UserName], '') PERSISTED,
         [PhoneNumber] nvarchar(max) NULL,
         [Address] nvarchar(500) NULL,
-        [ZipCode] nvarchar(50) NULL,
+        [ZipCode] int NULL,
         [City] nvarchar(100) NULL,
         [Description] nvarchar(2000) NULL,
         [DateOfBirth] datetime2 NULL,
-        [ProfilePictureUrl] nvarchar(max) NULL,
+        [ProfilePictureUrl] nvarchar(max) NOT NULL,
+        [Age] AS DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END,
         [CreatedUtc] datetime2 NOT NULL,
-        [UserProfileId] nvarchar(450) NULL,
-        CONSTRAINT [PK_UserProfiles] PRIMARY KEY ([Id]),
-        CONSTRAINT [FK_UserProfiles_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id])
+        CONSTRAINT [PK_UserProfiles] PRIMARY KEY ([Id])
     );
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetRoleClaims] (
         [Id] int NOT NULL IDENTITY,
@@ -92,7 +117,7 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetUserClaims] (
         [Id] int NOT NULL IDENTITY,
@@ -105,7 +130,7 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetUserLogins] (
         [LoginProvider] nvarchar(450) NOT NULL,
@@ -118,7 +143,7 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetUserRoles] (
         [UserId] nvarchar(450) NOT NULL,
@@ -130,7 +155,7 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [AspNetUserTokens] (
         [UserId] nvarchar(450) NOT NULL,
@@ -143,369 +168,13 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE TABLE [ChildProfiles] (
-        [Id] uniqueidentifier NOT NULL,
-        [UserProfileId] nvarchar(450) NOT NULL,
-        [FirstName] nvarchar(100) NOT NULL,
-        [LastName] nvarchar(250) NULL,
-        [Gender] int NOT NULL,
-        [DateOfBirth] datetime2 NULL,
-        [Description] nvarchar(2000) NULL,
-        [PictureUrl] nvarchar(max) NULL,
-        [CreatedUtc] datetime2 NOT NULL,
-        CONSTRAINT [PK_ChildProfiles] PRIMARY KEY ([Id]),
-        CONSTRAINT [FK_ChildProfiles_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
-    );
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE TABLE [UserProfileLookingFor] (
-        [UserProfileId] nvarchar(450) NOT NULL,
-        [LookingForId] int NOT NULL,
-        CONSTRAINT [PK_UserProfileLookingFor] PRIMARY KEY ([LookingForId], [UserProfileId]),
-        CONSTRAINT [FK_UserProfileLookingFor_LookingFor_LookingForId] FOREIGN KEY ([LookingForId]) REFERENCES [LookingFor] ([Id]) ON DELETE CASCADE,
-        CONSTRAINT [FK_UserProfileLookingFor_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
-    );
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    EXEC(N'CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL');
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    EXEC(N'CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL');
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_ChildProfiles_UserProfileId] ON [ChildProfiles] ([UserProfileId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_UserProfileLookingFor_UserProfileId] ON [UserProfileLookingFor] ([UserProfileId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_UserProfiles_FirstName_LastName] ON [UserProfiles] ([FirstName], [LastName]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_UserProfiles_UserProfileId] ON [UserProfiles] ([UserProfileId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    CREATE INDEX [IX_UserProfiles_ZipCode_City] ON [UserProfiles] ([ZipCode], [City]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230430201410_Initial')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230430201410_Initial', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    ALTER TABLE [UserProfiles] DROP CONSTRAINT [FK_UserProfiles_UserProfiles_UserProfileId];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    DROP INDEX [IX_UserProfiles_UserProfileId] ON [UserProfiles];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    DECLARE @var0 sysname;
-    SELECT @var0 = [d].[name]
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[UserProfiles]') AND [c].[name] = N'UserProfileId');
-    IF @var0 IS NOT NULL EXEC(N'ALTER TABLE [UserProfiles] DROP CONSTRAINT [' + @var0 + '];');
-    ALTER TABLE [UserProfiles] DROP COLUMN [UserProfileId];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    CREATE TABLE [UserContacts] (
-        [UserProfileId] nvarchar(450) NOT NULL,
-        [ContactId] nvarchar(450) NOT NULL,
-        CONSTRAINT [PK_UserContacts] PRIMARY KEY ([ContactId], [UserProfileId]),
-        CONSTRAINT [FK_UserContacts_UserProfiles_ContactId] FOREIGN KEY ([ContactId]) REFERENCES [UserProfiles] ([Id]),
-        CONSTRAINT [FK_UserContacts_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
-    );
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    CREATE INDEX [IX_ChildProfiles_DateOfBirth] ON [ChildProfiles] ([DateOfBirth]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    CREATE INDEX [IX_ChildProfiles_Gender] ON [ChildProfiles] ([Gender]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    CREATE INDEX [IX_UserContacts_UserProfileId] ON [UserContacts] ([UserProfileId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505180341_UserContacts')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505180341_UserContacts', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
-BEGIN
-    DECLARE @var1 sysname;
-    SELECT @var1 = [d].[name]
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[UserProfiles]') AND [c].[name] = N'ProfilePictureUrl');
-    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [UserProfiles] DROP CONSTRAINT [' + @var1 + '];');
-    EXEC(N'UPDATE [UserProfiles] SET [ProfilePictureUrl] = N'''' WHERE [ProfilePictureUrl] IS NULL');
-    ALTER TABLE [UserProfiles] ALTER COLUMN [ProfilePictureUrl] nvarchar(max) NOT NULL;
-    ALTER TABLE [UserProfiles] ADD DEFAULT N'' FOR [ProfilePictureUrl];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
-BEGIN
-    DECLARE @var2 sysname;
-    SELECT @var2 = [d].[name]
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[ChildProfiles]') AND [c].[name] = N'PictureUrl');
-    IF @var2 IS NOT NULL EXEC(N'ALTER TABLE [ChildProfiles] DROP CONSTRAINT [' + @var2 + '];');
-    EXEC(N'UPDATE [ChildProfiles] SET [PictureUrl] = N'''' WHERE [PictureUrl] IS NULL');
-    ALTER TABLE [ChildProfiles] ALTER COLUMN [PictureUrl] nvarchar(max) NOT NULL;
-    ALTER TABLE [ChildProfiles] ADD DEFAULT N'' FOR [PictureUrl];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505181748_DefaultProfilePicture')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505181748_DefaultProfilePicture', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
-BEGIN
-    DROP INDEX [IX_UserProfiles_FirstName_LastName] ON [UserProfiles];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
-BEGIN
-    ALTER TABLE [UserProfiles] ADD [UserName] nvarchar(100) NULL;
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
-BEGIN
-    CREATE INDEX [IX_UserProfiles_UserName] ON [UserProfiles] ([UserName]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230505190358_AddUserName')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230505190358_AddUserName', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
-BEGIN
-    DROP INDEX [IX_UserProfiles_ZipCode_City] ON [UserProfiles];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
-BEGIN
-    EXEC(N'ALTER TABLE [UserProfiles] ADD [SearchableName] AS [FirstName] + [LastName] + [UserName] PERSISTED');
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
-BEGIN
-    CREATE INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles] ([SearchableName]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
-BEGIN
-    CREATE INDEX [IX_UserProfiles_ZipCode] ON [UserProfiles] ([ZipCode]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230514200453_AddSearchableName')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230514200453_AddSearchableName', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230607211415_ConvertZipCodeToInt')
-BEGIN
-    DROP INDEX [IX_UserProfiles_ZipCode] ON [UserProfiles];
-    DECLARE @var3 sysname;
-    SELECT @var3 = [d].[name]
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[UserProfiles]') AND [c].[name] = N'ZipCode');
-    IF @var3 IS NOT NULL EXEC(N'ALTER TABLE [UserProfiles] DROP CONSTRAINT [' + @var3 + '];');
-    ALTER TABLE [UserProfiles] ALTER COLUMN [ZipCode] int NULL;
-    CREATE INDEX [IX_UserProfiles_ZipCode] ON [UserProfiles] ([ZipCode]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230607211415_ConvertZipCodeToInt')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230607211415_ConvertZipCodeToInt', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
-BEGIN
-    EXEC(N'ALTER TABLE [UserProfiles] ADD [Age] AS DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END');
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
-BEGIN
-    EXEC(N'ALTER TABLE [ChildProfiles] ADD [Age] AS DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END');
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230626113357_Ages')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230626113357_Ages', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
-BEGIN
-    CREATE TABLE [Chats] (
-        [Id] uniqueidentifier NOT NULL,
-        [DisplayName] nvarchar(max) NULL,
-        [LastMessageSentUtc] datetime2 NOT NULL,
-        [StartedUtc] datetime2 NOT NULL,
-        CONSTRAINT [PK_Chats] PRIMARY KEY ([Id])
-    );
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [ChatMessages] (
         [Id] uniqueidentifier NOT NULL,
         [SenderId] nvarchar(450) NOT NULL,
         [ChatId] uniqueidentifier NOT NULL,
         [Text] nvarchar(max) NOT NULL,
-        [IsDeleted] bit NOT NULL,
         [SentUtc] datetime2 NOT NULL,
         [AttachmentUrl] nvarchar(max) NULL,
         CONSTRAINT [PK_ChatMessages] PRIMARY KEY ([Id]),
@@ -515,7 +184,26 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE TABLE [ChildProfiles] (
+        [Id] uniqueidentifier NOT NULL,
+        [UserProfileId] nvarchar(450) NOT NULL,
+        [FirstName] nvarchar(100) NOT NULL,
+        [LastName] nvarchar(250) NULL,
+        [Gender] int NOT NULL,
+        [DateOfBirth] datetime2 NULL,
+        [Description] nvarchar(2000) NULL,
+        [PictureUrl] nvarchar(max) NOT NULL,
+        [Age] AS DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END,
+        [CreatedUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_ChildProfiles] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ChildProfiles_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE TABLE [UserChats] (
         [UserProfileId] nvarchar(450) NOT NULL,
@@ -527,122 +215,154 @@ BEGIN
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE TABLE [UserContacts] (
+        [UserProfileId] nvarchar(450) NOT NULL,
+        [ContactId] nvarchar(450) NOT NULL,
+        CONSTRAINT [PK_UserContacts] PRIMARY KEY ([ContactId], [UserProfileId]),
+        CONSTRAINT [FK_UserContacts_UserProfiles_ContactId] FOREIGN KEY ([ContactId]) REFERENCES [UserProfiles] ([Id]),
+        CONSTRAINT [FK_UserContacts_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE TABLE [UserProfileCategories] (
+        [UserProfileId] nvarchar(450) NOT NULL,
+        [CategoryId] int NOT NULL,
+        CONSTRAINT [PK_UserProfileCategories] PRIMARY KEY ([CategoryId], [UserProfileId]),
+        CONSTRAINT [FK_UserProfileCategories_Categories_CategoryId] FOREIGN KEY ([CategoryId]) REFERENCES [Categories] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_UserProfileCategories_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL');
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL');
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE INDEX [IX_ChatMessages_ChatId] ON [ChatMessages] ([ChatId]);
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE INDEX [IX_ChatMessages_SenderId] ON [ChatMessages] ([SenderId]);
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
-BEGIN
-    CREATE INDEX [IX_Chats_LastMessageSentUtc] ON [Chats] ([LastMessageSentUtc]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
-BEGIN
-    CREATE INDEX [IX_UserChats_UserProfileId] ON [UserChats] ([UserProfileId]);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230805201628_Chat')
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230805201628_Chat', N'7.0.9');
-END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
-BEGIN
-    DROP INDEX [IX_Chats_LastMessageSentUtc] ON [Chats];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
-BEGIN
-    DECLARE @var4 sysname;
-    SELECT @var4 = [d].[name]
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[ChatMessages]') AND [c].[name] = N'IsDeleted');
-    IF @var4 IS NOT NULL EXEC(N'ALTER TABLE [ChatMessages] DROP CONSTRAINT [' + @var4 + '];');
-    ALTER TABLE [ChatMessages] DROP COLUMN [IsDeleted];
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
-BEGIN
-    CREATE TABLE [UnreadMessages] (
-        [Id] bigint NOT NULL IDENTITY,
-        [ChatId] uniqueidentifier NOT NULL,
-        [RecipientId] nvarchar(max) NOT NULL,
-        [MessageSentUtc] datetime2 NOT NULL,
-        CONSTRAINT [PK_UnreadMessages] PRIMARY KEY ([Id])
-    );
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
-BEGIN
-    CREATE INDEX [IX_Chats_LastMessageSentUtc] ON [Chats] ([LastMessageSentUtc] DESC);
-END;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE INDEX [IX_ChatMessages_SentUtc] ON [ChatMessages] ([SentUtc] DESC);
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230820210649_UnreadMessages')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230820210649_UnreadMessages', N'7.0.9');
+    CREATE INDEX [IX_Chats_LastMessageSentUtc] ON [Chats] ([LastMessageSentUtc] DESC);
 END;
 GO
 
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230901174739_AlwaysAddSearchableName')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
-    DROP INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles];
-    DECLARE @var5 sysname;
-    SELECT @var5 = [d].[name]
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[UserProfiles]') AND [c].[name] = N'SearchableName');
-    IF @var5 IS NOT NULL EXEC(N'ALTER TABLE [UserProfiles] DROP CONSTRAINT [' + @var5 + '];');
-    ALTER TABLE [UserProfiles] DROP COLUMN [SearchableName];
-    EXEC(N'ALTER TABLE [UserProfiles] ADD [SearchableName] AS ISNULL([FirstName], '''') + '' '' + ISNULL([LastName], '''') + '' '' + ISNULL([UserName], '''') PERSISTED');
+    CREATE INDEX [IX_ChildProfiles_DateOfBirth] ON [ChildProfiles] ([DateOfBirth]);
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230901174739_AlwaysAddSearchableName')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_ChildProfiles_Gender] ON [ChildProfiles] ([Gender]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_ChildProfiles_UserProfileId] ON [ChildProfiles] ([UserProfileId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_UserChats_UserProfileId] ON [UserChats] ([UserProfileId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_UserContacts_UserProfileId] ON [UserContacts] ([UserProfileId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_UserProfileCategories_UserProfileId] ON [UserProfileCategories] ([UserProfileId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     CREATE INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles] ([SearchableName]);
 END;
 GO
 
-IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20230901174739_AlwaysAddSearchableName')
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_UserProfiles_UserName] ON [UserProfiles] ([UserName]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
+BEGIN
+    CREATE INDEX [IX_UserProfiles_ZipCode] ON [UserProfiles] ([ZipCode]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231022180354_Initial')
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20230901174739_AlwaysAddSearchableName', N'7.0.9');
+    VALUES (N'20231022180354_Initial', N'7.0.12');
 END;
 GO
 

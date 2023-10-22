@@ -20,7 +20,7 @@ public class ProfileDto
 
     public string? Description { get; set; }
 
-    public List<LookingFor> LookingFor { get; set; } = new();
+    public List<Category> Categories { get; set; } = new();
 
     public List<ChildProfileDto> ChildProfiles { get; set; } = new();
 

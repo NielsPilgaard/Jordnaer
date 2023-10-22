@@ -19,7 +19,7 @@ public static class UserSearchApi
             [FromQuery] string? name,
             [FromQuery] string? location,
             [FromQuery] int? withinRadiusKilometers,
-            [FromQuery] string[]? lookingFor,
+            [FromQuery] string[]? categories,
             [FromQuery] int? minimumChildAge,
             [FromQuery] int? maximumChildAge,
             [FromQuery] string? childGender,
@@ -31,7 +31,7 @@ public static class UserSearchApi
 
             var searchFilter = new UserSearchFilter
             {
-                LookingFor = lookingFor,
+                Categories = categories,
                 Name = name,
                 Location = location,
                 ChildGender = genderParsedSuccessfully ? parsedChildGender : null,

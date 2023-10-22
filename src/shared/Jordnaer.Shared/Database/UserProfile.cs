@@ -42,7 +42,7 @@ public class UserProfile
     [MaxLength(2000, ErrorMessage = "Beskrivelse må højest være 2000 karakterer langt.")]
     public string? Description { get; set; }
 
-    public List<LookingFor> LookingFor { get; set; } = new();
+    public List<Category> Categories { get; set; } = new();
 
     public List<ChildProfile> ChildProfiles { get; set; } = new();
 

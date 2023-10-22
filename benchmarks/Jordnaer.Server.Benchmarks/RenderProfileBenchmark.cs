@@ -22,9 +22,9 @@ public class RenderProfileBenchmark
 
         await context.Database.MigrateAsync();
 
-        var lookingFor = await context.InsertLookingForDataAsync();
+        var categories = await context.InsertCategoriesAsync();
 
-        await context.InsertFakeUsersAsync(lookingFor, 100);
+        await context.InsertFakeUsersAsync(categories, 100);
 
         await context.SaveChangesAsync();
 

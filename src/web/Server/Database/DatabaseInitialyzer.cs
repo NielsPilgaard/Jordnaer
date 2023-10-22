@@ -15,16 +15,16 @@ public static class SeedDatabase
 
         await context.Database.MigrateAsync();
 
-        var lookingFor = await context.InsertLookingForDataAsync();
+        var categories = await context.InsertCategoriesAsync();
 
-        await context.InsertFakeUsersAsync(lookingFor);
+        await context.InsertFakeUsersAsync(categories);
 
         await context.SaveChangesAsync();
     }
 
     public static async Task InsertFakeUsersAsync(
         this JordnaerDbContext context,
-        List<LookingFor> lookingFor,
+        List<Category> categories,
         int usersToGenerate = 10000)
     {
         if (await context.UserProfiles.AnyAsync())
@@ -52,10 +52,10 @@ public static class SeedDatabase
             .RuleFor(u => u.ZipCode, f => f.Random.Int(1000, 9991))
             .RuleFor(u => u.City, f => f.Address.City())
             .RuleFor(u => u.Description, f => f.Lorem.Paragraphs(f.Random.Int(1, 5)))
-            .RuleFor(u => u.LookingFor,
-                f => lookingFor
-                    .OrderBy(_ => f.Random.Int(0, lookingFor.Count))
-                    .Take(f.Random.Int(0, lookingFor.Count))
+            .RuleFor(u => u.Categories,
+                f => categories
+                    .OrderBy(_ => f.Random.Int(0, categories.Count))
+                    .Take(f.Random.Int(0, categories.Count))
                     .ToList())
             .RuleFor(u => u.ChildProfiles, f => childProfileFaker.Generate(f.Random.Int(1, 3)))
             .RuleFor(u => u.DateOfBirth, f => f.Date.Between(DateTime.UtcNow.AddYears(-70), DateTime.UtcNow.AddYears(-16)))
@@ -68,14 +68,14 @@ public static class SeedDatabase
         context.AddRange(users);
     }
 
-    public static async Task<List<LookingFor>> InsertLookingForDataAsync(this JordnaerDbContext context)
+    public static async Task<List<Category>> InsertCategoriesAsync(this JordnaerDbContext context)
     {
-        if (await context.LookingFor.AnyAsync())
+        if (await context.Categories.AnyAsync())
         {
-            return new List<LookingFor>();
+            return new List<Category>();
         }
 
-        var lookingFor = new List<LookingFor>()
+        var categories = new List<Category>()
         {
             new() {Name = "Legeaftaler"},
             new() {Name = "Legegrupper"},
@@ -90,8 +90,8 @@ public static class SeedDatabase
             new() {Name = "Andet"}
         };
 
-        context.LookingFor.AddRange(lookingFor);
+        context.Categories.AddRange(categories);
 
-        return lookingFor;
+        return categories;
     }
 }

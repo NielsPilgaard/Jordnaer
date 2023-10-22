@@ -59,7 +59,7 @@ public class UserSearchService : IUserSearchService
 
         users = ApplyChildFilters(filter, users);
         users = ApplyNameFilter(filter.Name, users);
-        users = ApplyLookingForFilter(filter, users);
+        users = ApplyCategoryFilter(filter, users);
         (users, bool isOrdered) = await ApplyLocationFilterAsync(filter, users);
 
         if (!isOrdered)
@@ -71,7 +71,7 @@ public class UserSearchService : IUserSearchService
         var paginatedUsers = await users
             .Skip(usersToSkip)
             .Take(filter.PageSize)
-            .Include(user => user.LookingFor)
+            .Include(user => user.Categories)
             .Include(user => user.ChildProfiles)
             .AsSingleQuery()
             .Select(user => new UserDto
@@ -82,7 +82,7 @@ public class UserSearchService : IUserSearchService
                 LastName = user.LastName,
                 ZipCode = user.ZipCode,
                 City = user.City,
-                LookingFor = user.LookingFor.Select(lookingFor => lookingFor.Name).ToList(),
+                Categories = user.Categories.Select(category => category.Name).ToList(),
                 Children = user.ChildProfiles.Select(child => new ChildDto
                 {
                     FirstName = child.FirstName,
@@ -171,12 +171,12 @@ public class UserSearchService : IUserSearchService
         return int.Parse(zipCodeSpan);
     }
 
-    private static IQueryable<UserProfile> ApplyLookingForFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
+    private static IQueryable<UserProfile> ApplyCategoryFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
     {
-        if (filter.LookingFor is not null && filter.LookingFor.Any())
+        if (filter.Categories is not null && filter.Categories.Any())
         {
             users = users.Where(user =>
-                user.LookingFor.Any(userLookingFor => filter.LookingFor.Contains(userLookingFor.Name)));
+                user.Categories.Any(category => filter.Categories.Contains(category.Name)));
         }
 
         return users;

@@ -1,8 +1,8 @@
 namespace Jordnaer.Shared;
 
-public static class LookingForExtensions
+public static class CategoryExtensions
 {
-    public static void LoadValuesFrom(this LookingFor mapInto, LookingFor mapFrom)
+    public static void LoadValuesFrom(this Category mapInto, Category mapFrom)
     {
         mapInto.CreatedUtc = mapFrom.CreatedUtc;
         mapInto.Description = mapFrom.Description;

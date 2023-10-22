@@ -1,8 +1,8 @@
 namespace Jordnaer.Shared;
 
-public class UserProfileLookingFor
+public class UserProfileCategory
 {
     public required string UserProfileId { get; set; }
 
-    public required int LookingForId { get; set; }
+    public required int CategoryId { get; set; }
 }

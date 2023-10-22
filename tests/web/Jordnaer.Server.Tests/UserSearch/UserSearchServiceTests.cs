@@ -49,13 +49,13 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
     }
 
     [Fact]
-    public async Task Return_UserSearchResult_With_LookingFor_Filter()
+    public async Task Return_UserSearchResult_With_Category_Filter()
     {
         // Arrange
-        var filter = new UserSearchFilter { LookingFor = new[] { _faker.Lorem.Word() } };
+        var filter = new UserSearchFilter { Categories = new[] { _faker.Lorem.Word() } };
         var users = CreateTestUsers(5);
         // Ensure at least one user is looking for the specified activity
-        users[0].LookingFor.Add(new Shared.LookingFor { Name = filter.LookingFor.First() });
+        users[0].Categories.Add(new Shared.Category { Name = filter.Categories.First() });
         _context.UserProfiles.AddRange(users);
         await _context.SaveChangesAsync();
 
@@ -64,7 +64,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 
         // Assert
         result.TotalCount.Should().Be(1);
-        result.Users.Should().ContainSingle(u => u.LookingFor.Contains(filter.LookingFor.First()));
+        result.Users.Should().ContainSingle(u => u.Categories.Contains(filter.Categories.First()));
     }
 
     [Fact]

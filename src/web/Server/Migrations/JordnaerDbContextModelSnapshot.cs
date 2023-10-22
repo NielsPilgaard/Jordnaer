@@ -17,7 +17,7 @@ namespace Jordnaer.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.9")
+                .HasAnnotation("ProductVersion", "7.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -85,6 +85,29 @@ namespace Jordnaer.Server.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.Chat", b =>
@@ -193,29 +216,6 @@ namespace Jordnaer.Server.Migrations
                     b.HasIndex("UserProfileId");
 
                     b.ToTable("ChildProfiles");
-                });
-
-            modelBuilder.Entity("Jordnaer.Shared.LookingFor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LookingFor");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.UnreadMessage", b =>
@@ -337,19 +337,19 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("Jordnaer.Shared.UserProfileLookingFor", b =>
+            modelBuilder.Entity("Jordnaer.Shared.UserProfileCategory", b =>
                 {
-                    b.Property<int>("LookingForId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserProfileId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("LookingForId", "UserProfileId");
+                    b.HasKey("CategoryId", "UserProfileId");
 
                     b.HasIndex("UserProfileId");
 
-                    b.ToTable("UserProfileLookingFor");
+                    b.ToTable("UserProfileCategories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -541,11 +541,11 @@ namespace Jordnaer.Server.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Jordnaer.Shared.UserProfileLookingFor", b =>
+            modelBuilder.Entity("Jordnaer.Shared.UserProfileCategory", b =>
                 {
-                    b.HasOne("Jordnaer.Shared.LookingFor", null)
+                    b.HasOne("Jordnaer.Shared.Category", null)
                         .WithMany()
-                        .HasForeignKey("LookingForId")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

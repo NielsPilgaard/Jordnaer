@@ -1,29 +1,29 @@
 using FluentAssertions;
-using Jordnaer.Client.Features.LookingFor;
+using Jordnaer.Client.Features.Category;
 using Refit;
 using Xunit;
 
-namespace Jordnaer.Server.Tests.LookingFor;
+namespace Jordnaer.Server.Tests.Category;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
-public class LookingForApi_Should
+public class CategoryApi_Should
 {
     private readonly JordnaerWebApplicationFactory _factory;
 
-    public LookingForApi_Should(JordnaerWebApplicationFactory factory)
+    public CategoryApi_Should(JordnaerWebApplicationFactory factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task Get_LookingForList_Successfully()
+    public async Task Get_Categories_Successfully()
     {
         // Arrange
-        var client = RestService.For<ILookingForClient>(_factory.CreateClient());
+        var client = RestService.For<ICategoryClient>(_factory.CreateClient());
 
         // Act
-        var response = await client.GetLookingFor();
+        var response = await client.GetCategories();
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();

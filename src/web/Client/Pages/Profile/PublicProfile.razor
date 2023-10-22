@@ -47,7 +47,7 @@
             }
         }
 
-        @if (_profile.LookingFor.Any())
+        @if (_profile.Categories.Any())
         {
             <MudDivider Class="my-5" />
             <MudItem xs="12">
@@ -55,9 +55,9 @@
             </MudItem>
             <MudItem xs="12" Class="d-flex justify-start">
                 <MudChipSet ReadOnly>
-                @foreach (var lookingFor in _profile.LookingFor)
+                @foreach (var category in _profile.Categories)
                     {
-                        <MudChip Color="Color.Tertiary">@lookingFor</MudChip>
+                        <MudChip Color="Color.Tertiary">@category</MudChip>
                     }
                 </MudChipSet>
             </MudItem>

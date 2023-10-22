@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Jordnaer.Shared;
 
-public class LookingFor
+public class Category
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
