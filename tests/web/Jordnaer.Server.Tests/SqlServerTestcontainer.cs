@@ -20,7 +20,8 @@ public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : 
 
         Context = (TDbContext)Activator
             .CreateInstance(typeof(TDbContext),
-                new DbContextOptionsBuilder<TDbContext>().UseSqlServer(connectionString).Options)!;
+                new DbContextOptionsBuilder<TDbContext>()
+                    .UseSqlServer(connectionString).Options)!;
 
         await Context.Database.EnsureCreatedAsync();
     }

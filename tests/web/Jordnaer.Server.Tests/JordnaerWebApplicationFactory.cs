@@ -32,7 +32,8 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
         {
             services.RemoveAll<IHostedService>();
 
-            services.RemoveAll<DbContext>();
+            services.RemoveAll<JordnaerDbContext>();
+            services.RemoveAll<DbContextOptions<JordnaerDbContext>>();
 
             services.AddSqlServer<JordnaerDbContext>(Container.GetConnectionString());
         });
