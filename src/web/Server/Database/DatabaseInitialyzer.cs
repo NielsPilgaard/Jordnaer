@@ -25,7 +25,7 @@ public static class SeedDatabase
     public static async Task InsertFakeUsersAsync(
         this JordnaerDbContext context,
         List<Category> categories,
-        int usersToGenerate = 10000)
+        int usersToGenerate = 500)
     {
         if (await context.UserProfiles.AnyAsync())
         {
