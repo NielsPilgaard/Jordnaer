@@ -51,7 +51,4 @@ finally
     Log.CloseAndFlush();
 }
 
-namespace Jordnaer.Chat
-{
-    public partial class Program { }
-}
+public partial class Program { }
