@@ -44,7 +44,7 @@
                 }
 
                 <MudList Class="chat-message-list" DisablePadding Dense>
-                    <MudSpacer />
+                <MudSpacer />
 
                 <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat" />
 
@@ -64,19 +64,20 @@
                     }
 
 
-                    <MudToolBar Dense>
                     <MudTextField @bind-Value="_userText"
                                   id="chat-message-input"
-                                        FullWidth
-                                        Immediate
-                                        AutoFocus
-                                      Adornment="Adornment.End"
-                                      TextUpdateSuppression="false"
-                                      OnKeyDown="SendMessageOnEnter"
-                                      AdornmentIcon="@Icons.Material.Filled.Send"
-                                      AdornmentColor="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
-                                      OnAdornmentClick="SendMessage" />
-                    </MudToolBar>
+                                    FullWidth
+                                  Immediate
+                                  Adornment="Adornment.End"
+                                  OnKeyDown="SendMessageOnEnter"
+                                  AdornmentIcon="@Icons.Material.Filled.Send"
+                                  AdornmentColor="@(string.IsNullOrWhiteSpace(_userText) ? Color.Default : Color.Primary)"
+                                  OnAdornmentClick="SendMessage"
+                                  Class="mt-3"
+                                  Lines="3"
+                                  IconSize="Size.Large"
+                                  TextUpdateSuppression="false"
+                                  Style="background: var(--mud-palette-chip-default)" />
 
                 </MudList>
             </MudItem>
@@ -293,6 +294,8 @@
         if (keyboardEventArgs is { Key: "Enter", ShiftKey: false })
         {
             await SendMessage();
+
+            _userText = "";
         }
     }
 

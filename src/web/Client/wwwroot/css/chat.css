@@ -51,3 +51,12 @@
     flex-direction: column;
     min-height: 100%;
 }
+#chat-message-input {
+    max-height: 300px;
+    padding: 8px;
+    font-size: 1.25rem;
+}
+.mud-icon-button-edge-end {
+    margin-right: 0;
+    margin-inline-end: 0;
+}
