@@ -145,6 +145,11 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
             profilePictureResponse.Data.Url,
             cancellationToken);
 
+        if (imageStream is null)
+        {
+            return ProfileConstants.Default_Profile_Picture;
+        }
+
         var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
 
         string imageUrl =
@@ -191,6 +196,11 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
         var imageStream = await GetImageStreamFromUrlAsync(
             profilePictureResponse.Picture,
             cancellationToken);
+
+        if (imageStream is null)
+        {
+            return ProfileConstants.Default_Profile_Picture;
+        }
 
         var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
 
@@ -260,7 +270,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
         return outputStream;
     }
 
-    private async Task<Stream> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken)
+    private async Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken)
     {
         var client = _httpClientFactory.CreateClient(HttpClients.External);
         var response = await client.GetAsync(url, cancellationToken);
@@ -268,7 +278,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Failed to get image as byte array from url {url}", url);
-            return Stream.Null;
+            return null;
         }
 
         return await response.Content.ReadAsStreamAsync(cancellationToken);
