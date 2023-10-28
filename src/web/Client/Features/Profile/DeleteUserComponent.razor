@@ -1,7 +1,16 @@
 @using System.Security.Claims
 @inject IDeleteUserClient DeleteUserClient
 @inject ISnackbar Snackbar
-<MudButton StartIcon="@Icons.Material.Filled.DeleteForever" Variant="Variant.Filled" Color="Color.Error" OnClick="OpenDialog">Slet Bruger</MudButton>
+<div class="d-flex justify-center align-center">
+    <MudButton StartIcon="@Icons.Material.Filled.Warning"
+               Size="Size.Large"
+               Variant="Variant.Filled"
+               Color="Color.Error"
+               FullWidth
+               OnClick="OpenDialog">
+        Slet Bruger
+    </MudButton>
+</div>
 
 <MudDialog @bind-IsOpen="@_dialogIsOpen" @bind-IsVisible="_dialogIsOpen">
     <DialogContent>
