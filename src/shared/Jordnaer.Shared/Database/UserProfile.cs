@@ -48,6 +48,9 @@ public class UserProfile
 
     public List<UserProfile> Contacts { get; set; } = new();
 
+    public List<Group> Groups { get; set; } = new();
+    public List<GroupMembership> GroupMemberships { get; set; } = new();
+
     public DateTime? DateOfBirth { get; set; }
 
     public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
