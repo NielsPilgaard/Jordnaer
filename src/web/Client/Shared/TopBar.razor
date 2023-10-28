@@ -9,8 +9,7 @@
                    Color="Color.Default"
                    Variant="Variant.Filled"
                    Edge="Edge.Start"
-                   OnClick="@ToggleDrawer.InvokeAsync"
-                   Class="mr-10" />
+                   OnClick="@ToggleDrawer.InvokeAsync" />
 
     @if (!_currentPageIsFrontPage)
     {
@@ -43,6 +42,6 @@
 
     protected override void OnInitialized()
     {
-        _currentPageIsFrontPage = Navigation.Uri == Navigation.BaseUri;
+        _currentPageIsFrontPage = Navigation.Uri == Navigation.BaseUri || Navigation.Uri == $"{Navigation.BaseUri.TrimEnd('/')}/#_=_";
     }
 }
