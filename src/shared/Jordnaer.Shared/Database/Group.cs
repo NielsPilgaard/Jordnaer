@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-[Index(nameof(DisplayName))]
+[Index(nameof(Name))]
 public class Group
 {
     [Key]
@@ -24,7 +24,7 @@ public class Group
     public string? City { get; set; }
 
     [MaxLength(128, ErrorMessage = "Gruppens navn må maks være 128 karakterer lang.")]
-    public required string DisplayName { get; set; }
+    public required string Name { get; set; }
 
     [MaxLength(200, ErrorMessage = "Gruppens beskrivelse må maks være 200 karakterer lang.")]
     public string? ShortDescription { get; set; }
