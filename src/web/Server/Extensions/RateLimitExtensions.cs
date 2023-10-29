@@ -8,7 +8,7 @@ public static class RateLimitExtensions
     private const string Per_User_Ratelimit_Policy = "PerUserRateLimit";
     private const string Health_Check_Ratelimit_Policy = "HealthCheckRateLimit";
     private const string Auth_Ratelimit_Policy = "AuthenticationRateLimit";
-    private const string User_Search_Ratelimit_Policy = "UserSearchRateLimit";
+    private const string Search_Ratelimit_Policy = "UserSearchRateLimit";
 
     private const string Anonymous_Partition = "Anonymous";
 
@@ -54,7 +54,7 @@ public static class RateLimitExtensions
                     : RateLimitPartition.GetNoLimiter(username);
             });
 
-            options.AddPolicy(User_Search_Ratelimit_Policy,
+            options.AddPolicy(Search_Ratelimit_Policy,
                 context =>
                 {
                     string? username = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -63,7 +63,7 @@ public static class RateLimitExtensions
                         ? RateLimitPartition.GetFixedWindowLimiter(username, _ => new FixedWindowRateLimiterOptions
                         {
                             Window = TimeSpan.FromSeconds(10),
-                            PermitLimit = 15
+                            PermitLimit = 30
                         })
                         : RateLimitPartition.GetFixedWindowLimiter(Anonymous_Partition, _ => new FixedWindowRateLimiterOptions
                         {
@@ -76,5 +76,5 @@ public static class RateLimitExtensions
     public static IEndpointConventionBuilder RequirePerUserRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Per_User_Ratelimit_Policy);
     public static IEndpointConventionBuilder RequireHealthCheckRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Health_Check_Ratelimit_Policy);
     public static IEndpointConventionBuilder RequireAuthRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Auth_Ratelimit_Policy);
-    public static IEndpointConventionBuilder RequireUserSearchRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(User_Search_Ratelimit_Policy);
+    public static IEndpointConventionBuilder RequireSearchRateLimit(this IEndpointConventionBuilder builder) => builder.RequireRateLimiting(Search_Ratelimit_Policy);
 }
