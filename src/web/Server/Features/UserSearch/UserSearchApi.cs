@@ -12,7 +12,7 @@ public static class UserSearchApi
     {
         var group = routes.MapGroup("api/users/search");
 
-        group.RequireUserSearchRateLimit();
+        group.RequireSearchRateLimit();
 
         group.MapGet("", async Task<UserSearchResult> (
             [FromServices] IUserSearchService userService,
