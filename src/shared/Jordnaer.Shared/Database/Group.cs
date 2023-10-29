@@ -20,23 +20,23 @@ public class Group
     [DanishZipCode(ErrorMessage = "Post nummer skal være mellem 1000 og 9999")]
     public int? ZipCode { get; set; }
 
-    [MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
+    [MaxLength(100, ErrorMessage = "By navn må højest være 100 karakterer langt.")]
     public string? City { get; set; }
 
-    [MaxLength(128, ErrorMessage = "Gruppens navn må maks være 128 karakterer lang.")]
+    [MinLength(2, ErrorMessage = "Gruppe navn skal være mindst 2 karakterer langt.")]
+    [MaxLength(128, ErrorMessage = "Gruppens navn må højest være 128 karakterer lang.")]
     public required string Name { get; set; }
 
-    [MaxLength(200, ErrorMessage = "Gruppens beskrivelse må maks være 200 karakterer lang.")]
-    public string? ShortDescription { get; set; }
+    [Required]
+    [MaxLength(200, ErrorMessage = "Gruppens beskrivelse må højest være 200 karakterer lang.")]
+    public required string ShortDescription { get; set; }
 
-    [MaxLength(4000, ErrorMessage = "Gruppens beskrivelse må maks være 4000 karakterer lang.")]
+    [MaxLength(4000, ErrorMessage = "Gruppens beskrivelse må højest være 4000 karakterer lang.")]
     public string? Description { get; set; }
 
     public List<UserProfile> Members { get; set; } = new();
     public List<GroupMembership> Memberships { get; set; } = new();
     public List<Category> Categories { get; set; } = new();
-
-    public int MemberCount { get; set; } = 0;
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 }
