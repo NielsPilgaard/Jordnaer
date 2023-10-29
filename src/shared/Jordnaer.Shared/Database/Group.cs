@@ -14,6 +14,15 @@ public class Group
     [Url]
     public string? ProfilePictureUrl { get; set; }
 
+    [MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
+    public string? Address { get; set; }
+
+    [DanishZipCode(ErrorMessage = "Post nummer skal være mellem 1000 og 9999")]
+    public int? ZipCode { get; set; }
+
+    [MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
+    public string? City { get; set; }
+
     [MaxLength(128, ErrorMessage = "Gruppens navn må maks være 128 karakterer lang.")]
     public required string DisplayName { get; set; }
 
