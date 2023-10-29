@@ -11,6 +11,9 @@ public class Group
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid Id { get; set; }
 
+    [Url]
+    public string? ProfilePictureUrl { get; set; }
+
     [MaxLength(128, ErrorMessage = "Gruppens navn må maks være 128 karakterer lang.")]
     public required string DisplayName { get; set; }
 

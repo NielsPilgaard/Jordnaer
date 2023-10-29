@@ -14,4 +14,6 @@ public class GroupMembership
     public DateTime LastUpdatedUtc { get; set; }
 
     public MembershipStatus MembershipStatus { get; set; }
+    public PermissionLevel PermissionLevel { get; set; } = PermissionLevel.None;
+    public OwnershipLevel OwnershipLevel { get; set; } = OwnershipLevel.None;
 }
