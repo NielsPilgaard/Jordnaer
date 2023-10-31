@@ -1,7 +1,41 @@
 @page "/groups"
+@using Bogus
 
 <h1>Grupper</h1>
+<MudButton>Opret gruppe</MudButton>
+
+@if (_groups.Count > 0)
+{
+    <ul>
+        @foreach (var group in _groups)
+        {
+            <MudCard>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudTextField ReadOnly Label="Display Name" @bind-Value="@group.Name" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField ReadOnly Label="Description" @bind-Value="@group.ShortDescription" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField ReadOnly Label="Member Count" @bind-Value="@group.MemberCount" />
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+        }
+    </ul>
+}
 
 @code {
+    private readonly List<GroupDto> _groups = _groupFaker.Generate(20);
 
+    private static readonly Faker<GroupDto> _groupFaker = new Faker<GroupDto>()
+        .RuleFor(g => g.Id, f => Guid.NewGuid())
+        .RuleFor(g => g.Name, f => f.Company.CompanyName())
+        .RuleFor(g => g.ShortDescription, f => f.Lorem.Sentence())
+        .RuleFor(g => g.Description, f => f.Lorem.Paragraph())
+        .RuleFor(g => g.MemberCount, f => f.Random.Int(0, 300))
+        .RuleFor(g => g.CreatedUtc, f => f.Date.Past(3));
 }
