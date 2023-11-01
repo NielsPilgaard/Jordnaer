@@ -7,7 +7,15 @@ using Serilog;
 
 namespace Jordnaer.Server.Features.Groups;
 
-public class GroupService
+public interface IGroupService
+{
+    Task<Results<Ok<GroupDto>, NotFound>> GetGroupByIdAsync(Guid id);
+    Task<CreatedAtRoute> CreateGroupAsync(Group group);
+    Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest>> UpdateGroupAsync(Guid id, Group group);
+    Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
+}
+
+public class GroupService : IGroupService
 {
     private readonly JordnaerDbContext _context;
     private readonly CurrentUser _currentUser;

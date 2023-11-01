@@ -1,4 +1,5 @@
 using Jordnaer.Server.Authorization;
+using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ public static class GroupApi
     {
         var group = routes.MapGroup("api/groups");
 
-        // TODO: Rate limit
+        group.RequirePerUserRateLimit();
 
         group.MapGet("{id:guid}", GetGroupByIdAsync);
 
@@ -27,24 +28,24 @@ public static class GroupApi
     private static async Task<Results<Ok<GroupDto>, NotFound>>
         GetGroupByIdAsync(
         [FromRoute] Guid id,
-        [FromServices] GroupService groupsService)
+        [FromServices] IGroupService groupsService)
         => await groupsService.GetGroupByIdAsync(id);
 
     private static async Task<CreatedAtRoute> CreateGroupAsync(
         [FromBody] Group group,
-        [FromServices] GroupService groupsService)
+        [FromServices] IGroupService groupsService)
         => await groupsService.CreateGroupAsync(group);
 
     private static async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest>>
         UpdateGroupAsync(
             [FromRoute] Guid id,
             [FromBody] Group group,
-            [FromServices] GroupService groupsService)
+            [FromServices] IGroupService groupsService)
         => await groupsService.UpdateGroupAsync(id, group);
 
     private static async Task<Results<NoContent, UnauthorizedHttpResult, NotFound>>
         DeleteGroupAsync(
             [FromRoute] Guid id,
-            [FromServices] GroupService groupsService)
+            [FromServices] IGroupService groupsService)
         => await groupsService.DeleteGroupAsync(id);
 }

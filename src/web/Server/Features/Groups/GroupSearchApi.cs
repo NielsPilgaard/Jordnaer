@@ -17,7 +17,7 @@ public static class GroupSearchApi
         return group;
     }
 
-    private static async Task<GroupSearchResult> GetGroupsAsync(
+    internal static async Task<GroupSearchResult> GetGroupsAsync(
         [FromServices] IGroupSearchService groupSearchService,
         [FromQuery] string? name,
         [FromQuery] string? location,
