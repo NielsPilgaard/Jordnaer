@@ -1,4 +1,5 @@
 using Polly;
+using Polly.Contrib.WaitAndRetry;
 using SendGrid.Extensions.DependencyInjection;
 
 namespace Jordnaer.Server.Features.Email;
@@ -12,7 +13,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services
             .AddSendGrid(options => options.ApiKey = sendGridApiKey)
             .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(50 * retryCount)));
+                policyBuilder.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(500), 3)));
 
         builder.Services
             .AddHealthChecks()
