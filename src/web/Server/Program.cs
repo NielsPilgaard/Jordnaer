@@ -68,6 +68,9 @@ try
 
     builder.Services.AddScoped<IImageService, ImageService>();
 
+    builder.AddGroupServices();
+    builder.AddGroupSearchServices();
+
     var app = builder.Build();
 
     if (!app.Environment.IsDevelopment())
