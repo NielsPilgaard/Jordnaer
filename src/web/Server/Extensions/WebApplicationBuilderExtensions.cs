@@ -2,7 +2,6 @@ using Jordnaer.Server.Consumers;
 using Jordnaer.Server.Database;
 using MassTransit;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Azure.SignalR;
 
 namespace Jordnaer.Server.Extensions;
 
@@ -43,15 +42,15 @@ public static class WebApplicationBuilderExtensions
     public static WebApplicationBuilder AddAzureSignalR(this WebApplicationBuilder builder)
     {
         builder.Services.AddSignalR(options =>
-            {
-                options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
-                options.KeepAliveInterval = TimeSpan.FromMinutes(1);
-            })
-            .AddAzureSignalR(options =>
-            {
-                options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
-                options.ServerStickyMode = ServerStickyMode.Required;
-            });
+        {
+            options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
+            options.KeepAliveInterval = TimeSpan.FromMinutes(1);
+        });
+        //.AddAzureSignalR(options =>
+        //{
+        //    options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
+        //    options.ServerStickyMode = ServerStickyMode.Required;
+        //});
 
         if (!builder.Environment.IsDevelopment())
         {
