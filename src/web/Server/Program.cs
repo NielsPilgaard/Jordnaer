@@ -8,6 +8,8 @@ using Jordnaer.Server.Features.Category;
 using Jordnaer.Server.Features.Chat;
 using Jordnaer.Server.Features.DeleteUser;
 using Jordnaer.Server.Features.Email;
+using Jordnaer.Server.Features.Groups;
+using Jordnaer.Server.Features.GroupSearch;
 using Jordnaer.Server.Features.Profile;
 using Jordnaer.Server.Features.UserSearch;
 using Jordnaer.Shared.Infrastructure;
@@ -116,6 +118,8 @@ try
     app.MapImages();
     app.MapDeleteUsers();
     app.MapChat();
+    app.MapGroups();
+    app.MapGroupSearch();
 
     app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
