@@ -8,7 +8,7 @@ public interface IGroupSearchService
 {
     Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken);
 }
-
+//TODO: Register in Program.cs
 public class GroupSearchService : IGroupSearchService
 {
     private readonly JordnaerDbContext _context;

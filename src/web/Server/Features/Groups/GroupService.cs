@@ -15,6 +15,7 @@ public interface IGroupService
     Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
 }
 
+//TODO: Register in Program.cs
 public class GroupService : IGroupService
 {
     private readonly JordnaerDbContext _context;
