@@ -6,6 +6,8 @@ public class GroupDto
 
     public required string Name { get; set; }
 
+    public string? ProfilePictureUrl { get; set; }
+
     public required string ShortDescription { get; set; }
     public string? Description { get; set; }
 
