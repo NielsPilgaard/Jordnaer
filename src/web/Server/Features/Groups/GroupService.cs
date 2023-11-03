@@ -88,6 +88,7 @@ public class GroupService : IGroupService
         }
 
         var existingGroup = await _context.Groups
+            .AsNoTracking()
             .Include(e => e.Categories)
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -117,7 +118,9 @@ public class GroupService : IGroupService
         _diagnosticContext.Set("groupName", group.Name);
 
         var groupOwner = await _context.GroupMemberships
-            .SingleOrDefaultAsync(e => e.OwnershipLevel == OwnershipLevel.Owner);
+            .SingleOrDefaultAsync(e => e.UserProfileId == _currentUser.Id &&
+                                       e.OwnershipLevel == OwnershipLevel.Owner);
+
         if (groupOwner is null)
         {
             _logger.LogError("Failed to delete group because it has no owner.");
