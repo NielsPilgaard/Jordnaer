@@ -1,0 +1,14 @@
+@page "/groups/{GroupId:guid}"
+
+<h3>Gruppe detaljer</h3>
+
+@code {
+    [Parameter]
+    public Guid? GroupId { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        // TODO: Fetch group from API
+    }
+
+}
