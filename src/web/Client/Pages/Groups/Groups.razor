@@ -56,7 +56,7 @@
         new Category {Name = "Andet"}
     };
 
-    private static readonly Faker<GroupDto> _groupFaker = new Faker<GroupDto>()
+    private static readonly Faker<GroupDto> _groupFaker = new Faker<GroupDto>("nb_NO")
         .RuleFor(g => g.Id, f => Guid.NewGuid())
         .RuleFor(g => g.Name, f => f.Company.CompanyName())
         .RuleFor(g => g.ProfilePictureUrl, f => f.Image.PicsumUrl())
