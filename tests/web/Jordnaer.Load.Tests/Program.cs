@@ -38,11 +38,7 @@ static void SimpleHttpExample()
 
     var scnStats = result.GetScenarioStats("http_scenario");
 
-    Assert.True(scnStats.Ok.Request.RPS > 0);
-    Assert.True(scnStats.Ok.Request.Count > 0);
     Assert.True(scnStats.Ok.Latency.MinMs > 0);
-    Assert.True(scnStats.Ok.Latency.MaxMs > 0);
+    Assert.True(scnStats.Ok.Latency.MaxMs < 1_000);
     Assert.True(scnStats.Fail.Request.Count == 0);
-    Assert.True(scnStats.Fail.Request.Count == 0);
-    Assert.True(scnStats.Fail.Latency.MinMs == 0);
 }
