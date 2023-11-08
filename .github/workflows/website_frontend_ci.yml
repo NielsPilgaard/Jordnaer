@@ -33,7 +33,7 @@ jobs:
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
         if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
-        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --logger "trx;LogFileName=test-results.trx" --filter Category!=ManualTest
+        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --logger "trx;LogFileName=frontend-test-results.trx" --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
 
@@ -43,5 +43,12 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Test Report
-          path: "**.trx"
+          path: "**frontend-test-results.trx"
           reporter: dotnet-trx
+
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+            name: screenshots
+            path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"
