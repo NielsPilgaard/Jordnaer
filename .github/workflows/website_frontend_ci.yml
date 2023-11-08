@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - 'src/web/Client/**'
-      - 'tests/web/Jordnaer.UI.Tests/**'
+      - 'tests/web/Jordnaer.E2E.Tests/**'
       - '.github/workflows/website_frontend_ci.yml'
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ permissions:
   checks: write
 
 env:
-  WORKING_DIRECTORY: tests/web/Jordnaer.UI.Tests
+  WORKING_DIRECTORY: tests/web/Jordnaer.E2E.Tests
 jobs:
   playwright:
     runs-on: ubuntu-latest

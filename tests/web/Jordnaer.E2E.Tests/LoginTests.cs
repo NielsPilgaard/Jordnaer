@@ -1,7 +1,7 @@
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 
-namespace Jordnaer.UI.Tests;
+namespace Jordnaer.E2E.Tests;
 
 [Parallelizable(ParallelScope.Self)]
 [TestFixture]
