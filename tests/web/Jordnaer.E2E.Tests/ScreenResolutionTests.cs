@@ -5,7 +5,8 @@ using NUnit.Framework;
 namespace Jordnaer.E2E.Tests;
 
 [TestFixture]
-[Category("UI")]
+[Category("UITest")]
+[Category("ManualTest")]
 public class ScreenResolutionTests : PageTest
 {
     [Test]

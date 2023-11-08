@@ -5,7 +5,7 @@ namespace Jordnaer.E2E.Tests;
 
 [Parallelizable(ParallelScope.Self)]
 [TestFixture]
-[Category("UI")]
+[Category("UITest")]
 public class LoginTests : PageTest
 {
     [Test]
