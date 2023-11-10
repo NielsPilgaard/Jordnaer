@@ -34,11 +34,11 @@ public class ScreenResolutionTests : PageTest
     public async Task LandingPage(int width, int height)
     {
         await Page.SetViewportSizeAsync(width, height);
-        await Page.GotoAsync("https://jordnaer.azurewebsites.net/");
-        const string imgSelector = "img[src*='nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp']";
-        await Page.Locator(imgSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        await Page.GotoAsync(Constants.MainUrl);
+        await Page.Locator("img#landing-page-center-image")
+            .WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
-        string path = $"screenshots/{width}x{height}.png";
+        string path = $"{Constants.ScreenshotFolder}/{width}x{height}.png";
         await Page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
         Console.WriteLine($"Saved image to path '{Path.GetFullPath(path)}'");
     }
