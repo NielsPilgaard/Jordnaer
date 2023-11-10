@@ -77,6 +77,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // TODO: Task.WhenAll can be used to run both gets in parallel
         var response = await ProfileClient.GetUserProfile(UserName);
 
         switch (response.StatusCode)
@@ -115,8 +116,5 @@
         _isLoading = false;
     }
 
-    private async Task GoBack()
-    {
-        await JsRuntime.InvokeVoidAsync("history.back");
-    }
+    private async Task GoBack() => await JsRuntime.InvokeVoidAsync("history.back");
 }
