@@ -16,16 +16,16 @@
                   loading="lazy"
                   Fluid
                   Class="editable-image"
-                  Src="@UserProfile.ProfilePictureUrl"
-                  Alt="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")" />
+                  Src="@(Group.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture)"
+                  Alt="@(string.IsNullOrEmpty(Group.Name) ? "Profil billede" : $"{Group.Name}'s profil billede'")" />
     </ButtonTemplate>
 </MudFileUpload>
 
 @code {
     [Parameter]
-    public required UserProfile UserProfile { get; set; }
+    public required Group Group { get; set; }
     [Parameter]
-    public required EventCallback<UserProfile> UserProfileChanged { get; set; }
+    public required EventCallback<Group> GroupChanged { get; set; }
 
     private static readonly BrowserFileValidator BrowserFileValidator = new();
 
@@ -45,13 +45,13 @@
         await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
         var bytes = ms.ToArray();
 
-        var response = await ImageClient.SetUserProfilePicture(new SetUserProfilePicture(UserProfile, bytes));
+        var response = await ImageClient.SetGroupProfilePicture(new SetGroupProfilePicture(Group, bytes));
         if (response.IsSuccessStatusCode)
         {
-            UserProfile.ProfilePictureUrl = response.Content!;
-            await UserProfileChanged.InvokeAsync(UserProfile);
+            Group.ProfilePictureUrl = response.Content!;
+            await GroupChanged.InvokeAsync(Group);
 
-            UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+            Group.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
 
             Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
         }

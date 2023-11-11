@@ -21,5 +21,11 @@ public interface IImageClient
     [Put("/api/images/user-profile")]
     Task<IApiResponse<string>> SetUserProfilePicture([Body] SetUserProfilePicture setUserProfilePicture);
 
-    // TODO: Add SetGroupProfilePicture
+    /// <summary>
+    /// Sets the group's profile picture.
+    /// </summary>
+    /// <param name="setGroupProfilePicture">The group to set the picture for, and the image in byte array form.</param>
+    /// <returns>The absolute uri to the new profile picture.</returns>
+    [Put("/api/images/group")]
+    Task<IApiResponse<string>> SetGroupProfilePicture([Body] SetGroupProfilePicture setGroupProfilePicture);
 }

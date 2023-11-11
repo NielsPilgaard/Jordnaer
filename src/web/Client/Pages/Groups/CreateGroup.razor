@@ -5,94 +5,90 @@
 @inject IGroupClient GroupClient
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <h3>Opret Gruppe</h3>
 
-<EditForm Model="@_group" OnValidSubmit="Create">
-    <DataAnnotationsValidator />
-    <MudPaper Elevation="3" Class="pa-4">
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    <EditForm Model="@_group" OnValidSubmit="Create">
+        <DataAnnotationsValidator />
+        <MudPaper Elevation="3" Class="pa-4">
 
-        <GroupProfilePicture @bind-UserProfile="_userProfile" />
-
-        <MudGrid>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_group.Name"
-                              For="() => _group.Name"
-                              Label="Gruppenavn"
-                              Required="true"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_group.Address"
-                              For="() => _group.Address"
-                              Label="Adresse"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_group.ZipCode"
-                              For="() => _group.ZipCode"
-                              Label="Postnummer"
-                              name="zipCode"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_group.City"
-                              For="() => _group.City"
-                              Label="By"
-                              name="city"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_group.ShortDescription"
-                              For="() => _group.ShortDescription"
-                              Label="Kort beskrivelse"
-                              Lines="2"
-                              Required="true"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_group.Description"
-                              For="() => _group.Description"
-                              Label="Beskrivelse"
-                              Lines="10"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_group.ProfilePictureUrl"
-                              For="() => _group.ProfilePictureUrl"
-                              Label="Profilbillede URL"
-                              Variant="Variant.Text"/>
-            </MudItem>
-            <MudItem xs="12">
-                <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-                                   T="string"
-                                   Label="Kategori"
-                                   MultiSelection="true"
-                                   SelectedValues="_group.Categories.Select(e => e.Name)"
-                                   ValuePresenter="ValuePresenter.Chip"
-                                   SelectedValuesChanged="SelectedCategoriesChanged">
-                </MudSelectExtended>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-    <MudButton Size="Size.Large"
-               StartIcon="@Icons.Material.Filled.Save"
-               Class="my-6"
-               ButtonType="ButtonType.Submit"
-               Variant="Variant.Filled"
-               FullWidth
-               Color="Color.Primary">
-        Opret
-    </MudButton>
-</EditForm>
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.Name"
+                                  For="() => _group.Name"
+                                  Label="Gruppenavn"
+                                  Required="true"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="8">
+                    <MudTextField @bind-Value="_group.ShortDescription"
+                                  For="() => _group.ShortDescription"
+                                  Label="Kort beskrivelse"
+                                  Required="true"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.Address"
+                                  For="() => _group.Address"
+                                  Label="Adresse"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.ZipCode"
+                                  For="() => _group.ZipCode"
+                                  Label="Postnummer"
+                                  name="zipCode"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.City"
+                                  For="() => _group.City"
+                                  Label="By"
+                                  name="city"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                       T="string"
+                                       Label="Kategorier"
+                                       MultiSelection="true"
+                                       SelectedValues="_group.Categories.Select(e => e.Name)"
+                                       ValuePresenter="ValuePresenter.Chip"
+                                       SelectedValuesChanged="SelectedCategoriesChanged">
+                    </MudSelectExtended>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_group.Description"
+                                  For="() => _group.Description"
+                                  Label="Beskrivelse"
+                                  Lines="10"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Class="my-6"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   FullWidth
+                   Color="Color.Primary">
+            Opret
+        </MudButton>
+    </EditForm>
+</MudLoading>
 
 @code {
-    private Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty};
+    private Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty };
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+        _isLoading = false;
     }
 
     private async Task Create()
@@ -101,7 +97,7 @@
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-            //NavigationManager.NavigateTo($"/groups/{_group.Id}");
+            Navigation.NavigateTo($"/groups/edit/{_group.Id}");
         }
         else
         {

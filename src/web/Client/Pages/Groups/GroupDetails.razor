@@ -60,7 +60,7 @@
     {
         if (GroupId is not null)
         {
-            var response = await GroupClient.GetGroupByIdAsync(GroupId.Value);
+            var response = await GroupClient.GetSlimGroupByIdAsync(GroupId.Value);
             switch (response.StatusCode)
             {
                 case var _ when response is { IsSuccessStatusCode: true, Content: not null }:
