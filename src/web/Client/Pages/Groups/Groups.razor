@@ -7,10 +7,10 @@
 
 @if (_groups.Count > 0)
 {
-    <MudGrid Justify="Justify.Center">
+    <MudGrid Justify="Justify.SpaceEvenly" Spacing="1">
         @foreach (var group in _groups)
         {
-            <MudItem xs="6" sm="4" md="4" lg="3" xl="2">
+            <MudItem xs="6" sm="4" md="4" lg="3" xl="3" xxl="3">
                 <MudNavLink Class="card-link" Href="@($"/groups/{group.Id}")">
                     <MudCard Class="pa-3 my-3" Elevation="3">
                         <MudCardContent Class="d-flex flex-column align-center">

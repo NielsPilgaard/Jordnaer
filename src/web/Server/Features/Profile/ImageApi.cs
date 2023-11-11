@@ -63,7 +63,7 @@ public static class ImageApi
                 return uri;
 
             }).RequireCurrentUser();
-
+        // TODO: Upload for group profile picture
         return group;
     }
 

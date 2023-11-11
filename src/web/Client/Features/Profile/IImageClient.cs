@@ -20,4 +20,6 @@ public interface IImageClient
     /// <returns>The absolute uri to the new profile picture.</returns>
     [Put("/api/images/user-profile")]
     Task<IApiResponse<string>> SetUserProfilePicture([Body] SetUserProfilePicture setUserProfilePicture);
+
+    // TODO: Add SetGroupProfilePicture
 }

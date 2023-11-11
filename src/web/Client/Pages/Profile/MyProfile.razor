@@ -69,55 +69,55 @@
                                        PickerVariant="PickerVariant.Dialog"
                                        Placeholder="@DateTime.Now.ToString("d")"
                                       Rounded
-                                   name="bday" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-                                       T="string"
-                                       Label="Interesseret i"
-                                       MultiSelection="true"
-                                       SelectedValues="_userProfile.Categories.Select(e => e.Name)"
-                                       ValuePresenter="ValuePresenter.Chip"
-                                       SelectedValuesChanged="SelectedCategoriesChanged">
-                    </MudSelectExtended>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextFieldExtended For="() => _userProfile.Description"
+                                    name="bday" />
+                 </MudItem>
+                 <MudItem xs="12">
+                     <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                        T="string"
+                                        Label="Interesseret i"
+                                        MultiSelection="true"
+                                        SelectedValues="_userProfile.Categories.Select(e => e.Name)"
+                                        ValuePresenter="ValuePresenter.Chip"
+                                        SelectedValuesChanged="SelectedCategoriesChanged">
+                     </MudSelectExtended>
+                 </MudItem>
+                 <MudItem xs="12">
+                     <MudTextFieldExtended For="() => _userProfile.Description"
                                                     AutoSize
-                                          Lines="3"
+                                           Lines="3"
                                                     Immediate
-                    @bind-Value="@_userProfile.Description"
-                                          Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags."
-                                          Label="Beskrivelse" />
-                    </MudItem>
-                    </MudGrid>
+                     @bind-Value="@_userProfile.Description"
+                                           Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags."
+                                           Label="Beskrivelse" />
+                     </MudItem>
+                     </MudGrid>
 
-                    </MudPaper>
-
-
-                    <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                     </MudPaper>
 
 
-                    <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
+                     <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
 
-                    <MudButton Size="Size.Large"
-                               StartIcon="@Icons.Material.Filled.Save"
-                               Class="my-6"
-                               ButtonType="ButtonType.Submit"
-                               Variant="Variant.Filled"
+
+                     <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
+
+                     <MudButton Size="Size.Large"
+                                StartIcon="@Icons.Material.Filled.Save"
+                                Class="my-6"
+                                ButtonType="ButtonType.Submit"
+                                Variant="Variant.Filled"
                    FullWidth
-                   Color="Color.Primary">
-            Gem
-        </MudButton>
+                    Color="Color.Primary">
+             Gem
+         </MudButton>
 
-    </EditForm>
+     </EditForm>
 
-    <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8"/>
+     <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8" />
 
-    <DeleteUserComponent />
+     <DeleteUserComponent />
 
-</MudLoading>
-@code {
+ </MudLoading>
+ @code {
     private bool _isLoading = true;
     private UserProfile? _userProfile;
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();

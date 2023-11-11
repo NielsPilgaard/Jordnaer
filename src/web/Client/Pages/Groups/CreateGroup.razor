@@ -4,7 +4,6 @@
 @using Jordnaer.Client.Features.Groups
 @inject IGroupClient GroupClient
 @inject ICategoryCache CategoryCache
-@inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
 <h3>Opret Gruppe</h3>
@@ -12,57 +11,57 @@
 <EditForm Model="@_group" OnValidSubmit="Create">
     <DataAnnotationsValidator />
     <MudPaper Elevation="3" Class="pa-4">
+
+        <GroupProfilePicture @bind-UserProfile="_userProfile" />
+
         <MudGrid>
-            <MudItem xs="12">
+            <MudItem xs="12" sm="4">
                 <MudTextField @bind-Value="_group.Name"
                               For="() => _group.Name"
                               Label="Gruppenavn"
-                              name="name"
                               Required="true"
-                              Variant="Variant.Text" />
+                              Variant="Variant.Text"/>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField @bind-Value="_group.Address"
+                              For="() => _group.Address"
+                              Label="Adresse"
+                              Variant="Variant.Text"/>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField @bind-Value="_group.ZipCode"
+                              For="() => _group.ZipCode"
+                              Label="Postnummer"
+                              name="zipCode"
+                              Variant="Variant.Text"/>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField @bind-Value="_group.City"
+                              For="() => _group.City"
+                              Label="By"
+                              name="city"
+                              Variant="Variant.Text"/>
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_group.ShortDescription"
                               For="() => _group.ShortDescription"
                               Label="Kort beskrivelse"
-                              name="shortDescription"
+                              Lines="2"
                               Required="true"
-                              Variant="Variant.Text" />
+                              Variant="Variant.Text"/>
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_group.Description"
                               For="() => _group.Description"
                               Label="Beskrivelse"
-                              name="description"
-                              Variant="Variant.Text" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_group.Address"
-                              For="() => _group.Address"
-                              Label="Adresse"
-                              name="address"
-                              Variant="Variant.Text" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_group.ZipCode"
-                              For="() => _group.ZipCode"
-                              Label="Postnummer"
-                              name="zipCode"
-                              Variant="Variant.Text" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_group.City"
-                              For="() => _group.City"
-                              Label="By"
-                              name="city"
-                              Variant="Variant.Text" />
+                              Lines="10"
+                              Variant="Variant.Text"/>
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_group.ProfilePictureUrl"
                               For="() => _group.ProfilePictureUrl"
                               Label="Profilbillede URL"
-                              name="profilePictureUrl"
-                              Variant="Variant.Text" />
+                              Variant="Variant.Text"/>
             </MudItem>
             <MudItem xs="12">
                 <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
@@ -88,7 +87,7 @@
 </EditForm>
 
 @code {
-    private Group _group = new() {Name = string.Empty, ShortDescription = string.Empty};
+    private Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty};
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
 
     protected override async Task OnInitializedAsync()
