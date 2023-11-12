@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-[Index(nameof(Name))]
+[Index(nameof(Name), IsUnique = true)]
 public class Group
 {
     [Key]
