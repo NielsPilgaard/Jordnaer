@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jordnaer.Server.Migrations
 {
     [DbContext(typeof(JordnaerDbContext))]
-    [Migration("20231112180201_Groups")]
-    partial class Groups
+    [Migration("20231112182745_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
