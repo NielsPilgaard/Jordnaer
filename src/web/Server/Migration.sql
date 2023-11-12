@@ -369,3 +369,87 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    EXEC sp_rename N'[Chats].[Name]', N'DisplayName', N'COLUMN';
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    CREATE TABLE [Groups] (
+        [Id] uniqueidentifier NOT NULL,
+        [ProfilePictureUrl] nvarchar(max) NULL,
+        [Address] nvarchar(500) NULL,
+        [ZipCode] int NULL,
+        [City] nvarchar(100) NULL,
+        [Name] nvarchar(128) NOT NULL,
+        [ShortDescription] nvarchar(200) NOT NULL,
+        [Description] nvarchar(4000) NULL,
+        [CreatedUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_Groups] PRIMARY KEY ([Id])
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    CREATE TABLE [GroupCategories] (
+        [GroupId] uniqueidentifier NOT NULL,
+        [CategoryId] int NOT NULL,
+        CONSTRAINT [PK_GroupCategories] PRIMARY KEY ([CategoryId], [GroupId]),
+        CONSTRAINT [FK_GroupCategories_Categories_CategoryId] FOREIGN KEY ([CategoryId]) REFERENCES [Categories] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_GroupCategories_Groups_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [Groups] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    CREATE TABLE [GroupMemberships] (
+        [GroupId] uniqueidentifier NOT NULL,
+        [UserProfileId] nvarchar(450) NOT NULL,
+        [UserInitiatedMembership] bit NOT NULL,
+        [CreatedUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+        [LastUpdatedUtc] datetime2 NOT NULL,
+        [MembershipStatus] int NOT NULL,
+        [PermissionLevel] int NOT NULL,
+        [OwnershipLevel] int NOT NULL,
+        CONSTRAINT [PK_GroupMemberships] PRIMARY KEY ([GroupId], [UserProfileId]),
+        CONSTRAINT [FK_GroupMemberships_Groups_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [Groups] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_GroupMemberships_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    CREATE INDEX [IX_GroupCategories_GroupId] ON [GroupCategories] ([GroupId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    CREATE INDEX [IX_GroupMemberships_UserProfileId] ON [GroupMemberships] ([UserProfileId]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    CREATE INDEX [IX_Groups_Name] ON [Groups] ([Name]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112180201_Groups')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20231112180201_Groups', N'7.0.12');
+END;
+GO
+
+COMMIT;
+GO
+
