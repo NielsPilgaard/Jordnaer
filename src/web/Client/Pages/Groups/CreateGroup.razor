@@ -1,11 +1,10 @@
 @page "/groups/create"
 
-@using MudExtensions.Enums
-@using Jordnaer.Client.Features.Groups
+@attribute [Authorize]
+
 @inject IGroupClient GroupClient
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
-@inject NavigationManager Navigation
 
 <h3>Opret Gruppe</h3>
 
@@ -19,7 +18,7 @@
                     <MudTextField @bind-Value="_group.Name"
                                   For="() => _group.Name"
                                   Label="Gruppenavn"
-                                  Variant="Variant.Filled" />
+                                  Variant="Variant.Filled"/>
                 </MudItem>
                 <MudItem xs="12" sm="8">
                     <MudTextField @bind-Value="_group.ShortDescription"
@@ -79,7 +78,7 @@
 </MudLoading>
 
 @code {
-    private Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty };
+    private readonly Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty };
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
 
@@ -91,16 +90,23 @@
 
     private async Task Create()
     {
+        _isLoading = true;
+
         var response = await GroupClient.CreateGroupAsync(_group);
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-            Navigation.NavigateTo($"/groups/edit/{_group.Id}");
+        }
+        else if (response.StatusCode is HttpStatusCode.BadRequest)
+        {
+            Snackbar.Add(response.ReasonPhrase, Severity.Warning);
         }
         else
         {
             Snackbar.Add("Det lykkedes ikke at oprette gruppen. Vent et øjeblik før du prøver igen.", Severity.Warning);
         }
+
+        _isLoading = false;
     }
 
     private void SelectedCategoriesChanged(IEnumerable<string> categories)

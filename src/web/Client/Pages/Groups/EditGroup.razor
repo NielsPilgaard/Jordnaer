@@ -1,68 +1,71 @@
 @page "/groups/edit/{GroupId:guid}"
 
-@using MudExtensions.Enums
-@using Jordnaer.Client.Features.Groups
+@attribute [Authorize]
+
 @inject IGroupClient GroupClient
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    @if (_group is null)
+    {
+        return;
+    }
     <EditForm Model="@_group" OnValidSubmit="Update">
-        <DataAnnotationsValidator />
+        <DataAnnotationsValidator/>
         <MudPaper Elevation="3" Class="pa-4">
 
-            <GroupProfilePicture @bind-Group="_group" />
+            <GroupProfilePicture @bind-Group="_group"/>
 
             <MudGrid>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.Name"
                                   For="() => _group.Name"
                                   Label="Gruppenavn"
-                                  Variant="Variant.Text" />
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12" sm="8">
+                    <MudTextField @bind-Value="_group.ShortDescription"
+                                  For="() => _group.ShortDescription"
+                                  Label="Kort beskrivelse"
+                                  Variant="Variant.Filled"/>
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.Address"
                                   For="() => _group.Address"
                                   Label="Adresse"
-                                  Variant="Variant.Text" />
+                                  Variant="Variant.Filled"/>
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.ZipCode"
                                   For="() => _group.ZipCode"
                                   Label="Postnummer"
                                   name="zipCode"
-                                  Variant="Variant.Text" />
+                                  Variant="Variant.Filled"/>
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.City"
                                   For="() => _group.City"
                                   Label="By"
                                   name="city"
-                                  Variant="Variant.Text" />
+                                  Variant="Variant.Filled"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_group.ShortDescription"
-                                  For="() => _group.ShortDescription"
-                                  Label="Kort beskrivelse"
-                                  Lines="2"
-                                  Variant="Variant.Text" />
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                       T="string"
+                                       Label="Kategorier"
+                                       MultiSelection="true"
+                                       SelectedValues="_group.Categories.Select(e => e.Name)"
+                                       ValuePresenter="ValuePresenter.Chip"
+                                       SelectedValuesChanged="SelectedCategoriesChanged">
+                    </MudSelectExtended>
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_group.Description"
                                   For="() => _group.Description"
                                   Label="Beskrivelse"
                                   Lines="10"
-                                  Variant="Variant.Filled" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-                                       T="string"
-                                       Label="Kategori"
-                                       MultiSelection="true"
-                                       SelectedValues="_group.Categories.Select(e => e.Name)"
-                                       ValuePresenter="ValuePresenter.Chip"
-                                       SelectedValuesChanged="SelectedCategoriesChanged">
-                    </MudSelectExtended>
+                                  Variant="Variant.Filled"/>
                 </MudItem>
             </MudGrid>
         </MudPaper>
@@ -82,7 +85,7 @@
     [Parameter]
     public Guid GroupId { get; set; }
 
-    private Group _group;
+    private Group? _group;
 
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
@@ -119,7 +122,7 @@
 
     private void SelectedCategoriesChanged(IEnumerable<string> categories)
     {
-        _group.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+        _group!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
     }
 
     private Task Update()

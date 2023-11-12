@@ -1,9 +1,17 @@
 @page "/groups"
 @using Bogus
+@using Jordnaer.Client.Features.GroupSearch
+
+@inject IGroupClient GroupClient
+@inject IGroupSearchClient GroupSearchClient
 
 <h1 class="font-cherry-bomb-one">Grupper</h1>
 
-<MudButton Href="groups/create" Variant="Variant.Filled">Opret gruppe</MudButton>
+<AuthorizeView>
+    <Authorized>
+        <MudButton Href="groups/create" Variant="Variant.Filled">Opret gruppe</MudButton>
+    </Authorized>
+</AuthorizeView>
 
 @if (_groups.Count > 0)
 {
@@ -15,7 +23,7 @@
                     <MudCard Class="pa-3 my-3" Elevation="3">
                         <MudCardContent Class="d-flex flex-column align-center">
                             <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" ReadOnly T="string" Text="@group.Name" Class="mb-5" />
-                             <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@group.ProfilePictureUrl" loading="lazy" />
+                             <MudImage Fluid Width="200" Style="border-radius: 25%" Src="@group.ProfilePictureUrl" loading="lazy" />
                              <MudTextField Label="Område" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@group.DisplayLocation()" />
 
                              @if (group.Categories.Any())
@@ -39,6 +47,11 @@
 }
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await GroupSearchClient.GetGroups(new GroupSearchFilter());
+    }
+
     private readonly List<GroupDto> _groups = _groupFaker.Generate(20);
 
     private static readonly List<Category> Categories = new()

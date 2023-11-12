@@ -31,12 +31,12 @@ public static class GroupApi
         [FromServices] IGroupService groupsService)
         => await groupsService.GetGroupByIdAsync(id);
 
-    private static async Task<CreatedAtRoute> CreateGroupAsync(
+    private static async Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(
         [FromBody] Group group,
         [FromServices] IGroupService groupsService)
         => await groupsService.CreateGroupAsync(group);
 
-    private static async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest>>
+    private static async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>>
         UpdateGroupAsync(
             [FromRoute] Guid id,
             [FromBody] Group group,

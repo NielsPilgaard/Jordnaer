@@ -10,8 +10,8 @@ namespace Jordnaer.Server.Features.Groups;
 public interface IGroupService
 {
     Task<Results<Ok<GroupDto>, NotFound>> GetGroupByIdAsync(Guid id);
-    Task<CreatedAtRoute> CreateGroupAsync(Group group);
-    Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest>> UpdateGroupAsync(Guid id, Group group);
+    Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group);
+    Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group);
     Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
 }
 
@@ -56,11 +56,16 @@ public class GroupService : IGroupService
             : TypedResults.Ok(group);
     }
 
-    public async Task<CreatedAtRoute> CreateGroupAsync(Group group)
+    public async Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group)
     {
+        if (await _context.Groups.AnyAsync(x => x.Name == group.Name))
+        {
+            return TypedResults.BadRequest($"Gruppenavnet '{group.Name}' er allerede taget.");
+        }
+
         group.Memberships = new List<GroupMembership>
         {
-            new()
+            new ()
             {
                 UserProfileId = _currentUser.Id,
                 GroupId = group.Id,
@@ -76,14 +81,19 @@ public class GroupService : IGroupService
         _context.Groups.Add(group);
         await _context.SaveChangesAsync();
 
-        return TypedResults.CreatedAtRoute("/api/groups", new { id = group.Id });
+        return TypedResults.NoContent();
     }
 
-    public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest>> UpdateGroupAsync(Guid id, Group group)
+    public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group)
     {
         if (id != group.Id)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.BadRequest(string.Empty);
+        }
+
+        if (await _context.Groups.AnyAsync(x => x.Name == group.Name))
+        {
+            return TypedResults.BadRequest($"Gruppenavnet '{group.Name}' er allerede taget.");
         }
 
         var existingGroup = await _context.Groups
