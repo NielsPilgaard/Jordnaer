@@ -434,3 +434,28 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112191227_Add_UniqueName_ToGroup')
+BEGIN
+    DROP INDEX [IX_Groups_Name] ON [Groups];
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112191227_Add_UniqueName_ToGroup')
+BEGIN
+    CREATE UNIQUE INDEX [IX_Groups_Name] ON [Groups] ([Name]);
+END;
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20231112191227_Add_UniqueName_ToGroup')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'7.0.12');
+END;
+GO
+
+COMMIT;
+GO
+
