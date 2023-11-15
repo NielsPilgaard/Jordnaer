@@ -43,7 +43,7 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Test Report
-          path: "**frontend-test-results.trx"
+          path: "**.trx"
           reporter: dotnet-trx
 
       - name: Upload Screenshots
