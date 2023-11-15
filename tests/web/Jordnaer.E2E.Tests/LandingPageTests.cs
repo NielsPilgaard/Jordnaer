@@ -28,6 +28,7 @@ public partial class LandingPageTests : PageTest
 
         await Expect(Page).ToHaveURLAsync(LoginRegex());
     }
+
     [Test]
     public async Task When_User_Clicks_Posts_User_Should_Be_Redirected_To_Posts()
     {
@@ -37,6 +38,7 @@ public partial class LandingPageTests : PageTest
 
         await Expect(Page).ToHaveURLAsync(PostsRegex());
     }
+
     [Test]
     public async Task When_User_Clicks_Groups_User_Should_Be_Redirected_To_Groups()
     {
