@@ -9,7 +9,8 @@ public interface IGroupClient
     Task<IApiResponse<Group?>> GetGroupByIdAsync(Guid id);
 
     [Get("/api/groups/slim/{id}")]
-    Task<IApiResponse<GroupDto?>> GetSlimGroupByIdAsync(Guid id);
+
+    Task<IApiResponse<GroupSlim?>> GetSlimGroupByIdAsync(Guid id);
 
     [Post("/api/groups")]
     Task<IApiResponse> CreateGroupAsync([Body] Group group);

@@ -51,7 +51,7 @@
     [Parameter]
     public Guid? GroupId { get; set; }
 
-    private GroupDto? _group;
+    private Group? _group;
 
     private bool _isLoading = true;
 
@@ -59,7 +59,7 @@
     {
         if (GroupId is not null)
         {
-            var response = await GroupClient.GetSlimGroupByIdAsync(GroupId.Value);
+            var response = await GroupClient.GetGroupByIdAsync(GroupId.Value);
             switch (response.StatusCode)
             {
                 case var _ when response is { IsSuccessStatusCode: true, Content: not null }:

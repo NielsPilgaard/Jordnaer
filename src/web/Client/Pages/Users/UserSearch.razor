@@ -34,11 +34,13 @@
         var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
         var savedSearchFilter = await SessionStorage.GetItemAsync<UserSearchFilter>(nameof(UserSearchFilter));
         _isSearching = false;
+
         if (savedSearchResult is not null)
         {
             _searchResult = savedSearchResult;
             _hasSearched = true;
         }
+
         if (savedSearchFilter is not null)
         {
             _filter = savedSearchFilter;
@@ -73,5 +75,4 @@
         _filter.PageNumber = selectedPage;
         await Search();
     }
-
 }

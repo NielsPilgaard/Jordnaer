@@ -1,5 +1,4 @@
 @page "/groups/create"
-@using System.Text.Json
 
 @attribute [Authorize]
 
@@ -8,7 +7,10 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<h3>Opret Gruppe</h3>
+<MudText Typo="Typo.h3" Class="font-cherry-bomb-one">Opret Gruppe</MudText>
+
+<MetadataComponent Title="Opret gruppe"
+                   Description="Her kan du oprette din gruppe." />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <EditForm Model="@_group" OnValidSubmit="Create">
