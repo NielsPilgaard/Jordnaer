@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Bogus;
 using FluentAssertions;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
@@ -15,11 +16,21 @@ using Claim = System.Security.Claims.Claim;
 namespace Jordnaer.Server.Tests.Groups;
 
 [Trait("Category", "IntegrationTest")]
-public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>
+public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
 {
     private readonly IGroupService _groupService;
     private readonly JordnaerDbContext _context;
     private readonly string _userProfileId;
+
+    private readonly Faker<Group> _groupFaker = new Faker<Group>("nb_NO")
+        .RuleFor(g => g.Id, _ => Guid.NewGuid())
+        .RuleFor(g => g.Name, f => f.Company.CompanyName())
+        .RuleFor(g => g.ProfilePictureUrl, f => f.Image.PicsumUrl())
+        .RuleFor(g => g.ShortDescription, f => f.Lorem.Sentence())
+        .RuleFor(u => u.ZipCode, f => f.Random.Int(1000, 9991))
+        .RuleFor(u => u.City, f => f.Address.City())
+        .RuleFor(g => g.Description, f => f.Lorem.Paragraph())
+        .RuleFor(g => g.CreatedUtc, f => f.Date.Past(3));
 
     public GroupServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
     {
@@ -76,7 +87,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
     }
 
     [Fact]
-    public async Task CreateGroupAsync_ReturnsCreatedAtRoute_WhenGroupIsCreated()
+    public async Task CreateGroupAsync_ReturnsNoContent_WhenGroupIsCreated()
     {
         // Arrange
         AddUserProfile();
@@ -94,7 +105,32 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
         var result = await _groupService.CreateGroupAsync(group);
 
         // Assert
-        result.Should().BeOfType<CreatedAtRoute>();
+        result.Result.Should().BeOfType<NoContent>();
+    }
+
+    [Fact]
+    public async Task CreateGroupAsync_ReturnsBadRequest_WhenGroupUsesNonUniqueName()
+    {
+        // Arrange
+        AddUserProfile();
+        var existingGroup = AddGroup();
+        await _context.SaveChangesAsync();
+
+        var group = new Group
+        {
+            Id = Guid.NewGuid(),
+            Name = existingGroup.Name,
+            Description = "Test Group Description",
+            ShortDescription = "Test Group Short Description",
+            City = "Test City",
+            ZipCode = 1234
+        };
+
+        // Act
+        var result = await _groupService.CreateGroupAsync(group);
+
+        // Assert
+        result.Result.Should().BeOfType<BadRequest<string>>();
     }
 
     [Fact]
@@ -116,7 +152,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
         var result = await _groupService.UpdateGroupAsync(id, group);
 
         // Assert
-        result.Result.Should().BeOfType<BadRequest>();
+        result.Result.Should().BeOfType<BadRequest<string>>();
     }
 
     [Fact]
@@ -210,7 +246,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
         // Arrange
         string userId = Guid.NewGuid().ToString();
         AddUserProfile(userId);
-        var group = AddGroup(null, userId);
+        var group = AddGroup(userId);
         await _context.SaveChangesAsync();
 
         // Act
@@ -235,32 +271,24 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
         result.Result.Should().BeOfType<NoContent>();
     }
 
-    public Group AddGroup(Guid? groupId = null, string? userId = null)
+    public Group AddGroup(string? userId = null)
     {
-        groupId ??= Guid.NewGuid();
+        var groupId = Guid.NewGuid();
         userId ??= _userProfileId;
 
-        var group = new Group
+        var group = _groupFaker.Generate();
+        group.Memberships = new List<GroupMembership>
         {
-            Id = groupId.Value,
-            Name = "Test Group",
-            Description = "Test Group Description",
-            ShortDescription = "Test Group Short Description",
-            City = "Test City",
-            ZipCode = 1234,
-            Memberships = new List<GroupMembership>
+            new()
             {
-                new()
-                {
-                    GroupId = groupId.Value,
-                    UserProfileId = userId,
-                    OwnershipLevel = OwnershipLevel.Owner,
-                    MembershipStatus = MembershipStatus.Active,
-                    PermissionLevel = PermissionLevel.Read |
-                                      PermissionLevel.Write |
-                                      PermissionLevel.Moderator |
-                                      PermissionLevel.Admin
-                }
+                GroupId = groupId,
+                UserProfileId = userId,
+                OwnershipLevel = OwnershipLevel.Owner,
+                MembershipStatus = MembershipStatus.Active,
+                PermissionLevel = PermissionLevel.Read |
+                                  PermissionLevel.Write |
+                                  PermissionLevel.Moderator |
+                                  PermissionLevel.Admin
             }
         };
         _context.Groups.Add(group);
@@ -270,4 +298,8 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 
     private void AddUserProfile(string? userId = null)
         => _context.UserProfiles.Add(new UserProfile { Id = userId ?? _userProfileId });
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _context.Groups.ExecuteDeleteAsync();
 }
