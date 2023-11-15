@@ -78,8 +78,28 @@ public class GroupService : IGroupService
             }
         };
 
+        group.Categories.Clear();
+        foreach (var categoryDto in group.Categories)
+        {
+            var category = await _context.Categories.FindAsync(categoryDto.Id);
+            if (category is null)
+            {
+                group.Categories.Add(categoryDto);
+                _context.Entry(categoryDto).State = EntityState.Added;
+            }
+            else
+            {
+                category.LoadValuesFrom(categoryDto);
+                group.Categories.Add(category);
+                _context.Entry(category).State = EntityState.Modified;
+            }
+        }
+
         _context.Groups.Add(group);
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("{userIdentifier} created group '{groupName}'",
+            _currentUser.User?.Email ?? _currentUser.User?.UserName, group.Name);
 
         return TypedResults.NoContent();
     }

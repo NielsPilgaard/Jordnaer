@@ -1,10 +1,12 @@
 @page "/groups/create"
+@using System.Text.Json
 
 @attribute [Authorize]
 
 @inject IGroupClient GroupClient
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <h3>Opret Gruppe</h3>
 
@@ -53,6 +55,7 @@
                                        MultiSelection="true"
                                        SelectedValues="_group.Categories.Select(e => e.Name)"
                                        ValuePresenter="ValuePresenter.Chip"
+                                       Variant="Variant.Filled"
                                        SelectedValuesChanged="SelectedCategoriesChanged">
                     </MudSelectExtended>
                 </MudItem>
@@ -96,10 +99,11 @@
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
+            Navigation.NavigateTo($"/groups/{_group.Id}");
         }
         else if (response.StatusCode is HttpStatusCode.BadRequest)
         {
-            Snackbar.Add(response.ReasonPhrase, Severity.Warning);
+            Snackbar.Add(response.Error.Content, Severity.Warning);
         }
         else
         {
