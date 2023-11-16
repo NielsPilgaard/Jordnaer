@@ -20,3 +20,37 @@ public class GroupSearchFilter
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
 }
+
+file class RadiusRequiredAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+    {
+        var userSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
+
+        if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
+        {
+            return ValidationResult.Success!;
+        }
+
+        return userSearchFilter.WithinRadiusKilometers is null
+            ? new ValidationResult("Radius skal vælges når et område er valgt.")
+            : ValidationResult.Success!;
+    }
+}
+file class LocationRequiredAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+    {
+        var userSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
+
+        if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
+        {
+            return ValidationResult.Success!;
+
+        }
+
+        return string.IsNullOrEmpty(userSearchFilter.Location)
+            ? new ValidationResult("Område skal vælges når en radius er valgt.")
+            : ValidationResult.Success!;
+    }
+}

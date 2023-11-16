@@ -26,8 +26,7 @@ public class UserSearchFilter
     public int PageSize { get; set; } = 10;
 }
 
-
-public class RadiusRequiredAttribute : ValidationAttribute
+file class RadiusRequiredAttribute : ValidationAttribute
 {
     protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
@@ -43,7 +42,7 @@ public class RadiusRequiredAttribute : ValidationAttribute
             : ValidationResult.Success!;
     }
 }
-public class LocationRequiredAttribute : ValidationAttribute
+file class LocationRequiredAttribute : ValidationAttribute
 {
     protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
