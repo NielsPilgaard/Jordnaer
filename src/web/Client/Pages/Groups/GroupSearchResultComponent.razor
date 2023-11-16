@@ -2,20 +2,6 @@
 
 @inject IGroupSearchClient GroupSearchClient
 
-@if (SearchResult.TotalCount is 0)
-{
-    <MudGrid Justify="Justify.Center">
-        <MudItem xs="12">
-            <MudPaper>
-                <MudAlert Severity="Severity.Info">
-                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
-                </MudAlert>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
-    return;
-}
-
 <MudGrid Justify="Justify.SpaceEvenly" Spacing="1">
     @foreach (var group in SearchResult.Groups)
     {

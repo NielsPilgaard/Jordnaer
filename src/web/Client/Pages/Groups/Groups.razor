@@ -19,12 +19,23 @@
         return;
     }
 
+    @if (_searchResult.TotalCount == 0)
+    {
+        <MudPaper Elevation="3" Class="pa-10 mt-5">
+            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
+            </MudAlert>
+        </MudPaper>
+        return;
+    }
+
     <SponsorAd Class="mt-5"
                ImageAlt="Reklame for Moon Creative"
                MobileImagePath="images/ads/mooncreative_mobile.png"
                DesktopImagePath="images/ads/mooncreative_mobile.png" />
 
     <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+
 </MudLoading>
 
 
