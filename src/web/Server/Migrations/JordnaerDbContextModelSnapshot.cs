@@ -218,6 +218,100 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("ChildProfiles");
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.Group", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortDescription")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ZipCode")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Groups");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.GroupCategory", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("CategoryId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("GroupCategories");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.GroupMembership", b =>
+                {
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserProfileId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime>("LastUpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MembershipStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OwnershipLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionLevel")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("UserInitiatedMembership")
+                        .HasColumnType("bit");
+
+                    b.HasKey("GroupId", "UserProfileId");
+
+                    b.HasIndex("UserProfileId");
+
+                    b.ToTable("GroupMemberships");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.UnreadMessage", b =>
                 {
                     b.Property<long>("Id")
@@ -511,6 +605,36 @@ namespace Jordnaer.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.GroupCategory", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.Category", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Jordnaer.Shared.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.GroupMembership", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.Group", null)
+                        .WithMany("Memberships")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Jordnaer.Shared.UserProfile", null)
+                        .WithMany("GroupMemberships")
+                        .HasForeignKey("UserProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.UserChat", b =>
                 {
                     b.HasOne("Jordnaer.Shared.Chat", null)
@@ -612,9 +736,16 @@ namespace Jordnaer.Server.Migrations
                     b.Navigation("Messages");
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.Group", b =>
+                {
+                    b.Navigation("Memberships");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>
                 {
                     b.Navigation("ChildProfiles");
+
+                    b.Navigation("GroupMemberships");
                 });
 #pragma warning restore 612, 618
         }

@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - 'src/web/Client/**'
-      - 'tests/web/Jordnaer.UI.Tests/**'
+      - 'tests/web/Jordnaer.E2E.Tests/**'
       - '.github/workflows/website_frontend_ci.yml'
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ permissions:
   checks: write
 
 env:
-  WORKING_DIRECTORY: tests/web/Jordnaer.UI.Tests
+  WORKING_DIRECTORY: tests/web/Jordnaer.E2E.Tests
 jobs:
   playwright:
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
         if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
-        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --logger "trx;LogFileName=test-results.trx" --filter Category!=ManualTest
+        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --logger "trx;LogFileName=frontend-test-results.trx" --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
 
@@ -45,3 +45,10 @@ jobs:
           name: Test Report
           path: "**.trx"
           reporter: dotnet-trx
+
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+            name: screenshots
+            path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"

@@ -5,6 +5,8 @@ using Jordnaer.Client.Features.Authentication;
 using Jordnaer.Client.Features.Category;
 using Jordnaer.Client.Features.Chat;
 using Jordnaer.Client.Features.Email;
+using Jordnaer.Client.Features.Groups;
+using Jordnaer.Client.Features.GroupSearch;
 using Jordnaer.Client.Features.Profile;
 using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Shared;
@@ -30,6 +32,9 @@ builder.AddCategoryServices();
 builder.AddProfileServices();
 
 builder.AddEmailServices();
+
+builder.AddGroupServices();
+builder.AddGroupSearchServices();
 
 // Allows using NewId in Blazor WASM
 NewId.SetProcessIdProvider(null);

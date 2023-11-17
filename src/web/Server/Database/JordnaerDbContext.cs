@@ -16,14 +16,29 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UnreadMessage> UnreadMessages { get; set; } = default;
     public DbSet<UserChat> UserChats { get; set; } = default!;
 
-    //TODO
-    //public DbSet<Group> Groups { get; set; } = default!;
-    //public DbSet<ContactRequest> ContactRequests { get; set; } = default!;
-    //public DbSet<Notification> Notifications { get; set; } = default!;
-    //public DbSet<Event> Events { get; set; } = default!;
+    public DbSet<Group> Groups { get; set; } = default!;
+    public DbSet<GroupMembership> GroupMemberships { get; set; } = default!;
+    public DbSet<GroupCategory> GroupCategories { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Group>()
+            .HasMany(e => e.Members)
+            .WithMany(e => e.Groups)
+            .UsingEntity<GroupMembership>(
+                builder => builder.Property(e => e.CreatedUtc).HasDefaultValueSql("GETUTCDATE()"));
+
+        modelBuilder.Entity<Group>()
+            .HasMany(e => e.Categories)
+            .WithMany()
+            .UsingEntity<GroupCategory>();
+
+        modelBuilder.Entity<UserProfile>()
+            .HasMany(userProfile => userProfile.Groups)
+            .WithMany(group => group.Members)
+            .UsingEntity<GroupMembership>(
+                builder => builder.Property(e => e.CreatedUtc).HasDefaultValueSql("GETUTCDATE()"));
+
         modelBuilder.Entity<UserProfile>()
             .HasMany(userProfile => userProfile.Categories)
             .WithMany()

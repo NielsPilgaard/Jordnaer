@@ -12,6 +12,7 @@
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="7.0.0" />
         <PackageReference Include="NetEscapades.EnumGenerators" Version="1.0.0-beta08" />
+        <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
         <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
         <PackageReference Include="MassTransit.Abstractions" Version="8.1.1" />
     </ItemGroup>

@@ -86,3 +86,6 @@ h1:focus {
 .card-link .mud-nav-link:hover:not(.mud-nav-link-disabled) {
   background-color: unset !important;
 }
+.mud-alert-icon {
+    align-items: center;
+}

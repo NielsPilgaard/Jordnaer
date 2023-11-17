@@ -27,5 +27,5 @@ public interface IProfileClient
     /// </summary>
     /// <param name="userProfile">The user profile.</param>
     [Put("/api/profiles")]
-    Task<IApiResponse<UserProfile>> UpdateUserProfile(UserProfile userProfile);
+    Task<IApiResponse> UpdateUserProfile(UserProfile userProfile);
 }

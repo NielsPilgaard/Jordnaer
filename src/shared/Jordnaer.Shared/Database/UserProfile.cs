@@ -48,6 +48,9 @@ public class UserProfile
 
     public List<UserProfile> Contacts { get; set; } = new();
 
+    public List<Group> Groups { get; set; } = new();
+    public List<GroupMembership> GroupMemberships { get; set; } = new();
+
     public DateTime? DateOfBirth { get; set; }
 
     public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
@@ -60,27 +63,4 @@ public class UserProfile
     public string DisplayName => FirstName is not null
         ? $"{FirstName} {LastName}"
         : LastName ?? string.Empty;
-}
-
-public class DanishZipCodeAttribute : ValidationAttribute
-{
-    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
-    {
-        if (value is null)
-        {
-            return ValidationResult.Success!;
-        }
-
-        if (value is not int zipCode)
-        {
-            return new ValidationResult("Post nummer må kun bestå af tal.");
-        }
-
-        if (zipCode is < 1000 or > 10_000)
-        {
-            return new ValidationResult("Post nummer skal være mellem 1000 og 9999");
-        }
-
-        return ValidationResult.Success!;
-    }
 }

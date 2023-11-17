@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Polly;
+using Polly.Contrib.WaitAndRetry;
 using Refit;
 
 namespace Jordnaer.Shared;
@@ -17,11 +18,7 @@ public static class ServiceCollectionExtensions
                 client.BaseAddress = new Uri(dataForsyningenOptions.BaseUrl);
             })
             .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(3, retryCount => TimeSpan.FromMilliseconds(350 * retryCount)))
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.CircuitBreakerAsync(
-                    handledEventsAllowedBeforeBreaking: 5,
-                    durationOfBreak: TimeSpan.FromSeconds(15)));
+                policyBuilder.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(500), 3)));
 
         return services;
     }

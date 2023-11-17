@@ -90,7 +90,6 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
     [Fact]
     public async Task Return_UserSearchResult_With_LastName_Filter()
     {
-        //TODO
         // Arrange
         string? lastName = _faker.Name.LastName();
         var filter = new UserSearchFilter { Name = lastName };
@@ -111,7 +110,6 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
     [Fact]
     public async Task Return_UserSearchResult_With_ProfileName_Filter()
     {
-        //TODO
         // Arrange
         string? userName = _faker.Internet.UserName();
         var filter = new UserSearchFilter { Name = userName };

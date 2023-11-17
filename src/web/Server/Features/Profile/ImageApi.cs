@@ -2,6 +2,7 @@ using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,7 @@ public static class ImageApi
         group.RequirePerUserRateLimit();
 
         group.MapPut("child-profile",
-            async Task<string?>
+            async Task<Results<Ok<string>, UnauthorizedHttpResult>>
             (
                 [FromBody] SetChildProfilePicture dto,
                 [FromServices] JordnaerDbContext context,
@@ -25,7 +26,7 @@ public static class ImageApi
             {
                 if (currentUser.Id != dto.ChildProfile.UserProfileId)
                 {
-                    return null;
+                    return TypedResults.Unauthorized();
                 }
 
                 string uri = await imageUploader.UploadImageAsync(
@@ -35,13 +36,13 @@ public static class ImageApi
 
                 await SetChildProfilePictureAsync(context, dto, uri);
 
-                return uri;
+                return TypedResults.Ok(uri);
 
             }).RequireCurrentUser();
 
 
         group.MapPut("user-profile",
-            async Task<string?>
+            async Task<Results<Ok<string>, UnauthorizedHttpResult>>
             (
                 [FromBody] SetUserProfilePicture dto,
                 [FromServices] JordnaerDbContext context,
@@ -50,7 +51,7 @@ public static class ImageApi
             {
                 if (currentUser.Id != dto.UserProfile.Id)
                 {
-                    return null;
+                    return TypedResults.Unauthorized();
                 }
 
                 string uri = await imageUploader.UploadImageAsync(
@@ -60,8 +61,41 @@ public static class ImageApi
 
                 await SetUserProfilePictureAsync(context, dto, uri);
 
-                return uri;
+                return TypedResults.Ok(uri);
 
+            }).RequireCurrentUser();
+
+
+        group.MapPut("group",
+            async Task<Results<Ok<string>, UnauthorizedHttpResult>>
+            (
+                [FromBody] SetGroupProfilePicture dto,
+                [FromServices] JordnaerDbContext context,
+                [FromServices] IImageService imageUploader,
+                [FromServices] CurrentUser currentUser) =>
+            {
+                if (await CurrentUserIsGroupAdmin() is false)
+                {
+                    return TypedResults.Unauthorized();
+                }
+
+                string uri = await imageUploader.UploadImageAsync(
+                    dto.Group.Id.ToString("N"),
+                    ImageService.UserProfilePicturesContainerName,
+                    dto.FileBytes);
+
+                await SetGroupProfilePictureAsync(context, dto, uri);
+
+                return TypedResults.Ok(uri);
+
+                async Task<bool> CurrentUserIsGroupAdmin()
+                {
+                    return await context.GroupMemberships
+                        .AsNoTracking()
+                        .AnyAsync(membership => membership.GroupId == dto.Group.Id &&
+                                                membership.PermissionLevel == PermissionLevel.Admin &&
+                                                membership.UserProfileId == currentUser.Id);
+                }
             }).RequireCurrentUser();
 
         return group;
@@ -104,6 +138,26 @@ public static class ImageApi
         {
             currentUserProfile.ProfilePictureUrl = uri;
             context.Entry(currentUserProfile).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+        }
+    }
+    private static async Task SetGroupProfilePictureAsync(JordnaerDbContext context, SetGroupProfilePicture dto, string uri)
+    {
+        var currentGroup = await context.Groups.FindAsync(dto.Group.Id);
+        if (currentGroup is null)
+        {
+            dto.Group.ProfilePictureUrl = uri;
+            context.Groups.Add(dto.Group);
+            await context.SaveChangesAsync();
+            return;
+        }
+
+        // Updating is only required if the pictureUrl is not already correct
+        if (currentGroup.ProfilePictureUrl != uri)
+        {
+            currentGroup.ProfilePictureUrl = uri;
+            context.Entry(currentGroup).State = EntityState.Modified;
 
             await context.SaveChangesAsync();
         }
