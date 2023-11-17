@@ -4,12 +4,6 @@
 @inject ISessionStorageService SessionStorage
 @inject IGroupSearchClient GroupSearchClient
 
-<AuthorizeView>
-    <Authorized>
-        <MudButton Href="groups/create" Variant="Variant.Filled">Opret gruppe</MudButton>
-    </Authorized>
-</AuthorizeView>
-
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
     <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
@@ -37,7 +31,6 @@
     <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
 
 </MudLoading>
-
 
 @code {
 
