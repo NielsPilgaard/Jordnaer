@@ -3,9 +3,9 @@ name: Chat - Run Tests
 on:
   push:
     paths:
-      - 'src/container_apps/Jordnaer.Chat/**'
-      - 'tests/container_apps/Jordnaer.Chat/**'
-      - '.github/workflows/container_apps_chat_ci.yml'
+      - "src/container_apps/Jordnaer.Chat/**"
+      - "tests/container_apps/Jordnaer.Chat/**"
+      - ".github/workflows/container_apps_chat_ci.yml"
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
@@ -25,8 +25,8 @@ jobs:
       - name: Set up dotnet
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.x'
-          
+          dotnet-version: "8.x"
+
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
         if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
