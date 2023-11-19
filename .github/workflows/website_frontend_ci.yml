@@ -3,7 +3,7 @@ name: Website Frontend - Run Tests
 on:
   push:
     paths:
-      - "src/web/Client/**"
+      - "src/web/Jordnaer.Client/**"
       - "tests/web/Jordnaer.E2E.Tests/**"
       - ".github/workflows/website_frontend_ci.yml"
   workflow_dispatch:
