@@ -4,6 +4,8 @@
 @inject ISessionStorageService SessionStorage
 @inject IGroupSearchClient GroupSearchClient
 
+<PageTitle>Mini Møder - Grupper</PageTitle>
+
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
     <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
