@@ -3,9 +3,9 @@ name: Website Frontend - Run Tests
 on:
   push:
     paths:
-      - 'src/web/Client/**'
-      - 'tests/web/Jordnaer.E2E.Tests/**'
-      - '.github/workflows/website_frontend_ci.yml'
+      - "src/web/Client/**"
+      - "tests/web/Jordnaer.E2E.Tests/**"
+      - ".github/workflows/website_frontend_ci.yml"
   workflow_dispatch:
 
 # Needed by dorny/test-reporter@v1
@@ -28,8 +28,8 @@ jobs:
       - name: Set up dotnet
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.x'
-          
+          dotnet-version: "8.x"
+
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
         if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
@@ -50,5 +50,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-            name: screenshots
-            path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"
+          name: screenshots
+          path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"
