@@ -1,3 +1,4 @@
+@using RenderMode = Microsoft.AspNetCore.Mvc.Rendering.RenderMode
 <!DOCTYPE html>
 <html lang="da">
 
@@ -34,11 +35,11 @@
     <link href="css/chat.css?v=1.2" rel="stylesheet"/>
     <link href="Jordnaer.Client.styles.css" rel="stylesheet"/>
 
-    <HeadOutlet @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)"/>
+    <HeadOutlet @rendermode="@RenderMode.Static"/>
 </head>
 
 <body>
-    <Routes @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
+    <Routes @rendermode="@InteractiveAuto" />
     <!--<div id="app">
         <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
             <img src="images/minimoeder_logo_payoff.png" alt="Mini Møder Logo" style="max-width: 100%;" />
