@@ -11,15 +11,12 @@ using Jordnaer.Client.Features.Profile;
 using Jordnaer.Client.Features.UserSearch;
 using Jordnaer.Shared;
 using MassTransit;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
-builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddRefitClient<IAuthClient>(builder.HostEnvironment.BaseAddress);
 builder.Services.AddRefitClient<IDeleteUserClient>(builder.HostEnvironment.BaseAddress);
@@ -60,6 +57,7 @@ builder.Services.AddMudServices(configuration =>
 builder.Services.AddMudExtensions();
 
 builder.Services.AddWasmAuthentication();
+builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();

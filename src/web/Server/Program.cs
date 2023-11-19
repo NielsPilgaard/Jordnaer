@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
+using Jordnaer.Server;
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
@@ -16,6 +17,7 @@ using Jordnaer.Shared.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.FeatureManagement;
 using Serilog;
+using _Imports = Jordnaer.Client._Imports;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -24,6 +26,9 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    builder.Services.AddRazorComponents()
+        .AddInteractiveWebAssemblyComponents();
 
     builder.AddAzureAppConfiguration();
 
@@ -102,10 +107,10 @@ try
 
     app.UseHttpsRedirection();
 
-    app.UseBlazorFrameworkFiles();
     app.UseStaticFiles();
 
     app.UseRouting();
+    app.UseAntiforgery();
     app.UseRateLimiter();
     app.UseOutputCache();
 
@@ -128,7 +133,9 @@ try
 
     app.MapHub<ChatHub>("/hubs/chat");
 
-    app.MapFallbackToFile("index.html");
+    app.MapRazorComponents<App>()
+        .AddInteractiveWebAssemblyRenderMode()
+        .AddAdditionalAssemblies(typeof(_Imports).Assembly);
 
     app.Run();
 }
