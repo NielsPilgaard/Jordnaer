@@ -1,5 +1,4 @@
 @inherits LayoutComponentBase
-<PageTitle>Mini Møder</PageTitle>
 
 <MudDialogProvider CloseOnEscapeKey="true"
                    DisableBackdropClick="false"
@@ -7,7 +6,7 @@
                    MaxWidth="MaxWidth.Large"
                    CloseButton="true" />
 <MudSnackbarProvider />
-
+@*TODO: Determine what can be rendered statically*@
 <MudLayout>
     <TopBar ToggleDrawer="@ToggleDrawer" />
     <SideBar @bind-Open="_isDrawerOpen" />
@@ -16,6 +15,7 @@
             @Body
         </MudContainer>
     </MudMainContent>
+    <MudSpacer/>
     <Footer></Footer>
     <CookieBanner />
 </MudLayout>
