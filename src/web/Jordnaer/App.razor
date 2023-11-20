@@ -2,13 +2,15 @@
 <html lang="da">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <PageTitle>Mini Møder</PageTitle>
 
-    <meta name="description" content="Et online mødested for børnefamilier" />
-    <meta name="tags" content="trivsel, netværk, børnefamilie, legegruppe, legestue, hjemmeskole, unschooling, børn, forældre" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
-    <base href="/" />
+    <meta name="description" content="Et online mødested for børnefamilier"/>
+    <meta name="tags" content="trivsel, netværk, børnefamilie, legegruppe, legestue, hjemmeskole, unschooling, børn, forældre"/>
+
+    <base href="/"/>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -18,32 +20,28 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
 
-    <meta name="og:title" content="Mini Møder" />
-    <meta name="og:site_name" content="Mini Møder" />
-    <meta name="og:description" content="Et online mødested for børnefamilier" />
-    <meta name="og:image" content="images/minimoeder_logo_payoff.png" />
+    <meta name="og:title" content="Mini Møder"/>
+    <meta name="og:site_name" content="Mini Møder"/>
+    <meta name="og:description" content="Et online mødested for børnefamilier"/>
+    <meta name="og:image" content="images/minimoeder_logo_payoff.png"/>
 
-    <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
+    <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g"/>
 
     <!--Styles-->
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
-    <link href="css/landing-page.css?v=1.1" rel="stylesheet" />
-    <link href="css/app.css?v=1.1" rel="stylesheet" />
-    <link href="css/fonts.css?v=1.0" rel="stylesheet" />
-    <link href="css/chat.css?v=1.2" rel="stylesheet" />
-    <link href="Jordnaer.Client.styles.css" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
+    <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet"/>
+    <link href="css/landing-page.css?v=1.1" rel="stylesheet"/>
+    <link href="css/app.css?v=1.1" rel="stylesheet"/>
+    <link href="css/fonts.css?v=1.0" rel="stylesheet"/>
+    <link href="css/chat.css?v=1.2" rel="stylesheet"/>
+    <link href="Jordnaer.Client.styles.css" rel="stylesheet"/>
 
-    <HeadOutlet />
+    <HeadOutlet/>
 </head>
 
 <body>
     <Routes @rendermode="@(new InteractiveWebAssemblyRenderMode(prerender:false))" />
-    <!--<div id="app">
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-            <img src="images/minimoeder_logo_payoff.png" alt="Mini Møder Logo" style="max-width: 100%;" />
-        </div>
-    </div>-->
+    <FullscreenLoader />
     <script src="_framework/blazor.web.js"></script>
     <script src="js/scroll.js?v=1.0"></script>
     <script src="js/utilities.js?v=1.0"></script>
