@@ -1,0 +1,63 @@
+@using Microsoft.AspNetCore.Components
+@inject ISnackbar Snackbar
+@inject AuthStateProvider Client
+@inject NavigationManager NavigationManager
+
+<EditForm Model="@_registrationModel" OnValidSubmit="Create">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField Label="Email"
+                      @bind-Value="_registrationModel.Email"
+                      For="@(() => _registrationModel.Email)"
+                      InputType="InputType.Email"
+                      InputMode="InputMode.email"
+                      name="reg_email__" />
+        <MudTextField autocomplete="new-password"
+                      Label="Kodeord"
+                      @bind-Value="_registrationModel.Password"
+                      For="@(() => _registrationModel.Password)"
+                      InputType="InputType.Password" />
+        <MudTextField autocomplete="new-password"
+                      Label="Gentag kodeord"
+                      @bind-Value="_registrationModel.RepeatPassword"
+                      For="@(() => _registrationModel.RepeatPassword)"
+                      InputType="InputType.Password" />
+        <MudButton ButtonType="ButtonType.Submit"
+                   Class="mt-3"
+                   StartIcon="@Icons.Material.Filled.HowToReg"
+                   Variant="Variant.Filled"
+                   Size="Size.Large"
+                   Color="Color.Success">
+            Opret Konto
+        </MudButton>
+    </MudStack>
+</EditForm>
+
+@code {
+    private InitialRegistrationModel _registrationModel = new();
+
+    async Task Create()
+    {
+        var registrationCompleted = await Client.CreateUserAsync(new UserInfo { Email = _registrationModel.Email, Password = _registrationModel.Password });
+        if (registrationCompleted)
+        {
+          Snackbar.Add("Konto oprettet!", Severity.Success, options =>
+            {
+                options.CloseAfterNavigation = false;
+                  options.VisibleStateDuration = 3000;
+                options.ShowTransitionDuration = 250;
+            });
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Snackbar.Add(ErrorMessages.Registration_Failed, Severity.Warning, options =>
+          {
+              options.CloseAfterNavigation = true;
+              options.VisibleStateDuration = 3000;
+              options.ShowTransitionDuration = 250;
+          });
+        }
+    }
+
+}

@@ -1,0 +1,79 @@
+<Virtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
+
+    @if (IsMessageFromSelf(message))
+    {
+        <MudListItem Class="message-from-self">
+            <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
+                <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
+                    <MudChip Class="chat-chip" Size="Size.Large">
+                        <MudText Typo="Typo.h6">@message.Text</MudText>
+                    </MudChip>
+                </MudTooltip>
+            </MudTooltip>
+        </MudListItem>
+    }
+    else
+    {
+        <MudListItem>
+            <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
+                <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
+                    <MudChip Class="chat-chip" Size="Size.Large">
+                        <AvatarContent>
+                            @if (!NextMessageIsFromSameSender(message))
+                            {
+                                <MudLink Href="@GetRecipientsUserName(message)">
+                                    <MudAvatar>
+                                        <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar" />
+                                    </MudAvatar>
+                                </MudLink>
+                            }
+                        </AvatarContent>
+                        <ChildContent>
+                            <MudText Typo="Typo.h6">@message.Text</MudText>
+                        </ChildContent>
+                    </MudChip>
+                </MudTooltip>
+            </MudTooltip>
+        </MudListItem>
+    }
+</Virtualize>
+
+@code
+{
+    [Parameter]
+    public required UserProfile CurrentUser { get; set; } = null!;
+    [Parameter]
+    public required ChatDto? ActiveChat { get; set; }
+
+    private bool IsMessageFromSelf(ChatMessageDto message) => message.SenderId == CurrentUser.Id;
+
+    private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
+    => ActiveChat?
+        .Recipients
+        .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
+       ?? ProfileConstants.Default_Profile_Picture;
+
+    private string? GetRecipientsUserName(ChatMessageDto message)
+        => ActiveChat?
+            .Recipients
+            .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.UserName;
+
+    private bool NextMessageIsFromSameSender(ChatMessageDto message)
+    {
+        if (ActiveChat is null)
+        {
+            return false;
+        }
+        var messageIndex = ActiveChat.Messages.IndexOf(message);
+        if (messageIndex is -1)
+        {
+            return false;
+        }
+        if (ActiveChat.Messages.Count <= messageIndex + 1)
+        {
+            return false;
+        }
+
+        return ActiveChat.Messages[messageIndex + 1].SenderId == message.SenderId;
+    }
+}

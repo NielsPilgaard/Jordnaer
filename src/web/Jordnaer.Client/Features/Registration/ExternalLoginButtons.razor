@@ -1,0 +1,28 @@
+<MudStack>
+    <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
+               Variant="Variant.Filled"
+               Href="api/auth/login/Facebook"
+               Style="background-color: #3B5998;
+                      color: white;">
+        Log ind med Facebook
+    </MudButton>
+    <MudButton StartIcon="@Icons.Custom.Brands.Google"
+               Variant="Variant.Filled"
+               Href="api/auth/login/Google"
+               Style="background-color: #dd4b39;
+                      color: white;">
+        Log ind med Google
+    </MudButton>
+    <MudButton StartIcon="@_microsoftLogo"
+               Variant="Variant.Filled"
+               Href="api/auth/login/Microsoft"
+               Color="Color.Primary">
+        Log ind med Microsoft
+    </MudButton>
+
+</MudStack>
+@code{
+  private string _microsoftLogo = @"<svg xmlns=""http://www.w3.org/2000/svg"" x=""0px"" y=""0px"" width=""24"" height=""24"" viewBox=""0 0 48 48"">
+    <path fill=""#ff5722"" d=""M6 6H22V22H6z"" transform=""rotate(-180 14 14)""></path><path fill=""#4caf50"" d=""M26 6H42V22H26z"" transform=""rotate(-180 34 14)""></path><path fill=""#ffc107"" d=""M26 26H42V42H26z"" transform=""rotate(-180 34 34)""></path><path fill=""#03a9f4"" d=""M6 26H22V42H6z"" transform=""rotate(-180 14 34)""></path>
+      </svg>";
+}

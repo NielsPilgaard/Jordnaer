@@ -1,0 +1,104 @@
+@using Blazored.SessionStorage
+@inject ISessionStorageService SessionStorage
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-10 mt-5">
+        <MudText Typo="Typo.h6">Find dit næste Mini Møde</MudText>
+
+        <MudDivider Class="mb-5 mt-1" />
+
+        <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
+
+            <MudGrid Justify="Justify.SpaceAround" Spacing="2">
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Filter.Name" Label="Søg på navn" Placeholder="Fornavn, efternavn eller brugernavn." Clearable/>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <CategorySelector @bind-Categories="Filter.Categories" />
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-8 pb-0">
+                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Place" /> Område</MudText>
+                </MudItem>
+
+                <MudItem xs="8">
+                    <AddressAutoComplete For="@(() => Filter.Location)" @bind-Location="Filter.Location" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudNumericField For="() => Filter.WithinRadiusKilometers"
+                    @bind-Value="Filter.WithinRadiusKilometers"
+                                     Adornment="Adornment.End"
+                                     Label="Radius"
+                                     AdornmentText="km">
+                    </MudNumericField>
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-8 pb-0">
+                    <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudNumericField For="() => Filter.MinimumChildAge"
+                    @bind-Value="Filter.MinimumChildAge"
+                                     Label="Min. alder">
+                    </MudNumericField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField For="() => Filter.MaximumChildAge"
+                    @bind-Value="Filter.MaximumChildAge"
+                                     Label="Max. alder">
+                    </MudNumericField>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="Filter.ChildGender" Clearable Label="Køn" Placeholder="Filtrer ud fra køn">
+                        @foreach (var gender in Enum.GetValues<Gender>())
+                        {
+                            <MudSelectItem T="Gender?" Value="gender">@gender.ToStringFast()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="11" md="10" lg="9" xl="8"  Class="mt-8">
+
+                    <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
+                        <MudButton FullWidth
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   ButtonType="ButtonType.Submit">
+                            <MudIcon Icon="@Icons.Material.Filled.Search" />
+                        </MudButton>
+                        <MudButton OnClick="ClearFilter"
+                                   Color="Color.Info"
+                                   Variant="Variant.Filled">
+                            <MudIcon Icon="@Icons.Material.Filled.Clear" />
+                        </MudButton>
+                    </MudButtonGroup>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code
+{
+    [Parameter]
+    public required UserSearchFilter Filter { get; set; }
+
+    [Parameter]
+    public EventCallback<UserSearchFilter> FilterChanged { get; set; }
+
+    [Parameter]
+    public required EventCallback OnValidSubmit { get; set; }
+
+    private async Task ClearFilter()
+    {
+        Filter = new UserSearchFilter();
+        await FilterChanged.InvokeAsync(Filter);
+
+        await SessionStorage.RemoveItemAsync(nameof(UserSearchResult));
+        await SessionStorage.RemoveItemAsync(nameof(UserSearchFilter));
+    }
+}

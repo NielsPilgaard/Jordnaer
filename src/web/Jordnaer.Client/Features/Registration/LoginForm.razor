@@ -1,0 +1,46 @@
+@inject AuthStateProvider Client
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<EditForm Model="@_userInfo" OnValidSubmit="Login">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField Label="Email"
+                      @bind-Value="_userInfo.Email"
+                      For="@(() => _userInfo.Email)"
+                      InputType="InputType.Email"
+                      InputMode="InputMode.email" />
+        <MudTextField Label="Kodeord"
+                      @bind-Value="_userInfo.Password"
+                      For="@(() => _userInfo.Password)"
+                      InputType="InputType.Password" />
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Login"
+                   Class="mt-3"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary">
+            Log ind
+        </MudButton>
+    </MudStack>
+</EditForm>
+
+@code {
+    private UserInfo _userInfo = new();
+
+    async Task Login()
+    {
+        if (await Client.LoginAsync(_userInfo))
+        {
+            NavigationManager.NavigateTo("");
+            return;
+        }
+
+        Snackbar.Add(ErrorMessages.Login_Failed, Severity.Warning, options =>
+        {
+            options.CloseAfterNavigation = true;
+            options.VisibleStateDuration = 5000;
+            options.ShowTransitionDuration = 250;
+        });
+    }
+}

@@ -1,0 +1,44 @@
+@using Jordnaer.Shared
+@using MudBlazor.Services
+@using Refit
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="5" Variant="DrawerVariant.Responsive">
+    <MudNavMenu>
+        <AuthorizeView>
+            <Authorized>
+                <AuthorizedSideBar />
+            </Authorized>
+        </AuthorizeView>
+        <MudNavLink Match="NavLinkMatch.All" Href="/users" Icon="@Icons.Material.Filled.PersonSearch">Personer</MudNavLink>
+        <MudNavLink Match="NavLinkMatch.Prefix" Href="/groups" Icon="@Icons.Material.Filled.Groups">Grupper</MudNavLink>
+        <Feature Name="@FeatureFlags.Events">
+            <MudNavLink Match="NavLinkMatch.All" Href="/events" Icon="@Icons.Material.Filled.Event">Begivenheder</MudNavLink>
+        </Feature>
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    private IDisposable? _locationChangedHandler;
+
+    protected override void OnInitialized()
+    {
+        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async _ =>
+        {
+            if (!Open)
+            {
+                return;
+            }
+
+            Open = false;
+            await OpenChanged.InvokeAsync(Open);
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose() => _locationChangedHandler?.Dispose();
+}

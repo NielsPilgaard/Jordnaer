@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "src/web/**"
-      - "tests/web/Jordnaer.Server.Tests/**"
+      - "tests/web/Jordnaer.Tests/**"
       - ".github/workflows/website_backend_ci.yml"
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ permissions:
   checks: write
 
 env:
-  WORKING_DIRECTORY: tests/web/Jordnaer.Server.Tests
+  WORKING_DIRECTORY: tests/web/Jordnaer.Tests
 jobs:
   test:
     runs-on: ubuntu-latest

@@ -1,0 +1,122 @@
+@page "/groups/create"
+
+@attribute [Authorize]
+
+@inject IGroupClient GroupClient
+@inject ICategoryCache CategoryCache
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudText Typo="Typo.h3" Class="font-cherry-bomb-one">Opret Gruppe</MudText>
+
+<MetadataComponent Title="Opret gruppe"
+                   Description="Her kan du oprette din gruppe." />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    <EditForm Model="@_group" OnValidSubmit="Create">
+        <DataAnnotationsValidator />
+        <MudPaper Elevation="3" Class="pa-4">
+
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.Name"
+                                  For="() => _group.Name"
+                                  Label="Gruppenavn"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12" sm="8">
+                    <MudTextField @bind-Value="_group.ShortDescription"
+                                  For="() => _group.ShortDescription"
+                                  Label="Kort beskrivelse"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.Address"
+                                  For="() => _group.Address"
+                                  Label="Adresse"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.ZipCode"
+                                  For="() => _group.ZipCode"
+                                  Label="Postnummer"
+                                  name="zipCode"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.City"
+                                  For="() => _group.City"
+                                  Label="By"
+                                  name="city"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                       T="string"
+                                       Label="Kategorier"
+                                       MultiSelection="true"
+                                       SelectedValues="_group.Categories.Select(e => e.Name)"
+                                       ValuePresenter="ValuePresenter.Chip"
+                                       Variant="Variant.Filled"
+                                       SelectedValuesChanged="SelectedCategoriesChanged">
+                    </MudSelectExtended>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_group.Description"
+                                  For="() => _group.Description"
+                                  Label="Beskrivelse"
+                                  Lines="10"
+                                  Variant="Variant.Filled" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Class="my-6"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   FullWidth
+                   Color="Color.Primary">
+            Opret
+        </MudButton>
+    </EditForm>
+</MudLoading>
+
+@code {
+    private readonly Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty };
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+        _isLoading = false;
+    }
+
+    private async Task Create()
+    {
+        _isLoading = true;
+
+        var response = await GroupClient.CreateGroupAsync(_group);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
+            Navigation.NavigateTo($"/groups/{_group.Id}");
+        }
+        else if (response.StatusCode is HttpStatusCode.BadRequest)
+        {
+            Snackbar.Add(response.Error.Content, Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Det lykkedes ikke at oprette gruppen. Vent et øjeblik før du prøver igen.", Severity.Warning);
+        }
+
+        _isLoading = false;
+    }
+
+    private void SelectedCategoriesChanged(IEnumerable<string> categories)
+    {
+        _group.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+    }
+}

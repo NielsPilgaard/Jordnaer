@@ -1,0 +1,20 @@
+.image-ad-wrapper {
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+}
+
+.image-with-label {
+  position: relative;
+}
+
+.image-ad-label {
+  position: absolute;
+  top: 20px;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.25);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.7em; /* You can adjust the font size to fit the label within the image */
+}

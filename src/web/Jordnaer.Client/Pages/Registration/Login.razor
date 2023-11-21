@@ -1,0 +1,24 @@
+@page "/auth/login"
+
+<MetadataComponent Title="Mini Møder - Log ind"
+                   Description="Log ind på Mini Møder" />
+
+<MudContainer MaxWidth="MaxWidth.Small">
+
+    <MudStack>
+        <Feature Name="@FeatureFlags.Internal_Registration">
+          <MudPaper Elevation="5" Class="pa-4">
+                <InitialRegistrationForm />
+            </MudPaper>
+
+            <MudPaper Elevation="5" Class="pa-4">
+                <LoginForm />
+            </MudPaper>
+        </Feature>
+
+        <MudPaper Elevation="5" Class="pa-4">
+            <ExternalLoginButtons />
+        </MudPaper>
+    </MudStack>
+
+</MudContainer>

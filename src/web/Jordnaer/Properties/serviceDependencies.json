@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "appInsights1": {
+      "type": "appInsights",
+      "dynamicId": null
+    },
+    "secrets1": {
+      "type": "secrets",
+      "dynamicId": null
+    },
+    "mssql1": {
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:JordnaerDbContext",
+      "dynamicId": null
+    }
+  }
+}

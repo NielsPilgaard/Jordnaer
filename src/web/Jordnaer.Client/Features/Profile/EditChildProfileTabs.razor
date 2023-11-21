@@ -1,0 +1,55 @@
+@using MassTransit
+<MudDynamicTabs @bind-ActivePanelIndex="@_activePanelIndex"
+                AddTab="@AddTabCallback"
+                AddIconToolTip="Klik for at oprette et barn"
+                PanelClass="px-4 py-6"
+                Elevation="4"
+                    Rounded
+                CloseTab="RemoveTab"
+                CloseTabIcon="@Icons.Material.Filled.DeleteForever"
+                CloseIconToolTip="Klik for at fjerne barnet"
+                CloseIconStyle="color: var(--mud-palette-error)"
+                AddIconStyle="color: var(--mud-palette-success)"
+                    ApplyEffectsToContainer>
+
+    @foreach (var childProfile in Parent.ChildProfiles)
+    {
+        <MudTabPanel ID="@childProfile.Id" Text="@childProfile.FirstName">
+            <EditChildProfile ChildProfile="childProfile" />
+        </MudTabPanel>
+    }
+
+</MudDynamicTabs>
+
+@code
+{
+    [Parameter]
+    public required UserProfile Parent { get; set; }
+
+    [Parameter]
+    public EventCallback<UserProfile> ParentChanged { get; set; }
+
+    private int _activePanelIndex = 0;
+
+    public async Task AddTab(Guid id)
+    {
+        Parent.ChildProfiles.Add(new ChildProfile
+        {
+          Id = id,
+          Gender = Gender.NotSet,
+          FirstName = string.Empty,
+          UserProfileId = Parent.Id
+        });
+
+        await ParentChanged.InvokeAsync(Parent);
+
+        _activePanelIndex = Parent.ChildProfiles.Count - 1; // Automatically switch to the new tab.
+    }
+
+    private async Task AddTabCallback() => await AddTab(NewId.NextGuid());
+
+    private void RemoveTab(MudTabPanel obj)
+    {
+        Parent.ChildProfiles.RemoveAt(Parent.ChildProfiles.FindIndex(e => e.Id == (Guid)obj.ID));
+    }
+}

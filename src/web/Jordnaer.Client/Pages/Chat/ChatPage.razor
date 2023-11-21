@@ -1,0 +1,14 @@
+@page "/chat"
+@page "/chat/{ActiveChat:guid}"
+
+@attribute [Authorize]
+
+<MudPaper Elevation="2">
+    <ChatComponent ChatId="ActiveChat"/>
+</MudPaper>
+
+@code
+{
+    [Parameter]
+    public Guid? ActiveChat { get; set; }
+}

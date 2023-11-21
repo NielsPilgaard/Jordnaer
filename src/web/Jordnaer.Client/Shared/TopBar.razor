@@ -1,0 +1,47 @@
+@using Jordnaer.Client.Features.Authentication
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager Navigation
+
+
+<MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
+
+    <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                   Color="Color.Default"
+                   Variant="Variant.Filled"
+                   Edge="Edge.Start"
+                   OnClick="@ToggleDrawer.InvokeAsync" />
+
+    @if (!_currentPageIsFrontPage)
+    {
+        <MudSpacer />
+
+        <MudLink Href="/">
+            <MudImage Class="d-flex" Src="/images/mini_logo_small.png" loading="lazy" Alt="Logo" />
+        </MudLink>
+    }
+
+    <MudSpacer />
+
+    <AuthorizeView>
+        <Authorized>
+            <TopBarProfileMenu />
+        </Authorized>
+        <NotAuthorized>
+            <ThemeProvider />
+            <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Outlined" Color="Color.Default"/>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudAppBar>
+
+@code
+{
+    [Parameter]
+    public EventCallback<bool> ToggleDrawer { get; set; }
+
+    private bool _currentPageIsFrontPage;
+
+    protected override void OnInitialized()
+    {
+        _currentPageIsFrontPage = Navigation.Uri == Navigation.BaseUri || Navigation.Uri == $"{Navigation.BaseUri.TrimEnd('/')}/#_=_";
+    }
+}

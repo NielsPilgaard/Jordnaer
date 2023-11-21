@@ -1,0 +1,12 @@
+DROP TABLE AspNetRoleClaims
+DROP TABLE __EFMigrationsHistory
+DROP TABLE AspNetUserClaims
+DROP TABLE AspNetUserLogins
+DROP TABLE AspNetUserRoles
+DROP TABLE AspNetUsers
+DROP TABLE AspNetUserTokens
+DROP TABLE ChildProfiles
+DROP TABLE UserProfileCategories
+DROP TABLE UserProfiles
+DROP TABLE Categories
+DROP TABLE AspNetRoles
