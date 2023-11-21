@@ -18,7 +18,7 @@
     padding: 30px 0;
 }
 
-@media (min-width: 768px) { /* MD screens and above */
+@media (min-width: 768px) { 
     .hero-section {
         height: 500px;
         padding: 30px 0;
@@ -36,4 +36,51 @@
     list-style: disc;
     margin-left: 40px;
     line-height: 2;
+}
+
+
+#landing-page-center-image {
+    height: 200px;
+}
+@media (max-width: 300px) { 
+    #landing-page-center-image {
+        height: 150px;
+    }
+}   
+@media (min-width: 400px) { 
+    #landing-page-center-image {
+        height: 200px;
+    }
+}   
+
+@media (min-width: 800px) { 
+    #landing-page-center-image {
+        height: 300px;
+    }
+}
+
+@media (min-width: 1200px) { 
+    #landing-page-center-image {
+        height: 350px;
+    }
+}
+@media (min-width: 1400px) { 
+    #landing-page-center-image {
+        height: 500px;
+    }
+}
+@media (min-width: 1600px) { 
+    #landing-page-center-image {
+        height: 600px;
+    }
+}
+@media (min-width: 1800px) { 
+    #landing-page-center-image {
+        height: 700px;
+    }
+}
+@media (min-width: 2000px) {
+    #landing-page-center-image {
+        height: 800px;
+    }
 }
