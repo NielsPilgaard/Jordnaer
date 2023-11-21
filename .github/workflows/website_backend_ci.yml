@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "src/web/**"
-      - "tests/web/Jordnaer.Server.Tests/**"
+      - "tests/web/Jordnaer.Tests/**"
       - ".github/workflows/website_backend_ci.yml"
   workflow_dispatch:
 
