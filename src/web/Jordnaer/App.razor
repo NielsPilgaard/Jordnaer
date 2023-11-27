@@ -28,19 +28,19 @@
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
 
     <!--Styles-->
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
     <link href="css/landing-page.css?v=1.1" rel="stylesheet" />
-    <link href="css/app.css?v=1.1" rel="stylesheet" />
     <link href="css/fonts.css?v=1.0" rel="stylesheet" />
-    <link href="css/chat.css?v=1.2" rel="stylesheet" />
-    <link href="Jordnaer.Client.styles.css" rel="stylesheet" />
+    <link href="css/app.css?v=1.1" rel="stylesheet" />
+    <link defer href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link defer href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
+    <link defer href="css/chat.css?v=1.2" rel="stylesheet" />
+    <link defer href="Jordnaer.Client.styles.css" rel="stylesheet" />
 
     <HeadOutlet />
 </head>
 
 <body>
-    <Routes @rendermode="@(new InteractiveWebAssemblyRenderMode(prerender:false))" />
+    <Routes @rendermode="@(new InteractiveWebAssemblyRenderMode(prerender: false))" />
     <script src="_framework/blazor.web.js"></script>
     <script src="js/scroll.js?v=1.0"></script>
     <script src="js/utilities.js?v=1.0"></script>
