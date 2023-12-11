@@ -23,7 +23,7 @@
             <EditForm Model="_contactForm" OnValidSubmit="SubmitForm" Class="mt-5">
                 <MudTextField Label="Dit Navn" @bind-Value="_contactForm.Name" For="() => _contactForm.Name" FullWidth Class="mt-3" name="name" />
                 <MudTextField Label="Din Email" @bind-Value="_contactForm.Email" For="() => _contactForm.Email" Required InputType="InputType.Email" FullWidth Class="mt-3" name="reg_email__" />
-                <MudTextFieldExtended Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required FullWidth AutoSize Lines="2" Immediate Class="mt-3" />
+                 <MudTextField Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required FullWidth AutoGrow Class="mt-3" />
                 <MudButton FullWidth Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Send" OnClick="SubmitForm" Class="mt-3">Send</MudButton>
             </EditForm>
         </MudPaper>

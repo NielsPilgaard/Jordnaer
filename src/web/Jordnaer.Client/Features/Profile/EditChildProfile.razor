@@ -27,7 +27,7 @@
                        Label="Fødselsdato" />
     </MudItem>
     <MudItem xs="12">
-        <MudTextFieldExtended For="() => ChildProfile.Description" AutoSize Lines="3" Immediate @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+        <MudTextField For="() => ChildProfile.Description" AutoGrow @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
     </MudItem>
 </MudGrid>
 @code {

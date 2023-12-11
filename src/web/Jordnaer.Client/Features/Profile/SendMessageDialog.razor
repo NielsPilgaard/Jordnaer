@@ -2,12 +2,11 @@
 
 <MudDialog DefaultFocus="DefaultFocus.FirstChild" Style="width: 500px">
     <DialogContent>
-        <MudTextFieldExtended
+        <MudTextField
             Disabled="_startingChat"
             @bind-Value="_userText"
             FullWidth
-            Immediate
-            AutoSize
+            AutoGrow
             Lines="3"
             AutoFocus
             TextUpdateSuppression="false"
