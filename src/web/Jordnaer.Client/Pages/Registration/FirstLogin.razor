@@ -1,10 +1,33 @@
 @page "/first-login"
-<h3>Velkommen til Mini Møder!</h3>
-<h3>Færdiggør Profil</h3>
-<h3>Find dit næste mini møde (søg brugere)</h3>
-<h3>Gå på opdagelse i grupper</h3>
-<h3>Se opslag</h3>
+
+<MudGrid Justify="Justify.SpaceEvenly" Spacing="3">
+    @foreach (var (title, body, buttonText) in _cardContents)
+    {
+        <MudItem xs="12" sm="6">
+            <MudCard Style="width: 310px;">
+                <MudCardContent>
+                    <MudText>@title</MudText>
+                    <MudText Typo="Typo.body2">@body</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary">@buttonText</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
+
+</MudGrid>
 
 @code {
+
+    private readonly record struct FirstLoginCardContent(string Title, string Body, string ButtonText);
+
+    private readonly FirstLoginCardContent[] _cardContents =
+    {
+        new("Færdiggør Profil", "Fuldfør din profil for at hjælpe andre med at lære dig bedre at kende.", "Færdiggør Profil"),
+        new("Find et Mini Møde", "Forbind med andre familier for legeaftaler og aktiviteter.", "Søg Brugere"),
+        new("Find en Gruppe", "Opdag grupper, der matcher din families interesser.", "Søg Grupper"),
+        new("Opslag", "Tjek de seneste indlæg fra fællesskabet.", "Se Opslag"),
+    };
 
 }
