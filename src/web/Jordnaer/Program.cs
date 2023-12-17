@@ -88,9 +88,9 @@ else
 
 app.UseHttpsRedirection();
 
+app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseAntiforgery();
 
 app.UseSerilog();
 
@@ -106,6 +106,7 @@ app.UseOutputCache();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
