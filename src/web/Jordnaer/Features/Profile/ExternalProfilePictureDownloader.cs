@@ -4,7 +4,9 @@ using Jordnaer.Server.Database;
 using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
 using Mediator;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace Jordnaer.Server.Features.Profile;
 
