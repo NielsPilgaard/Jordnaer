@@ -10,6 +10,7 @@ public static class AuthExtensions
         services.AddAuthorizationCore();
         services.AddScoped<AuthStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<AuthStateProvider>());
+        services.AddCascadingAuthenticationState();
         return services;
     }
 }

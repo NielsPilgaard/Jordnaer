@@ -57,7 +57,6 @@ builder.Services.AddMudServices(configuration =>
 builder.Services.AddMudExtensions();
 
 builder.Services.AddWasmAuthentication();
-builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();

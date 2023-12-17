@@ -39,14 +39,16 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
-    public static WebApplicationBuilder AddAzureSignalR(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddSignalR(this WebApplicationBuilder builder)
     {
         builder.Services.AddSignalR(options =>
         {
             options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
             options.KeepAliveInterval = TimeSpan.FromMinutes(1);
         });
-        //.AddAzureSignalR(options =>
+
+        // Azure SignalR Service is expensive. Let's try without
+        //.AddSignalR(options =>
         //{
         //    options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
         //    options.ServerStickyMode = ServerStickyMode.Required;

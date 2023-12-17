@@ -1,3 +1,5 @@
+using Microsoft.FeatureManagement;
+
 namespace Jordnaer.Server.Extensions;
 
 public static class AzureAppConfigurationExtensions
@@ -10,6 +12,7 @@ public static class AzureAppConfigurationExtensions
             throw new InvalidOperationException("Failed to find connection string to Azure App Configuration. Keys checked: 'ConnectionStrings:AppConfig'");
         }
 
+        builder.Services.AddFeatureManagement();
         builder.Services.AddAzureAppConfiguration();
         builder.Configuration.AddAzureAppConfiguration(options =>
             options.Connect(connectionString)
