@@ -3,6 +3,9 @@ name: Run Lighthouse
 on:
   workflow_dispatch:
 
+permissions:
+  actions: read
+
 env:
   WEBSITE_URL: https://jordnaer.azurewebsites.net
 jobs:
