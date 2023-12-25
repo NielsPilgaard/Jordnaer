@@ -1,33 +1,46 @@
+@inject IBrowserViewportService BrowserViewportService
+
 @page "/first-login"
-
-<MudGrid Justify="Justify.SpaceEvenly" Spacing="3">
-    @foreach (var (title, body, buttonText) in _cardContents)
+<MudPage Row="_isMobile ? _cardContents.Length : 2" Column="_isMobile ? 1 : 2" FullScreen="FullScreen.None" Style="min-height: 450px">
+    @foreach (var (title, body, buttonText, link, color) in _cardContents)
     {
-        <MudItem xs="12" sm="6">
-            <MudCard Style="width: 300px;">
-                <MudCardContent>
-                    <MudText>@title</MudText>
-                    <MudText Typo="Typo.body2">@body</MudText>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary">@buttonText</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
+        <div class="d-flex justify-center align-center">
+            <MudCard Style="width: 250px" Elevation="3" Class="@(_isMobile ? "my-2" : "")">
+                <MudCardHeader Style="padding: 8px">
+                    <MudText Typo="Typo.h5" Class="font-open-sans-bold" Style="@($"color: {JordnaerPalette.RedHeader}")">@title</MudText>
+                    </MudCardHeader>
+                    <MudCardContent Style="padding: 8px">
+                        <MudText Typo="Typo.body1" Style="@($"color: {JordnaerPalette.BlueBody}")">@body</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudIconButton Size="Size.Large"
+                                       Variant="Variant.Filled"
+                                       Color="color"
+                                       Href="@link"
+                                       Icon="@Icons.Material.Filled.ArrowForward" />
+                    </MudCardActions>
+                </MudCard>
+            </div>
     }
-
-</MudGrid>
+</MudPage>
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        var breakpoint = await BrowserViewportService.GetCurrentBreakpointAsync();
+        _isMobile = breakpoint is Breakpoint.Xs;
+    }
 
-    private readonly record struct FirstLoginCardContent(string Title, string Body, string ButtonText);
+    private  bool _isMobile;
+
+    private readonly record struct FirstLoginCardContent(string Title, string Body, string ButtonText, string Link, Color Color);
 
     private readonly FirstLoginCardContent[] _cardContents =
     {
-        new("Færdiggør Profil", "Fuldfør din profil for at hjælpe andre med at lære dig bedre at kende.", "Færdiggør Profil"),
-        new("Find et Mini Møde", "Forbind med andre familier for legeaftaler og aktiviteter.", "Søg Brugere"),
-        new("Find en Gruppe", "Opdag grupper, der matcher din families interesser.", "Søg Grupper"),
-        new("Opslag", "Tjek de seneste indlæg fra fællesskabet.", "Se Opslag"),
+        new("Færdiggør Profil", "Fuldfør din profil for at hjælpe andre med at lære dig bedre at kende.", "Færdiggør Profil", "/profile", Color.Success),
+        new("Find et Mini Møde", "Forbind med andre familier for legeaftaler og aktiviteter.", "Se Brugere", "/users", Color.Primary),
+        new("Find en Gruppe", "Opdag grupper, der matcher din families interesser.", "Udforsk Grupper","/groups", Color.Info),
+        new("Opslag", "Tjek de seneste indlæg fra fællesskabet.", "Udforsk Opslag", "/posts", Color.Tertiary),
     };
 
 }
