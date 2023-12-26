@@ -6,7 +6,7 @@
     @foreach (var group in SearchResult.Groups)
     {
         <MudItem xs="6" sm="4" md="4" lg="3" xl="3" xxl="3">
-            <MudNavLink Class="card-link" Href="@($"/groups/{group.Id}")">
+            <MudNavLink Class="card-link" Href="@($"/groups/{group.Name}")">
                 <MudCard Class="pa-3 my-3" Elevation="3">
                     <MudCardContent Class="d-flex flex-column align-center">
                         <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" ReadOnly T="string" Text="@group.Name" Class="mb-5" />

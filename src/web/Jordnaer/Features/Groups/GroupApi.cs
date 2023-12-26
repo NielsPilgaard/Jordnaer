@@ -14,7 +14,9 @@ public static class GroupApi
 
         group.RequirePerUserRateLimit();
 
-        group.MapGet("{id:guid}", GetGroupByIdAsync);
+        group.MapGet("{id:Guid}", GetGroupByIdAsync);
+
+        group.MapGet("slim/{name}", GetSlimGroupByNameAsync);
 
         group.MapPost("", CreateGroupAsync).RequireCurrentUser();
 
@@ -25,11 +27,17 @@ public static class GroupApi
         return group;
     }
 
-    private static async Task<Results<Ok<GroupDto>, NotFound>>
+    private static async Task<Results<Ok<Group>, NotFound>>
         GetGroupByIdAsync(
         [FromRoute] Guid id,
         [FromServices] IGroupService groupsService)
         => await groupsService.GetGroupByIdAsync(id);
+
+    private static async Task<Results<Ok<GroupSlim>, NotFound>>
+        GetSlimGroupByNameAsync(
+            [FromRoute] string name,
+            [FromServices] IGroupService groupsService)
+        => await groupsService.GetSlimGroupByNameAsync(name);
 
     private static async Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(
         [FromBody] Group group,

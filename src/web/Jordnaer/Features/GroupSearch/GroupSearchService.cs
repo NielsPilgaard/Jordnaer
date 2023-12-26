@@ -58,7 +58,7 @@ public class GroupSearchService : IGroupSearchService
                 ShortDescription = group.ShortDescription,
                 ZipCode = group.ZipCode,
                 City = group.City,
-                Categories = group.Categories.Select(category => category.Name),
+                Categories = group.Categories.Select(category => category.Name).ToArray(),
                 MemberCount = group.Memberships.Count(e => e.MembershipStatus == MembershipStatus.Active),
                 Id = group.Id
             })

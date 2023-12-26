@@ -9,7 +9,8 @@ namespace Jordnaer.Server.Features.Groups;
 
 public interface IGroupService
 {
-    Task<Results<Ok<GroupDto>, NotFound>> GetGroupByIdAsync(Guid id);
+    Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id);
+    Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name);
     Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group);
     Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group);
     Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
@@ -33,23 +34,33 @@ public class GroupService : IGroupService
         _diagnosticContext = diagnosticContext;
     }
 
-    public async Task<Results<Ok<GroupDto>, NotFound>> GetGroupByIdAsync(Guid id)
+    public async Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id)
     {
         var group = await _context.Groups
             .AsNoTracking()
-            .Select(group => new GroupDto
+            .FirstOrDefaultAsync(group => group.Id == id);
+
+        return group is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(group);
+    }
+
+    public async Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name)
+    {
+        var group = await _context.Groups
+            .AsNoTracking()
+            .Select(x => new GroupSlim
             {
-                Name = group.Name,
-                Description = group.Description,
-                Categories = group.Categories.Select(category => category.Name).ToList(),
-                Id = group.Id,
-                CreatedUtc = group.CreatedUtc,
-                ShortDescription = group.ShortDescription,
-                City = group.City,
-                ZipCode = group.ZipCode,
-                MemberCount = group.Memberships.Count(membership => membership.MembershipStatus == MembershipStatus.Active)
+                Id = x.Id,
+                Name = x.Name,
+                ShortDescription = x.ShortDescription,
+                ZipCode = x.ZipCode,
+                City = x.City,
+                ProfilePictureUrl = x.ProfilePictureUrl,
+                MemberCount = x.Memberships.Count(membership => membership.MembershipStatus == MembershipStatus.Active),
+                Categories = x.Categories.Select(category => category.Name).ToArray()
             })
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(group => group.Name == name);
 
         return group is null
             ? TypedResults.NotFound()
@@ -78,8 +89,9 @@ public class GroupService : IGroupService
             }
         };
 
+        var selectedCategories = group.Categories.ToArray();
         group.Categories.Clear();
-        foreach (var categoryDto in group.Categories)
+        foreach (var categoryDto in selectedCategories)
         {
             var category = await _context.Categories.FindAsync(categoryDto.Id);
             if (category is null)

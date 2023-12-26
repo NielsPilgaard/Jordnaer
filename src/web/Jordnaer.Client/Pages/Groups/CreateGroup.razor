@@ -101,7 +101,7 @@
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-            Navigation.NavigateTo($"/groups/{_group.Id}");
+            Navigation.NavigateTo($"/groups/{_group.Name}");
         }
         else if (response.StatusCode is HttpStatusCode.BadRequest)
         {

@@ -15,5 +15,5 @@ public class GroupSlim
 
     public int MemberCount { get; set; }
 
-    public required IEnumerable<string> Categories { get; set; }
+    public required string[] Categories { get; set; }
 }

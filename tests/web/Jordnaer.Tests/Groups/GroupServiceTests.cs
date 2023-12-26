@@ -75,15 +75,14 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
         var result = await _groupService.GetGroupByIdAsync(group.Id);
 
         // Assert
-        result.Result.Should().BeOfType<Ok<GroupDto>>();
-        var groupDto = (result.Result as Ok<GroupDto>)?.Value;
+        result.Result.Should().BeOfType<Ok<Group>>();
+        var groupDto = (result.Result as Ok<Group>)?.Value;
         groupDto.Should().NotBeNull();
         groupDto!.Name.Should().Be(group.Name);
         groupDto.Description.Should().Be(group.Description);
         groupDto.ShortDescription.Should().Be(group.ShortDescription);
         groupDto.City.Should().Be(group.City);
         groupDto.ZipCode.Should().Be(group.ZipCode);
-        groupDto.MemberCount.Should().Be(group.Memberships.Count);
     }
 
     [Fact]
