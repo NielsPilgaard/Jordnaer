@@ -20,7 +20,7 @@
                        Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
                        Image="@_profile?.ProfilePictureUrl" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
 
     @if (_currentUserId != _profile?.Id)
     {
@@ -115,6 +115,4 @@
 
         _isLoading = false;
     }
-
-    private async Task GoBack() => await JsRuntime.InvokeVoidAsync("history.back");
 }

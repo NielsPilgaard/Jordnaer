@@ -5,12 +5,15 @@
 @inject IGroupClient GroupClient
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_group is null)
     {
+        <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
         return;
     }
+
     <EditForm Model="@_group" OnValidSubmit="Update">
         <DataAnnotationsValidator/>
         <MudPaper Elevation="3" Class="pa-4">

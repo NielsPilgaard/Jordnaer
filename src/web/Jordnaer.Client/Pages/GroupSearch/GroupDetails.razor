@@ -20,7 +20,7 @@
                        Description="@($"Beskrivelse af {_group.Name}:\n {_group.ShortDescription}")"
                        Image="@_group.ProfilePictureUrl" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="GoBack" />
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
 
     @*// TODO: Request to join button*@
 
@@ -81,6 +81,4 @@
 
         _isLoading = false;
     }
-
-    private async Task GoBack() => await JsRuntime.InvokeVoidAsync("history.back");
 }
