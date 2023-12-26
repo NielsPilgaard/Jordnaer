@@ -1,4 +1,4 @@
-@page "/groups/{GroupId:guid}"
+@page "/groups/{GroupId}"
 
 @inject IGroupClient GroupClient
 @inject ISnackbar Snackbar
@@ -8,7 +8,7 @@
 
     @if (_group is null && _isLoading is false)
     {
-        <NotFoundComponent />
+        <NotFoundComponent Message="Ingen gruppe med det id findes."/>
         return;
     }
     @if (_group is null)

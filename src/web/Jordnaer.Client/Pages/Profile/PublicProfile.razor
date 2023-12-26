@@ -8,7 +8,7 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null && _isLoading is false)
     {
-        <NotFoundComponent />
+        <NotFoundComponent Message="Ingen person med det navn fundet."/>
         return;
     }
     @if (_profile is null)

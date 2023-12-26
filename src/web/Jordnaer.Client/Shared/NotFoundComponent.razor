@@ -2,7 +2,22 @@
                    Description="Siden blev ikke fundet" />
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex flex-column align-center justify-center">
-  <MudText Typo="Typo.h4" Class="mb-3">Siden blev ikke fundet</MudText>
-  <MudText Typo="Typo.body1" Class="mb-5">Beklager, men vi kunne ikke finde den side du leder efter.</MudText>
-  <MudImage Src="/images/bier.png" Alt="Bier" Class="m-auto" Style="width: 100%; max-width: 250px;" />
-</MudContainer>
+    <MudText Typo="Typo.h4" Class="mb-3">Siden blev ikke fundet</MudText>
+    <MudText Typo="Typo.body1" Class="mb-5">@_message</MudText>
+        <MudImage Src="/images/bier.png" Alt="Bier" Class="m-auto" Style="width: 100%; max-width: 250px;" />
+    </MudContainer>
+
+@code{
+    [Parameter]
+    public string? Message { get; set; }
+
+    private string _message = string.Empty;
+
+    private const string _defaultMessage = "Beklager, men vi kunne ikke finde den side du leder efter.";
+
+    protected override void OnParametersSet()
+    {
+        _message = Message ?? _defaultMessage;
+    }
+
+}
