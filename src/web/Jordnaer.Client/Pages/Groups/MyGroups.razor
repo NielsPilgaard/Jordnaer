@@ -7,43 +7,56 @@
 
 <MudButton Href="groups/create" Variant="Variant.Filled">Opret gruppe</MudButton>
 
-<MudLoading @bind-Loading="_isLoading">
-    @if (_isLoading)
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+	@if (_owned.Length > 0)
     {
-        return;
-    }
-    @if (_groupSummaries is null)
-    {
-        return;
-    }
-
-    @if (_owned.Length > 0)
-    {
+	    <MudText Typo="Typo.h5" Class="font-open-sans-bold">Ejede Grupper</MudText>
+	    <MudDivider/>
+	    <MudGrid Justify="Justify.Center" Spacing="3">
         @foreach (var group in _owned)
         {
-            <h1>@group.Group.Name: @group.OwnershipLevel</h1>
+	        <MudItem xs="12" sm="6" md="4" lg="3" xl="2">
+		        <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+	        </MudItem>
         }
+	    </MudGrid>
     }
-    @if (_memberOf.Length > 0)
+	else
+	{
+		<MudAlert Severity="Severity.Info">Du har ikke oprettet nogle grupper endnu.</MudAlert>
+	}
+    
+	<MudText Typo="Typo.h5" Class="font-open-sans-bold">Mine Grupper</MudText>
+	@if (_memberOf.Length > 0)
     {
+        <MudDivider />
         @foreach (var group in _memberOf)
         {
-            <h1>@group.Group.Name: @group.OwnershipLevel</h1>
+            <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
         }
     }
-    @if (_pendingAccess.Length > 0)
+	else
     {
-        @foreach (var group in _pendingAccess)
-        {
-            <h1>@group.Group.Name: @group.OwnershipLevel</h1>
-        }
+        <MudAlert Severity="Severity.Info">Du er ikke medlem af nogle grupper endnu.</MudAlert>
     }
 
+	<MudText Typo="Typo.h5" Class="font-open-sans-bold">Afventer Svar</MudText>
+	@if (_pendingAccess.Length > 0)
+    {
+        <MudDivider />
+        @foreach (var group in _pendingAccess)
+        {
+            <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+        }
+    }
+	else
+	{
+		<MudAlert Severity="Severity.Info">Du har ingen afventende anmodninger fra grupper.</MudAlert>
+	}
 </MudLoading>
 
 @code {
-
-    private bool _isLoading = true;
+	private bool _isLoading = true;
 
     private List<UserGroupAccess>? _groupSummaries;
 
@@ -55,6 +68,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+	    await Task.Delay(2000);
         _groupSummaries = await GroupClient.GetSlimGroupsForUserAsync().NotifyUserOfResponseAsync(Snackbar);
         if (_groupSummaries is not null)
         {
@@ -63,7 +77,7 @@
                 .ToArray();
 
             _memberOf = _groupSummaries
-                .Where(x => x.MembershipStatus is MembershipStatus.Active)
+                .Where(x => x.MembershipStatus is MembershipStatus.Active && x.OwnershipLevel is not OwnershipLevel.Owner)
                 .ToArray();
 
             _pendingAccess = _groupSummaries

@@ -1,5 +1,18 @@
-@code {
+<MudCard Elevation="3">
+	<MudCardContent>
+		<MudText Typo="Typo.h4" Align="Align.Left">@UserGroupAccess.Group.Name</MudText>
+		@if (UserGroupAccess.Group.ProfilePictureUrl is not null)
+		{
+			<MudImage ObjectPosition="ObjectPosition.Left" Style="border-radius: 50%" Src="@UserGroupAccess.Group.ProfilePictureUrl" loading="lazy"/>
+		}
+		<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@UserGroupAccess.Group.DisplayLocation()"/>
+		<MudText Class="mt-3" Typo="Typo.body1">@UserGroupAccess.Group.ShortDescription</MudText>
+	</MudCardContent>
+</MudCard>
 
+@code {
+    [Parameter]
+    public UserGroupAccess UserGroupAccess { get; set; }
 
 
 }
