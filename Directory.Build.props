@@ -2,7 +2,7 @@
 
     <PropertyGroup Label="Shared Properties">
         <LangVersion>preview</LangVersion>
-        <NoWarn>$(NoWarn);CS1701;CS1702;CS1591;AD0001;IDE1006;CS8625;IDE0058;</NoWarn>
+        <NoWarn>$(NoWarn);CS1701;CS1702;CS1591;AD0001;IDE1006;CS8625;IDE0058;IDE0028;</NoWarn>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
