@@ -1,5 +1,6 @@
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Database;
+using Jordnaer.Server.Extensions;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ public interface IGroupService
     Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group);
     Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group);
     Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
+    Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync();
 }
 
 public class GroupService : IGroupService
@@ -36,6 +38,8 @@ public class GroupService : IGroupService
 
     public async Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id)
     {
+        _logger.LogFunctionBegan();
+
         var group = await _context.Groups
             .AsNoTracking()
             .FirstOrDefaultAsync(group => group.Id == id);
@@ -47,6 +51,8 @@ public class GroupService : IGroupService
 
     public async Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name)
     {
+        _logger.LogFunctionBegan();
+
         var group = await _context.Groups
             .AsNoTracking()
             .Select(x => new GroupSlim
@@ -66,9 +72,46 @@ public class GroupService : IGroupService
             ? TypedResults.NotFound()
             : TypedResults.Ok(group);
     }
+    public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync()
+    {
+        _logger.LogFunctionBegan();
+
+        var groups = await _context.GroupMemberships
+            .AsNoTracking()
+            .Where(membership => membership.UserProfileId == _currentUser.Id &&
+                                 membership.MembershipStatus != MembershipStatus.Rejected)
+            .Select(x => new UserGroupAccess
+            {
+                Group = new GroupSlim
+                {
+                    Id = x.Group.Id,
+                    Name = x.Group.Name,
+                    ShortDescription = x.Group.ShortDescription,
+                    ZipCode = x.Group.ZipCode,
+                    City = x.Group.City,
+                    ProfilePictureUrl = x.Group.ProfilePictureUrl,
+                    MemberCount =
+                        x.Group.Memberships.Count(membership =>
+                            membership.MembershipStatus == MembershipStatus.Active),
+                    Categories = x.Group.Categories.Select(category => category.Name).ToArray()
+                },
+                MembershipStatus = x.MembershipStatus,
+                OwnershipLevel = x.OwnershipLevel,
+                PermissionLevel = x.PermissionLevel,
+                LastUpdatedUtc = x.LastUpdatedUtc
+            })
+            .OrderByDescending(x => x.OwnershipLevel)
+            .ThenByDescending(x => x.PermissionLevel)
+            .ThenByDescending(x => x.LastUpdatedUtc)
+            .ToListAsync();
+
+        return groups;
+    }
 
     public async Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group)
     {
+        _logger.LogFunctionBegan();
+
         if (await _context.Groups.AnyAsync(x => x.Name == group.Name))
         {
             return TypedResults.BadRequest($"Gruppenavnet '{group.Name}' er allerede taget.");
@@ -118,6 +161,8 @@ public class GroupService : IGroupService
 
     public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group)
     {
+        _logger.LogFunctionBegan();
+
         if (id != group.Id)
         {
             return TypedResults.BadRequest(string.Empty);
@@ -147,7 +192,9 @@ public class GroupService : IGroupService
 
     public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id)
     {
-        _diagnosticContext.Set("groupId", id);
+        _logger.LogFunctionBegan();
+
+        _diagnosticContext.Set("group_id", id);
 
         var group = await _context.Groups.FindAsync(id);
         if (group is null)
@@ -156,7 +203,7 @@ public class GroupService : IGroupService
             return TypedResults.NotFound();
         }
 
-        _diagnosticContext.Set("groupName", group.Name);
+        _diagnosticContext.Set("group_name", group.Name);
 
         var groupOwner = await _context.GroupMemberships
             .SingleOrDefaultAsync(e => e.UserProfileId == _currentUser.Id &&

@@ -12,6 +12,9 @@ public interface IGroupClient
 
     Task<IApiResponse<GroupSlim?>> GetSlimGroupByNameAsync(string name);
 
+    [Get("/api/groups/slim")]
+    Task<IApiResponse<List<UserGroupAccess>>> GetSlimGroupsForUserAsync();
+
     [Post("/api/groups")]
     Task<IApiResponse> CreateGroupAsync([Body] Group group);
 

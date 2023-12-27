@@ -1,12 +1,43 @@
 @page "/personal/groups"
+
 @attribute [Authorize]
+
 @inject IGroupClient GroupClient
+@inject ISnackbar Snackbar
 
 <MudButton Href="groups/create" Variant="Variant.Filled">Opret gruppe</MudButton>
 
 <MudLoading @bind-Loading="_isLoading">
+    @if (_isLoading)
+    {
+        return;
+    }
+    @if (_groupSummaries is null)
+    {
+        return;
+    }
 
-    @*TODO: Load all groups where user is a member, most recent groups first, then ordered by permission level*@
+    @if (_owned.Length > 0)
+    {
+        @foreach (var group in _owned)
+        {
+            <h1>@group.Group.Name: @group.OwnershipLevel</h1>
+        }
+    }
+    @if (_memberOf.Length > 0)
+    {
+        @foreach (var group in _memberOf)
+        {
+            <h1>@group.Group.Name: @group.OwnershipLevel</h1>
+        }
+    }
+    @if (_pendingAccess.Length > 0)
+    {
+        @foreach (var group in _pendingAccess)
+        {
+            <h1>@group.Group.Name: @group.OwnershipLevel</h1>
+        }
+    }
 
 </MudLoading>
 
@@ -14,8 +45,31 @@
 
     private bool _isLoading = true;
 
-    protected override  void OnInitialized()
+    private List<UserGroupAccess>? _groupSummaries;
+
+    private UserGroupAccess[] _owned = Array.Empty<UserGroupAccess>();
+
+    private UserGroupAccess[] _memberOf = Array.Empty<UserGroupAccess>();
+
+    private UserGroupAccess[] _pendingAccess = Array.Empty<UserGroupAccess>();
+
+    protected override async Task OnInitializedAsync()
     {
+        _groupSummaries = await GroupClient.GetSlimGroupsForUserAsync().NotifyUserOfResponseAsync(Snackbar);
+        if (_groupSummaries is not null)
+        {
+            _owned = _groupSummaries
+                .Where(x => x.OwnershipLevel is OwnershipLevel.Owner)
+                .ToArray();
+
+            _memberOf = _groupSummaries
+                .Where(x => x.MembershipStatus is MembershipStatus.Active)
+                .ToArray();
+
+            _pendingAccess = _groupSummaries
+                .Where(x => x.MembershipStatus is MembershipStatus.PendingApprovalFromGroup or MembershipStatus.PendingApprovalFromUser)
+                .ToArray();
+        }
         _isLoading = false;
     }
 }
