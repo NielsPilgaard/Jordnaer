@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Jordnaer.Server.Database;
+namespace Jordnaer.Database;
 
 public class ApplicationUser : IdentityUser { }

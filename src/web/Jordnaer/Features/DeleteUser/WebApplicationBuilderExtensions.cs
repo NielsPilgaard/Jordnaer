@@ -1,11 +1,11 @@
-namespace Jordnaer.Server.Features.DeleteUser;
+namespace Jordnaer.Features.DeleteUser;
 
 public static class WebApplicationBuilderExtensions
 {
-    public static WebApplicationBuilder AddDeleteUserFeature(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddScoped<IDeleteUserService, DeleteUserService>();
+	public static WebApplicationBuilder AddDeleteUserFeature(this WebApplicationBuilder builder)
+	{
+		builder.Services.AddScoped<IDeleteUserService, DeleteUserService>();
 
-        return builder;
-    }
+		return builder;
+	}
 }

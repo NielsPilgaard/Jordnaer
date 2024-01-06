@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 
-namespace Jordnaer.Server.Features.Profile;
+namespace Jordnaer.Features.Profile;
 
 public class GooglePictureResponse
 {
-    [JsonPropertyName("picture")]
-    public string? Picture { get; set; }
+	[JsonPropertyName("picture")]
+	public string? Picture { get; set; }
 }

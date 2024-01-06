@@ -1,0 +1,29 @@
+@inherits LayoutComponentBase
+
+<MudDialogProvider CloseOnEscapeKey="true"
+                   DisableBackdropClick="false"
+                   Position="DialogPosition.Center"
+                   MaxWidth="MaxWidth.Large"
+                   CloseButton="true" />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <TopBar ToggleDrawer="@ToggleDrawer" />
+    <SideBar @bind-Open="_isDrawerOpen" />
+    <MudMainContent Class="mb-6">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+    <MudSpacer />
+    <Footer></Footer>
+    <CookieBanner />
+</MudLayout>
+
+<BlazorErrorFooter />
+
+@code
+{
+    private bool _isDrawerOpen = false;
+    private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
+}

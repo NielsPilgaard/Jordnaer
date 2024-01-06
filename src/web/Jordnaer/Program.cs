@@ -1,31 +1,38 @@
-using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
+using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Blazr.RenderState.Server;
-using Jordnaer.Client;
-using Jordnaer.Client.SignalR;
-using Jordnaer.Server.Authentication;
-using Jordnaer.Server.Authorization;
-using Jordnaer.Server.Components;
-using Jordnaer.Server.Database;
-using Jordnaer.Server.Extensions;
-using Jordnaer.Server.Features.Category;
-using Jordnaer.Server.Features.Chat;
-using Jordnaer.Server.Features.DeleteUser;
-using Jordnaer.Server.Features.Email;
-using Jordnaer.Server.Features.Groups;
-using Jordnaer.Server.Features.GroupSearch;
-using Jordnaer.Server.Features.Profile;
-using Jordnaer.Server.Features.UserSearch;
+using Jordnaer.Authentication;
+using Jordnaer.Authorization;
+using Jordnaer.Components;
+using Jordnaer.Database;
+using Jordnaer.Extensions;
+using Jordnaer.Features.Authentication;
+using Jordnaer.Features.Category;
+using Jordnaer.Features.Chat;
+using Jordnaer.Features.DeleteUser;
+using Jordnaer.Features.Email;
+using Jordnaer.Features.Groups;
+using Jordnaer.Features.GroupSearch;
+using Jordnaer.Features.Profile;
+using Jordnaer.Features.UserSearch;
+using Jordnaer.Shared;
 using Jordnaer.Shared.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.FeatureManagement;
+using MudBlazor;
+using MudBlazor.Services;
+using MudExtensions.Services;
 using Serilog;
+using System.Text.Json.Serialization;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+             .WriteTo.Console()
+             .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+var baseUrl = builder.Configuration.GetValue<string>("MiniMoeder:BaseUrl")
+                 ?? throw new ArgumentNullException("BaseUrl", "BaseUrl must be set in the configuration.");
 
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
@@ -55,7 +62,7 @@ builder.Services.AddOutputCache();
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-builder.AddEmailServices();
+builder.AddEmailServices(baseUrl);
 
 builder.AddDeleteUserFeature();
 
@@ -70,10 +77,52 @@ builder.AddSignalR();
 
 builder.Services.AddScoped<IImageService, ImageService>();
 
-builder.AddGroupServices();
-builder.AddGroupSearchServices();
+builder.AddGroupServices(baseUrl);
+builder.AddGroupSearchServices(baseUrl);
 
 builder.AddBlazrRenderStateServerServices();
+
+builder.AddCategoryServices(baseUrl);
+builder.AddProfileServices(baseUrl);
+builder.Services.AddRefitClient<IAuthClient>(baseUrl);
+builder.Services.AddRefitClient<IDeleteUserClient>(baseUrl);
+builder.Services.AddRefitClient<IUserSearchClient>(baseUrl);
+builder.Services.AddRefitClient<IImageClient>(baseUrl);
+builder.Services.AddRefitClient<IChatClient>(baseUrl);
+
+//TODO: Remove
+builder.Services.AddWasmAuthentication();
+
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<ChatSignalRClient>();
+
+builder.Services.AddMudServices(configuration =>
+{
+    configuration.ResizeOptions = new ResizeOptions
+    {
+        NotifyOnBreakpointOnly = true
+    };
+    configuration.SnackbarConfiguration = new SnackbarConfiguration
+    {
+        VisibleStateDuration = 2500,
+        ShowTransitionDuration = 250,
+        BackgroundBlurred = true,
+        MaximumOpacity = 95,
+        MaxDisplayedSnackbars = 3,
+        PositionClass = Defaults.Classes.Position.BottomCenter,
+        HideTransitionDuration = 100,
+        ShowCloseIcon = false
+    };
+});
+builder.Services.AddMudExtensions();
+
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredSessionStorage();
+
+builder.Services.AddMemoryCache();
+
+builder.Services.AddDataForsyningenClient();
+builder.Services.Configure<DataForsyningenOptions>(builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
 
 var app = builder.Build();
 
@@ -114,7 +163,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Routes).Assembly)
+    //.AddAdditionalAssemblies(typeof(Routes).Assembly)
     .AddInteractiveServerRenderMode();
 
 // Configure the APIs
@@ -148,4 +197,7 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
-public partial class Program { }
+namespace Jordnaer
+{
+    public partial class Program { }
+}

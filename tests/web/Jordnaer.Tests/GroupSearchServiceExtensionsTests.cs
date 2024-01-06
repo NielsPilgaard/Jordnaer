@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Jordnaer.Features.GroupSearch;
 using Jordnaer.Shared;
 using Xunit;
 
@@ -67,7 +68,7 @@ public class GroupSearchServiceExtensionsTests
         var groups = CreateGroups().AsQueryable();
 
         // Act
-        var result = groups.ApplyCategoryFilter(Array.Empty<string>());
+        var result = groups.ApplyCategoryFilter([]);
 
         // Assert
         result.Should().BeEquivalentTo(groups);
@@ -78,7 +79,7 @@ public class GroupSearchServiceExtensionsTests
     {
         // Arrange
         var groups = CreateGroups().AsQueryable();
-        string[] categories = new[] { "Category 1" };
+        var categories = new[] { "Category 1" };
 
         // Act
         var result = groups.ApplyCategoryFilter(categories);
@@ -94,7 +95,7 @@ public class GroupSearchServiceExtensionsTests
     {
         // Arrange
         var groups = CreateGroups().AsQueryable();
-        string[] categories = new[] { "Category 1", "Category 2" };
+        var categories = new[] { "Category 1", "Category 2" };
 
         // Act
         var result = groups.ApplyCategoryFilter(categories);
@@ -108,7 +109,7 @@ public class GroupSearchServiceExtensionsTests
     {
         // Arrange
         var groups = CreateGroups().AsQueryable();
-        string[] categories = new[] { "Category" };
+        var categories = new[] { "Category" };
 
         // Act
         var result = groups.ApplyCategoryFilter(categories);

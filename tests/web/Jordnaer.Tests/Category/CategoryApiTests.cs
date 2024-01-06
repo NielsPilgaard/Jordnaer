@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Jordnaer.Client.Features.Category;
+using Jordnaer.Features.Category;
 using Refit;
 using Xunit;
 
@@ -9,25 +9,25 @@ namespace Jordnaer.Server.Tests.Category;
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class CategoryApi_Should
 {
-    private readonly JordnaerWebApplicationFactory _factory;
+	private readonly JordnaerWebApplicationFactory _factory;
 
-    public CategoryApi_Should(JordnaerWebApplicationFactory factory)
-    {
-        _factory = factory;
-    }
+	public CategoryApi_Should(JordnaerWebApplicationFactory factory)
+	{
+		_factory = factory;
+	}
 
-    [Fact]
-    public async Task Get_Categories_Successfully()
-    {
-        // Arrange
-        var client = RestService.For<ICategoryClient>(_factory.CreateClient());
+	[Fact]
+	public async Task Get_Categories_Successfully()
+	{
+		// Arrange
+		var client = RestService.For<ICategoryClient>(_factory.CreateClient());
 
-        // Act
-        var response = await client.GetCategories();
+		// Act
+		var response = await client.GetCategories();
 
-        // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        response.Content.Should().NotBeNullOrEmpty();
-        response.Content!.Count.Should().BeGreaterThan(0);
-    }
+		// Assert
+		response.IsSuccessStatusCode.Should().BeTrue();
+		response.Content.Should().NotBeNullOrEmpty();
+		response.Content!.Count.Should().BeGreaterThan(0);
+	}
 }

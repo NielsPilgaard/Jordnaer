@@ -1,11 +1,16 @@
-namespace Jordnaer.Server.Features.GroupSearch;
+using Jordnaer.Extensions;
+using Refit;
+
+namespace Jordnaer.Features.GroupSearch;
 
 public static class WebApplicationBuilderExtensions
 {
-    public static WebApplicationBuilder AddGroupSearchServices(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddScoped<IGroupSearchService, GroupSearchService>();
+	public static WebApplicationBuilder AddGroupSearchServices(this WebApplicationBuilder builder, string baseUrl)
+	{
+		builder.Services.AddScoped<IGroupSearchService, GroupSearchService>();
 
-        return builder;
-    }
+		builder.Services.AddRefitClient<IGroupSearchClient>(baseUrl);
+
+		return builder;
+	}
 }

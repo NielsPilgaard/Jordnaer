@@ -27,7 +27,6 @@
 
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
 
-    <!--Styles-->
     <link href="css/landing-page.css?v=1.1" rel="stylesheet" />
     <link href="css/fonts.css?v=1.0" rel="stylesheet" />
     <link href="css/app.css?v=1.1" rel="stylesheet" />
@@ -40,7 +39,7 @@
 </head>
 
 <body>
-    <Routes @rendermode="@(new InteractiveWebAssemblyRenderMode(prerender: false))" />
+    <Routes @rendermode="@InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
     <script src="js/scroll.js?v=1.0"></script>
     <script src="js/utilities.js?v=1.0"></script>

@@ -1,8 +1,8 @@
-namespace Jordnaer.Server.Features.Profile;
+namespace Jordnaer.Features.Profile;
 
 public enum SupportedAuthProviders
 {
-    Facebook = 0,
-    Google = 1,
-    Microsoft = 2
+	Facebook = 0,
+	Google = 1,
+	Microsoft = 2
 }

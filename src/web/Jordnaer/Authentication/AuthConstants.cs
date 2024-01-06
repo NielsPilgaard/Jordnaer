@@ -1,6 +1,6 @@
-namespace Jordnaer.Server.Authentication;
+namespace Jordnaer.Authentication;
 
 public class AuthConstants
 {
-    public static string ExternalScheme => "External";
+	public static string ExternalScheme => "External";
 }

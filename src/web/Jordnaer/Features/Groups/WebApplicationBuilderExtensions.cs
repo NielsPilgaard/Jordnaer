@@ -1,11 +1,17 @@
-namespace Jordnaer.Server.Features.Groups;
+using Jordnaer.Extensions;
+using Refit;
+
+namespace Jordnaer.Features.Groups;
 
 public static class WebApplicationBuilderExtensions
 {
-    public static WebApplicationBuilder AddGroupServices(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddScoped<IGroupService, GroupService>();
+	public static WebApplicationBuilder AddGroupServices(this WebApplicationBuilder builder, string baseUrl)
+	{
+		builder.Services.AddScoped<IGroupService, GroupService>();
 
-        return builder;
-    }
+		builder.Services.AddRefitClient<IGroupClient>(baseUrl);
+		builder.Services.AddRefitClient<IGroupChatClient>(baseUrl);
+
+		return builder;
+	}
 }

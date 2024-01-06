@@ -1,0 +1,40 @@
+@page "/first-login"
+@using Jordnaer.Features.Theme
+
+@inject NavigationManager Navigation
+
+<MudGrid Justify="Justify.Center">
+    @foreach (var (title, body, link, color) in _cardContents)
+    {
+        <MudItem xs="12" sm="6" md="4" Class="d-flex justify-center align-center" @onclick="() => Navigation.NavigateTo(link)">
+            <MudCard Style="width: 300px" Elevation="3" Class="mt-2">
+                <MudCardHeader Style="padding: 8px">
+                    <MudText Typo="Typo.h5" Class="font-open-sans-bold" Style="@($"color: {JordnaerPalette.RedHeader}")">@title</MudText>
+                </MudCardHeader>
+                <MudCardContent Style="padding: 8px">
+                    <MudText Typo="Typo.body1" Style="@($"color: {JordnaerPalette.BlueBody}")">@body</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudIconButton Size="Size.Large"
+                                   Variant="Variant.Filled"
+                                   Color="color"
+                                   Href="@link"
+                                   Icon="@Icons.Material.Filled.ArrowForward" />
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private readonly record struct FirstLoginCardContent(string Title, string Body, string Link, Color Color);
+
+    private static readonly FirstLoginCardContent[] _cardContents =
+    {
+        new("Færdiggør Profil", "Fuldfør din profil for at hjælpe andre med at lære dig bedre at kende.", "/profile", Color.Success),
+        new("Find et Mini Møde", "Forbind med andre familier for legeaftaler og aktiviteter.", "/users", Color.Primary),
+        new("Find en Gruppe", "Opdag grupper, der matcher din families interesser.","/groups", Color.Info),
+        // TODO: Uncomment when Posts is a thing
+    // new("Opslag", "Tjek de seneste indlæg.", "/posts", Color.Tertiary),
+    };
+}

@@ -1,0 +1,18 @@
+@page "/"
+@using Jordnaer.Shared
+@attribute [Layout(typeof(LandingPageLayout))]
+
+<MetadataComponent Title="Mini Møder"
+                   Description="Et online mødested for børnefamilier" />
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+
+    <DesktopLandingPage />
+
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+
+    <MobileLandingPage />
+
+</MudHidden>
