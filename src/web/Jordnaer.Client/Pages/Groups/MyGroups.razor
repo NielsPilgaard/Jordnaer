@@ -5,62 +5,49 @@
 @inject IGroupClient GroupClient
 @inject ISnackbar Snackbar
 
-<MudButton Href="groups/create" Variant="Variant.Filled">Opret gruppe</MudButton>
+<MudButton Href="groups/create" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.GroupAdd">Opret gruppe</MudButton>
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
-	@if (_owned.Length > 0)
-    {
-	    <MudText Typo="Typo.h5" Class="font-open-sans-bold">Ejede Grupper</MudText>
-	    <MudDivider/>
-	    <MudGrid Justify="Justify.Center" Spacing="3">
-        @foreach (var group in _owned)
-        {
-	        <MudItem xs="12" sm="6" md="4" lg="3" xl="2">
-		        <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
-	        </MudItem>
-        }
-	    </MudGrid>
-    }
-	else
-	{
-		<MudAlert Severity="Severity.Info">Du har ikke oprettet nogle grupper endnu.</MudAlert>
-	}
-    
-	<MudText Typo="Typo.h5" Class="font-open-sans-bold">Mine Grupper</MudText>
-	@if (_memberOf.Length > 0)
-    {
-        <MudDivider />
-        @foreach (var group in _memberOf)
-        {
-            <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
-        }
-    }
-	else
-    {
-        <MudAlert Severity="Severity.Info">Du er ikke medlem af nogle grupper endnu.</MudAlert>
-    }
-
-	<MudText Typo="Typo.h5" Class="font-open-sans-bold">Afventer Svar</MudText>
 	@if (_pendingAccess.Length > 0)
-    {
-        <MudDivider />
-        @foreach (var group in _pendingAccess)
-        {
-            <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
-        }
-    }
+	{
+		<MudText Typo="Typo.h5" Class="font-open-sans-bold">Afventer Svar</MudText>
+		<MudDivider />
+		@foreach (var group in _pendingAccess)
+		{
+			<GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+		}
+	}
+
+	<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-10">Mine Grupper</MudText>
+	@if (_memberOf.Length > 0)
+	{
+        <MudDivider Class="mb-5" />
+		<MudGrid Justify="Justify.FlexStart" Spacing="3">
+			@foreach (var group in _memberOf)
+			{
+				<MudItem xs="12" sm="6" md="4" lg="3">
+					<GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+				</MudItem>
+			}
+		</MudGrid>
+	}
 	else
 	{
-		<MudAlert Severity="Severity.Info">Du har ingen afventende anmodninger fra grupper.</MudAlert>
+		<MudAlert Severity="Severity.Info">Du er ikke medlem af nogle grupper endnu.</MudAlert>
 	}
-</MudLoading>
 
+	@if (_pendingAccess.Length is 0)
+	{
+		<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-5">Afventer Svar</MudText>
+		<MudDivider Class="mb-5" />
+		<MudAlert Severity="Severity.Info">Du har ingen afventende anmodninger.</MudAlert>
+	}
+
+</MudLoading>
 @code {
 	private bool _isLoading = true;
 
     private List<UserGroupAccess>? _groupSummaries;
-
-    private UserGroupAccess[] _owned = Array.Empty<UserGroupAccess>();
 
     private UserGroupAccess[] _memberOf = Array.Empty<UserGroupAccess>();
 
@@ -72,12 +59,8 @@
         _groupSummaries = await GroupClient.GetSlimGroupsForUserAsync().NotifyUserOfResponseAsync(Snackbar);
         if (_groupSummaries is not null)
         {
-            _owned = _groupSummaries
-                .Where(x => x.OwnershipLevel is OwnershipLevel.Owner)
-                .ToArray();
-
             _memberOf = _groupSummaries
-                .Where(x => x.MembershipStatus is MembershipStatus.Active && x.OwnershipLevel is not OwnershipLevel.Owner)
+                .Where(x => x.MembershipStatus is MembershipStatus.Active)
                 .ToArray();
 
             _pendingAccess = _groupSummaries
