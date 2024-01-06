@@ -44,7 +44,7 @@
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _isSearching = true;
         var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
