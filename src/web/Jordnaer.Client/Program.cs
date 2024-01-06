@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
+using Blazr.RenderState.WASM;
 using Jordnaer.Client;
 using Jordnaer.Client.Features.Authentication;
 using Jordnaer.Client.Features.Category;
@@ -69,6 +70,8 @@ builder.Services.Configure<DataForsyningenOptions>(
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<ChatSignalRClient>();
+
+builder.AddBlazrRenderStateWASMServices();
 
 var host = builder.Build();
 

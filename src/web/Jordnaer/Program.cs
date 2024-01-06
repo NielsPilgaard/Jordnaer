@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
+using Blazr.RenderState.Server;
 using Jordnaer.Client;
+using Jordnaer.Client.SignalR;
 using Jordnaer.Server.Authentication;
 using Jordnaer.Server.Authorization;
 using Jordnaer.Server.Components;
@@ -70,6 +72,8 @@ builder.Services.AddScoped<IImageService, ImageService>();
 
 builder.AddGroupServices();
 builder.AddGroupSearchServices();
+
+builder.AddBlazrRenderStateServerServices();
 
 var app = builder.Build();
 

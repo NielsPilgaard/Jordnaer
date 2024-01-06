@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.4.0" />
+    <PackageReference Include="Blazr.RenderState.WASM" Version="0.9.1" />
     <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.7.0" />
     <PackageReference Include="Bogus" Version="35.2.0" />
     <PackageReference Include="FluentValidation" Version="11.9.0" />
