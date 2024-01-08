@@ -1,8 +1,9 @@
-@using Jordnaer.Shared
 @using MudBlazor.Services
 @using Refit
 @inject NavigationManager Navigation
 @implements IDisposable
+
+@rendermode InteractiveServer
 
 <MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="5" Variant="DrawerVariant.Responsive">
     <MudNavMenu>

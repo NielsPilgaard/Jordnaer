@@ -21,7 +21,7 @@ public static class AuthApi
 
 		group.MapPost("register", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
 		{
-			string? userId = await userService.CreateUserAsync(userInfo);
+			var userId = await userService.CreateUserAsync(userInfo);
 
 			return userId is not null
 				? SignIn(userId, userInfo, new AuthenticationProperties { RedirectUri = "/first-login" })
@@ -31,7 +31,7 @@ public static class AuthApi
 		group.MapPost("login", async ([FromBody] UserInfo userInfo, [FromServices] IUserService userService) =>
 		{
 			// Check whether the user exists
-			string? userId = await userService.IsLoginValidAsync(userInfo);
+			var userId = await userService.IsLoginValidAsync(userInfo);
 
 			return userId is not null
 				? SignIn(userId, userInfo, new AuthenticationProperties { RedirectUri = "/" })
@@ -62,9 +62,9 @@ public static class AuthApi
 				return Results.Unauthorized();
 			}
 
-			string id = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
+			var id = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-			string name = (result.Principal.FindFirstValue(ClaimTypes.Email) ?? result.Principal.Identity?.Name)!;
+			var name = (result.Principal.FindFirstValue(ClaimTypes.Email) ?? result.Principal.Identity?.Name)!;
 
 			var getOrCreateUserResult = await userService.GetOrCreateUserAsync(
 				provider,
@@ -77,11 +77,12 @@ public static class AuthApi
 				return Results.Forbid();
 			}
 
-			string? accessToken = result.Properties?.GetTokenValue("access_token");
+			var accessToken = result.Properties?.GetTokenValue("access_token");
 			if (accessToken is not null)
 			{
 				await mediator.Publish(new AccessTokenAcquired(id,
 					provider,
+					id,
 					accessToken));
 			}
 
@@ -89,9 +90,9 @@ public static class AuthApi
 			await context.SignOutAsync(AuthConstants.ExternalScheme);
 
 			// If the user was just created, redirect them to the first-login page
-			string redirectUri = getOrCreateUserResult is GetOrCreateUserResult.UserCreated
-				? "/first-login"
-				: "/";
+			var redirectUri = getOrCreateUserResult is GetOrCreateUserResult.UserCreated
+								  ? "/first-login"
+								  : "/";
 
 			var properties = new AuthenticationProperties { RedirectUri = redirectUri };
 

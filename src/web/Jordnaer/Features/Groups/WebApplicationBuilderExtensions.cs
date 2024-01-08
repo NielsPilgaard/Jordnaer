@@ -1,5 +1,4 @@
 using Jordnaer.Extensions;
-using Refit;
 
 namespace Jordnaer.Features.Groups;
 

@@ -2,6 +2,7 @@ using Jordnaer.Consumers;
 using Jordnaer.Database;
 using MassTransit;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Extensions;
 
@@ -67,7 +68,7 @@ public static class WebApplicationBuilderExtensions
 	{
 		var dbConnectionString = GetConnectionString(builder.Configuration);
 
-		builder.Services.AddSqlServer<JordnaerDbContext>(dbConnectionString);
+		builder.Services.AddDbContextFactory<JordnaerDbContext>(optionsBuilder => optionsBuilder.UseSqlServer(dbConnectionString));
 
 		builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
 

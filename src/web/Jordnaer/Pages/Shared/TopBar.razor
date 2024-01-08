@@ -1,6 +1,6 @@
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject NavigationManager Navigation
 
+@rendermode @(InteractiveServer)
 
 <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
 
@@ -8,7 +8,7 @@
                    Color="Color.Default"
                    Variant="Variant.Filled"
                    Edge="Edge.Start"
-                   OnClick="@ToggleDrawer.InvokeAsync" />
+                   OnClick="@ToggleDrawer.InvokeAsync"/>
 
     @if (!_currentPageIsFrontPage)
     {
@@ -27,7 +27,7 @@
         </Authorized>
         <NotAuthorized>
             <ThemeProvider />
-            <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="auth/login" Variant="Variant.Outlined" Color="Color.Default"/>
+            <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="/Account/Login" Variant="Variant.Outlined" Color="Color.Default" />
         </NotAuthorized>
     </AuthorizeView>
 </MudAppBar>

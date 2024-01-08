@@ -1,8 +1,8 @@
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject AuthStateProvider Client
 @inject NavigationManager Navigation
 @inject IProfileCache ProfileCache
 @inject ILocalStorageService LocalStorage
+
+@rendermode @(InteractiveServer)
 
 <ThemeProvider @bind-IsDarkMode="_isDarkMode" />
 
@@ -21,10 +21,15 @@
             Skift tema
         </MudMenuItem>
         <MudDivider />
-        <MudMenuItem Icon="@Icons.Material.Filled.Logout"
-                     OnClick="Logout"
-                     OnTouch="Logout">
-            Log af
+        @*TODO: Form below should submit on click of MudMenuItem*@
+        <MudMenuItem Icon="@Icons.Material.Filled.Logout">
+            <form action="Account/Logout" method="post">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="@_currentUrl" />
+                <button type="submit" class="nav-link">
+                    <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Log af
+                </button>
+            </form>
         </MudMenuItem>
     </ChildContent>
 </MudMenu>
@@ -35,6 +40,8 @@
 
     private string _profilePictureUrl = ProfileConstants.Default_Profile_Picture;
 
+    private string? _currentUrl;
+
     protected override async Task OnInitializedAsync()
     {
         var userProfile = await ProfileCache.GetOrCreateProfileAsync();
@@ -42,12 +49,9 @@
         {
             _profilePictureUrl = userProfile.ProfilePictureUrl;
         }
-    }
-
-    private async Task Logout()
-    {
-        await Client.LogoutAsync();
-        Navigation.NavigateToLogout("/");
+        
+        _currentUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+        Navigation.LocationChanged += OnLocationChanged;
     }
 
     private async Task UpdateDarkMode()
@@ -58,4 +62,12 @@
 
         StateHasChanged();
     }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+	    _currentUrl = Navigation.ToBaseRelativePath(e.Location);
+	    StateHasChanged();
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 }

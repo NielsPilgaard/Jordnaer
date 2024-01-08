@@ -9,7 +9,7 @@
 
 <MudLayout>
     <TopBar ToggleDrawer="@ToggleDrawer" />
-    <SideBar @bind-Open="_isDrawerOpen" />
+    <SideBar @bind-Open="_isDrawerOpen"  />
     <MudMainContent Class="mb-6">
         <MudContainer MaxWidth="MaxWidth.Large">
             @Body
@@ -24,6 +24,7 @@
 
 @code
 {
+    //TODO: This needs to work in SSR
     private bool _isDrawerOpen = false;
     private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
 }

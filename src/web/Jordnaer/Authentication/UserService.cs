@@ -36,6 +36,7 @@ public enum GetOrCreateUserResult
 
 public class UserService : IUserService
 {
+	//TODO: Remove class
 	private readonly UserManager<ApplicationUser> _userManager;
 	private readonly ILogger<UserService> _logger;
 	private readonly JordnaerDbContext _context;
@@ -53,7 +54,7 @@ public class UserService : IUserService
 
 		try
 		{
-			string userId = Guid.NewGuid().ToString();
+			var userId = Guid.NewGuid().ToString();
 			var user = new ApplicationUser { Email = newUser.Email, UserName = newUser.Email, Id = userId };
 
 			var identityResult = await _userManager.CreateAsync(user, newUser.Password);
@@ -153,7 +154,7 @@ public class UserService : IUserService
 			}
 		}
 
-		bool passwordMatches = await _userManager.CheckPasswordAsync(user, userInfo.Password);
+		var passwordMatches = await _userManager.CheckPasswordAsync(user, userInfo.Password);
 		return passwordMatches
 			? user.Id
 			: null;
