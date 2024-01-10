@@ -32,8 +32,10 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
 var baseUrl = builder.Configuration.GetValue<string>("MiniMoeder:BaseUrl")
 				 ?? throw new ArgumentNullException("BaseUrl", "BaseUrl must be set in the configuration.");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
 
 builder.Services.AddRazorComponents()
 	   .AddInteractiveServerComponents();
