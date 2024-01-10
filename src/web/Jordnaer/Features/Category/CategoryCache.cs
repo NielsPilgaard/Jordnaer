@@ -1,42 +1,36 @@
+using Jordnaer.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Jordnaer.Features.Category;
 
 public interface ICategoryCache
 {
-	Task<List<Jordnaer.Shared.Category>> GetOrCreateCategoriesAsync();
+	ValueTask<List<Shared.Category>> GetOrCreateCategoriesAsync(CancellationToken cancellationToken = default);
 }
 
 public class CategoryCache : ICategoryCache
 {
 	private readonly IMemoryCache _memoryCache;
-	private readonly ICategoryClient _categoryApi;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 
-	public CategoryCache(IMemoryCache memoryCache, ICategoryClient categoryApi)
+	public CategoryCache(IMemoryCache memoryCache, IDbContextFactory<JordnaerDbContext> contextFactory)
 	{
 		_memoryCache = memoryCache;
-		_categoryApi = categoryApi;
+		_contextFactory = contextFactory;
 	}
 
 #pragma warning disable CS8603 // Possible null reference return.
-	public async Task<List<Jordnaer.Shared.Category>> GetOrCreateCategoriesAsync() =>
-		await _memoryCache.GetOrCreateAsync(nameof(Jordnaer.Shared.Category), async entry =>
+	public async ValueTask<List<Shared.Category>> GetOrCreateCategoriesAsync(CancellationToken cancellationToken = default) =>
+		await _memoryCache.GetOrCreateAsync(nameof(Shared.Category), async entry =>
 		{
-			var result = await _categoryApi.GetCategories();
-			if (result.IsSuccessStatusCode)
-			{
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-				return result.Content!;
-			}
+			await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-			if (entry.Value is List<Jordnaer.Shared.Category> oldEntry)
-			{
-				// Set this cache entry to expire in quickly to retry early
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1);
-				return oldEntry;
-			}
+			var categories = await context.Categories.AsNoTracking().ToListAsync(cancellationToken);
 
-			return new List<Jordnaer.Shared.Category>();
+			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+
+			return categories;
 		});
 #pragma warning restore CS8603 // Possible null reference return.
 }

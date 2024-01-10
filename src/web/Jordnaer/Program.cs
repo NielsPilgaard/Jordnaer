@@ -206,7 +206,6 @@ app.MapRazorComponents<App>()
 // Configure the APIs
 app.MapAuthentication();
 app.MapProfiles();
-app.MapCategories();
 app.MapUserSearch();
 app.MapEmail();
 app.MapImages();
