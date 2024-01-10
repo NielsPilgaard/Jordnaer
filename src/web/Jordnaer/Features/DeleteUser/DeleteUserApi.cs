@@ -1,6 +1,6 @@
-using Jordnaer.Authentication;
 using Jordnaer.Authorization;
 using Jordnaer.Extensions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +22,7 @@ public static class DeleteUserApi
 			[FromServices] CurrentUser currentUser,
 			CancellationToken cancellationToken) =>
 		{
-			bool deletionInitiated =
+			var deletionInitiated =
 				await deleteUserService.InitiateDeleteUserAsync(currentUser.User!, cancellationToken);
 
 			return deletionInitiated
@@ -37,17 +37,17 @@ public static class DeleteUserApi
 			[FromServices] CurrentUser currentUser,
 			CancellationToken cancellationToken) =>
 		{
-			bool userDeleted = await deleteUserService.DeleteUserAsync(currentUser.User!, token, cancellationToken);
+			var userDeleted = await deleteUserService.DeleteUserAsync(currentUser.User!, token, cancellationToken);
 			if (!userDeleted)
 			{
 				return TypedResults.Unauthorized();
 			}
 
-			await httpContext.SignOutFromAllAccountsAsync();
+			// TODO: Does this sign us out for external providers?
+			await httpContext.SignOutAsync();
 
 			return TypedResults.Ok();
 		});
-
 
 		group.MapGet("verify-token", async Task<Results<UnauthorizedHttpResult, Ok>> (
 			[FromQuery] string token,
@@ -55,7 +55,7 @@ public static class DeleteUserApi
 			[FromServices] CurrentUser currentUser,
 			CancellationToken cancellationToken) =>
 		{
-			bool tokenIsValid = await deleteUserService.VerifyTokenAsync(currentUser.User!, token, cancellationToken);
+			var tokenIsValid = await deleteUserService.VerifyTokenAsync(currentUser.User!, token, cancellationToken);
 
 			return tokenIsValid
 				? TypedResults.Ok()
