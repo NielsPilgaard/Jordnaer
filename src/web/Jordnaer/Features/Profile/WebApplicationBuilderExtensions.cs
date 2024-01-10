@@ -7,7 +7,7 @@ public static class WebApplicationBuilderExtensions
 	public static WebApplicationBuilder AddProfileServices(this WebApplicationBuilder builder, string baseUrl)
 	{
 		builder.Services.AddRefitClient<IProfileClient>(baseUrl);
-		builder.Services.AddSingleton<IProfileCache, ProfileCache>();
+		builder.Services.AddScoped<IProfileCache, ProfileCache>();
 
 		return builder;
 	}

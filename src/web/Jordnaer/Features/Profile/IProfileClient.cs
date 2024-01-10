@@ -17,12 +17,6 @@ public interface IProfileClient
 	Task<IApiResponse<ProfileDto>> GetUserProfile(string userName);
 
 	/// <summary>
-	/// Gets the profile of the user that is currently logged in.
-	/// </summary>
-	[Get("/api/profiles")]
-	Task<IApiResponse<UserProfile>> GetOwnProfile();
-
-	/// <summary>
 	/// Updates the profile of the user that is currently logged in.
 	/// </summary>
 	/// <param name="userProfile">The user profile.</param>
