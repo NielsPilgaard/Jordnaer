@@ -149,9 +149,9 @@
             result = await UserManager.AddLoginAsync(user, _externalLoginInfo!);
             if (result.Succeeded)
             {
-                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo.LoginProvider);
+                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
 
-                var userProfile = _externalLoginInfo.Principal.ToUserProfile(user.Id);
+                var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
                 await using var context = await DbContextFactory.CreateDbContextAsync();
                 context.UserProfiles.Add(userProfile);
                 await context.SaveChangesAsync();

@@ -19,7 +19,7 @@ public static class AuthorizationHandlerExtensions
 	public static RouteHandlerBuilder RequireCurrentUser(this RouteHandlerBuilder builder) =>
 		builder.RequireAuthorization(policyBuilder => policyBuilder.RequireCurrentUser());
 
-	private class CheckCurrentUserRequirement : IAuthorizationRequirement { }
+	private class CheckCurrentUserRequirement : IAuthorizationRequirement;
 
 	// This authorization handler verifies that the user exists even if there's
 	// a valid token
@@ -48,7 +48,7 @@ public static class AuthorizationHandlerExtensions
 				context.Succeed(requirement);
 			}
 
-			bool userIsLockedOut = await _userManager.IsLockedOutAsync(_currentUser.User);
+			var userIsLockedOut = await _userManager.IsLockedOutAsync(_currentUser.User);
 			if (!userIsLockedOut)
 			{
 				context.Succeed(requirement);

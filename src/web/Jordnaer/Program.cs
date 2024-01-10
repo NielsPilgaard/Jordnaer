@@ -2,7 +2,6 @@ using Azure.Storage.Blobs;
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Blazr.RenderState.Server;
-using Jordnaer.Authentication;
 using Jordnaer.Authorization;
 using Jordnaer.Components;
 using Jordnaer.Components.Account;
@@ -122,7 +121,7 @@ builder.AddGroupSearchServices(baseUrl);
 
 builder.AddBlazrRenderStateServerServices();
 
-builder.AddCategoryServices(baseUrl);
+builder.AddCategoryServices();
 builder.AddProfileServices(baseUrl);
 builder.Services.AddRefitClient<IDeleteUserClient>(baseUrl);
 builder.Services.AddRefitClient<IUserSearchClient>(baseUrl);
@@ -204,7 +203,6 @@ app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();
 
 // Configure the APIs
-app.MapAuthentication();
 app.MapProfiles();
 app.MapUserSearch();
 app.MapEmail();

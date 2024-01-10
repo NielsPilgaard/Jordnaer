@@ -1,4 +1,3 @@
-using Jordnaer.Authentication;
 using Jordnaer.Database;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Profile;
@@ -23,7 +22,7 @@ public class DeleteUserService : IDeleteUserService
 	public static readonly string TokenProvider = TokenOptions.DefaultEmailProvider;
 
 	private readonly UserManager<ApplicationUser> _userManager;
-	private readonly ILogger<UserService> _logger;
+	private readonly ILogger<DeleteUserService> _logger;
 	private readonly ISendGridClient _sendGridClient;
 	private readonly IHttpContextAccessor _httpContextAccessor;
 	private readonly JordnaerDbContext _context;
@@ -31,7 +30,7 @@ public class DeleteUserService : IDeleteUserService
 	private readonly IImageService _imageService;
 
 	public DeleteUserService(UserManager<ApplicationUser> userManager,
-		ILogger<UserService> logger,
+		ILogger<DeleteUserService> logger,
 		ISendGridClient sendGridClient,
 		IHttpContextAccessor httpContextAccessor,
 		JordnaerDbContext context,
@@ -61,12 +60,12 @@ public class DeleteUserService : IDeleteUserService
 
 		var to = new EmailAddress(user.Email);
 
-		string token = await _userManager.GenerateUserTokenAsync(user, TokenProvider,
-			TokenPurpose);
+		var token = await _userManager.GenerateUserTokenAsync(user, TokenProvider,
+															  TokenPurpose);
 
-		string deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
+		var deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
 
-		string message = CreateDeleteUserEmailMessage(deletionLink);
+		var message = CreateDeleteUserEmailMessage(deletionLink);
 
 		var email = new SendGridMessage
 		{
@@ -94,7 +93,7 @@ public class DeleteUserService : IDeleteUserService
 	{
 		_diagnosticContext.Set("userId", user.Id);
 
-		bool tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+		var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
 		if (tokenIsValid is false)
 		{
 			_logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
@@ -122,9 +121,9 @@ public class DeleteUserService : IDeleteUserService
 				.Select(child => child.Id)
 				.ToListAsync(cancellationToken);
 
-			int modifiedRows = await _context.UserProfiles
-				.Where(userProfile => userProfile.Id == user.Id)
-				.ExecuteDeleteAsync(cancellationToken);
+			var modifiedRows = await _context.UserProfiles
+											 .Where(userProfile => userProfile.Id == user.Id)
+											 .ExecuteDeleteAsync(cancellationToken);
 
 			if (modifiedRows <= 0)
 			{
@@ -143,6 +142,7 @@ public class DeleteUserService : IDeleteUserService
 			{
 				await _imageService.DeleteImageAsync(id.ToString(), ImageService.ChildProfilePicturesContainerName, cancellationToken);
 			}
+
 			return true;
 		}
 		catch (Exception exception)
@@ -158,7 +158,6 @@ public class DeleteUserService : IDeleteUserService
 		string token,
 		CancellationToken cancellationToken = default) =>
 		await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
-
 
 	private static string CreateDeleteUserEmailMessage(string deletionLink) =>
 		$@"
