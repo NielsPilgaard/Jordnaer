@@ -5,7 +5,7 @@ using Refit;
 using System.Net;
 using Xunit;
 
-namespace Jordnaer.Server.Tests.UserSearch;
+namespace Jordnaer.Tests.UserSearch;
 
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
 public class UserSearchApi_Should

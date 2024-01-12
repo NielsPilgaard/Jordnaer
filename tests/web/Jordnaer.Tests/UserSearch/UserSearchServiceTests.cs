@@ -12,7 +12,7 @@ using Refit;
 using System.Net;
 using Xunit;
 
-namespace Jordnaer.Server.Tests.UserSearch;
+namespace Jordnaer.Tests.UserSearch;
 
 [Trait("Category", "UnitTest")]
 public class UserSearchService_Should : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime

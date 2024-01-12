@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Jordnaer.Authentication;
 using Jordnaer.Database;
 using Jordnaer.Features.DeleteUser;
 using Jordnaer.Features.Profile;
@@ -17,12 +16,12 @@ using System.Net;
 using Xunit;
 using Response = SendGrid.Response;
 
-namespace Jordnaer.Server.Tests.Authentication;
+namespace Jordnaer.Tests.Authentication;
 
 public class DeleteUserService_Should : IClassFixture<SqlServerContainer<JordnaerDbContext>>
 {
 	private readonly UserManager<ApplicationUser> _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-	private readonly ILogger<UserService> _logger = Substitute.For<ILogger<UserService>>();
+	private readonly ILogger<DeleteUserService> _logger = Substitute.For<ILogger<DeleteUserService>>();
 	private readonly ISendGridClient _sendGridClient = Substitute.For<ISendGridClient>();
 	private readonly IHttpContextAccessor _httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 	private readonly JordnaerDbContext _context;
@@ -48,7 +47,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		_sendGridClient.SendEmailAsync(Arg.Any<SendGridMessage>()).Returns(new Response(HttpStatusCode.Accepted, null, null));
 
 		// Act
-		bool result = await _deleteUserService.InitiateDeleteUserAsync(user);
+		var result = await _deleteUserService.InitiateDeleteUserAsync(user);
 
 		// Assert
 		result.Should().BeTrue();
@@ -62,7 +61,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		_httpContextAccessor.HttpContext.Returns((HttpContext?)null);
 
 		// Act
-		bool result = await _deleteUserService.InitiateDeleteUserAsync(user);
+		var result = await _deleteUserService.InitiateDeleteUserAsync(user);
 
 		// Assert
 		result.Should().BeFalse();
@@ -80,7 +79,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		await _context.SaveChangesAsync();
 
 		// Act
-		bool result = await _deleteUserService.DeleteUserAsync(user, "token");
+		var result = await _deleteUserService.DeleteUserAsync(user, "token");
 
 		// Assert
 		result.Should().BeTrue();
@@ -94,7 +93,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		_userManager.VerifyUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose, "token").Returns(false);
 
 		// Act
-		bool result = await _deleteUserService.DeleteUserAsync(user, "token");
+		var result = await _deleteUserService.DeleteUserAsync(user, "token");
 
 		// Assert
 		result.Should().BeFalse();
@@ -109,7 +108,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		_userManager.DeleteAsync(user).Returns(IdentityResult.Failed(new IdentityError()));
 
 		// Act
-		bool result = await _deleteUserService.DeleteUserAsync(user, "token");
+		var result = await _deleteUserService.DeleteUserAsync(user, "token");
 
 		// Assert
 		result.Should().BeFalse();
@@ -124,7 +123,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		_userManager.DeleteAsync(user).Returns(IdentityResult.Success);
 
 		// Act
-		bool result = await _deleteUserService.DeleteUserAsync(user, "token");
+		var result = await _deleteUserService.DeleteUserAsync(user, "token");
 
 		// Assert
 		result.Should().BeFalse();
@@ -139,7 +138,7 @@ public class DeleteUserService_Should : IClassFixture<SqlServerContainer<Jordnae
 		_userManager.DeleteAsync(user).ThrowsAsync(new Exception());
 
 		// Act
-		bool result = await _deleteUserService.DeleteUserAsync(user, "token");
+		var result = await _deleteUserService.DeleteUserAsync(user, "token");
 
 		// Assert
 		result.Should().BeFalse();

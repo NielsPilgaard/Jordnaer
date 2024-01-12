@@ -4,7 +4,7 @@ using Jordnaer.Features.Profile;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Jordnaer.Server.Tests.Profile;
+namespace Jordnaer.Tests.Profile;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]

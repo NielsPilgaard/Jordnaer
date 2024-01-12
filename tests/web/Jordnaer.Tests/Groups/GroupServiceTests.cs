@@ -13,7 +13,7 @@ using System.Security.Claims;
 using Xunit;
 using Claim = System.Security.Claims.Claim;
 
-namespace Jordnaer.Server.Tests.Groups;
+namespace Jordnaer.Tests.Groups;
 
 [Trait("Category", "IntegrationTest")]
 public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
