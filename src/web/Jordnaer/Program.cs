@@ -75,8 +75,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 .AddSignInManager()
 .AddDefaultTokenProviders();
 
-//TODO: Implement interface
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<IEmailSender<ApplicationUser>, SendGridEmailSender>();
 
 builder.Services.AddCurrentUser();
 builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
@@ -86,9 +85,6 @@ builder.AddAzureAppConfiguration();
 builder.AddSerilog();
 
 builder.AddDatabase();
-
-// TODO: Remove
-//builder.AddAuthentication();
 
 builder.Services.AddRateLimiting();
 
@@ -129,9 +125,6 @@ builder.Services.AddRefitClient<IDeleteUserClient>(baseUrl);
 builder.Services.AddRefitClient<IUserSearchClient>(baseUrl);
 builder.Services.AddRefitClient<IImageClient>(baseUrl);
 builder.Services.AddRefitClient<IChatClient>(baseUrl);
-
-//TODO: Remove
-//builder.Services.AddWasmAuthentication();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<ChatSignalRClient>();
