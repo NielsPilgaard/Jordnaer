@@ -160,20 +160,22 @@ public class DeleteUserService : IDeleteUserService
 		await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
 
 	private static string CreateDeleteUserEmailMessage(string deletionLink) =>
-		$@"
-<p>Hej,</p>
+		$"""
 
-<p>Du har anmodet om at slette din bruger hos Mini Møder. Hvis du fortsætter, vil alle dine data blive permanent slettet og kan ikke genoprettes.</p>
+		 <p>Hej,</p>
 
-<p>Hvis du er sikker på, at du vil slette din bruger, skal du klikke på linket nedenfor:</p>
+		 <p>Du har anmodet om at slette din bruger hos Mini Møder. Hvis du fortsætter, vil alle dine data blive permanent slettet og kan ikke genoprettes.</p>
 
-<p><a href=""{deletionLink}"">Bekræft sletning af bruger</a></p>
+		 <p>Hvis du er sikker på, at du vil slette din bruger, skal du klikke på linket nedenfor:</p>
 
-<p>Hvis du ikke anmodede om at slette din bruger, kan du ignorere denne e-mail.</p>
+		 <p><a href="{deletionLink}">Bekræft sletning af bruger</a></p>
 
-<p>Med venlig hilsen,</p>
+		 <p>Hvis du ikke anmodede om at slette din bruger, kan du ignorere denne e-mail.</p>
 
-<p>Mini Møder-teamet</p>
-";
+		 <p>Venlig hilsen,</p>
+
+		 <p>Mini Møder teamet</p>
+
+		 """;
 }
 
