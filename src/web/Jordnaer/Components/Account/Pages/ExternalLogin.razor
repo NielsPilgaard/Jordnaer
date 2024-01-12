@@ -107,6 +107,7 @@
         if (result.Succeeded)
         {
 	        var user = await UserManager.FindByLoginAsync(_externalLoginInfo.LoginProvider, _externalLoginInfo.ProviderKey);
+	        
 	        var accessToken = _externalLoginInfo.AuthenticationProperties?.GetTokenValue("access_token");
 	        if (accessToken is not null)
 	        {
