@@ -5,29 +5,30 @@
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>Profil</PageTitle>
 
-<h3>Profile</h3>
+<h3>Profil</h3>
 <StatusMessage />
 
 <div class="row">
-    <div class="col-md-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@_username" class="form-control" placeholder="Please choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-                <label for="phone-number" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
-    </div>
+	<div class="col-md-6">
+		<EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-floating mb-3">
+				<input type="text" value="@_username" class="form-control" placeholder="Vælg venligst dit brugernavn." disabled />
+				<label for="username" class="form-label">Brugernavn</label>
+			</div>
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Indtast venligst dit telefonnummer." />
+				<label for="phone-number" class="form-label">Telefonnummer</label>
+				<ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+			</div>
+			<button type="submit" class="w-100 btn btn-lg btn-primary">Gem</button>
+		</EditForm>
+	</div>
 </div>
+
 
 @code {
     private ApplicationUser _user = default!;
@@ -56,18 +57,18 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(_user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Det lykkedes ikke at sætte telefon nummeret.", HttpContext);
             }
         }
 
         await SignInManager.RefreshSignInAsync(_user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus("Din profil er blevet opdateret.", HttpContext);
     }
 
     private sealed class InputModel
     {
-        [Phone]
-        [Display(Name = "Phone number")]
+        [Phone(ErrorMessage = "Skal være et gyldigt telefon nummer.")]
+        [Display(Name = "Telefon nummer")]
         public string? PhoneNumber { get; set; }
     }
 }

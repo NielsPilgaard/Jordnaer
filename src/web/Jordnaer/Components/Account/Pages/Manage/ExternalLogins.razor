@@ -6,12 +6,13 @@
 @inject IUserStore<ApplicationUser> UserStore
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Manage your external logins</PageTitle>
+<PageTitle>Håndter dine eksterne logins</PageTitle>
 
 <StatusMessage />
+
 @if (_currentLogins?.Count > 0)
 {
-    <h3>Registered Logins</h3>
+    <h3>Registrerede Logins</h3>
     <table class="table">
         <tbody>
             @foreach (var login in _currentLogins)
@@ -26,7 +27,7 @@
                                 <div>
                                     <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
                                     <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
-                                    <button type="submit" class="btn btn-primary" title="Remove this @login.ProviderDisplayName login from your account">Remove</button>
+                                    <button type="submit" class="btn btn-primary" title="Fjern dette @login.ProviderDisplayName login fra din konto">Fjern</button>
                                 </div>
                             </form>
                         }
@@ -42,7 +43,7 @@
 }
 @if (_otherLogins?.Count > 0)
 {
-    <h4>Add another service to log in.</h4>
+    <h4>Tilføj en anden tjeneste til at logge ind.</h4>
     <hr />
     <form class="form-horizontal" action="Account/Manage/LinkExternalLogin" method="post">
         <AntiforgeryToken />
@@ -50,7 +51,7 @@
             <p>
                 @foreach (var provider in _otherLogins)
                 {
-                    <button type="submit" class="btn btn-primary" name="Provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                    <button type="submit" class="btn btn-primary" name="Provider" value="@provider.Name" title="Log ind med din @provider.DisplayName konto">
                         @provider.DisplayName
                     </button>
                 }
@@ -106,11 +107,11 @@
         var result = await UserManager.RemoveLoginAsync(_user, LoginProvider!, ProviderKey!);
         if (!result.Succeeded)
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The external login was not removed.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Det eksterne login blev ikke fjernet.", HttpContext);
         }
 
         await SignInManager.RefreshSignInAsync(_user);
-        RedirectManager.RedirectToCurrentPageWithStatus("The external login was removed.", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus("Det eksterne login blev fjernet.", HttpContext);
     }
 
     private async Task OnGetLinkLoginCallbackAsync()
@@ -119,18 +120,18 @@
         var info = await SignInManager.GetExternalLoginInfoAsync(userId);
         if (info is null)
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: Could not load external login info.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Kunne ikke indlæse ekstern login info.", HttpContext);
         }
 
         var result = await UserManager.AddLoginAsync(_user, info);
         if (!result.Succeeded)
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Error: The external login was not added. External logins can only be associated with one account.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Det eksterne login blev ikke tilføjet. Eksterne logins kan kun være tilknyttet én konto.", HttpContext);
         }
 
         // Clear the existing external cookie to ensure a clean login process
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-        RedirectManager.RedirectToCurrentPageWithStatus("The external login was added.", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus("Det eksterne login blev tilføjet.", HttpContext);
     }
 }

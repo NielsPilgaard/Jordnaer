@@ -5,39 +5,39 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register confirmation</PageTitle>
+<PageTitle>Registreringsbekræftelse</PageTitle>
 
-<h1>Register confirmation</h1>
+<h1>Registreringsbekræftelse</h1>
 
 <StatusMessage Message="@_statusMessage" />
 
-@*TODO: Refresh this page when email is confirmed*@
-<p>Please check your email to confirm your account.</p>
+@*TODO: Opdater denne side, når emailen er bekræftet*@
+<p>Check venligst din email for at bekræfte din konto.</p>
 
 @code {
-    private string? _statusMessage;
+	private string? _statusMessage;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+	[CascadingParameter]
+	private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromQuery]
-    private string? Email { get; set; }
+	[SupplyParameterFromQuery]
+	private string? Email { get; set; }
 
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
+	[SupplyParameterFromQuery]
+	private string? ReturnUrl { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        if (Email is null)
-        {
-            RedirectManager.RedirectTo("");
-        }
+	protected override async Task OnInitializedAsync()
+	{
+		if (Email is null)
+		{
+			RedirectManager.RedirectTo("");
+		}
 
-        var user = await UserManager.FindByEmailAsync(Email);
-        if (user is null)
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            _statusMessage = "Error finding user for unspecified email";
-        }
-    }
+		var user = await UserManager.FindByEmailAsync(Email);
+		if (user is null)
+		{
+			HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+			_statusMessage = "Fejl i at finde bruger for uspecificeret email";
+		}
+	}
 }

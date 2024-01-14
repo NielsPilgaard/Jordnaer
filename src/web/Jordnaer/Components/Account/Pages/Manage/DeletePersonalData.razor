@@ -6,33 +6,34 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
 
-<PageTitle>Delete Personal Data</PageTitle>
+<PageTitle>Slet personlige data</PageTitle>
 
 <StatusMessage Message="@_message" />
 
-<h3>Delete Personal Data</h3>
+<h3>Slet personlige data</h3>
 
 <div class="alert alert-warning" role="alert">
-    <p>
-        <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-    </p>
+	<p>
+		<strong>Når du sletter disse data, vil din konto blive permanent fjernet, og dette kan ikke fortrydes.</strong>
+	</p>
 </div>
 
 <div>
-    <EditForm Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync" method="post">
-        <DataAnnotationsValidator />
-        <ValidationSummary class="text-danger" role="alert" />
-        @if (_requirePassword)
-        {
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label for="password" class="form-label">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-        }
-        <button class="w-100 btn btn-lg btn-danger" type="submit">Delete data and close my account</button>
-    </EditForm>
+	<EditForm Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync" method="post">
+		<DataAnnotationsValidator />
+		<ValidationSummary class="text-danger" role="alert" />
+		@if (_requirePassword)
+		{
+			<div class="form-floating mb-3">
+				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Indtast venligst din adgangskode." />
+				<label for="password" class="form-label">Adgangskode</label>
+				<ValidationMessage For="() => Input.Password" class="text-danger" />
+			</div>
+		}
+		<button class="w-100 btn btn-lg btn-danger" type="submit">Slet data og luk min konto</button>
+	</EditForm>
 </div>
+
 
 @code {
     private string? _message;
@@ -47,7 +48,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Input ??= new();
         _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
@@ -56,7 +56,7 @@
     {
         if (_requirePassword && !await UserManager.CheckPasswordAsync(_user, Input.Password))
         {
-            _message = "Error: Incorrect password.";
+            _message = "Fejl: Forkert adgangskode.";
             return;
         }
 

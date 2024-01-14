@@ -8,7 +8,7 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<EnableAuthenticator> Logger
 
-<PageTitle>Configure authenticator app</PageTitle>
+<PageTitle>Konfigurer autentificeringsapp</PageTitle>
 
 @if (_recoveryCodes is not null)
 {
@@ -17,41 +17,42 @@
 else
 {
     <StatusMessage Message="@_message" />
-    <h3>Configure authenticator app</h3>
+    <h3>Konfigurer autentificeringsapp</h3>
     <div>
-        <p>To use an authenticator app go through the following steps:</p>
+        <p>For at bruge en autentificeringsapp, følg følgende trin:</p>
         <ol class="list">
             <li>
                 <p>
-                    Download a two-factor authenticator app like Microsoft Authenticator for
-                    <a href="https://go.microsoft.com/fwlink/?Linkid=825072">Android</a> and
-                    <a href="https://go.microsoft.com/fwlink/?Linkid=825073">iOS</a> or
-                    Google Authenticator for
-                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en">Android</a> and
+                    Download en tofaktorautentificeringsapp som Microsoft Authenticator til
+                    <a href="https://go.microsoft.com/fwlink/?Linkid=825072">Android</a> og
+                    <a href="https://go.microsoft.com/fwlink/?Linkid=825073">iOS</a> eller
+                    Google Authenticator til
+                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en">Android</a> og
                     <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">iOS</a>.
                 </p>
             </li>
             <li>
-                <p>Scan the QR Code or enter this key <kbd>@_sharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
-                <div class="alert alert-info">Learn how to <a href="https://go.microsoft.com/fwlink/?Linkid=852423">enable QR code generation</a>.</div>
+                <p>Scan QR-koden eller indtast denne nøgle <kbd>@_sharedKey</kbd> i din tofaktorautentificeringsapp. Mellemrum og store/små bogstaver betyder ikke noget.</p>
+                <div class="alert alert-info">Lær hvordan du <a href="https://go.microsoft.com/fwlink/?Linkid=852423">aktiverer QR-kodegenerering</a>.</div>
                 <div></div>
                 <div data-url="@_authenticatorUri"></div>
             </li>
             <li>
                 <p>
-                    Once you have scanned the QR code or input the key above, your two factor authentication app will provide you
-                    with a unique code. Enter the code in the confirmation box below.
+                    Når du har scannet QR-koden eller indtastet nøglen ovenfor, vil din tofaktorautentificeringsapp give dig
+                    en unik kode. Indtast koden i bekræftelsesboksen nedenfor.
                 </p>
                 <div class="row">
                     <div class="col-md-6">
                         <EditForm Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync" method="post">
                             <DataAnnotationsValidator />
                             <div class="form-floating mb-3">
-                                <InputText @bind-Value="Input.Code" class="form-control" autocomplete="off" placeholder="Please enter the code." />
-                                <label for="code" class="control-label form-label">Verification Code</label>
+                                <InputText @bind-Value="Input.Code" class="form-control" autocomplete="off"
+                                           placeholder="Indtast venligst koden." />
+                                <label for="code" class="control-label form-label">Verifikationskode</label>
                                 <ValidationMessage For="() => Input.Code" class="text-danger" />
                             </div>
-                            <button type="submit" class="w-100 btn btn-lg btn-primary">Verify</button>
+                            <button type="submit" class="w-100 btn btn-lg btn-primary">Bekræft</button>
                             <ValidationSummary class="text-danger" role="alert" />
                         </EditForm>
                     </div>
@@ -93,7 +94,7 @@ else
 
         if (!is2FaTokenValid)
         {
-            _message = "Error: Verification code is invalid.";
+            _message = "Fejl: Din verifikationskode er ugyldig.";
             return;
         }
 
@@ -101,7 +102,7 @@ else
         var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
 
-        _message = "Your authenticator app has been verified.";
+        _message = "Din autentifikations app er blevet godkendt.";
 
         if (await UserManager.CountRecoveryCodesAsync(_user) == 0)
         {
@@ -129,10 +130,10 @@ else
         _authenticatorUri = GenerateQrCodeUri(email!, unformattedKey!);
     }
 
-    private string FormatKey(string unformattedKey)
+    private static string FormatKey(string unformattedKey)
     {
         var result = new StringBuilder();
-        int currentPosition = 0;
+        var currentPosition = 0;
         while (currentPosition + 4 < unformattedKey.Length)
         {
             result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
@@ -158,10 +159,10 @@ else
 
     private sealed class InputModel
     {
-        [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Påkrævet.")]
+        [StringLength(7, ErrorMessage = "Din {0} skal være mindst {2} og højest {1} karakterer lang.", MinimumLength = 6)]
         [DataType(DataType.Text)]
-        [Display(Name = "Verification Code")]
+        [Display(Name = "Bekræftelseskode")]
         public string Code { get; set; } = "";
     }
 }

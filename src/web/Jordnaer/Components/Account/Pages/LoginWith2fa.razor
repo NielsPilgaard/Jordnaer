@@ -5,40 +5,41 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<LoginWith2fa> Logger
 
-<PageTitle>Two-factor authentication</PageTitle>
+<PageTitle>To-faktor autentifikation</PageTitle>
 
-<h1>Two-factor authentication</h1>
+<h1>To-faktor autentifikation</h1>
 <hr />
 <StatusMessage Message="@_message" />
-<p>Your login is protected with an authenticator app. Enter your authenticator code below.</p>
+<p>Dit login er beskyttet med en autentifikations-app. Indtast din autentifikations kode nedenfor.</p>
 <div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <input type="hidden" name="RememberMe" value="@RememberMe" />
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.TwoFactorCode" class="form-control" autocomplete="off" />
-                <label for="two-factor-code" class="form-label">Authenticator code</label>
-                <ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
-            </div>
-            <div class="checkbox mb-3">
-                <label for="remember-machine" class="form-label">
-                    <InputCheckbox @bind-Value="Input.RememberMachine" />
-                    Remember this machine
-                </label>
-            </div>
-            <div>
-                <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-            </div>
-        </EditForm>
-    </div>
+	<div class="col-md-4">
+		<EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
+			<input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+			<input type="hidden" name="RememberMe" value="@RememberMe" />
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="Input.TwoFactorCode" class="form-control" autocomplete="off" />
+                <label for="two-factor-code" class="form-label">Autentifikations kode</label>
+				<ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
+			</div>
+			<div class="checkbox mb-3">
+				<label for="remember-machine" class="form-label">
+					<InputCheckbox @bind-Value="Input.RememberMachine" />
+					Husk denne maskine
+				</label>
+			</div>
+			<div>
+				<button type="submit" class="w-100 btn btn-lg btn-primary">Log ind</button>
+			</div>
+		</EditForm>
+	</div>
 </div>
 <p>
-    Don't have access to your authenticator device? You can
-    <a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl">log in with a recovery code</a>.
+    Har du ikke adgang til din autentifikations-enhed? Du kan
+	<a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl">logge ind med en gendannelseskode</a>.
 </p>
+
 
 @code {
     private string? _message;
@@ -79,19 +80,19 @@
         else
         {
             Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
-            _message = "Error: Invalid authenticator code.";
+            _message = "Fejl: Ugyldig autentifikations kode.";
         }
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Påkrævet.")]
+        [StringLength(7, ErrorMessage = "Din {0} skal være mindst {2} og maks {1} karakterer lang.", MinimumLength = 6)]
         [DataType(DataType.Text)]
-        [Display(Name = "Authenticator code")]
+        [Display(Name = "Autentifikations kode")]
         public string? TwoFactorCode { get; set; }
 
-        [Display(Name = "Remember this machine")]
+        [Display(Name = "Husk denne maskine?")]
         public bool RememberMachine { get; set; }
     }
 }

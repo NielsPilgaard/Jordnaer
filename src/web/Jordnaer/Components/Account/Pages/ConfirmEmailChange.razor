@@ -7,9 +7,9 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Confirm email change</PageTitle>
+<PageTitle>Bekræft ændring af email</PageTitle>
 
-<h1>Confirm email change</h1>
+<h1>Bekræft ændring af email</h1>
 
 <StatusMessage Message="@_message" />
 
@@ -33,13 +33,13 @@
         if (UserId is null || Email is null || Code is null)
         {
             RedirectManager.RedirectToWithStatus(
-                "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+                "Account/Login", "Fejl: Ugyldigt link til bekræftelse af emailændring.", HttpContext);
         }
 
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            _message = "Unable to find user with Id '{userId}'";
+            _message = "Kan ikke finde bruger med Id '{userId}'";
             return;
         }
 
@@ -47,20 +47,11 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            _message = "Error changing email.";
-            return;
-        }
-
-        // In our UI email and user name are one and the same, so when we update the email
-        // we need to update the user name.
-        var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
-        if (!setUserNameResult.Succeeded)
-        {
-            _message = "Error changing user name.";
+            _message = "Fejl ved ændring af email.";
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        _message = "Thank you for confirming your email change.";
+        _message = "Tak fordi du bekræftede din emailændring.";
     }
 }
