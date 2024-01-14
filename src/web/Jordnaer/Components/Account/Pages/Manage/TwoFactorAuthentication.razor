@@ -7,10 +7,10 @@
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Tofaktorautentificering (2FA)</PageTitle>
+<PageTitle>To-faktor-autentificering (2FA)</PageTitle>
 
 <StatusMessage />
-<h3>Tofaktorautentificering (2FA)</h3>
+<h3>To-faktor-autentificering (2FA)</h3>
 @if (_canTrack)
 {
     if (_is2FaEnabled)
@@ -64,7 +64,7 @@ else
 {
     <div class="alert alert-danger">
         <strong>Privatlivs- og cookiepolitik er ikke blevet accepteret.</strong>
-        <p>Du skal acceptere politikken, før du kan aktivere tofaktorautentificering.</p>
+        <p>Du skal acceptere politikken, før du kan aktivere To-faktor-autentificering.</p>
     </div>
 }
 
@@ -94,6 +94,6 @@ else
         await SignInManager.ForgetTwoFactorClientAsync();
 
         RedirectManager.RedirectToCurrentPageWithStatus(
-            "Den nuværende browser er nu glemt. Næste gang du logger ind fra denne browser vil du blive bedt om din 2fa kode.", HttpContext);
+            "Den nuværende enhed er nu glemt. Næste gang du logger ind fra denne enhed vil du blive bedt om din 2fa kode.", HttpContext);
     }
 }
