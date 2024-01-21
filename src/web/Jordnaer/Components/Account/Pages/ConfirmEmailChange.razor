@@ -33,7 +33,7 @@
         if (UserId is null || Email is null || Code is null)
         {
             RedirectManager.RedirectToWithStatus(
-                "Account/Login", "Fejl: Ugyldigt link til bekræftelse af emailændring.", HttpContext);
+                "Account/Login", "Ugyldigt link til bekræftelse af emailændring.", HttpContext);
         }
 
         var user = await UserManager.FindByIdAsync(UserId);

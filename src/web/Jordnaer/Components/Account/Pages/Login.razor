@@ -4,6 +4,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+
 <PageTitle>Log ind</PageTitle>
 
 <h1>Log ind</h1>
@@ -60,7 +61,7 @@
 
 @code {
     private string? _errorMessage;
-
+    
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -101,7 +102,7 @@
         }
         else
         {
-            _errorMessage = "Fejl: Ugyldigt login forsøg.";
+            _errorMessage = "Ugyldigt login.";
         }
     }
 
