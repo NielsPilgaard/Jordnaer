@@ -21,20 +21,13 @@
             Skift tema
         </MudMenuItem>
         <MudDivider />
-        @*TODO: Form below should submit on click of MudMenuItem*@
-        <MudMenuItem Icon="@Icons.Material.Filled.Logout">
-            <form action="Account/Logout" method="post">
-                <AntiforgeryToken />
-                <input type="hidden" name="ReturnUrl" value="@_currentUrl" />
-                <button type="submit" class="nav-link">
-                    <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Log af
-                </button>
-            </form>
+        <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="@($"Account/Logout?returnUrl={_currentUrl}")">
+            Log af
         </MudMenuItem>
     </ChildContent>
 </MudMenu>
 @code {
-    private bool _isDarkMode { get; set; }
+	private bool _isDarkMode;
 
     private const string Key = "dark-mode";
 
@@ -49,7 +42,7 @@
         {
             _profilePictureUrl = userProfile.ProfilePictureUrl;
         }
-        
+
         _currentUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
         Navigation.LocationChanged += OnLocationChanged;
     }
@@ -65,8 +58,8 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-	    _currentUrl = Navigation.ToBaseRelativePath(e.Location);
-	    StateHasChanged();
+        _currentUrl = Navigation.ToBaseRelativePath(e.Location);
+        StateHasChanged();
     }
 
     public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
