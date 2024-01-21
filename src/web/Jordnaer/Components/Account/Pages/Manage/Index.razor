@@ -57,7 +57,7 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(_user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Det lykkedes ikke at sætte telefon nummeret.", HttpContext);
+                RedirectManager.RedirectToCurrentPageWithStatus("Det lykkedes ikke at sætte telefon nummeret.", HttpContext);
             }
         }
 

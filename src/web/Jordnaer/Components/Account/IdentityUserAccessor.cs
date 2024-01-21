@@ -11,7 +11,7 @@ internal sealed class IdentityUserAccessor(UserManager<ApplicationUser> userMana
 
 		if (user is null)
 		{
-			redirectManager.RedirectToWithStatus("Account/InvalidUser", $"Fejl: Kunne ikke indlæse bruger med ID '{userManager.GetUserId(context.User)}'.", context);
+			redirectManager.RedirectToWithStatus("Account/InvalidUser", $"Kunne ikke indlæse bruger med ID '{userManager.GetUserId(context.User)}'.", context);
 		}
 
 		return user;

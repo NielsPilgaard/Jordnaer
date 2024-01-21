@@ -56,7 +56,7 @@
     {
         if (_requirePassword && !await UserManager.CheckPasswordAsync(_user, Input.Password))
         {
-            _message = "Fejl: Forkert adgangskode.";
+            _message = "Forkert adgangskode.";
             return;
         }
 

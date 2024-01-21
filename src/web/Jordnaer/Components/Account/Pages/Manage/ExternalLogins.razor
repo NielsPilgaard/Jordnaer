@@ -107,7 +107,7 @@
         var result = await UserManager.RemoveLoginAsync(_user, LoginProvider!, ProviderKey!);
         if (!result.Succeeded)
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Det eksterne login blev ikke fjernet.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Det eksterne login blev ikke fjernet.", HttpContext);
         }
 
         await SignInManager.RefreshSignInAsync(_user);
@@ -120,13 +120,13 @@
         var info = await SignInManager.GetExternalLoginInfoAsync(userId);
         if (info is null)
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Kunne ikke indlæse ekstern login info.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Kunne ikke indlæse ekstern login info.", HttpContext);
         }
 
         var result = await UserManager.AddLoginAsync(_user, info);
         if (!result.Succeeded)
         {
-            RedirectManager.RedirectToCurrentPageWithStatus("Fejl: Det eksterne login blev ikke tilføjet. Eksterne logins kan kun være tilknyttet én konto.", HttpContext);
+            RedirectManager.RedirectToCurrentPageWithStatus("Det eksterne login blev ikke tilføjet. Eksterne logins kan kun være tilknyttet én konto.", HttpContext);
         }
 
         // Clear the existing external cookie to ensure a clean login process
