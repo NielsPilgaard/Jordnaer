@@ -157,6 +157,8 @@ builder.Services.AddMemoryCache();
 builder.Services.AddDataForsyningenClient();
 builder.Services.Configure<DataForsyningenOptions>(builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
 
+builder.Services.AddRazorPages(options => options.RootDirectory = "/Components/Account/Pages");
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -196,6 +198,8 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();
+
+app.MapRazorPages();
 
 // Configure the APIs
 app.MapProfiles();
