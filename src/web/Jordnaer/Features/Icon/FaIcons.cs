@@ -3,7 +3,7 @@
 /// <summary>
 /// Font Awesome Icons as SVGs: https://fontawesome.com/icons
 /// </summary>
-internal static class FaIcon
+internal static class FaIcons
 {
 	internal static readonly string Crown = @"
 	<svg xmlns=""http://www.w3.org/2000/svg"" height=""16"" width=""18"" viewBox=""0 0 576 512"">

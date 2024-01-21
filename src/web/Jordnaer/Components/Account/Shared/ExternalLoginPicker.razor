@@ -4,27 +4,57 @@
 @inject IdentityRedirectManager RedirectManager
 @if (_externalLogins.Length == 0)
 {
-	<div>
-		<p>
-			Der er ingen eksterne login tjenester konfigureret.
-		</p>
-	</div>
+    <div>
+        <p>
+            Der er ingen eksterne login tjenester konfigureret.
+        </p>
+    </div>
 }
 else
 {
-	<form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
-		<div>
-			<AntiforgeryToken />
-			<input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-			<p>
-				@foreach (var provider in _externalLogins)
-				{
-                    // TODO: This should be facebook/google/microsoft buttons
-					<button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log ind med din @provider.DisplayName-konto">@provider.DisplayName</button>
-				}
-			</p>
-		</div>
-	</form>
+    <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
+        <div>
+            <AntiforgeryToken />
+            <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+            <p>
+                @foreach (var provider in _externalLogins)
+                {
+                    switch (provider.DisplayName)
+                    {
+                        case "Facebook":
+	                        <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
+	                                   Variant="Variant.Filled"
+	                                   Href="api/auth/login/Facebook"
+	                                   Style="background-color: #3B5998;
+	                                          color: white;">
+		                        Log ind med Facebook
+	                        </MudButton>
+                            break;
+                        case "Google":
+	                        <MudButton StartIcon="@Icons.Custom.Brands.Google"
+	                                   Variant="Variant.Filled"
+	                                   Href="api/auth/login/Google"
+	                                   Style="background-color: #dd4b39;
+	                                          color: white;">
+		                        Log ind med Google
+	                        </MudButton>
+                            break;
+                        case "Microsoft":
+	                        <MudButton StartIcon="@_microsoftLogo"
+	                                   Variant="Variant.Filled"
+	                                   Href="api/auth/login/Microsoft"
+	                                   Color="Color.Primary">
+		                        Log ind med Microsoft
+	                        </MudButton>
+                            break;
+                        default:
+                            <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log ind med din @provider.DisplayName-konto">@provider.DisplayName</button>
+                            break;
+                    }
+                }
+            </p>
+        </div>
+    </form>
 }
 
 
