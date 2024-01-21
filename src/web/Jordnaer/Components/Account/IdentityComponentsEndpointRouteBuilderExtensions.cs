@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using System.Security.Claims;
 using System.Text.Json;
 
 namespace Jordnaer.Components.Account;
@@ -38,15 +37,6 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
 								 var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 								 return TypedResults.Challenge(properties, [provider]);
-							 });
-
-		accountGroup.MapPost("/Logout", async (
-								 ClaimsPrincipal user,
-								 SignInManager<ApplicationUser> signInManager,
-								 [FromForm] string returnUrl) =>
-							 {
-								 await signInManager.SignOutAsync();
-								 return TypedResults.LocalRedirect($"~/{returnUrl}");
 							 });
 
 		var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
