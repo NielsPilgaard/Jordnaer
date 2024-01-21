@@ -21,7 +21,7 @@
             Skift tema
         </MudMenuItem>
         <MudDivider />
-        <MudMenuItem Icon="@Icons.Material.Filled.Logout" Href="@($"Account/Logout?returnUrl={_currentUrl}")">
+        <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnAction="Logout">
             Log af
         </MudMenuItem>
     </ChildContent>
@@ -34,6 +34,8 @@
     private string _profilePictureUrl = ProfileConstants.Default_Profile_Picture;
 
     private string? _currentUrl;
+    
+    private void Logout() => Navigation.NavigateTo($"Account/Logout?returnUrl={_currentUrl}", true);
 
     protected override async Task OnInitializedAsync()
     {
