@@ -13,47 +13,51 @@
 else
 {
     <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
-        <div>
+        <MudStack Justify="Justify.Center" Style="max-width: 400px">
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <p>
-                @foreach (var provider in _externalLogins)
+            @foreach (var provider in _externalLogins)
+            {
+                switch (provider.DisplayName)
                 {
-                    switch (provider.DisplayName)
-                    {
-                        case "Facebook":
-	                        <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
-	                                   Variant="Variant.Filled"
-	                                   Href="api/auth/login/Facebook"
-	                                   Style="background-color: #3B5998;
-	                                          color: white;">
-		                        Log ind med Facebook
-	                        </MudButton>
-                            break;
-                        case "Google":
-	                        <MudButton StartIcon="@Icons.Custom.Brands.Google"
-	                                   Variant="Variant.Filled"
-	                                   Href="api/auth/login/Google"
-	                                   Style="background-color: #dd4b39;
-	                                          color: white;">
-		                        Log ind med Google
-	                        </MudButton>
-                            break;
-                        case "Microsoft":
-	                        <MudButton StartIcon="@SvgIcons.Microsoft"
-	                                   Variant="Variant.Filled"
-	                                   Href="api/auth/login/Microsoft"
-	                                   Color="Color.Primary">
-		                        Log ind med Microsoft
-	                        </MudButton>
-                            break;
-                        default:
-                            <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log ind med din @provider.DisplayName-konto">@provider.DisplayName</button>
-                            break;
-                    }
+                    case "Facebook":
+                        <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
+                                   Variant="Variant.Filled"
+                                   Style="background-color: #3B5998;
+	                                          color: white;"
+                                   ButtonType="ButtonType.Submit"
+                                   name="provider"
+                                   value="@provider.Name">
+                            Log ind med Facebook
+                        </MudButton>
+                        break;
+                    case "Google":
+                        <MudButton StartIcon="@Icons.Custom.Brands.Google"
+                                   Variant="Variant.Filled"
+                                   Style="background-color: #dd4b39;
+	                                          color: white;"
+                                   ButtonType="ButtonType.Submit"
+                                   name="provider"
+                                   value="@provider.Name">
+                            Log ind med Google
+                        </MudButton>
+                        break;
+                    case "Microsoft":
+                        <MudButton StartIcon="@SvgIcons.Microsoft"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   ButtonType="ButtonType.Submit"
+                                   name="provider"
+                                   value="@provider.Name">
+                            Log ind med Microsoft
+                        </MudButton>
+                        break;
+                    default:
+                        <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log ind med din @provider.DisplayName-konto">@provider.DisplayName</button>
+                        break;
                 }
-            </p>
-        </div>
+            }
+        </MudStack>
     </form>
 }
 
