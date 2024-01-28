@@ -120,7 +120,7 @@ builder.AddGroupSearchServices(baseUrl);
 builder.AddBlazrRenderStateServerServices();
 
 builder.AddCategoryServices();
-builder.AddProfileServices(baseUrl);
+builder.AddProfileServices();
 builder.Services.AddRefitClient<IDeleteUserClient>(baseUrl);
 builder.Services.AddRefitClient<IUserSearchClient>(baseUrl);
 builder.Services.AddRefitClient<IImageClient>(baseUrl);
@@ -156,8 +156,6 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddDataForsyningenClient();
 builder.Services.Configure<DataForsyningenOptions>(builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
-
-builder.Services.AddRazorPages(options => options.RootDirectory = "/Components/Account/Pages");
 
 var app = builder.Build();
 
@@ -198,8 +196,6 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();
-
-app.MapRazorPages();
 
 // Configure the APIs
 app.MapProfiles();
