@@ -5,7 +5,7 @@
 @rendermode InteractiveServer
 
 <MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="5" Variant="DrawerVariant.Responsive">
-     <MudNavMenu Style="margin-top: calc(var(--mud-appbar-height) - var(--mud-appbar-height)/4)">
+     <MudNavMenu>
         <AuthorizeView>
             <Authorized>
                 <AuthorizedSideBar />
@@ -27,10 +27,13 @@
     {
 	    Navigation.RegisterLocationChangingHandler(async _ =>
 	    {
-		    if (Open)
+		    var drawerWasOpen = Open;
+
+		    Open = false;
+		    await OpenChanged.InvokeAsync(Open);
+
+            if (drawerWasOpen)
 		    {
-			    Open = false;
-			    await OpenChanged.InvokeAsync(Open);
 			    StateHasChanged();
 		    }
 	    });
