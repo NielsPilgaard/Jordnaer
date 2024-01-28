@@ -29,18 +29,17 @@ public class ProfileCache : IProfileCache
 		await _memoryCache.GetOrCreateAsync(nameof(UserProfile), async entry =>
 		{
 			await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
-			var profile = await context
-								.UserProfiles
-								.AsNoTracking()
-								.AsSingleQuery()
-								.Include(userProfile => userProfile.ChildProfiles)
-								.Include(userProfile => userProfile.Categories)
-								.FirstOrDefaultAsync(userProfile => userProfile.Id == _currentUser.Id,
-													 cancellationToken);
+			var profile = await context.UserProfiles
+									   .AsNoTracking()
+									   .AsSingleQuery()
+									   .Include(userProfile => userProfile.ChildProfiles)
+									   .Include(userProfile => userProfile.Categories)
+									   .FirstOrDefaultAsync(userProfile => userProfile.Id == _currentUser.Id,
+															cancellationToken);
 
 			if (profile is not null)
 			{
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
 				return profile;
 			}
 
@@ -54,5 +53,5 @@ public class ProfileCache : IProfileCache
 			return null;
 		});
 
-	public void SetProfile(UserProfile userProfile) => _memoryCache.Set(nameof(UserProfile), userProfile);
+	public void SetProfile(UserProfile userProfile) => _memoryCache.Set(nameof(UserProfile), userProfile, TimeSpan.FromHours(1));
 }
