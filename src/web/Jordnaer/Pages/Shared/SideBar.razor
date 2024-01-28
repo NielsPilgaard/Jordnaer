@@ -1,12 +1,11 @@
 @using MudBlazor.Services
 @using Refit
 @inject NavigationManager Navigation
-@implements IDisposable
 
 @rendermode InteractiveServer
 
 <MudDrawer @bind-Open="@Open" ClipMode="DrawerClipMode.Always" DisableOverlay Elevation="5" Variant="DrawerVariant.Responsive">
-    <MudNavMenu>
+     <MudNavMenu Style="margin-top: calc(var(--mud-appbar-height) - var(--mud-appbar-height)/4)">
         <AuthorizeView>
             <Authorized>
                 <AuthorizedSideBar />
@@ -24,22 +23,16 @@
     [Parameter] public bool Open { get; set; }
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
-    private IDisposable? _locationChangedHandler;
-
     protected override void OnInitialized()
     {
-        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async _ =>
-        {
-            if (!Open)
-            {
-                return;
-            }
-
-            Open = false;
-            await OpenChanged.InvokeAsync(Open);
-            StateHasChanged();
-        });
+	    Navigation.RegisterLocationChangingHandler(async _ =>
+	    {
+		    if (Open)
+		    {
+			    Open = false;
+			    await OpenChanged.InvokeAsync(Open);
+			    StateHasChanged();
+		    }
+	    });
     }
-
-    public void Dispose() => _locationChangedHandler?.Dispose();
 }

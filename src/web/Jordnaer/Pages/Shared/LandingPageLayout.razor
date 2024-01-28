@@ -8,18 +8,11 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <TopBar ToggleDrawer="@ToggleDrawer" />
-    <SideBar @bind-Open="_isDrawerOpen" />
-        @Body
-    <MudSpacer/>
+    <TopAndSideBarWrapper />
+    @Body
+    <MudSpacer />
     <Footer></Footer>
     <CookieBanner />
 </MudLayout>
 
 <BlazorErrorFooter />
-
-@code
-{
-    private bool _isDrawerOpen = false;
-    private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
-}
