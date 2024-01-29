@@ -37,7 +37,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.SendGrid" Version="8.0.0" />
 
-    <PackageReference Include="Bogus" Version="35.2.0" />
+    <PackageReference Include="Bogus" Version="35.4.0" />
     <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
 
     <PackageReference Include="MiniValidation" Version="0.9.0" />
