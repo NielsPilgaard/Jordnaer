@@ -60,7 +60,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.GetGroupByIdAsync(id);
 
 		// Assert
-		result.Result.Should().BeOfType<NotFound>();
+		result.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -72,17 +72,17 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.GetGroupByIdAsync(group.Id);
+		var groupDto = await _groupService.GetGroupByIdAsync(group.Id);
 
 		// Assert
-		result.Result.Should().BeOfType<Ok<Group>>();
-		var groupDto = (result.Result as Ok<Group>)?.Value;
-		groupDto.Should().NotBeNull();
-		groupDto!.Name.Should().Be(group.Name);
-		groupDto.Description.Should().Be(group.Description);
-		groupDto.ShortDescription.Should().Be(group.ShortDescription);
-		groupDto.City.Should().Be(group.City);
-		groupDto.ZipCode.Should().Be(group.ZipCode);
+		groupDto.Should().BeOfType<Group>();
+		group = groupDto.AsT0;
+		group.Should().NotBeNull();
+		group.Name.Should().Be(group.Name);
+		group.Description.Should().Be(group.Description);
+		group.ShortDescription.Should().Be(group.ShortDescription);
+		group.City.Should().Be(group.City);
+		group.ZipCode.Should().Be(group.ZipCode);
 	}
 
 	[Fact]
@@ -104,7 +104,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.CreateGroupAsync(group);
 
 		// Assert
-		result.Result.Should().BeOfType<NoContent>();
+		result.Should().BeOfType<NoContent>();
 	}
 
 	[Fact]
@@ -129,7 +129,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.CreateGroupAsync(group);
 
 		// Assert
-		result.Result.Should().BeOfType<BadRequest<string>>();
+		result.Should().BeOfType<BadRequest<string>>();
 	}
 
 	[Fact]
@@ -151,7 +151,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.UpdateGroupAsync(id, group);
 
 		// Assert
-		result.Result.Should().BeOfType<BadRequest<string>>();
+		result.Should().BeOfType<BadRequest<string>>();
 	}
 
 	[Fact]
@@ -173,7 +173,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.UpdateGroupAsync(id, group);
 
 		// Assert
-		result.Result.Should().BeOfType<NotFound>();
+		result.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -199,7 +199,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.UpdateGroupAsync(group.Id, updatedGroup);
 
 		// Assert
-		result.Result.Should().BeOfType<NoContent>();
+		result.Should().BeOfType<NoContent>();
 	}
 
 	[Fact]
@@ -212,7 +212,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(id);
 
 		// Assert
-		result.Result.Should().BeOfType<NotFound>();
+		result.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -236,14 +236,14 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
-		result.Result.Should().BeOfType<UnauthorizedHttpResult>();
+		result.Should().BeOfType<UnauthorizedHttpResult>();
 	}
 
 	[Fact]
 	public async Task DeleteGroupAsync_ReturnsUnauthorized_WhenRequestIsNotFromOwner()
 	{
 		// Arrange
-		string userId = Guid.NewGuid().ToString();
+		var userId = Guid.NewGuid().ToString();
 		AddUserProfile(userId);
 		var group = AddGroup(userId);
 		await _context.SaveChangesAsync();
@@ -252,7 +252,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
-		result.Result.Should().BeOfType<UnauthorizedHttpResult>();
+		result.Should().BeOfType<UnauthorizedHttpResult>();
 	}
 
 	[Fact]
@@ -267,7 +267,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
-		result.Result.Should().BeOfType<NoContent>();
+		result.Should().BeOfType<NoContent>();
 	}
 
 	public Group AddGroup(string? userId = null)

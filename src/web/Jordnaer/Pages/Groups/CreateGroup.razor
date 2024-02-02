@@ -2,7 +2,7 @@
 
 @attribute [Authorize]
 
-@inject IGroupClient GroupClient
+@inject IGroupService GroupService
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -97,20 +97,15 @@
     {
         _isLoading = true;
 
-        var response = await GroupClient.CreateGroupAsync(_group);
-        if (response.IsSuccessStatusCode)
-        {
-            Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-            Navigation.NavigateTo($"/groups/{_group.Name}");
-        }
-        else if (response.StatusCode is HttpStatusCode.BadRequest)
-        {
-            Snackbar.Add(response.Error.Content, Severity.Warning);
-        }
-        else
-        {
-            Snackbar.Add("Det lykkedes ikke at oprette gruppen. Vent et øjeblik før du prøver igen.", Severity.Warning);
-        }
+        var response = await GroupService.CreateGroupAsync(_group);
+        response.Switch(
+	        _ =>
+	        {
+		        Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
+		        Navigation.NavigateTo($"/groups/{_group.Name}");
+	        }, 
+	        badRequest => Snackbar.Add(badRequest.Value, Severity.Warning));
+        
 
         _isLoading = false;
     }

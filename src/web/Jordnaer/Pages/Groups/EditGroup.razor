@@ -2,7 +2,7 @@
 
 @attribute [Authorize]
 
-@inject IGroupClient GroupClient
+@inject IGroupService GroupService
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
@@ -102,21 +102,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var group = await GroupClient.GetGroupByIdAsync(GroupId);
-        switch (group.StatusCode)
-        {
-            case var _ when group is {IsSuccessStatusCode: true,Content: not null}:
-                _group = group.Content;
-                break;
-            case HttpStatusCode.NotFound:
-                Snackbar.Add("Det lykkedes ikke at finde gruppen.",
-                    Severity.Warning, _snackbarOptions);
-                break;
-            default:
-                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh,
-                    Severity.Warning, _snackbarOptions);
-                break;
-        }
+        var response = await GroupService.GetGroupByIdAsync(GroupId);
+        response.Switch(
+	        group => _group = group, 
+	        _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning, _snackbarOptions));
 
         _isLoading = false;
 

@@ -4,17 +4,20 @@ using Jordnaer.Extensions;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
+using OneOf.Types;
 using Serilog;
+using NotFound = Microsoft.AspNetCore.Http.HttpResults.NotFound;
 
 namespace Jordnaer.Features.Groups;
 
 public interface IGroupService
 {
-	Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id);
-	Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name);
-	Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group);
-	Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group);
-	Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
+	Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id);
+	Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name);
+	Task<OneOf<Success, BadRequest<string>>> CreateGroupAsync(Group group);
+	Task<OneOf<Success, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group);
+	Task<OneOf<Success, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
 	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync();
 }
 
@@ -36,7 +39,7 @@ public class GroupService : IGroupService
 		_diagnosticContext = diagnosticContext;
 	}
 
-	public async Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id)
+	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id)
 	{
 		_logger.LogFunctionBegan();
 
@@ -46,10 +49,10 @@ public class GroupService : IGroupService
 
 		return group is null
 			? TypedResults.NotFound()
-			: TypedResults.Ok(group);
+			: group;
 	}
 
-	public async Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name)
+	public async Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name)
 	{
 		_logger.LogFunctionBegan();
 
@@ -70,7 +73,7 @@ public class GroupService : IGroupService
 
 		return group is null
 			? TypedResults.NotFound()
-			: TypedResults.Ok(group);
+			: group;
 	}
 	public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync()
 	{
@@ -108,7 +111,7 @@ public class GroupService : IGroupService
 		return groups;
 	}
 
-	public async Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group)
+	public async Task<OneOf<Success, BadRequest<string>>> CreateGroupAsync(Group group)
 	{
 		_logger.LogFunctionBegan();
 
@@ -156,10 +159,10 @@ public class GroupService : IGroupService
 		_logger.LogInformation("{userIdentifier} created group '{groupName}'",
 			_currentUser.User?.Email ?? _currentUser.User?.UserName, group.Name);
 
-		return TypedResults.NoContent();
+		return new Success();
 	}
 
-	public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group)
+	public async Task<OneOf<Success, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group)
 	{
 		_logger.LogFunctionBegan();
 
@@ -187,10 +190,10 @@ public class GroupService : IGroupService
 		_context.Entry(group).State = EntityState.Modified;
 		await _context.SaveChangesAsync();
 
-		return TypedResults.NoContent();
+		return new Success();
 	}
 
-	public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id)
+	public async Task<OneOf<Success, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id)
 	{
 		_logger.LogFunctionBegan();
 
@@ -227,7 +230,7 @@ public class GroupService : IGroupService
 
 		_logger.LogInformation("Successfully deleted group");
 
-		return TypedResults.NoContent();
+		return new Success();
 	}
 
 	private static async Task UpdateExistingGroupAsync(Group group, Group dto, JordnaerDbContext context)

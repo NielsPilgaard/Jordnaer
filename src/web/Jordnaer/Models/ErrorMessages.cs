@@ -1,6 +1,6 @@
 namespace Jordnaer.Models;
 
-public class ErrorMessages
+public static class ErrorMessages
 {
 	public const string High_Load = "Der er pt meget trafik på hjemmesiden, vent et øjeblik før du prøver igen.";
 	public const string Something_Went_Wrong_Try_Again = "Noget gik galt, vent et øjeblik og prøv igen.";

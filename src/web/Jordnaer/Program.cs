@@ -114,7 +114,7 @@ builder.AddSignalR();
 
 builder.Services.AddScoped<IImageService, ImageService>();
 
-builder.AddGroupServices(baseUrl);
+builder.AddGroupServices();
 builder.AddGroupSearchServices(baseUrl);
 
 builder.AddBlazrRenderStateServerServices();
@@ -204,8 +204,6 @@ app.MapEmail();
 app.MapImages();
 app.MapDeleteUsers();
 app.MapChat();
-app.MapGroups();
-app.MapGroupSearch();
 
 app.MapAdditionalIdentityEndpoints();
 

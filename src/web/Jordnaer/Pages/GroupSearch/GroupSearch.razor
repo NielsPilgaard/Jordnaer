@@ -2,7 +2,7 @@
 
 @inject ISnackbar Snackbar
 @inject ISessionStorageService SessionStorage
-@inject IGroupSearchClient GroupSearchClient
+@inject IGroupSearchService GroupSearchService
 
 <MetadataComponent Title="Mini Møder - Grupper"/>
 
@@ -63,7 +63,7 @@
     private async Task Search()
     {
         _isSearching = true;
-        var response = await GroupSearchClient.GetGroups(_filter);
+        var response = await GroupSearchService.GetGroupsAsync(_filter);
         if (response.IsSuccessStatusCode)
         {
             _searchResult = response.Content!;

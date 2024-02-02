@@ -2,7 +2,7 @@
 
 @attribute [Authorize]
 
-@inject IGroupClient GroupClient
+@inject IGroupService GroupService
 @inject ISnackbar Snackbar
 
 <MudButton Href="groups/create" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.GroupAdd">Opret gruppe</MudButton>
@@ -55,18 +55,19 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // TODO: Do we need this delay?
 	    await Task.Delay(2000);
-        _groupSummaries = await GroupClient.GetSlimGroupsForUserAsync().NotifyUserOfResponseAsync(Snackbar);
-        if (_groupSummaries is not null)
-        {
-            _memberOf = _groupSummaries
-                .Where(x => x.MembershipStatus is MembershipStatus.Active)
-                .ToArray();
 
-            _pendingAccess = _groupSummaries
-                .Where(x => x.MembershipStatus is MembershipStatus.PendingApprovalFromGroup or MembershipStatus.PendingApprovalFromUser)
-                .ToArray();
-        }
+        _groupSummaries = await GroupService.GetSlimGroupsForUserAsync();
+        
+        _memberOf = _groupSummaries
+            .Where(x => x.MembershipStatus is MembershipStatus.Active)
+            .ToArray();
+
+        _pendingAccess = _groupSummaries
+            .Where(x => x.MembershipStatus is MembershipStatus.PendingApprovalFromGroup or MembershipStatus.PendingApprovalFromUser)
+            .ToArray();
+        
         _isLoading = false;
     }
 }

@@ -1,6 +1,6 @@
 @page "/groups/{GroupName}"
 
-@inject IGroupClient GroupClient
+@inject IGroupService GroupService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
 
@@ -59,24 +59,10 @@
     {
         if (GroupName is not null)
         {
-            var response = await GroupClient.GetSlimGroupByNameAsync(GroupName);
-            switch (response.StatusCode)
-            {
-                case var _ when response is { IsSuccessStatusCode: true, Content: not null }:
-                    _group = response.Content;
-                    break;
-
-                case HttpStatusCode.NotFound:
-                    break;
-
-                case HttpStatusCode.TooManyRequests:
-                    Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                    break;
-
-                default:
-                    Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                    break;
-            }
+            var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
+            response.Switch(
+	            groupSlim => _group = groupSlim,
+	            _ => {});
         }
 
         _isLoading = false;

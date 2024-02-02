@@ -8,7 +8,7 @@ namespace Jordnaer.Features.GroupSearch;
 
 public interface IGroupSearchService
 {
-	Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken);
+	Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken = default);
 }
 
 public class GroupSearchService : IGroupSearchService
@@ -29,7 +29,7 @@ public class GroupSearchService : IGroupSearchService
 		_dataForsyningenClient = dataForsyningenClient;
 	}
 
-	public async Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken)
+	public async Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		// TODO: Convert to Dapper
 		var groups = _context.Groups
@@ -38,14 +38,14 @@ public class GroupSearchService : IGroupSearchService
 			.ApplyNameFilter(filter.Name)
 			.ApplyCategoryFilter(filter.Categories);
 
-		(groups, bool isOrdered) = await ApplyLocationFilterAsync(groups, filter);
+		(groups, var isOrdered) = await ApplyLocationFilterAsync(groups, filter, cancellationToken);
 
 		if (!isOrdered)
 		{
 			groups = groups.OrderBy(user => user.CreatedUtc);
 		}
 
-		int groupsToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
+		var groupsToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedGroups = await groups
 			.Skip(groupsToSkip)
 			.Take(filter.PageSize)
@@ -65,20 +65,20 @@ public class GroupSearchService : IGroupSearchService
 			.AsNoTracking()
 			.ToListAsync(cancellationToken);
 
-		int totalCount = await groups.AsNoTracking().CountAsync(cancellationToken);
+		var totalCount = await groups.AsNoTracking().CountAsync(cancellationToken);
 
 		return new GroupSearchResult { TotalCount = totalCount, Groups = paginatedGroups };
 	}
 
 	internal async Task<(IQueryable<Group> Groups, bool AppliedOrdering)>
-		ApplyLocationFilterAsync(IQueryable<Group> groups, GroupSearchFilter filter)
+		ApplyLocationFilterAsync(IQueryable<Group> groups, GroupSearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
 		{
 			return (groups, false);
 		}
 
-		var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(filter.Location);
+		var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(filter.Location, cancellationToken);
 		if (!searchResponse.IsSuccessStatusCode)
 		{
 			_logger.LogError(searchResponse.Error,
@@ -99,18 +99,18 @@ public class GroupSearchService : IGroupSearchService
 			return (groups, false);
 		}
 
-		int searchRadiusMeters = Math.Min(filter.WithinRadiusKilometers ?? 0, _maxSearchRadiusKilometers) * 1000;
+		var searchRadiusMeters = Math.Min(filter.WithinRadiusKilometers ?? 0, _maxSearchRadiusKilometers) * 1000;
 
 		var circle = Circle.FromAddress(addressDetails.Value, searchRadiusMeters);
 
-		var zipCodeSearchResponse = await _dataForsyningenClient.GetZipCodesWithinCircle(circle.ToString());
+		var zipCodeSearchResponse = await _dataForsyningenClient.GetZipCodesWithinCircle(circle.ToString(), cancellationToken);
 		if (!zipCodeSearchResponse.IsSuccessStatusCode)
 		{
 			_logger.LogError("Failed to get zip codes within {radius}m of the coordinates x={x}, y={y}", filter.WithinRadiusKilometers, addressDetails.Value.X, addressDetails.Value.Y);
 			return (groups, false);
 		}
 
-		int searchedZipCode = GetZipCodeFromLocation(filter.Location);
+		var searchedZipCode = GetZipCodeFromLocation(filter.Location);
 
 		_logger.LogDebug("ZipCode that was searched for is: {searchedZipCode}", searchedZipCode);
 
@@ -132,7 +132,7 @@ public class GroupSearchService : IGroupSearchService
 	{
 		var span = location.AsSpan();
 
-		int indexOfLastComma = span.LastIndexOf(',');
+		var indexOfLastComma = span.LastIndexOf(',');
 
 		// Start from last comma, move 2 to skip comma and whitespace, then take the next 4 chars
 		var zipCodeSpan = span.Slice(indexOfLastComma + 2, 4);
