@@ -10,8 +10,7 @@ namespace Jordnaer.Features.Chat;
 
 public interface IChatService
 {
-	Task<List<ChatDto>> GetChatsAsync(int skip, int take,
-		CancellationToken cancellationToken = default);
+	Task<List<ChatDto>> GetChatsAsync(CancellationToken cancellationToken = default);
 
 	Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(Guid chatId,
 		CancellationToken cancellationToken = default);

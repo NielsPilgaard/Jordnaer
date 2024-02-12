@@ -114,9 +114,7 @@ builder.AddBlazrRenderStateServerServices();
 
 builder.AddCategoryServices();
 builder.AddProfileServices();
-
-builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<ChatSignalRClient>();
+builder.AddChatServices();
 
 builder.Services.AddMudServices(configuration =>
 {
@@ -207,5 +205,5 @@ finally
 
 namespace Jordnaer
 {
-	public class Program { }
+	public class Program;
 }
