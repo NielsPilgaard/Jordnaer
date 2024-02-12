@@ -1,4 +1,5 @@
 @inject IChatService ChatService
+@inject IChatMessageCache ChatMessageCache
 @inject IProfileCache ProfileCache
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
@@ -138,8 +139,7 @@
             lambda: args => _isMobile = args.Breakpoint <= Breakpoint.Sm,
             fireImmediately: true);
 
-        // TODO: We need a cache in front of this
-        _chats = await ChatService.GetChatsAsync(5,5);
+        _chats = await ChatService.GetChatsAsync();
         if (ChatId is not null)
         {
             var chatFromRoute = _chats.FirstOrDefault(chat => chat.Id == ChatId);
@@ -216,8 +216,7 @@
             return;
         }
 
-        // TODO: We need a cache infront of this
-        _activeChat.Messages = await ChatService.GetChatMessagesAsync(_activeChat.Id, 5, 5);
+        _activeChat.Messages = await ChatMessageCache.GetChatMessagesAsync(_activeChat.Id);
 
         StateHasChanged();
     }

@@ -50,15 +50,13 @@ public class ChatService : IChatService
 		_logger = logger;
 	}
 
-	public async Task<List<ChatDto>> GetChatsAsync(int skip, int take, CancellationToken cancellationToken = default)
+	public async Task<List<ChatDto>> GetChatsAsync(CancellationToken cancellationToken = default)
 	{
 		var chats = await _context
 						  .Chats
 						  .AsNoTracking()
 						  .Where(chat => chat.Recipients.Any(recipient => recipient.Id == _currentUser.Id))
 						  .OrderByDescending(chat => chat.LastMessageSentUtc)
-						  .Skip(skip)
-						  .Take(take)
 						  // TODO: This include might not be needed
 						  //.Include(chat => chat.Recipients)
 						  .Select(chat => new ChatDto
