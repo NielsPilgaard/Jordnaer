@@ -17,30 +17,25 @@ public interface IProfileService
 	/// </para>
 	/// </summary>
 	/// <param name="userName">Name of the user.</param>
+	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName);
+	Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName, CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Updates the profile of the user that is currently logged in.
 	/// </summary>
 	/// <param name="updatedUserProfile">The user profile.</param>
-	Task UpdateUserProfile(UserProfile updatedUserProfile);
+	/// <param name="cancellationToken"></param>
+	Task UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
 }
 
-public sealed class ProfileService : IProfileService
+public sealed class ProfileService(IDbContextFactory<JordnaerDbContext> contextFactory, CurrentUser currentUser)
+	: IProfileService
 {
-	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
-	private readonly CurrentUser _currentUser;
-
-	public ProfileService(IDbContextFactory<JordnaerDbContext> contextFactory, CurrentUser currentUser)
+	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName,
+		CancellationToken cancellationToken = default)
 	{
-		_contextFactory = contextFactory;
-		_currentUser = currentUser;
-	}
-
-	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName)
-	{
-		await using var context = await _contextFactory.CreateDbContextAsync();
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var profile = await context
 							.UserProfiles
 							.AsNoTracking()
@@ -49,21 +44,22 @@ public sealed class ProfileService : IProfileService
 							.Include(userProfile => userProfile.Categories)
 							.Where(userProfile => userProfile.UserName == userName)
 							.Select(userProfile => userProfile.ToProfileDto())
-							.FirstOrDefaultAsync();
+							.FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
 		return profile is null
 				   ? new NotFound()
 				   : new Success<ProfileDto>(profile);
 	}
 
-	public async Task UpdateUserProfile(UserProfile updatedUserProfile)
+	public async Task UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
 	{
-		await using var context = await _contextFactory.CreateDbContextAsync();
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var currentUserProfile = await context.UserProfiles
 											  .AsSingleQuery()
 											  .Include(user => user.Categories)
 											  .Include(user => user.ChildProfiles)
-											  .FirstOrDefaultAsync(user => user.Id == _currentUser.Id);
+											  .FirstOrDefaultAsync(user => user.Id == currentUser.Id,
+																   cancellationToken);
 
 		if (currentUserProfile is null)
 		{
@@ -72,16 +68,17 @@ public sealed class ProfileService : IProfileService
 		}
 		else
 		{
-			await UpdateExistingUserProfileAsync(currentUserProfile, updatedUserProfile, context);
+			await UpdateExistingUserProfileAsync(currentUserProfile, updatedUserProfile, context, cancellationToken);
 			context.Entry(currentUserProfile).State = EntityState.Modified;
 		}
 
-		await context.SaveChangesAsync();
+		await context.SaveChangesAsync(cancellationToken);
 	}
 
 	internal static async Task UpdateExistingUserProfileAsync(UserProfile currentUserProfile,
 		UserProfile updatedUserProfile,
-		JordnaerDbContext context)
+		JordnaerDbContext context,
+		CancellationToken cancellationToken = default)
 	{
 		currentUserProfile.FirstName = updatedUserProfile.FirstName;
 		currentUserProfile.LastName = updatedUserProfile.LastName;
@@ -97,7 +94,7 @@ public sealed class ProfileService : IProfileService
 		currentUserProfile.Categories.Clear();
 		foreach (var categoryDto in updatedUserProfile.Categories)
 		{
-			var category = await context.Categories.FindAsync(categoryDto.Id);
+			var category = await context.Categories.FindAsync([categoryDto.Id], cancellationToken);
 			if (category is null)
 			{
 				currentUserProfile.Categories.Add(categoryDto);
@@ -114,7 +111,7 @@ public sealed class ProfileService : IProfileService
 		currentUserProfile.ChildProfiles.Clear();
 		foreach (var childProfileDto in updatedUserProfile.ChildProfiles)
 		{
-			var childProfile = await context.ChildProfiles.FindAsync(childProfileDto.Id);
+			var childProfile = await context.ChildProfiles.FindAsync([childProfileDto.Id], cancellationToken);
 			if (childProfile is null)
 			{
 				currentUserProfile.ChildProfiles.Add(childProfileDto);
