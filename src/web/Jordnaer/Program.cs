@@ -32,11 +32,6 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-#pragma warning disable CA2208 // Instantiate argument exceptions correctly
-var baseUrl = builder.Configuration.GetValue<string>("MiniMoeder:BaseUrl")
-				 ?? throw new ArgumentNullException("BaseUrl", "BaseUrl must be set in the configuration.");
-#pragma warning restore CA2208 // Instantiate argument exceptions correctly
-
 builder.Services.AddRazorComponents()
 	   .AddInteractiveServerComponents();
 
@@ -75,8 +70,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 .AddSignInManager()
 .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IEmailSender<ApplicationUser>, SendGridEmailSender>();
-
 builder.Services.AddCurrentUser();
 builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
 
@@ -99,7 +92,7 @@ builder.Services.AddOutputCache();
 builder.Services.ConfigureHttpJsonOptions(options =>
 	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-builder.AddEmailServices(baseUrl);
+builder.AddEmailServices();
 
 builder.AddDeleteUserFeature();
 
@@ -115,16 +108,12 @@ builder.AddSignalR();
 builder.Services.AddScoped<IImageService, ImageService>();
 
 builder.AddGroupServices();
-builder.AddGroupSearchServices(baseUrl);
+builder.AddGroupSearchServices();
 
 builder.AddBlazrRenderStateServerServices();
 
 builder.AddCategoryServices();
 builder.AddProfileServices();
-builder.Services.AddRefitClient<IDeleteUserClient>(baseUrl);
-builder.Services.AddRefitClient<IUserSearchClient>(baseUrl);
-builder.Services.AddRefitClient<IImageClient>(baseUrl);
-builder.Services.AddRefitClient<IChatClient>(baseUrl);
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<ChatSignalRClient>();
@@ -190,20 +179,10 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseRateLimiter();
 app.UseOutputCache();
 
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();
-
-// Configure the APIs
-app.MapProfiles();
-app.MapUserSearch();
-app.MapEmail();
-app.MapImages();
-app.MapDeleteUsers();
-app.MapChat();
 
 app.MapAdditionalIdentityEndpoints();
 
@@ -228,5 +207,5 @@ finally
 
 namespace Jordnaer
 {
-	public partial class Program { }
+	public class Program { }
 }
