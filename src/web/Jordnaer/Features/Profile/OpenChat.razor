@@ -2,7 +2,9 @@
 @using Jordnaer.Features.Chat
 @using Jordnaer.Shared
 @using MudBlazor
-@inject IChatClient ChatClient
+@using OneOf
+@using NotFound = OneOf.Types.NotFound
+@inject IChatService ChatService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
@@ -31,28 +33,26 @@
 
     private async Task OpenOrStartChat()
     {
-        var getChatResponse = await ChatClient.GetChat(Recipients.Select(recipient => recipient.Id).ToArray());
-        if (getChatResponse is { IsSuccessStatusCode: true, Content: { } chatId })
+        var getChatResponse = await ChatService.GetChatByUserIdsAsync(Recipients.Select(recipient => recipient.Id).ToArray());
+        await getChatResponse.Match<Task>(chatId =>
         {
-            NavigationManager.NavigateTo($"/chat/{chatId}");
-            return;
-        }
-
-        if (getChatResponse.StatusCode is HttpStatusCode.NotFound)
+	        NavigationManager.NavigateTo($"/chat/{chatId}");
+	        return Task.CompletedTask;
+        }, async notFound =>
         {
-            var parameters = new DialogParameters<SendMessageDialog>
-            {
-                { dialog => dialog.InitiatorId, InitiatorId },
-                { dialog => dialog.Recipients, Recipients }
-            };
+	        var parameters = new DialogParameters<SendMessageDialog>
+	        {
+		        { dialog => dialog.InitiatorId, InitiatorId },
+		        { dialog => dialog.Recipients, Recipients }
+	        };
 
-            var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
+	        var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
 
-            var dialogResult = await dialogReference.Result;
-            if (!dialogResult.Canceled && dialogResult.Data is true)
-            {
-                _isMessageSent = true;
-            }
-        }
+	        var dialogResult = await dialogReference.Result;
+	        if (!dialogResult.Canceled && dialogResult.Data is true)
+	        {
+		        _isMessageSent = true;
+	        }
+        });
     }
 }

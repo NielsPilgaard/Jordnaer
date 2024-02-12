@@ -138,7 +138,8 @@
             lambda: args => _isMobile = args.Breakpoint <= Breakpoint.Sm,
             fireImmediately: true);
 
-        _chats = await ChatService.GetChats(_currentUser.Id);
+        // TODO: We need a cache in front of this
+        _chats = await ChatService.GetChatsAsync(5,5);
         if (ChatId is not null)
         {
             var chatFromRoute = _chats.FirstOrDefault(chat => chat.Id == ChatId);
@@ -193,7 +194,7 @@
 
             if (_activeChat?.Id == chat.Id)
             {
-                await ChatService.MarkMessagesAsRead(message.ChatId);
+                await ChatService.MarkMessagesAsReadAsync(message.ChatId);
                 StateHasChanged();
                 await ScrollToBottom();
             }
@@ -215,7 +216,8 @@
             return;
         }
 
-        _activeChat.Messages = await ChatService.GetChatMessages(_activeChat.Id);
+        // TODO: We need a cache infront of this
+        _activeChat.Messages = await ChatService.GetChatMessagesAsync(_activeChat.Id, 5, 5);
 
         StateHasChanged();
     }
@@ -233,7 +235,7 @@
 
             if (chat.HasUnreadMessages)
             {
-                await ChatService.MarkMessagesAsRead(_activeChat.Id);
+                await ChatService.MarkMessagesAsReadAsync(_activeChat.Id);
                 chat.UnreadMessageCount = 0;
             }
         }
@@ -275,11 +277,11 @@
 
         if (_isActiveChatPublished)
         {
-            await ChatService.SendMessage(message);
+            await ChatService.SendMessageAsync(message);
         }
         else
         {
-            await ChatService.StartChat(_activeChat.ToStartChatCommand(_currentUser!.Id));
+            await ChatService.StartChatAsync(_activeChat.ToStartChatCommand(_currentUser!.Id));
             _isActiveChatPublished = true;
         }
 

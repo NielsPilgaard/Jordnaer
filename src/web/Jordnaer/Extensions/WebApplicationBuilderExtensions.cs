@@ -1,4 +1,3 @@
-using Jordnaer.Consumers;
 using Jordnaer.Database;
 using MassTransit;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -10,18 +9,17 @@ public static class WebApplicationBuilderExtensions
 {
 	public static WebApplicationBuilder AddMassTransit(this WebApplicationBuilder builder)
 	{
-		builder.Services.AddMassTransit(config =>
+		builder.Services.AddMassTransit(x =>
 		{
-			config.AddConsumer<StartChatConsumer>();
-			config.AddConsumer<SendMessageConsumer>();
-			config.AddConsumer<SetChatNameConsumer>();
+			x.AddConsumersFromNamespaceContaining<Program>();
 
 			if (builder.Environment.IsDevelopment())
 			{
-				config.SetEndpointNameFormatter(endpointNameFormatter: new DefaultEndpointNameFormatter(prefix: "dev-"));
+				x.SetEndpointNameFormatter(endpointNameFormatter:
+										   new DefaultEndpointNameFormatter(prefix: "dev-"));
 			}
 
-			config.UsingAzureServiceBus((context, azureServiceBus) =>
+			x.UsingAzureServiceBus((context, azureServiceBus) =>
 			{
 				if (builder.Environment.IsDevelopment())
 				{
@@ -32,6 +30,8 @@ public static class WebApplicationBuilderExtensions
 				}
 
 				azureServiceBus.Host(builder.Configuration.GetConnectionString("AzureServiceBus"));
+
+				azureServiceBus.UseInMemoryOutbox(context);
 
 				azureServiceBus.ConfigureEndpoints(context);
 			});

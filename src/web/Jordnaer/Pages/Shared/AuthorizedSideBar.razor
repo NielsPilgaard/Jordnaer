@@ -1,4 +1,4 @@
-@inject IChatClient ChatClient
+@inject IChatService ChatService
 @inject NavigationManager Navigation
 @implements IDisposable
 
@@ -54,15 +54,10 @@
 
     private async Task GetUnreadMessageCount()
     {
-        var response = await ChatClient.GetUnreadMessageCount();
-        if (!response.IsSuccessStatusCode)
+        var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync();
+        if (_unreadMessageCount != unreadMessageCount)
         {
-            return;
-        }
-
-        if (_unreadMessageCount != response.Content)
-        {
-            _unreadMessageCount = response.Content;
+            _unreadMessageCount = unreadMessageCount;
             StateHasChanged();
         }
     }

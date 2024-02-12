@@ -1,6 +1,8 @@
 @using System.Security.Claims
-@inject IDeleteUserClient DeleteUserClient
+
+@inject IDeleteUserService DeleteUserService
 @inject ISnackbar Snackbar
+
 <div class="d-flex justify-center align-center">
     <MudButton StartIcon="@Icons.Material.Filled.Warning"
                Size="Size.Large"
@@ -59,8 +61,8 @@
 
     private async Task DeleteAccount()
     {
-        var result = await DeleteUserClient.InitiateDeleteUserAsync();
-        if (result.IsSuccessStatusCode)
+        var result = await DeleteUserService.InitiateDeleteUserAsync();
+        if (result)
         {
             Snackbar.Add("Du modtager snart en bekræftelses-mail.", Severity.Success);
         }

@@ -1,3 +1,4 @@
+using Jordnaer.Authorization;
 using Jordnaer.Database;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Profile;
@@ -11,9 +12,9 @@ namespace Jordnaer.Features.DeleteUser;
 
 public interface IDeleteUserService
 {
-	Task<bool> InitiateDeleteUserAsync(ApplicationUser user, CancellationToken cancellationToken = default);
-	Task<bool> DeleteUserAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default);
-	Task<bool> VerifyTokenAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default);
+	Task<bool> InitiateDeleteUserAsync(CancellationToken cancellationToken = default);
+	Task<bool> DeleteUserAsync(string token, CancellationToken cancellationToken = default);
+	Task<bool> VerifyTokenAsync(string token, CancellationToken cancellationToken = default);
 }
 
 public class DeleteUserService : IDeleteUserService
@@ -28,6 +29,7 @@ public class DeleteUserService : IDeleteUserService
 	private readonly JordnaerDbContext _context;
 	private readonly IDiagnosticContext _diagnosticContext;
 	private readonly IImageService _imageService;
+	private readonly CurrentUser _currentUser;
 
 	public DeleteUserService(UserManager<ApplicationUser> userManager,
 		ILogger<DeleteUserService> logger,
@@ -35,7 +37,7 @@ public class DeleteUserService : IDeleteUserService
 		IHttpContextAccessor httpContextAccessor,
 		JordnaerDbContext context,
 		IDiagnosticContext diagnosticContext,
-		IImageService imageService)
+		IImageService imageService, CurrentUser currentUser)
 	{
 		_userManager = userManager;
 		_logger = logger;
@@ -44,24 +46,28 @@ public class DeleteUserService : IDeleteUserService
 		_context = context;
 		_diagnosticContext = diagnosticContext;
 		_imageService = imageService;
+		_currentUser = currentUser;
 	}
 
-	public async Task<bool> InitiateDeleteUserAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+	public async Task<bool> InitiateDeleteUserAsync(CancellationToken cancellationToken = default)
 	{
-		_diagnosticContext.Set("userId", user.Id);
+		_diagnosticContext.Set("userId", _currentUser.Id);
 
-		if (_httpContextAccessor.HttpContext is null)
+		if (_currentUser.User is null)
 		{
-			_logger.LogError("{httpContextAccessor} has a null HttpContext. " +
-							 "A Delete User Url cannot be created.",
-				nameof(IHttpContextAccessor));
+			_logger.LogError("Cannot initiate deletion of user, the user has no ApplicationUser");
 			return false;
 		}
 
-		var to = new EmailAddress(user.Email);
+		if (_httpContextAccessor.HttpContext is null)
+		{
+			_logger.LogError("IHttpContextAccessor has a null HttpContext. A Delete User Url cannot be created.");
+			return false;
+		}
 
-		var token = await _userManager.GenerateUserTokenAsync(user, TokenProvider,
-															  TokenPurpose);
+		var to = new EmailAddress(_currentUser.User.Email);
+
+		var token = await _userManager.GenerateUserTokenAsync(_currentUser.User, TokenProvider, TokenPurpose);
 
 		var deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
 
@@ -89,11 +95,17 @@ public class DeleteUserService : IDeleteUserService
 		return emailSentResponse.IsSuccessStatusCode;
 	}
 
-	public async Task<bool> DeleteUserAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default)
+	public async Task<bool> DeleteUserAsync(string token, CancellationToken cancellationToken = default)
 	{
-		_diagnosticContext.Set("userId", user.Id);
+		_diagnosticContext.Set("userId", _currentUser.Id);
 
-		var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+		if (_currentUser.User is null)
+		{
+			_logger.LogError("Cannot delete user, the user has no ApplicationUser");
+			return false;
+		}
+
+		var tokenIsValid = await _userManager.VerifyUserTokenAsync(_currentUser.User, TokenProvider, TokenPurpose, token);
 		if (tokenIsValid is false)
 		{
 			_logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
@@ -105,8 +117,7 @@ public class DeleteUserService : IDeleteUserService
 		try
 		{
 			// TODO: Make sure all user data is deleted here, and that owned groups are assigned new admins
-
-			var identityResult = await _userManager.DeleteAsync(user);
+			var identityResult = await _userManager.DeleteAsync(_currentUser.User);
 			if (identityResult.Succeeded is false)
 			{
 				_logger.LogError("Failed to delete user. Errors: {@identityResultErrors}",
@@ -117,12 +128,12 @@ public class DeleteUserService : IDeleteUserService
 			}
 
 			var childrenIds = await _context.ChildProfiles
-				.Where(child => child.UserProfileId == user.Id)
+				.Where(child => child.UserProfileId == _currentUser.Id)
 				.Select(child => child.Id)
 				.ToListAsync(cancellationToken);
 
 			var modifiedRows = await _context.UserProfiles
-											 .Where(userProfile => userProfile.Id == user.Id)
+											 .Where(userProfile => userProfile.Id == _currentUser.Id)
 											 .ExecuteDeleteAsync(cancellationToken);
 
 			if (modifiedRows <= 0)
@@ -137,10 +148,10 @@ public class DeleteUserService : IDeleteUserService
 			await transaction.CommitAsync(cancellationToken);
 
 			// Delete all saved images owned by the user
-			await _imageService.DeleteImageAsync(user.Id, ImageService.UserProfilePicturesContainerName, cancellationToken);
+			await _imageService.DeleteImageAsync(_currentUser.Id, ProfileImageService.UserProfilePicturesContainerName, cancellationToken);
 			foreach (var id in childrenIds)
 			{
-				await _imageService.DeleteImageAsync(id.ToString(), ImageService.ChildProfilePicturesContainerName, cancellationToken);
+				await _imageService.DeleteImageAsync(id.ToString(), ProfileImageService.ChildProfilePicturesContainerName, cancellationToken);
 			}
 
 			return true;
@@ -154,10 +165,17 @@ public class DeleteUserService : IDeleteUserService
 	}
 
 	public async Task<bool> VerifyTokenAsync(
-		ApplicationUser user,
 		string token,
-		CancellationToken cancellationToken = default) =>
-		await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+		CancellationToken cancellationToken = default)
+	{
+		if (_currentUser.User is not null)
+		{
+			return await _userManager.VerifyUserTokenAsync(_currentUser.User, TokenProvider, TokenPurpose, token);
+		}
+
+		_logger.LogError("Cannot verify user token, the user has no ApplicationUser");
+		return false;
+	}
 
 	private static string CreateDeleteUserEmailMessage(string deletionLink) =>
 		$"""

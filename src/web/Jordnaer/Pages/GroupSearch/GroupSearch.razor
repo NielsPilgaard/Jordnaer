@@ -1,10 +1,9 @@
 @page "/groups"
 
-@inject ISnackbar Snackbar
 @inject ISessionStorageService SessionStorage
 @inject IGroupSearchService GroupSearchService
 
-<MetadataComponent Title="Mini Møder - Grupper"/>
+<MetadataComponent Title="Mini Møder - Grupper" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -15,7 +14,7 @@
         return;
     }
 
-    @if (_searchResult.TotalCount == 0)
+    @if (_searchResult.TotalCount is 0)
     {
         <MudPaper Elevation="3" Class="pa-10 mt-5">
             <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
@@ -63,22 +62,14 @@
     private async Task Search()
     {
         _isSearching = true;
-        var response = await GroupSearchService.GetGroupsAsync(_filter);
-        if (response.IsSuccessStatusCode)
-        {
-            _searchResult = response.Content!;
-            _hasSearched = true;
-            await SessionStorage.SetItemAsync(nameof(GroupSearchResult), _searchResult);
-            await SessionStorage.SetItemAsync(nameof(GroupSearchFilter), _filter);
-        }
-        else if (response.StatusCode is HttpStatusCode.TooManyRequests)
-        {
-            Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-        }
-        else
-        {
-            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Warning);
-        }
+
+        var groups = await GroupSearchService.GetGroupsAsync(_filter);
+        _searchResult = groups;
+
+        _hasSearched = true;
+
+        await SessionStorage.SetItemAsync(nameof(GroupSearchResult), _searchResult);
+        await SessionStorage.SetItemAsync(nameof(GroupSearchFilter), _filter);
 
         _isSearching = false;
     }

@@ -12,12 +12,16 @@ public class ChatSignalRClient : SignalRClientBase
 	public void OnMessageReceived(Func<SendMessage, Task> action)
 	{
 		if (!Started && HubConnection is not null)
+		{
 			HubConnection.On(nameof(IChatHub.ReceiveChatMessage), action);
+		}
 	}
 
 	public void OnChatStarted(Func<StartChat, Task> action)
 	{
 		if (!Started && HubConnection is not null)
+		{
 			HubConnection.On(nameof(IChatHub.StartChat), action);
+		}
 	}
 }

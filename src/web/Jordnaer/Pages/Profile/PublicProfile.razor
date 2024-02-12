@@ -1,14 +1,14 @@
 @page "/{userName}"
 
 @inject ISnackbar Snackbar
-@inject IProfileClient ProfileClient
+@inject IProfileService ProfileService
 @inject IJSRuntime JsRuntime
 @inject IProfileCache ProfileCache
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null && _isLoading is false)
     {
-        <NotFoundComponent Message="Ingen person med det navn fundet."/>
+        <NotFoundComponent Message="Ingen person med det navn fundet." />
         return;
     }
     @if (_profile is null)
@@ -55,7 +55,7 @@
             </MudItem>
             <MudItem xs="12" Class="d-flex justify-start">
                 <MudChipSet ReadOnly>
-                @foreach (var category in _profile.Categories)
+                 @foreach (var category in _profile.Categories)
                     {
                         <MudChip Color="Color.Tertiary">@category</MudChip>
                     }
@@ -69,7 +69,7 @@
     private ProfileDto? _profile;
     private bool _isLoading = true;
     private bool _disableOpenChatButton = true;
-    private readonly List<UserSlim> _userIds = new();
+    private readonly List<UserSlim> _userIds = [];
     private string? _currentUserId;
 
     [Parameter]
@@ -77,33 +77,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // TODO: Task.WhenAll can be used to run both gets in parallel
-        var response = await ProfileClient.GetUserProfile(UserName);
-
-        switch (response.StatusCode)
+        var response = await ProfileService.GetUserProfile(UserName);
+        response.Switch(success =>
         {
-            case var _ when response is { IsSuccessStatusCode: true, Content: not null }:
-                _profile = response.Content;
-                _userIds.Add(new UserSlim
-                    {
-                        DisplayName = _profile.DisplayName,
-                        Id = _profile.Id,
-                        ProfilePictureUrl = _profile.ProfilePictureUrl,
-                        UserName = _profile.UserName
-                    });
-                break;
-
-            case HttpStatusCode.NotFound:
-                break;
-
-            case HttpStatusCode.TooManyRequests:
-                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                break;
-
-            default:
-                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                break;
-        }
+            _profile = success.Value;
+            _userIds.Add(new UserSlim
+                {
+                    DisplayName = _profile.DisplayName,
+                    Id = _profile.Id,
+                    ProfilePictureUrl = _profile.ProfilePictureUrl,
+                    UserName = _profile.UserName
+                });
+        }, notFound => { });
 
         var currentUserProfile = await ProfileCache.GetOrCreateProfileAsync();
         if (currentUserProfile is not null)

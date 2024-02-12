@@ -1,7 +1,7 @@
 @page "/profile"
 @inject ICategoryCache CategoryCache
 @inject IProfileCache ProfileCache
-@inject IProfileClient ProfileClient
+@inject IProfileService ProfileService
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
@@ -144,16 +144,9 @@
     private async Task UpdateUserProfile()
     {
         _isLoading = true;
-        var response = await ProfileClient.UpdateUserProfile(_userProfile!);
-        if (response.IsSuccessStatusCode)
-        {
-            ProfileCache.SetProfile(_userProfile!);
-            Snackbar.Add("Dine oplysninger er blevet gemt.", Severity.Success, _snackbarOptions);
-        }
-        else
-        {
-            Snackbar.Add("Det lykkedes ikke at opdatere dine informationer. Vent et øjeblik før du prøver igen.", Severity.Warning, _snackbarOptions);
-        }
+        
+        await ProfileService.UpdateUserProfile(_userProfile!);
+        
         _isLoading = false;
     }
 

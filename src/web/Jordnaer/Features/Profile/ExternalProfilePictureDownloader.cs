@@ -143,7 +143,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 
 		var imageUrl =
 			await _imageService.UploadImageAsync(notification.UserId,
-												 ImageService.UserProfilePicturesContainerName,
+												 ProfileImageService.UserProfilePicturesContainerName,
 												 resizedImage,
 												 cancellationToken);
 
@@ -195,7 +195,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 
 		var imageUrl =
 			await _imageService.UploadImageAsync(notification.UserId,
-												 ImageService.UserProfilePicturesContainerName,
+												 ProfileImageService.UserProfilePicturesContainerName,
 												 resizedImage,
 												 cancellationToken);
 
@@ -230,7 +230,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 		var resizedImage = await ResizeImageAsync(imageAsStream, cancellationToken);
 
 		var imageUrl = await _imageService.UploadImageAsync(notification.UserId,
-															ImageService.UserProfilePicturesContainerName,
+															ProfileImageService.UserProfilePicturesContainerName,
 															resizedImage,
 															cancellationToken);
 

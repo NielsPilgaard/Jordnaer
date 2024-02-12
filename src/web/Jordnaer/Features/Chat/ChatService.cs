@@ -1,114 +1,219 @@
-using Jordnaer.Models;
+﻿using Jordnaer.Authorization;
+using Jordnaer.Database;
 using Jordnaer.Shared;
-using Microsoft.Extensions.Caching.Memory;
-using MudBlazor;
-using Refit;
-using System.Net;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using OneOf.Types;
+using OneOf;
 
 namespace Jordnaer.Features.Chat;
 
 public interface IChatService
 {
-	ValueTask<List<ChatDto>> GetChats(string userId);
-	ValueTask<List<ChatMessageDto>> GetChatMessages(Guid chatId);
-	ValueTask StartChat(StartChat chat);
-	ValueTask SendMessage(ChatMessageDto message);
-	ValueTask MarkMessagesAsRead(Guid chatId);
+	Task<List<ChatDto>> GetChatsAsync(int skip, int take,
+		CancellationToken cancellationToken = default);
+
+	Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(Guid chatId,
+		CancellationToken cancellationToken = default);
+
+	Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default);
+
+	Task<OneOf<List<ChatMessageDto>, Error<string>>> GetChatMessagesAsync(Guid chatId, int skip, int take, CancellationToken cancellationToken = default);
+
+	ValueTask<OneOf<Guid, Error<string>>> StartChatAsync(StartChat chat,
+		CancellationToken cancellationToken = default);
+
+	ValueTask<OneOf<Success, Error<string>>> SendMessageAsync(ChatMessageDto chatMessage,
+		CancellationToken cancellationToken = default);
+
+	Task SetChatNameAsync(SetChatName setChatName,
+		CancellationToken cancellationToken = default);
+
+	Task<OneOf<Guid, NotFound>> GetChatByUserIdsAsync(ICollection<string> userIds,
+		CancellationToken cancellationToken = default);
 }
 
 public class ChatService : IChatService
 {
-	private readonly IMemoryCache _cache;
-	private readonly IChatClient _chatClient;
-	private readonly ISnackbar _snackbar;
+	private readonly JordnaerDbContext _context;
+	private readonly CurrentUser _currentUser;
+	private readonly IPublishEndpoint _publishEndpoint;
+	private readonly ILogger<ChatService> _logger;
 
-	public ChatService(IMemoryCache cache, IChatClient chatClient, ISnackbar snackbar)
+	public ChatService(JordnaerDbContext context,
+		CurrentUser currentUser,
+		IPublishEndpoint publishEndpoint,
+		ILogger<ChatService> logger)
 	{
-		_cache = cache;
-		_chatClient = chatClient;
-		_snackbar = snackbar;
+		_context = context;
+		_currentUser = currentUser;
+		_publishEndpoint = publishEndpoint;
+		_logger = logger;
 	}
 
-	public async ValueTask<List<ChatDto>> GetChats(string userId)
-		=> HandleApiResponse(await _chatClient.GetChats(userId));
-
-	public async ValueTask<List<ChatMessageDto>> GetChatMessages(Guid chatId)
+	public async Task<List<ChatDto>> GetChatsAsync(int skip, int take, CancellationToken cancellationToken = default)
 	{
-		string key = $"{chatId}-chatmessages";
-		bool cacheWasEmpty = false;
-		var cachedMessages = await _cache.GetOrCreateAsync(key, async entry =>
-		{
-			cacheWasEmpty = true;
+		var chats = await _context
+						  .Chats
+						  .AsNoTracking()
+						  .Where(chat => chat.Recipients.Any(recipient => recipient.Id == _currentUser.Id))
+						  .OrderByDescending(chat => chat.LastMessageSentUtc)
+						  .Skip(skip)
+						  .Take(take)
+						  // TODO: This include might not be needed
+						  //.Include(chat => chat.Recipients)
+						  .Select(chat => new ChatDto
+						  {
+							  DisplayName = chat.DisplayName,
+							  Id = chat.Id,
+							  LastMessageSentUtc = chat.LastMessageSentUtc,
+							  StartedUtc = chat.StartedUtc,
+							  Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
+							  UnreadMessageCount = _context.UnreadMessages.Count(unreadMessage =>
+								  unreadMessage.ChatId == chat.Id && unreadMessage.RecipientId == _currentUser.Id)
+						  })
+						  .ToListAsync(cancellationToken);
 
-			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);
-
-			return HandleApiResponse(await _chatClient.GetChatMessages(chatId));
-		});
-
-		if (cacheWasEmpty)
-		{
-			return cachedMessages ?? new List<ChatMessageDto>();
-		}
-		var newMessages = HandleApiResponse(await _chatClient.GetChatMessages(chatId, cachedMessages?.Count ?? 0));
-		if (cachedMessages is null)
-		{
-			return newMessages;
-		}
-
-		cachedMessages.AddRange(newMessages);
-
-		return cachedMessages;
+		return chats;
 	}
 
-	public async ValueTask StartChat(StartChat chat) => HandleApiResponse(await _chatClient.StartChat(chat));
-
-	public async ValueTask SendMessage(ChatMessageDto message) => HandleApiResponse(await _chatClient.SendMessage(message));
-
-	public async ValueTask MarkMessagesAsRead(Guid chatId) => await _chatClient.MarkMessagesAsRead(chatId);
-
-	/// <summary>
-	/// Checks the <c>StatusCode</c> of the <see cref="IApiResponse"/> and shows a popup if <c>IsSuccessStatusCode</c> is false.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="response"></param>
-	private T HandleApiResponse<T>(IApiResponse<T> response) where T : new()
+	public async Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(Guid chatId, CancellationToken cancellationToken = default)
 	{
-		switch (response.StatusCode)
+		var rowsModified = await _context
+								 .UnreadMessages
+								 .AsNoTracking()
+								 .Where(unreadMessage => unreadMessage.ChatId == chatId && unreadMessage.RecipientId == _currentUser.Id)
+								 .ExecuteDeleteAsync(cancellationToken);
+
+		if (rowsModified > 0)
 		{
-			case { } when response is { IsSuccessStatusCode: true, Content: not null }:
-				return response.Content;
-
-			case HttpStatusCode.TooManyRequests:
-				_snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-				break;
-
-			default:
-				_snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-				break;
+			return new Success();
 		}
 
-		return new T();
+		_logger.LogWarning("No messages were marked as read for the chat {ChatId} for the User {UserId}",
+						   chatId, _currentUser.Id);
+
+		return new Error<string>($"Failed to mark messages as read for the chat {chatId}");
 	}
 
-
-	/// <summary>
-	/// Checks the <c>StatusCode</c> of the <see cref="IApiResponse"/> and shows a popup if <c>IsSuccessStatusCode</c> is false.
-	/// </summary>
-	/// <param name="response"></param>
-	private void HandleApiResponse(IApiResponse response)
+	public async Task<int> GetUnreadMessageCountAsync(CancellationToken cancellationToken = default)
 	{
-		switch (response.StatusCode)
+		var unreadMessageCount = await _context
+									   .UnreadMessages
+									   .AsNoTracking()
+									   .Where(unreadMessage => unreadMessage.RecipientId == _currentUser.Id)
+									   .CountAsync(cancellationToken);
+
+		return unreadMessageCount;
+	}
+
+	public async Task<OneOf<List<ChatMessageDto>, Error<string>>> GetChatMessagesAsync(Guid chatId, int skip, int take, CancellationToken cancellationToken = default)
+	{
+		if (!await IsCurrentUserPartOfChat(chatId, cancellationToken))
 		{
-			case { } when response.IsSuccessStatusCode:
-				return;
+			_logger.LogWarning(
+				"Tried to get chat messages for chat {ChatId} and UserId {UserId}, but that user is not part of that chat. Access denied.", chatId, _currentUser.Id);
 
-			case HttpStatusCode.TooManyRequests:
-				_snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-				break;
-
-			default:
-				_snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-				break;
+			return new Error<string>(
+				$"Tried to get chat messages for chat {chatId} and UserId {_currentUser.Id}, but that user is not part of that chat. Access denied.");
 		}
+
+		var chatMessages = await _context
+								 .ChatMessages
+								 .AsNoTracking()
+								 .Where(message => message.ChatId == chatId)
+								 .OrderBy(message => message.SentUtc)
+								 .Skip(skip)
+								 .Take(take)
+								 .Select(message => message.ToChatMessageDto())
+								 .ToListAsync(cancellationToken);
+		return chatMessages;
+	}
+
+	public async ValueTask<OneOf<Guid, Error<string>>> StartChatAsync(StartChat chat, CancellationToken cancellationToken = default)
+	{
+		if (!chat.Recipients.Select(recipient => recipient.Id).Contains(_currentUser.Id))
+		{
+			_logger.LogError("Failed to create chat with id {ChatId}, the current user is not among the recipients.", chat.Id);
+
+			return new Error<string>("Failed to create chat, the current user is not among the recipients.");
+		}
+
+		var chatAlreadyExists = await _context
+									  .Chats
+									  .AsNoTracking()
+									  .AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken);
+
+		if (chatAlreadyExists)
+		{
+			_logger.LogWarning("Failed to create chat with id {ChatId}, it has already been created.", chat.Id);
+
+			return new Error<string>("Failed to create chat, it has already been created.");
+		}
+
+		await _publishEndpoint.Publish(chat, cancellationToken);
+
+		return chat.Id;
+	}
+
+	public async ValueTask<OneOf<Success, Error<string>>> SendMessageAsync(ChatMessageDto chatMessage, CancellationToken cancellationToken = default)
+	{
+		if (chatMessage.SenderId != _currentUser.Id)
+		{
+			_logger.LogError("Sender ID does not match current user.");
+			return new Error<string>("Sender ID does not match current user.");
+		}
+
+		var messageAlreadyExists = await _context
+										 .ChatMessages
+										 .AsNoTracking()
+										 .AnyAsync(message => message.Id == chatMessage.Id, cancellationToken);
+		if (messageAlreadyExists)
+		{
+			_logger.LogError("Message already exists.");
+			return new Error<string>("Message already exists.");
+		}
+
+		await _publishEndpoint.Publish(chatMessage.ToSendMessage(), cancellationToken);
+
+		return new Success();
+	}
+
+	public async Task SetChatNameAsync(SetChatName setChatName, CancellationToken cancellationToken = default)
+	{
+		var chat = await _context.Chats.FindAsync([setChatName.ChatId], cancellationToken);
+		if (chat is null)
+		{
+		}
+
+		// TODO Set the chat name here, e.g., chat.Name = setChatName.NewName;
+		// Then update the database context and save changes.
+
+		await _publishEndpoint.Publish(setChatName, cancellationToken);
+	}
+
+	public async Task<OneOf<Guid, NotFound>> GetChatByUserIdsAsync(ICollection<string> userIds, CancellationToken cancellationToken = default)
+	{
+		var existingChat = await _context
+								 .Chats
+								 .AsNoTracking()
+								 .Where(chat => chat.Recipients.Any(recipient => recipient.Id == _currentUser.Id))
+								 .FirstOrDefaultAsync(chat => chat.Recipients.Count == userIds.Count &&
+															  chat.Recipients.All(recipient => userIds.Contains(recipient.Id)), cancellationToken);
+
+		return existingChat is null
+				   ? new NotFound()
+				   : existingChat.Id;
+	}
+
+	private async Task<bool> IsCurrentUserPartOfChat(Guid chatId, CancellationToken cancellationToken = default)
+	{
+		var chat = await _context
+						 .Chats
+						 .AsNoTracking()
+						 .FirstOrDefaultAsync(chat => chat.Id == chatId &&
+													  chat.Recipients.Any(recipient => recipient.Id == _currentUser.Id), cancellationToken);
+
+		return chat != null;
 	}
 }

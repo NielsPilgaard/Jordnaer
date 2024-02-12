@@ -1,5 +1,5 @@
 @inject ISnackbar Snackbar
-@inject IImageClient ImageClient
+@inject IProfileImageService ProfileImageService
 
 <MudFileUpload T="IBrowserFile"
                Accept="image/jpeg, image/png"
@@ -45,19 +45,17 @@
         await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
         var bytes = ms.ToArray();
 
-        var response = await ImageClient.SetGroupProfilePicture(new SetGroupProfilePicture(Group, bytes));
-        if (response.IsSuccessStatusCode)
+        var setGroupProfilePictureResult = await ProfileImageService.SetGroupProfilePictureAsync(new SetGroupProfilePicture(Group, bytes));
+        await setGroupProfilePictureResult.Match<Task>(async uri =>
         {
-            Group.ProfilePictureUrl = response.Content!;
-            await GroupChanged.InvokeAsync(Group);
+	        Group.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+	        await GroupChanged.InvokeAsync(Group);
 
-            Group.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
-
-            Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
-        }
-        else
+	        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+        }, error =>
         {
-            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
-        }
+	        Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
+	        return Task.CompletedTask;
+        });
     }
 }

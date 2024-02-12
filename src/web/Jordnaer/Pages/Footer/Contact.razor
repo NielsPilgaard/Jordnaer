@@ -1,5 +1,5 @@
 @page "/contact"
-@inject IEmailClient EmailClient
+@inject IEmailService EmailService
 @inject ISnackbar Snackbar
 
 <MetadataComponent Title="Mini Møder - Kontakt"
@@ -35,8 +35,8 @@
     private async Task SubmitForm()
     {
         _isSending = true;
-        var response = await EmailClient.SendEmailFromContactForm(_contactForm);
-        if (response is { IsSuccessStatusCode: true, Content: true })
+        var response = await EmailService.SendEmailFromContactForm(_contactForm);
+        if (response)
         {
             Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
                 Severity.Success,
@@ -50,8 +50,4 @@
         }
         _isSending = false;
     }
-
 }
-
-
-

@@ -72,7 +72,7 @@ public class AzureAppConfiguration_Should
 		var configuration = _factory.Services.GetRequiredService<IConfiguration>();
 
 		// Act
-		string? connectionString = configuration.GetConnectionString(nameof(JordnaerDbContext));
+		var connectionString = configuration.GetConnectionString(nameof(JordnaerDbContext));
 
 		// Assert
 		connectionString.Should().NotBeNullOrEmpty();

@@ -3,7 +3,7 @@
 @using Jordnaer.Models
 @using Jordnaer.Shared
 @using MudBlazor
-@inject IUserSearchClient UserSearchClient
+@inject IUserSearchService UserSearchService
 @inject ISnackbar Snackbar
 
 <MudAutocomplete T="UserSlim"
@@ -26,7 +26,7 @@
             <MudAvatar Size="Size.Large" Class="mr-3">
                 <MudImage Src="@user?.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
             </MudAvatar>
-            <MudText>@user?.DisplayName</MudText>
+            <MudText>@user.DisplayName</MudText>
 
         </MudListItem>
     </ItemTemplate>
@@ -59,20 +59,7 @@
             return Enumerable.Empty<UserSlim>();
         }
 
-        var response = await UserSearchClient.GetUsersWithAutoComplete(searchString, cancellationToken);
-        switch (response.StatusCode)
-        {
-            case var _ when response.IsSuccessStatusCode:
-                return response.Content!;
-
-            case HttpStatusCode.TooManyRequests:
-                Snackbar.Add(ErrorMessages.High_Load, Severity.Info);
-                return Enumerable.Empty<UserSlim>();
-
-            default:
-                Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
-                return Enumerable.Empty<UserSlim>();
-        }
+        return await UserSearchService.GetUsersByNameAsync(searchString, cancellationToken);
     }
 
     private async Task UserSelected(UserSlim user)

@@ -45,9 +45,6 @@ public interface IImageService
 
 public class ImageService : IImageService
 {
-	public const string ChildProfilePicturesContainerName = "childprofile-pictures";
-	public const string UserProfilePicturesContainerName = "userprofile-pictures";
-
 	private readonly BlobServiceClient _blobServiceClient;
 	private readonly ILogger<ImageService> _logger;
 

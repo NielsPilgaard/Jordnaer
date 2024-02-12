@@ -1,4 +1,4 @@
-@inject IChatClient ChatClient
+@inject IChatService ChatService
 
 <MudDialog DefaultFocus="DefaultFocus.FirstChild" Style="width: 500px">
     <DialogContent>
@@ -48,7 +48,7 @@
         _startingChat = true;
 
         var chatId = NewId.NextGuid();
-        await ChatClient.StartChat(new StartChat
+        await ChatService.StartChatAsync(new StartChat
             {
                 LastMessageSentUtc = DateTime.UtcNow,
                 StartedUtc = DateTime.UtcNow,
