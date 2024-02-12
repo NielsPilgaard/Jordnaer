@@ -177,6 +177,8 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseRateLimiter();
 app.UseOutputCache();
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
