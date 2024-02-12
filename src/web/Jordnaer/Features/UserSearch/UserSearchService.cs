@@ -1,3 +1,4 @@
+using Jordnaer.Authorization;
 using Jordnaer.Database;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace Jordnaer.Features.UserSearch;
 public interface IUserSearchService
 {
 	Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default);
-	Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken = default);
+	Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken = default);
 }
 
 public class UserSearchService : IUserSearchService
@@ -17,26 +18,29 @@ public class UserSearchService : IUserSearchService
 	private readonly ILogger<UserSearchService> _logger;
 	private readonly JordnaerDbContext _context;
 	private readonly IDataForsyningenClient _dataForsyningenClient;
+	private readonly CurrentUser _currentUser;
 	private readonly DataForsyningenOptions _options;
 
 	public UserSearchService(
 		ILogger<UserSearchService> logger,
 		JordnaerDbContext context,
 		IDataForsyningenClient dataForsyningenClient,
-		IOptions<DataForsyningenOptions> options)
+		IOptions<DataForsyningenOptions> options,
+		CurrentUser currentUser)
 	{
 		_logger = logger;
 		_context = context;
 		_dataForsyningenClient = dataForsyningenClient;
+		_currentUser = currentUser;
 		_options = options.Value;
 	}
 
-	public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, string omitById, CancellationToken cancellationToken)
+	public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken)
 	{
 		var users = ApplyNameFilter(searchString, _context.UserProfiles);
 
 		var firstTenUsers = await users
-			.Where(user => user.Id != omitById)
+			.Where(user => user.Id != _currentUser.Id)
 			.OrderBy(user => searchString.StartsWith(searchString))
 			.Take(11)
 			.Select(user => new UserSlim
@@ -60,14 +64,14 @@ public class UserSearchService : IUserSearchService
 		users = ApplyChildFilters(filter, users);
 		users = ApplyNameFilter(filter.Name, users);
 		users = ApplyCategoryFilter(filter, users);
-		(users, bool isOrdered) = await ApplyLocationFilterAsync(filter, users);
+		(users, var isOrdered) = await ApplyLocationFilterAsync(filter, users);
 
 		if (!isOrdered)
 		{
 			users = users.OrderBy(user => user.CreatedUtc);
 		}
 
-		int usersToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
+		var usersToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedUsers = await users
 			.Skip(usersToSkip)
 			.Take(filter.PageSize)
@@ -95,7 +99,7 @@ public class UserSearchService : IUserSearchService
 			.AsNoTracking()
 			.ToListAsync(cancellationToken);
 
-		int totalCount = await users.AsNoTracking().CountAsync(cancellationToken);
+		var totalCount = await users.AsNoTracking().CountAsync(cancellationToken);
 
 		return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
 	}
@@ -130,7 +134,7 @@ public class UserSearchService : IUserSearchService
 			return (users, false);
 		}
 
-		int searchRadiusMeters = Math.Min(filter.WithinRadiusKilometers ?? 0, _options.MaxSearchRadiusKilometers) * 1000;
+		var searchRadiusMeters = Math.Min(filter.WithinRadiusKilometers ?? 0, _options.MaxSearchRadiusKilometers) * 1000;
 
 		var circle = Circle.FromAddress(addressDetails.Value, searchRadiusMeters);
 
@@ -141,7 +145,7 @@ public class UserSearchService : IUserSearchService
 			return (users, false);
 		}
 
-		int searchedZipCode = GetZipCodeFromLocation(filter.Location);
+		var searchedZipCode = GetZipCodeFromLocation(filter.Location);
 
 		_logger.LogDebug("ZipCode that was searched for is: {searchedZipCode}", searchedZipCode);
 
@@ -163,7 +167,7 @@ public class UserSearchService : IUserSearchService
 	{
 		var span = location.AsSpan();
 
-		int indexOfLastComma = span.LastIndexOf(',');
+		var indexOfLastComma = span.LastIndexOf(',');
 
 		// Start from last comma, move 2 to skip comma and whitespace, then take the next 4 chars
 		var zipCodeSpan = span.Slice(indexOfLastComma + 2, 4);
@@ -173,7 +177,7 @@ public class UserSearchService : IUserSearchService
 
 	private static IQueryable<UserProfile> ApplyCategoryFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
 	{
-		if (filter.Categories is not null && filter.Categories.Any())
+		if (filter.Categories is not null && filter.Categories.Length > 0)
 		{
 			users = users.Where(user =>
 				user.Categories.Any(category => filter.Categories.Contains(category.Name)));
@@ -230,14 +234,14 @@ public class UserSearchService : IUserSearchService
 
 public readonly record struct Circle(float X, float Y, int RadiusMeters)
 {
-	private static readonly NumberFormatInfo _floatNumberFormat = new() { CurrencyDecimalSeparator = "." };
+	private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
 
 	/// <summary>
 	/// Required querystring format is "cirkel=11.111,11.111,10000", or "cirkel=x,y,radius"
 	/// </summary>
 	/// <returns></returns>
-	public override string ToString() => $"{X.ToString(_floatNumberFormat)}," +
-										 $"{Y.ToString(_floatNumberFormat)}," +
+	public override string ToString() => $"{X.ToString(FloatNumberFormat)}," +
+										 $"{Y.ToString(FloatNumberFormat)}," +
 										 $"{RadiusMeters}";
 
 	public static Circle FromAddress(Adresse address, int radiusMeters) => new(address.X, address.Y, radiusMeters);

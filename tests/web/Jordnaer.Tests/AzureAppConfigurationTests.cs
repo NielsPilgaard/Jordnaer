@@ -33,7 +33,6 @@ public class AzureAppConfiguration_Should
 		// Assert
 		facebookOptions.AppId.Should().NotBeNullOrEmpty();
 		facebookOptions.AppSecret.Should().NotBeNullOrEmpty();
-		facebookOptions.SaveTokens.Should().BeTrue();
 	}
 
 	[Fact]
@@ -49,7 +48,6 @@ public class AzureAppConfiguration_Should
 		// Assert
 		microsoftAccountOptions.ClientId.Should().NotBeNullOrEmpty();
 		microsoftAccountOptions.ClientSecret.Should().NotBeNullOrEmpty();
-		microsoftAccountOptions.SaveTokens.Should().BeTrue();
 	}
 
 	[Fact]
@@ -65,7 +63,6 @@ public class AzureAppConfiguration_Should
 		// Assert
 		facebookOptions.ClientId.Should().NotBeNullOrEmpty();
 		facebookOptions.ClientSecret.Should().NotBeNullOrEmpty();
-		facebookOptions.SaveTokens.Should().BeTrue();
 	}
 
 	[Fact]

@@ -27,7 +27,7 @@ public static class UserSearchApi
 			[FromQuery] int? pageSize,
 			CancellationToken cancellationToken) =>
 		{
-			bool genderParsedSuccessfully = Enum.TryParse<Gender>(childGender, out var parsedChildGender);
+			var genderParsedSuccessfully = Enum.TryParse<Gender>(childGender, out var parsedChildGender);
 
 			var searchFilter = new UserSearchFilter
 			{
@@ -47,7 +47,6 @@ public static class UserSearchApi
 			return users;
 		});
 
-
 		group.MapGet("autocomplete", async Task<Results<Ok<List<UserSlim>>, BadRequest>> (
 			[FromQuery] string searchString,
 			[FromServices] CurrentUser currentUser,
@@ -59,7 +58,7 @@ public static class UserSearchApi
 				return TypedResults.BadRequest();
 			}
 
-			var users = await userService.GetUsersByNameAsync(searchString, currentUser.Id, cancellationToken);
+			var users = await userService.GetUsersByNameAsync(searchString, cancellationToken);
 
 			return TypedResults.Ok(users);
 		});
