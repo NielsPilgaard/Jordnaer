@@ -112,7 +112,7 @@
                 return false;
             }
 
-            var lastMessageIsFromCurrentUser = lastMessage.SenderId == _currentUser!.Id;
+            var lastMessageIsFromCurrentUser = lastMessage.SenderId == _currentUser.Id;
 
             var lastMessageWasSuccessfullySent = _lastSuccessfullySentMessageForChat.TryGetValue(_activeChat.Id, out var lastSuccessfullySentMessage) &&
                                                  lastSuccessfullySentMessage == lastMessage.Id;
@@ -163,7 +163,7 @@
         ChatSignalRClient.OnChatStarted(async chat =>
         {
             var lastChatMessage = chat.Messages.LastOrDefault();
-            if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser?.Id)
+            if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser.Id)
             {
                 _lastSuccessfullySentMessageForChat[chat.Id] = lastChatMessage.Id;
                 StateHasChanged();
@@ -186,7 +186,7 @@
                 return;
             }
 
-            if (message.SenderId == _currentUser!.Id)
+            if (message.SenderId == _currentUser.Id)
             {
                 _lastSuccessfullySentMessageForChat[chat.Id] = message.Id;
                 StateHasChanged();
@@ -267,7 +267,7 @@
                 ChatId = _activeChat.Id,
                 Id = NewId.NextGuid(),
                 SentUtc = DateTime.UtcNow,
-                SenderId = _currentUser!.Id,
+                SenderId = _currentUser.Id,
                 Text = _userText
             };
 
@@ -280,7 +280,7 @@
         }
         else
         {
-            await ChatService.StartChatAsync(_activeChat.ToStartChatCommand(_currentUser!.Id));
+            await ChatService.StartChatAsync(_activeChat.ToStartChatCommand(_currentUser.Id));
             _isActiveChatPublished = true;
         }
 
@@ -302,7 +302,7 @@
         var userList = users.ToList();
         if (userList.Count == 1)
         {
-            var userIdsToFind = new[] { userList.First().Id, _currentUser!.Id };
+            var userIdsToFind = new[] { userList.First().Id, _currentUser.Id };
             var existingChat = _chats.FirstOrDefault(chat => chat.Recipients.Count == 2 &&
                                                              userIdsToFind.All(id => chat.Recipients.Any(recipient => recipient.Id == id)));
             if (existingChat is not null)
@@ -317,12 +317,12 @@
         var newChat = new ChatDto
             {
                 Id = NewId.NextGuid(),
-                Recipients = new List<UserSlim> { _currentUser!.ToUserSlim() },
+                Recipients = new List<UserSlim> { _currentUser.ToUserSlim() },
                 LastMessageSentUtc = DateTime.UtcNow,
                 StartedUtc = DateTime.UtcNow
             };
 
-        foreach (var user in userList.Where(u => u.Id != _currentUser!.Id))
+        foreach (var user in userList.Where(u => u.Id != _currentUser.Id))
         {
             newChat.Recipients.Add(new UserSlim
                 {
