@@ -40,7 +40,7 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 			.Select(userChat => userChat.UserProfileId)
 			.ToListAsync(consumeContext.CancellationToken);
 
-		foreach (string recipientId in recipientIds.Where(recipientId => recipientId != chatMessage.SenderId))
+		foreach (var recipientId in recipientIds.Where(recipientId => recipientId != chatMessage.SenderId))
 		{
 			_context.UnreadMessages.Add(new UnreadMessage
 			{
@@ -50,10 +50,7 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 			});
 		}
 
-		foreach (string recipientId in recipientIds)
-		{
-			await _chatHub.Clients.User(recipientId).ReceiveChatMessage(chatMessage);
-		}
+		await _chatHub.Clients.Users(recipientIds).ReceiveChatMessage(chatMessage);
 
 		try
 		{

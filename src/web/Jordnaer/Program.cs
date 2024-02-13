@@ -85,8 +85,6 @@ builder.Services.AddResilientHttpClient();
 
 builder.Services.AddUserSearchFeature();
 
-builder.Services.AddOutputCache();
-
 builder.Services.ConfigureHttpJsonOptions(options =>
 	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -96,8 +94,6 @@ builder.AddDeleteUserFeature();
 
 builder.Services.AddSingleton(_ =>
 	new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
-
-builder.Services.AddHttpContextAccessor();
 
 builder.AddMassTransit();
 
@@ -173,7 +169,6 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 
 app.UseRateLimiter();
-app.UseOutputCache();
 
 app.UseAuthentication();
 app.UseAuthorization();

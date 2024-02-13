@@ -5,18 +5,11 @@ using Microsoft.AspNetCore.SignalR;
 namespace Jordnaer.Features.Chat;
 
 [Authorize]
-public class ChatHub : Hub<IChatHub>
+public class ChatHub(ILogger<ChatHub> logger) : Hub<IChatHub>
 {
-	private readonly ILogger<ChatHub> _logger;
-
-	public ChatHub(ILogger<ChatHub> logger)
-	{
-		_logger = logger;
-	}
-
 	public override async Task OnConnectedAsync()
 	{
-		_logger.LogDebug("User {userId} connected to {chatHub}", Context.User?.GetId(), nameof(ChatHub));
+		logger.LogDebug("User {userId} connected to {chatHub}", Context.User?.GetId(), nameof(ChatHub));
 
 		await base.OnConnectedAsync();
 	}
@@ -25,13 +18,13 @@ public class ChatHub : Hub<IChatHub>
 	{
 		if (exception is not null)
 		{
-			_logger.LogError(exception, "User {userId} disconnected from {chatHub}. " +
+			logger.LogError(exception, "User {userId} disconnected from {chatHub}. " +
 										"Exception message: {exceptionMessage}",
 				Context.User?.GetId(), nameof(ChatHub), exception.Message);
 		}
 		else
 		{
-			_logger.LogDebug("User {userId} disconnected from {chatHub}", Context.User?.GetId(), nameof(ChatHub));
+			logger.LogDebug("User {userId} disconnected from {chatHub}", Context.User?.GetId(), nameof(ChatHub));
 		}
 
 		await base.OnConnectedAsync();

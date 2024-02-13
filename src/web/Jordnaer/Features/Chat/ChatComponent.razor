@@ -9,11 +9,6 @@
 @implements IAsyncDisposable
 @attribute [Authorize]
 
-@if (_currentUser is null)
-{
-    return;
-}
-
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <MudGrid Style="height: 85svh">
 
@@ -89,7 +84,7 @@
     public Guid? ChatId { get; set; }
 
     private UserProfile _currentUser = null!;
-    private List<ChatDto> _chats = new();
+    private List<ChatDto> _chats = [];
     private ChatDto? _activeChat;
 
     private string _userText = string.Empty;
@@ -126,7 +121,17 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender) => await HideFooter();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+	    await ScrollToBottom();
+	    await FocusMessageInput();
+	    await HideFooter();
+	    await BrowserViewportService.SubscribeAsync(
+		    observerId: _breakpointObserverId,
+		    lambda: args => _isMobile = args.Breakpoint <= Breakpoint.Sm,
+		    fireImmediately: true);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var currentUser = await ProfileCache.GetProfileAsync();
@@ -137,11 +142,6 @@
         }
 
         _currentUser = currentUser;
-
-        await BrowserViewportService.SubscribeAsync(
-            observerId: _breakpointObserverId,
-            lambda: args => _isMobile = args.Breakpoint <= Breakpoint.Sm,
-            fireImmediately: true);
 
         _chats = await ChatService.GetChatsAsync(_currentUser.Id);
         if (ChatId is not null)
@@ -232,10 +232,6 @@
         {
             await LoadMessages();
 
-            await ScrollToBottom();
-
-            await FocusMessageInput();
-
             if (chat.HasUnreadMessages)
             {
                 await ChatService.MarkMessagesAsReadAsync(_currentUser.Id,_activeChat.Id);
@@ -312,7 +308,8 @@
             if (existingChat is not null)
             {
                 await SelectChat(existingChat);
-
+                await ScrollToBottom();
+                await FocusMessageInput();
                 return;
             }
         }
@@ -341,6 +338,8 @@
         _isActiveChatPublished = false;
 
         await SelectChat(newChat);
+        await ScrollToBottom();
+        await FocusMessageInput();
     }
 
     public async ValueTask DisposeAsync()
