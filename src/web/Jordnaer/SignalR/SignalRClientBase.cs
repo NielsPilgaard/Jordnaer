@@ -15,7 +15,7 @@ public abstract class SignalRClientBase : ISignalRClient
 			.Build();
 	}
 
-	public bool IsConnected => HubConnection?.State == HubConnectionState.Connected;
+	public bool IsConnected => HubConnection?.State is HubConnectionState.Connected;
 
 	protected HubConnection? HubConnection { get; }
 
@@ -29,11 +29,11 @@ public abstract class SignalRClientBase : ISignalRClient
 		GC.SuppressFinalize(this);
 	}
 
-	public async Task StartAsync()
+	public async Task StartAsync(CancellationToken cancellationToken = default)
 	{
 		if (!Started && HubConnection is not null)
 		{
-			await HubConnection.StartAsync();
+			await HubConnection.StartAsync(cancellationToken);
 			Started = true;
 		}
 	}
