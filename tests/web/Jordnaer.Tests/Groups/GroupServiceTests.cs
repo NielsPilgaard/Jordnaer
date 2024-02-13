@@ -3,6 +3,7 @@ using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,6 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		.RuleFor(u => u.City, f => f.Address.City())
 		.RuleFor(g => g.Description, f => f.Lorem.Paragraph())
 		.RuleFor(g => g.CreatedUtc, f => f.Date.Past(3));
-
 
 	public GroupServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
@@ -94,7 +94,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		};
 
 		// Act
-		var result = await _groupService.CreateGroupAsync(group);
+		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
 		// Assert
 		result.Should().BeOfType<NoContent>();
@@ -119,29 +119,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		};
 
 		// Act
-		var result = await _groupService.CreateGroupAsync(group);
-
-		// Assert
-		result.Should().BeOfType<BadRequest<string>>();
-	}
-
-	[Fact]
-	public async Task UpdateGroupAsync_ReturnsBadRequest_WhenIdDoesNotMatch()
-	{
-		// Arrange
-		var id = Guid.NewGuid();
-		var group = new Group
-		{
-			Id = Guid.NewGuid(),
-			Name = "Test Group",
-			Description = "Test Group Description",
-			ShortDescription = "Test Group Short Description",
-			City = "Test City",
-			ZipCode = 1234
-		};
-
-		// Act
-		var result = await _groupService.UpdateGroupAsync(id, group);
+		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
 		// Assert
 		result.Should().BeOfType<BadRequest<string>>();
@@ -151,10 +129,9 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 	public async Task UpdateGroupAsync_ReturnsNotFound_WhenGroupDoesNotExist()
 	{
 		// Arrange
-		var id = Guid.NewGuid();
 		var group = new Group
 		{
-			Id = id,
+			Id = NewId.NextGuid(),
 			Name = "Test Group",
 			Description = "Test Group Description",
 			ShortDescription = "Test Group Short Description",
@@ -163,7 +140,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		};
 
 		// Act
-		var result = await _groupService.UpdateGroupAsync(Guid.NewGuid().ToString(), group);
+		var result = await _groupService.UpdateGroupAsync(_userProfileId, group);
 
 		// Assert
 		result.Should().BeOfType<NotFound>();
@@ -175,8 +152,8 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		// Arrange
 		AddUserProfile();
 		var group = AddGroup();
-		await _contextFactory.SaveChangesAsync();
-		_contextFactory.Entry(group).State = EntityState.Detached;
+		await _context.SaveChangesAsync();
+		_context.Entry(group).State = EntityState.Detached;
 
 		var updatedGroup = new Group
 		{
@@ -189,7 +166,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		};
 
 		// Act
-		var result = await _groupService.UpdateGroupAsync(group.Id, updatedGroup);
+		var result = await _groupService.UpdateGroupAsync(_userProfileId, updatedGroup);
 
 		// Assert
 		result.Should().BeOfType<NoContent>();
@@ -202,7 +179,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var id = Guid.NewGuid();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(id);
+		var result = await _groupService.DeleteGroupAsync(_userProfileId, id);
 
 		// Assert
 		result.Should().BeOfType<NotFound>();
@@ -222,11 +199,11 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 			ZipCode = 1234
 		};
 
-		_contextFactory.Groups.Add(group);
-		await _contextFactory.SaveChangesAsync();
+		_context.Groups.Add(group);
+		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(group.Id);
+		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
 
 		// Assert
 		result.Should().BeOfType<UnauthorizedHttpResult>();
@@ -239,10 +216,10 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var userId = Guid.NewGuid().ToString();
 		AddUserProfile(userId);
 		var group = AddGroup(userId);
-		await _contextFactory.SaveChangesAsync();
+		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(group.Id);
+		var result = await _groupService.DeleteGroupAsync(NewId.NextGuid().ToString(), group.Id);
 
 		// Assert
 		result.Should().BeOfType<UnauthorizedHttpResult>();
@@ -254,10 +231,10 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		// Arrange
 		AddUserProfile();
 		var group = AddGroup();
-		await _contextFactory.SaveChangesAsync();
+		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(group.Id);
+		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
 
 		// Assert
 		result.Should().BeOfType<NoContent>();
@@ -283,15 +260,17 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 								  PermissionLevel.Admin
 			}
 		};
-		_contextFactory.Groups.Add(group);
+		_context.Groups.Add(group);
 
 		return group;
 	}
 
 	private void AddUserProfile(string? userId = null)
-		=> _contextFactory.UserProfiles.Add(new UserProfile { Id = userId ?? _userProfileId });
+	{
+		_context.UserProfiles.Add(new UserProfile { Id = userId ?? _userProfileId });
+	}
 
 	public Task InitializeAsync() => Task.CompletedTask;
 
-	public async Task DisposeAsync() => await _contextFactory.Groups.ExecuteDeleteAsync();
+	public async Task DisposeAsync() => await _context.Groups.ExecuteDeleteAsync();
 }
