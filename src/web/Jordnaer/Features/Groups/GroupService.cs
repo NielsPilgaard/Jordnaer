@@ -1,4 +1,3 @@
-using Jordnaer.Authorization;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Shared;
@@ -24,17 +23,14 @@ public interface IGroupService
 public class GroupService : IGroupService
 {
 	private readonly JordnaerDbContext _context;
-	private readonly CurrentUser _currentUser;
 	private readonly ILogger<GroupService> _logger;
 	private readonly IDiagnosticContext _diagnosticContext;
 
 	public GroupService(JordnaerDbContext context,
-		CurrentUser currentUser,
 		ILogger<GroupService> logger,
 		IDiagnosticContext diagnosticContext)
 	{
 		_context = context;
-		_currentUser = currentUser;
 		_logger = logger;
 		_diagnosticContext = diagnosticContext;
 	}

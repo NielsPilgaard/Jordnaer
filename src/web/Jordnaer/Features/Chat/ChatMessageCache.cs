@@ -5,13 +5,13 @@ namespace Jordnaer.Features.Chat;
 
 public interface IChatMessageCache
 {
-	ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(Guid chatId,
+	ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(string userId, Guid chatId,
 		CancellationToken cancellationToken = default);
 }
 
 public class ChatMessageCache(IChatService chatService, IMemoryCache memoryCache) : IChatMessageCache
 {
-	public async ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(Guid chatId, CancellationToken cancellationToken = default)
+	public async ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
 		var key = $"chatmessages:{chatId}";
 		var cacheWasEmpty = false;
@@ -21,7 +21,7 @@ public class ChatMessageCache(IChatService chatService, IMemoryCache memoryCache
 
 			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);
 
-			var getChatMessagesResponse = await chatService.GetChatMessagesAsync(chatId, 0, int.MaxValue, cancellationToken);
+			var getChatMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, 0, int.MaxValue, cancellationToken);
 
 			return getChatMessagesResponse.Match(messages => messages,
 												 _ => []);
@@ -33,7 +33,8 @@ public class ChatMessageCache(IChatService chatService, IMemoryCache memoryCache
 			return cachedMessages ?? [];
 		}
 
-		var getChatMessagesResponse = await chatService.GetChatMessagesAsync(chatId,
+		var getChatMessagesResponse = await chatService.GetChatMessagesAsync(userId,
+																			 chatId,
 																			 cachedMessages?.Count ?? 0,
 																			 int.MaxValue,
 																			 cancellationToken);

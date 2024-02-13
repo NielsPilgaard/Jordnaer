@@ -1,7 +1,7 @@
-using Jordnaer.Authorization;
 using Jordnaer.Database;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Profile;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SendGrid;
@@ -12,9 +12,9 @@ namespace Jordnaer.Features.DeleteUser;
 
 public interface IDeleteUserService
 {
-	Task<bool> InitiateDeleteUserAsync(CancellationToken cancellationToken = default);
-	Task<bool> DeleteUserAsync(string token, CancellationToken cancellationToken = default);
-	Task<bool> VerifyTokenAsync(string token, CancellationToken cancellationToken = default);
+	Task<bool> InitiateDeleteUserAsync(string userId, CancellationToken cancellationToken = default);
+	Task<bool> DeleteUserAsync(string userId, string token, CancellationToken cancellationToken = default);
+	Task<bool> VerifyTokenAsync(string userId, string token, CancellationToken cancellationToken = default);
 }
 
 public class DeleteUserService : IDeleteUserService
@@ -26,34 +26,38 @@ public class DeleteUserService : IDeleteUserService
 	private readonly ILogger<DeleteUserService> _logger;
 	private readonly ISendGridClient _sendGridClient;
 	private readonly IHttpContextAccessor _httpContextAccessor;
-	private readonly JordnaerDbContext _context;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 	private readonly IDiagnosticContext _diagnosticContext;
 	private readonly IImageService _imageService;
-	private readonly CurrentUser _currentUser;
+	private readonly AuthenticationStateProvider _authenticationStateProvider;
 
 	public DeleteUserService(UserManager<ApplicationUser> userManager,
 		ILogger<DeleteUserService> logger,
 		ISendGridClient sendGridClient,
 		IHttpContextAccessor httpContextAccessor,
-		JordnaerDbContext context,
+		IDbContextFactory<JordnaerDbContext> contextFactory,
 		IDiagnosticContext diagnosticContext,
-		IImageService imageService, CurrentUser currentUser)
+		IImageService imageService,
+		AuthenticationStateProvider authenticationStateProvider)
 	{
 		_userManager = userManager;
 		_logger = logger;
 		_sendGridClient = sendGridClient;
 		_httpContextAccessor = httpContextAccessor;
-		_context = context;
+		_contextFactory = contextFactory;
 		_diagnosticContext = diagnosticContext;
 		_imageService = imageService;
-		_currentUser = currentUser;
+		_authenticationStateProvider = authenticationStateProvider;
 	}
 
-	public async Task<bool> InitiateDeleteUserAsync(CancellationToken cancellationToken = default)
+	public async Task<bool> InitiateDeleteUserAsync(string userId, CancellationToken cancellationToken = default)
 	{
-		_diagnosticContext.Set("userId", _currentUser.Id);
+		_diagnosticContext.Set("UserId", userId);
 
-		if (_currentUser.User is null)
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+		if (user is null)
 		{
 			_logger.LogError("Cannot initiate deletion of user, the user has no ApplicationUser");
 			return false;
@@ -65,10 +69,11 @@ public class DeleteUserService : IDeleteUserService
 			return false;
 		}
 
-		var to = new EmailAddress(_currentUser.User.Email);
+		var to = new EmailAddress(user.Email);
 
-		var token = await _userManager.GenerateUserTokenAsync(_currentUser.User, TokenProvider, TokenPurpose);
+		var token = await _userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
+		// TODO: This won't work in Blazor Server, we need something else. IServerAddressFeature?
 		var deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
 
 		var message = CreateDeleteUserEmailMessage(deletionLink);
@@ -95,17 +100,20 @@ public class DeleteUserService : IDeleteUserService
 		return emailSentResponse.IsSuccessStatusCode;
 	}
 
-	public async Task<bool> DeleteUserAsync(string token, CancellationToken cancellationToken = default)
+	public async Task<bool> DeleteUserAsync(string userId, string token, CancellationToken cancellationToken = default)
 	{
-		_diagnosticContext.Set("userId", _currentUser.Id);
+		_diagnosticContext.Set("UserId", userId);
 
-		if (_currentUser.User is null)
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+		if (user is null)
 		{
 			_logger.LogError("Cannot delete user, the user has no ApplicationUser");
 			return false;
 		}
 
-		var tokenIsValid = await _userManager.VerifyUserTokenAsync(_currentUser.User, TokenProvider, TokenPurpose, token);
+		var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
 		if (tokenIsValid is false)
 		{
 			_logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
@@ -113,11 +121,11 @@ public class DeleteUserService : IDeleteUserService
 			return false;
 		}
 
-		await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+		await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 		try
 		{
 			// TODO: Make sure all user data is deleted here, and that owned groups are assigned new admins
-			var identityResult = await _userManager.DeleteAsync(_currentUser.User);
+			var identityResult = await _userManager.DeleteAsync(user);
 			if (identityResult.Succeeded is false)
 			{
 				_logger.LogError("Failed to delete user. Errors: {@identityResultErrors}",
@@ -127,13 +135,13 @@ public class DeleteUserService : IDeleteUserService
 				return false;
 			}
 
-			var childrenIds = await _context.ChildProfiles
-				.Where(child => child.UserProfileId == _currentUser.Id)
+			var childrenIds = await context.ChildProfiles
+				.Where(child => child.UserProfileId == userId)
 				.Select(child => child.Id)
 				.ToListAsync(cancellationToken);
 
-			var modifiedRows = await _context.UserProfiles
-											 .Where(userProfile => userProfile.Id == _currentUser.Id)
+			var modifiedRows = await context.UserProfiles
+											 .Where(userProfile => userProfile.Id == userId)
 											 .ExecuteDeleteAsync(cancellationToken);
 
 			if (modifiedRows <= 0)
@@ -144,11 +152,11 @@ public class DeleteUserService : IDeleteUserService
 				return false;
 			}
 
-			await _context.SaveChangesAsync(cancellationToken);
+			await context.SaveChangesAsync(cancellationToken);
 			await transaction.CommitAsync(cancellationToken);
 
 			// Delete all saved images owned by the user
-			await _imageService.DeleteImageAsync(_currentUser.Id, ProfileImageService.UserProfilePicturesContainerName, cancellationToken);
+			await _imageService.DeleteImageAsync(userId, ProfileImageService.UserProfilePicturesContainerName, cancellationToken);
 			foreach (var id in childrenIds)
 			{
 				await _imageService.DeleteImageAsync(id.ToString(), ProfileImageService.ChildProfilePicturesContainerName, cancellationToken);
@@ -164,13 +172,16 @@ public class DeleteUserService : IDeleteUserService
 		}
 	}
 
-	public async Task<bool> VerifyTokenAsync(
+	public async Task<bool> VerifyTokenAsync(string userId,
 		string token,
 		CancellationToken cancellationToken = default)
 	{
-		if (_currentUser.User is not null)
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+		if (user is not null)
 		{
-			return await _userManager.VerifyUserTokenAsync(_currentUser.User, TokenProvider, TokenPurpose, token);
+			return await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
 		}
 
 		_logger.LogError("Cannot verify user token, the user has no ApplicationUser");

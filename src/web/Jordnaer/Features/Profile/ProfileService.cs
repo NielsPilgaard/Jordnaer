@@ -1,6 +1,7 @@
-using Jordnaer.Authorization;
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -26,11 +27,12 @@ public interface IProfileService
 	/// </summary>
 	/// <param name="updatedUserProfile">The user profile.</param>
 	/// <param name="cancellationToken"></param>
-	Task UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
 }
 
-public sealed class ProfileService(IDbContextFactory<JordnaerDbContext> contextFactory, CurrentUser currentUser)
-	: IProfileService
+public sealed class ProfileService(
+	IDbContextFactory<JordnaerDbContext> contextFactory,
+	ServerAuthenticationStateProvider authenticationStateProvider) : IProfileService
 {
 	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName,
 		CancellationToken cancellationToken = default)
@@ -51,14 +53,20 @@ public sealed class ProfileService(IDbContextFactory<JordnaerDbContext> contextF
 				   : new Success<ProfileDto>(profile);
 	}
 
-	public async Task UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
 	{
+		var currentUserId = await authenticationStateProvider.GetCurrentUserId();
+		if (currentUserId is null)
+		{
+			return new Error();
+		}
+
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var currentUserProfile = await context.UserProfiles
 											  .AsSingleQuery()
 											  .Include(user => user.Categories)
 											  .Include(user => user.ChildProfiles)
-											  .FirstOrDefaultAsync(user => user.Id == currentUser.Id,
+											  .FirstOrDefaultAsync(user => user.Id == currentUserId,
 																   cancellationToken);
 
 		if (currentUserProfile is null)
@@ -73,6 +81,8 @@ public sealed class ProfileService(IDbContextFactory<JordnaerDbContext> contextF
 		}
 
 		await context.SaveChangesAsync(cancellationToken);
+
+		return new Success();
 	}
 
 	internal static async Task UpdateExistingUserProfileAsync(UserProfile currentUserProfile,

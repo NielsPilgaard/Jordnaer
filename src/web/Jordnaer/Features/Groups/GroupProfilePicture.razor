@@ -45,6 +45,7 @@
         await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
         var bytes = ms.ToArray();
 
+        // TODO: This should be restricted based on policy
         var setGroupProfilePictureResult = await ProfileImageService.SetGroupProfilePictureAsync(new SetGroupProfilePicture(Group, bytes));
         await setGroupProfilePictureResult.Match<Task>(async uri =>
         {

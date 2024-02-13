@@ -1,4 +1,3 @@
-using Jordnaer.Authorization;
 using Jordnaer.Database;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,7 @@ namespace Jordnaer.Features.UserSearch;
 public interface IUserSearchService
 {
 	Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default);
-	Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken = default);
+	Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default);
 }
 
 public class UserSearchService : IUserSearchService
@@ -18,29 +17,26 @@ public class UserSearchService : IUserSearchService
 	private readonly ILogger<UserSearchService> _logger;
 	private readonly JordnaerDbContext _context;
 	private readonly IDataForsyningenClient _dataForsyningenClient;
-	private readonly CurrentUser _currentUser;
 	private readonly DataForsyningenOptions _options;
 
 	public UserSearchService(
 		ILogger<UserSearchService> logger,
 		JordnaerDbContext context,
 		IDataForsyningenClient dataForsyningenClient,
-		IOptions<DataForsyningenOptions> options,
-		CurrentUser currentUser)
+		IOptions<DataForsyningenOptions> options)
 	{
 		_logger = logger;
 		_context = context;
 		_dataForsyningenClient = dataForsyningenClient;
-		_currentUser = currentUser;
 		_options = options.Value;
 	}
 
-	public async Task<List<UserSlim>> GetUsersByNameAsync(string searchString, CancellationToken cancellationToken)
+	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken)
 	{
 		var users = ApplyNameFilter(searchString, _context.UserProfiles);
 
 		var firstTenUsers = await users
-			.Where(user => user.Id != _currentUser.Id)
+			.Where(user => user.Id != currentUserId)
 			.OrderBy(user => searchString.StartsWith(searchString))
 			.Take(11)
 			.Select(user => new UserSlim

@@ -1,32 +1,24 @@
-using Jordnaer.Authorization;
 using Jordnaer.Database;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
-using OneOf;
-using OneOf.Types;
 
 namespace Jordnaer.Features.Profile;
 
 public interface IProfileImageService
 {
-	Task<OneOf<string, Error>> SetChildProfilePictureAsync(SetChildProfilePicture dto);
-	Task<OneOf<string, Error>> SetUserProfilePictureAsync(SetUserProfilePicture dto);
-	Task<OneOf<string, Error>> SetGroupProfilePictureAsync(SetGroupProfilePicture dto);
+	Task<string> SetChildProfilePictureAsync(SetChildProfilePicture dto);
+	Task<string> SetUserProfilePictureAsync(SetUserProfilePicture dto);
+	Task<string> SetGroupProfilePictureAsync(SetGroupProfilePicture dto);
 }
 
-public class ProfileImageService(JordnaerDbContext context, CurrentUser currentUser, IImageService imageService) : IProfileImageService
+public class ProfileImageService(JordnaerDbContext context, IImageService imageService) : IProfileImageService
 {
 	public const string ChildProfilePicturesContainerName = "childprofile-pictures";
 	public const string UserProfilePicturesContainerName = "userprofile-pictures";
 	public const string GroupProfilePicturesContainerName = "groupprofile-pictures";
 
-	public async Task<OneOf<string, Error>> SetChildProfilePictureAsync(SetChildProfilePicture dto)
+	public async Task<string> SetChildProfilePictureAsync(SetChildProfilePicture dto)
 	{
-		if (currentUser.Id != dto.ChildProfile.UserProfileId)
-		{
-			return new Error();
-		}
-
 		var uri = await imageService.UploadImageAsync(dto.ChildProfile.Id.ToString("N"),
 													  ChildProfilePicturesContainerName,
 													  dto.FileBytes);
@@ -36,13 +28,8 @@ public class ProfileImageService(JordnaerDbContext context, CurrentUser currentU
 		return uri;
 	}
 
-	public async Task<OneOf<string, Error>> SetUserProfilePictureAsync(SetUserProfilePicture dto)
+	public async Task<string> SetUserProfilePictureAsync(SetUserProfilePicture dto)
 	{
-		if (currentUser.Id != dto.UserProfile.Id)
-		{
-			return new Error();
-		}
-
 		var uri = await imageService.UploadImageAsync(dto.UserProfile.Id,
 													  UserProfilePicturesContainerName,
 													  dto.FileBytes);
@@ -52,13 +39,8 @@ public class ProfileImageService(JordnaerDbContext context, CurrentUser currentU
 		return uri;
 	}
 
-	public async Task<OneOf<string, Error>> SetGroupProfilePictureAsync(SetGroupProfilePicture dto)
+	public async Task<string> SetGroupProfilePictureAsync(SetGroupProfilePicture dto)
 	{
-		if (!await CurrentUserIsGroupAdmin(dto.Group.Id))
-		{
-			return new Error();
-		}
-
 		var uri = await imageService.UploadImageAsync(dto.Group.Id.ToString("N"),
 													  GroupProfilePicturesContainerName,
 													  dto.FileBytes);
@@ -66,15 +48,6 @@ public class ProfileImageService(JordnaerDbContext context, CurrentUser currentU
 		await UpdateGroupProfilePictureAsync(dto, uri);
 
 		return uri;
-	}
-
-	private async Task<bool> CurrentUserIsGroupAdmin(Guid groupId)
-	{
-		return await context.GroupMemberships
-							.AsNoTracking()
-							.AnyAsync(membership => membership.GroupId == groupId &&
-													membership.PermissionLevel == PermissionLevel.Admin &&
-													membership.UserProfileId == currentUser.Id);
 	}
 
 	private async Task UpdateChildProfilePictureAsync(SetChildProfilePicture dto, string uri)

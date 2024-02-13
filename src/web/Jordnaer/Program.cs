@@ -2,7 +2,6 @@ using Azure.Storage.Blobs;
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Blazr.RenderState.Server;
-using Jordnaer.Authorization;
 using Jordnaer.Components;
 using Jordnaer.Components.Account;
 using Jordnaer.Database;
@@ -70,8 +69,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 .AddSignInManager()
 .AddDefaultTokenProviders();
 
-builder.Services.AddCurrentUser();
-builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
+builder.Services.AddAuthorization();
 
 builder.AddAzureAppConfiguration();
 
