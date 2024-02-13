@@ -53,12 +53,15 @@
 
     private UserGroupAccess[] _pendingAccess = Array.Empty<UserGroupAccess>();
 
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        // TODO: Do we need this delay?
-	    await Task.Delay(2000);
+	    var authState = await AuthenticationState;
+	    var userId = authState.User.GetId();
 
-        _groupSummaries = await GroupService.GetSlimGroupsForUserAsync();
+        _groupSummaries = await GroupService.GetSlimGroupsForUserAsync(userId);
         
         _memberOf = _groupSummaries
             .Where(x => x.MembershipStatus is MembershipStatus.Active)

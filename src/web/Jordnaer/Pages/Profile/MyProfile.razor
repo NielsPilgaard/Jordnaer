@@ -128,7 +128,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userProfile = await ProfileCache.GetOrCreateProfileAsync();
+        var userProfile = await ProfileCache.GetProfileAsync();
         if (userProfile is null)
         {
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh,

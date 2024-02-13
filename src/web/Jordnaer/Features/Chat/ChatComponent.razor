@@ -88,7 +88,7 @@
     [Parameter]
     public Guid? ChatId { get; set; }
 
-    private UserProfile? _currentUser;
+    private UserProfile _currentUser = null!;
     private List<ChatDto> _chats = new();
     private ChatDto? _activeChat;
 
@@ -110,11 +110,13 @@
             {
                 return false;
             }
+
             var lastMessage = _activeChat.Messages.LastOrDefault();
             if (lastMessage is null)
             {
                 return false;
             }
+
             var lastMessageIsFromCurrentUser = lastMessage.SenderId == _currentUser!.Id;
 
             var lastMessageWasSuccessfullySent = _lastSuccessfullySentMessageForChat.TryGetValue(_activeChat.Id, out var lastSuccessfullySentMessage) &&
@@ -127,19 +129,21 @@
     protected override async Task OnAfterRenderAsync(bool firstRender) => await HideFooter();
     protected override async Task OnInitializedAsync()
     {
-        _currentUser = await ProfileCache.GetOrCreateProfileAsync();
-        if (_currentUser is null)
+        var currentUser = await ProfileCache.GetProfileAsync();
+        if (currentUser is null)
         {
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
             return;
         }
+
+        _currentUser = currentUser;
 
         await BrowserViewportService.SubscribeAsync(
             observerId: _breakpointObserverId,
             lambda: args => _isMobile = args.Breakpoint <= Breakpoint.Sm,
             fireImmediately: true);
 
-        _chats = await ChatService.GetChatsAsync();
+        _chats = await ChatService.GetChatsAsync(_currentUser.Id);
         if (ChatId is not null)
         {
             var chatFromRoute = _chats.FirstOrDefault(chat => chat.Id == ChatId);
@@ -194,7 +198,7 @@
 
             if (_activeChat?.Id == chat.Id)
             {
-                await ChatService.MarkMessagesAsReadAsync(message.ChatId);
+                await ChatService.MarkMessagesAsReadAsync(_currentUser.Id,message.ChatId);
                 StateHasChanged();
                 await ScrollToBottom();
             }
@@ -216,7 +220,7 @@
             return;
         }
 
-        _activeChat.Messages = await ChatMessageCache.GetChatMessagesAsync(_activeChat.Id);
+        _activeChat.Messages = await ChatMessageCache.GetChatMessagesAsync(_currentUser.Id, _activeChat.Id);
 
         StateHasChanged();
     }
@@ -234,7 +238,7 @@
 
             if (chat.HasUnreadMessages)
             {
-                await ChatService.MarkMessagesAsReadAsync(_activeChat.Id);
+                await ChatService.MarkMessagesAsReadAsync(_currentUser.Id,_activeChat.Id);
                 chat.UnreadMessageCount = 0;
             }
         }

@@ -47,16 +47,10 @@
 
         // TODO: This should be restricted based on policy
         var setGroupProfilePictureResult = await ProfileImageService.SetGroupProfilePictureAsync(new SetGroupProfilePicture(Group, bytes));
-        await setGroupProfilePictureResult.Match<Task>(async uri =>
-        {
-	        Group.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
-	        await GroupChanged.InvokeAsync(Group);
 
-	        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
-        }, error =>
-        {
-	        Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
-	        return Task.CompletedTask;
-        });
+	    Group.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+	    await GroupChanged.InvokeAsync(Group);
+
+	    Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
     }
 }

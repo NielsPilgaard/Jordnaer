@@ -39,7 +39,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userProfile = await ProfileCache.GetOrCreateProfileAsync();
+        var userProfile = await ProfileCache.GetProfileAsync();
         if (userProfile?.ProfilePictureUrl is not null)
         {
             _profilePictureUrl = userProfile.ProfilePictureUrl;

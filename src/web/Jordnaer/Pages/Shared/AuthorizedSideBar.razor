@@ -32,9 +32,16 @@
     private int _unreadMessageCount = 0;
     private IDisposable? _locationChangedHandler;
     private Timer? _timer;
+    private string _currentUserId = null!;
 
-    protected override void OnInitialized()
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationState;
+        _currentUserId = authState.User.GetId();
+
         _timer = new Timer(
             // ReSharper disable once AsyncVoidLambda
             callback: async _ => await GetUnreadMessageCount(),
@@ -54,7 +61,7 @@
 
     private async Task GetUnreadMessageCount()
     {
-        var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync();
+        var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync(_currentUserId);
         if (_unreadMessageCount != unreadMessageCount)
         {
             _unreadMessageCount = unreadMessageCount;

@@ -50,17 +50,11 @@
         var bytes = ms.ToArray();
 
         var setUserProfilePictureResponse = await ProfileImageService.SetUserProfilePictureAsync(new SetUserProfilePicture(UserProfile, bytes));
-        await setUserProfilePictureResponse.Match<Task>(async uri =>
-        {
-	        UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
 
-	        await UserProfileChanged.InvokeAsync(UserProfile);
+	    UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
 
-	        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
-        }, error =>
-        {
-	        Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
-	        return Task.CompletedTask;
-        });
+	    await UserProfileChanged.InvokeAsync(UserProfile);
+
+	    Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
     }
 }

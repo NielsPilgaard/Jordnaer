@@ -9,7 +9,7 @@ namespace Jordnaer.Features.Profile;
 
 public interface IProfileCache
 {
-	ValueTask<UserProfile?> GetOrCreateProfileAsync(CancellationToken cancellationToken = default);
+	ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default);
 	void SetProfile(UserProfile userProfile);
 }
 
@@ -19,7 +19,7 @@ public class ProfileCache(
 	AuthenticationStateProvider authenticationStateProvider)
 	: IProfileCache
 {
-	public async ValueTask<UserProfile?> GetOrCreateProfileAsync(CancellationToken cancellationToken = default) =>
+	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default) =>
 		await memoryCache.GetOrCreateAsync(nameof(UserProfile), async entry =>
 		{
 			var currentUserId = await authenticationStateProvider.GetCurrentUserId();

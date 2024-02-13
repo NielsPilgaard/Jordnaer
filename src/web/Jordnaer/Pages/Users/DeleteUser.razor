@@ -52,12 +52,21 @@
     [Parameter]
     public required string Token { get; set; }
 
+    [CascadingParameter] 
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
     private bool _isLoading = false;
 
+    private string _currentUserId = null!;
+
     private UserDeletionState _userDeletionState = UserDeletionState.VerifyingToken;
+
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;
+
+        var authState = await AuthenticationState;
+        _currentUserId = authState.User.GetId();
 
         if (string.IsNullOrWhiteSpace(Token))
         {
@@ -65,7 +74,7 @@
         }
         else
         {
-            var tokenIsValid = await DeleteUserService.VerifyTokenAsync(Token);
+            var tokenIsValid = await DeleteUserService.VerifyTokenAsync(_currentUserId,Token);
 
             _userDeletionState = tokenIsValid
               ? UserDeletionState.PendingUserConfirmation
@@ -78,7 +87,7 @@
     private async Task DeleteAccount()
     {
         _isLoading = true;
-        var userDeleted = await DeleteUserService.DeleteUserAsync(Token);
+        var userDeleted = await DeleteUserService.DeleteUserAsync(_currentUserId, Token);
         if (userDeleted)
         {
             _userDeletionState = UserDeletionState.Completed;

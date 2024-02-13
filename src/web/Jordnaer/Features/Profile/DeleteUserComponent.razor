@@ -28,32 +28,35 @@
             Indtast din e-mail <code>@_userEmail</code> for at fortsætte
         </MudText>
         <MudTextField Immediate
-                      Label="Email"
-        @bind-Value="@_inputEmail"
-                      Class="mt-3" />
-    </DialogContent>
-    <DialogActions>
-        <MudButton Color="Color.Default" OnClick="CloseDialog" Variant="Variant.Filled">
-            Annuller
-        </MudButton>
-        <MudButton ButtonType="ButtonType.Submit" Color="Color.Error" Disabled="@(!EmailConfirmed)" OnClick="DeleteAccount" Variant="Variant.Filled">
-            Slet Bruger
-        </MudButton>
-    </DialogActions>
-</MudDialog>
-@code {
+                       Label="Email"
+                       @bind-Value="@_inputEmail"
+                       Class="mt-3" />
+     </DialogContent>
+     <DialogActions>
+         <MudButton Color="Color.Default" OnClick="CloseDialog" Variant="Variant.Filled">
+             Annuller
+         </MudButton>
+         <MudButton ButtonType="ButtonType.Submit" Color="Color.Error" Disabled="@(!EmailConfirmed)" OnClick="DeleteAccount" Variant="Variant.Filled">
+             Slet Bruger
+         </MudButton>
+     </DialogActions>
+ </MudDialog>
+
+ @code {
     [CascadingParameter]
     public required Task<AuthenticationState> AuthenticationState { get; set; }
 
     private bool _dialogIsOpen = false;
     private string? _inputEmail;
     private string _userEmail = null!;
+    private string _currentUserId = null!;
     private bool EmailConfirmed => _inputEmail == _userEmail;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationState;
-        _userEmail = authState.User.FindFirst(ClaimTypes.Email)!.Value;
+        _userEmail = authState.User.FindFirstValue(ClaimTypes.Email)!;
+        _currentUserId = authState.User.GetId();
     }
 
     private void OpenDialog() => _dialogIsOpen = true;
@@ -61,7 +64,7 @@
 
     private async Task DeleteAccount()
     {
-        var result = await DeleteUserService.InitiateDeleteUserAsync();
+        var result = await DeleteUserService.InitiateDeleteUserAsync(_currentUserId);
         if (result)
         {
             Snackbar.Add("Du modtager snart en bekræftelses-mail.", Severity.Success);

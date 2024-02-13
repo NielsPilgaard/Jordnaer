@@ -7,48 +7,51 @@
 @inject ISnackbar Snackbar
 
 <MudAutocomplete T="UserSlim"
-@ref="_autocomplete"
+                 @ref="_autocomplete"
                  Label="Søg efter bruger"
                  SearchFuncWithCancel="@SearchForUsers"
-                 ShowProgressIndicator
-                 OpenIcon="@string.Empty"
-                 DebounceInterval="750"
-                 Clearable
-                 SelectValueOnTab
-                 AdornmentIcon="@Icons.Material.Filled.Search"
-                 MaxItems="10"
-                 ValueChanged="SelectedValueChanged"
-                 MinCharacters="2">
+                      ShowProgressIndicator
+                  OpenIcon="@string.Empty"
+                  DebounceInterval="750"
+                      Clearable
+                      SelectValueOnTab
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  MaxItems="10"
+                  ValueChanged="SelectedValueChanged"
+                  MinCharacters="2">
 
-    <ItemTemplate Context="user">
-        <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector">
+     <ItemTemplate Context="user">
+         <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector">
 
-            <MudAvatar Size="Size.Large" Class="mr-3">
-                <MudImage Src="@user?.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
-            </MudAvatar>
-            <MudText>@user.DisplayName</MudText>
+             <MudAvatar Size="Size.Large" Class="mr-3">
+                 <MudImage Src="@user?.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+             </MudAvatar>
+             <MudText>@user.DisplayName</MudText>
 
-        </MudListItem>
-    </ItemTemplate>
+            </MudListItem>
+        </ItemTemplate>
 
-    <MoreItemsTemplate>
-        <MudText Align="Align.Center" Class="px-4 py-1">
-            Kun de første 10 brugere vises
-        </MudText>
-    </MoreItemsTemplate>
+        <MoreItemsTemplate>
+            <MudText Align="Align.Center" Class="px-4 py-1">
+                Kun de første 10 brugere vises
+            </MudText>
+        </MoreItemsTemplate>
 
-    <NoItemsTemplate>
-        <MudText Align="Align.Center" Class="px-4 py-1">
-            Ingen brugere fundet
-        </MudText>
-    </NoItemsTemplate>
+        <NoItemsTemplate>
+            <MudText Align="Align.Center" Class="px-4 py-1">
+                Ingen brugere fundet
+            </MudText>
+        </NoItemsTemplate>
 
-</MudAutocomplete>
+    </MudAutocomplete>
 
 
-@code {
+    @code {
     [Parameter]
     public EventCallback<IEnumerable<UserSlim>> SelectedUserChanged { get; set; }
+
+    [Parameter]
+    public required string CurrentUserId { get; set; }
 
     private MudAutocomplete<UserSlim> _autocomplete = null!;
 
@@ -59,7 +62,7 @@
             return Enumerable.Empty<UserSlim>();
         }
 
-        return await UserSearchService.GetUsersByNameAsync(searchString, cancellationToken);
+        return await UserSearchService.GetUsersByNameAsync(CurrentUserId, searchString, cancellationToken);
     }
 
     private async Task UserSelected(UserSlim user)

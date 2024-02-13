@@ -86,9 +86,16 @@
     private readonly Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty };
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
+    private string _currentUserId = null!;
+
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+	    var authState = await AuthenticationState;
+	    _currentUserId = authState.User.GetId();
+
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
         _isLoading = false;
     }
@@ -97,7 +104,7 @@
     {
         _isLoading = true;
 
-        var response = await GroupService.CreateGroupAsync(_group);
+        var response = await GroupService.CreateGroupAsync(_currentUserId,_group);
         response.Switch(
 	        _ =>
 	        {

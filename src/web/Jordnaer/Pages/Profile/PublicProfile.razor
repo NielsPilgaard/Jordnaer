@@ -90,7 +90,7 @@
                 });
         }, notFound => { });
 
-        var currentUserProfile = await ProfileCache.GetOrCreateProfileAsync();
+        var currentUserProfile = await ProfileCache.GetProfileAsync();
         if (currentUserProfile is not null)
         {
             _disableOpenChatButton = false;
