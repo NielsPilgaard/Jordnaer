@@ -2,8 +2,8 @@
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using OneOf.Types;
 using OneOf;
+using OneOf.Types;
 
 namespace Jordnaer.Features.Chat;
 
@@ -31,24 +31,16 @@ public interface IChatService
 		CancellationToken cancellationToken = default);
 }
 
-public class ChatService : IChatService
+public class ChatService(
+	IDbContextFactory<JordnaerDbContext> contextFactory,
+	IPublishEndpoint publishEndpoint,
+	ILogger<ChatService> logger)
+	: IChatService
 {
-	private readonly JordnaerDbContext _context;
-	private readonly IPublishEndpoint _publishEndpoint;
-	private readonly ILogger<ChatService> _logger;
-
-	public ChatService(JordnaerDbContext context,
-		IPublishEndpoint publishEndpoint,
-		ILogger<ChatService> logger)
-	{
-		_context = context;
-		_publishEndpoint = publishEndpoint;
-		_logger = logger;
-	}
-
 	public async Task<List<ChatDto>> GetChatsAsync(string userId, CancellationToken cancellationToken = default)
 	{
-		var chats = await _context
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var chats = await context
 						  .Chats
 						  .AsNoTracking()
 						  .Where(chat => chat.Recipients.Any(recipient => recipient.Id == userId))
@@ -62,7 +54,7 @@ public class ChatService : IChatService
 							  LastMessageSentUtc = chat.LastMessageSentUtc,
 							  StartedUtc = chat.StartedUtc,
 							  Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
-							  UnreadMessageCount = _context.UnreadMessages.Count(unreadMessage =>
+							  UnreadMessageCount = context.UnreadMessages.Count(unreadMessage =>
 								  unreadMessage.ChatId == chat.Id && unreadMessage.RecipientId == userId)
 						  })
 						  .ToListAsync(cancellationToken);
@@ -72,7 +64,8 @@ public class ChatService : IChatService
 
 	public async Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
-		var rowsModified = await _context
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var rowsModified = await context
 								 .UnreadMessages
 								 .AsNoTracking()
 								 .Where(unreadMessage => unreadMessage.ChatId == chatId && unreadMessage.RecipientId == userId)
@@ -83,7 +76,7 @@ public class ChatService : IChatService
 			return new Success();
 		}
 
-		_logger.LogWarning("No messages were marked as read for the chat {ChatId} for the User {UserId}",
+		logger.LogWarning("No messages were marked as read for the chat {ChatId} for the User {UserId}",
 						   chatId, userId);
 
 		return new Error<string>($"Failed to mark messages as read for the chat {chatId}");
@@ -91,7 +84,8 @@ public class ChatService : IChatService
 
 	public async Task<int> GetUnreadMessageCountAsync(string userId, CancellationToken cancellationToken = default)
 	{
-		var unreadMessageCount = await _context
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var unreadMessageCount = await context
 									   .UnreadMessages
 									   .AsNoTracking()
 									   .Where(unreadMessage => unreadMessage.RecipientId == userId)
@@ -102,16 +96,17 @@ public class ChatService : IChatService
 
 	public async Task<OneOf<List<ChatMessageDto>, Error<string>>> GetChatMessagesAsync(string userId, Guid chatId, int skip, int take, CancellationToken cancellationToken = default)
 	{
-		if (!await IsCurrentUserPartOfChat(userId, chatId, cancellationToken))
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		if (!await IsCurrentUserPartOfChat(userId, chatId, context, cancellationToken))
 		{
-			_logger.LogWarning(
+			logger.LogWarning(
 				"Tried to get chat messages for chat {ChatId} and UserId {UserId}, but that user is not part of that chat. Access denied.", chatId, userId);
 
 			return new Error<string>(
 				$"Tried to get chat messages for chat {chatId} and UserId {userId}, but that user is not part of that chat. Access denied.");
 		}
 
-		var chatMessages = await _context
+		var chatMessages = await context
 								 .ChatMessages
 								 .AsNoTracking()
 								 .Where(message => message.ChatId == chatId)
@@ -125,43 +120,46 @@ public class ChatService : IChatService
 
 	public async ValueTask<OneOf<Guid, Error<string>>> StartChatAsync(StartChat chat, CancellationToken cancellationToken = default)
 	{
-		var chatAlreadyExists = await _context
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var chatAlreadyExists = await context
 									  .Chats
 									  .AsNoTracking()
 									  .AnyAsync(existingChat => existingChat.Id == chat.Id, cancellationToken);
 
 		if (chatAlreadyExists)
 		{
-			_logger.LogWarning("Failed to create chat with id {ChatId}, it has already been created.", chat.Id);
+			logger.LogWarning("Failed to create chat with id {ChatId}, it has already been created.", chat.Id);
 
 			return new Error<string>("Failed to create chat, it has already been created.");
 		}
 
-		await _publishEndpoint.Publish(chat, cancellationToken);
+		await publishEndpoint.Publish(chat, cancellationToken);
 
 		return chat.Id;
 	}
 
 	public async ValueTask<OneOf<Success, Error<string>>> SendMessageAsync(ChatMessageDto chatMessage, CancellationToken cancellationToken = default)
 	{
-		var messageAlreadyExists = await _context
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var messageAlreadyExists = await context
 										 .ChatMessages
 										 .AsNoTracking()
 										 .AnyAsync(message => message.Id == chatMessage.Id, cancellationToken);
 		if (messageAlreadyExists)
 		{
-			_logger.LogError("Message already exists.");
+			logger.LogError("Message already exists.");
 			return new Error<string>("Message already exists.");
 		}
 
-		await _publishEndpoint.Publish(chatMessage.ToSendMessage(), cancellationToken);
+		await publishEndpoint.Publish(chatMessage.ToSendMessage(), cancellationToken);
 
 		return new Success();
 	}
 
 	public async Task SetChatNameAsync(SetChatName setChatName, CancellationToken cancellationToken = default)
 	{
-		var chat = await _context.Chats.FindAsync([setChatName.ChatId], cancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var chat = await context.Chats.FindAsync([setChatName.ChatId], cancellationToken);
 		if (chat is null)
 		{
 		}
@@ -169,12 +167,13 @@ public class ChatService : IChatService
 		// TODO Set the chat name here, e.g., chat.Name = setChatName.NewName;
 		// Then update the database context and save changes.
 
-		await _publishEndpoint.Publish(setChatName, cancellationToken);
+		await publishEndpoint.Publish(setChatName, cancellationToken);
 	}
 
 	public async Task<OneOf<Guid, NotFound>> GetChatByUserIdsAsync(string currentUserId, ICollection<string> userIds, CancellationToken cancellationToken = default)
 	{
-		var existingChat = await _context
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var existingChat = await context
 								 .Chats
 								 .AsNoTracking()
 								 .Where(chat => chat.Recipients.Any(recipient => recipient.Id == currentUserId))
@@ -186,9 +185,9 @@ public class ChatService : IChatService
 				   : existingChat.Id;
 	}
 
-	private async Task<bool> IsCurrentUserPartOfChat(string userId, Guid chatId, CancellationToken cancellationToken = default)
+	private static async Task<bool> IsCurrentUserPartOfChat(string userId, Guid chatId, JordnaerDbContext context, CancellationToken cancellationToken = default)
 	{
-		var chat = await _context
+		var chat = await context
 						 .Chats
 						 .AsNoTracking()
 						 .FirstOrDefaultAsync(chat => chat.Id == chatId &&
