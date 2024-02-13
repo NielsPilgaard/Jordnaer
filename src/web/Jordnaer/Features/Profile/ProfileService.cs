@@ -1,7 +1,7 @@
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -32,7 +32,7 @@ public interface IProfileService
 
 public sealed class ProfileService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	ServerAuthenticationStateProvider authenticationStateProvider) : IProfileService
+	AuthenticationStateProvider authenticationStateProvider) : IProfileService
 {
 	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName,
 		CancellationToken cancellationToken = default)
