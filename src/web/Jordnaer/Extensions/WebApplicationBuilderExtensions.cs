@@ -48,10 +48,8 @@ public static class WebApplicationBuilderExtensions
 			options.KeepAliveInterval = TimeSpan.FromMinutes(1);
 		});
 
-
 		builder.Services.AddResponseCompression(options =>
 			options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]));
-
 
 		return builder;
 	}
