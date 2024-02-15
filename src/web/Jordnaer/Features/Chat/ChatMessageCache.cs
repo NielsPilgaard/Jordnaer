@@ -13,7 +13,7 @@ public class ChatMessageCache(IChatService chatService, IMemoryCache memoryCache
 {
 	public async ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
-		var key = $"chatmessages:{chatId}";
+		var key = $"{userId}:chatmessages:{chatId}";
 		var cacheWasEmpty = false;
 		var cachedMessages = await memoryCache.GetOrCreateAsync(key, async entry =>
 		{
