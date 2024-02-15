@@ -48,18 +48,10 @@ public static class WebApplicationBuilderExtensions
 			options.KeepAliveInterval = TimeSpan.FromMinutes(1);
 		});
 
-		// Azure SignalR Service is expensive. Let's try without
-		//.AddSignalR(options =>
-		//{
-		//    options.ConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
-		//    options.ServerStickyMode = ServerStickyMode.Required;
-		//});
 
-		if (!builder.Environment.IsDevelopment())
-		{
-			builder.Services.AddResponseCompression(options =>
-				options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]));
-		}
+		builder.Services.AddResponseCompression(options =>
+			options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]));
+
 
 		return builder;
 	}
