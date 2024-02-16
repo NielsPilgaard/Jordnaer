@@ -58,7 +58,7 @@ public static class WebApplicationBuilderExtensions
 	{
 		var dbConnectionString = GetConnectionString(builder.Configuration);
 
-		builder.Services.AddDbContextFactory<JordnaerDbContext>(optionsBuilder => optionsBuilder.UseSqlServer(dbConnectionString));
+		builder.Services.AddDbContextFactory<JordnaerDbContext>(optionsBuilder => optionsBuilder.UseSqlServer(dbConnectionString), ServiceLifetime.Scoped);
 
 		builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
 
