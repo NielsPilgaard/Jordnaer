@@ -4,14 +4,11 @@
 @attribute [Authorize]
 
 <MudPaper Elevation="2">
-    <ChatComponent ChatId="ActiveChat" @rendermode="InteractiveServer"/>
+    <ChatComponent ChatId="ActiveChat"/>
 </MudPaper>
 
 @code
 {
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
     [Parameter]
     public Guid? ActiveChat { get; set; }
 }
