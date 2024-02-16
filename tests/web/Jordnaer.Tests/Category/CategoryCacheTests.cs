@@ -20,7 +20,8 @@ public class CategoryCache_Should
 	public async Task Get_Categories_Successfully()
 	{
 		// Arrange
-		var sut = _factory.Services.GetRequiredService<ICategoryCache>();
+		using var scope = _factory.Services.CreateScope();
+		var sut = scope.ServiceProvider.GetRequiredService<ICategoryCache>();
 
 		// Act
 		var response = await sut.GetOrCreateCategoriesAsync();

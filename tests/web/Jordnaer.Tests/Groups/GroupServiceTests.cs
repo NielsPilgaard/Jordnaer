@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using Serilog;
 using Xunit;
+using NotFound = Microsoft.AspNetCore.Http.HttpResults.NotFound;
 
 namespace Jordnaer.Tests.Groups;
 
@@ -97,7 +99,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
 		// Assert
-		result.Should().BeOfType<NoContent>();
+		result.Should().BeOfType<Success>();
 	}
 
 	[Fact]
@@ -122,7 +124,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
 		// Assert
-		result.Should().BeOfType<BadRequest<string>>();
+		result.Should().BeOfType<Error<string>>();
 	}
 
 	[Fact]
