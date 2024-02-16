@@ -43,5 +43,4 @@ internal sealed class UserCircuitHandler(
 	}
 
 	public void Dispose() => authenticationStateProvider.AuthenticationStateChanged -= AuthenticationChanged;
-
 }

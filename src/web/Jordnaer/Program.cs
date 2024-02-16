@@ -24,6 +24,7 @@ using MudBlazor.Services;
 using MudExtensions.Services;
 using Serilog;
 using System.Text.Json.Serialization;
+using Jordnaer.Features.Authentication;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -38,6 +39,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddCurrentUser();
 
 builder.Services.AddAuthentication(options =>
 {

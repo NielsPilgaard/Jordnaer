@@ -6,13 +6,7 @@ public class UserService
 {
 	public CurrentUser CurrentUser = new();
 
-	internal void SetUser(ClaimsPrincipal user)
-	{
-		CurrentUser.User = user;
-	}
+	internal void SetUser(ClaimsPrincipal user) => CurrentUser.User = user;
 
-	internal void SetCookie(string cookie)
-	{
-		CurrentUser.Cookie = cookie;
-	}
+	internal void SetCookie(string cookie) => CurrentUser.Cookie = cookie;
 }
