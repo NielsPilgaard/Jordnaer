@@ -1,7 +1,7 @@
 using Jordnaer.Database;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Profile;
-using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SendGrid;
@@ -25,29 +25,26 @@ public class DeleteUserService : IDeleteUserService
 	private readonly UserManager<ApplicationUser> _userManager;
 	private readonly ILogger<DeleteUserService> _logger;
 	private readonly ISendGridClient _sendGridClient;
-	private readonly IHttpContextAccessor _httpContextAccessor;
+	private readonly IServerAddressesFeature _serverAddressesFeature;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 	private readonly IDiagnosticContext _diagnosticContext;
 	private readonly IImageService _imageService;
-	private readonly AuthenticationStateProvider _authenticationStateProvider;
 
 	public DeleteUserService(UserManager<ApplicationUser> userManager,
 		ILogger<DeleteUserService> logger,
 		ISendGridClient sendGridClient,
-		IHttpContextAccessor httpContextAccessor,
+		IServerAddressesFeature serverAddressesFeature,
 		IDbContextFactory<JordnaerDbContext> contextFactory,
 		IDiagnosticContext diagnosticContext,
-		IImageService imageService,
-		AuthenticationStateProvider authenticationStateProvider)
+		IImageService imageService)
 	{
 		_userManager = userManager;
 		_logger = logger;
 		_sendGridClient = sendGridClient;
-		_httpContextAccessor = httpContextAccessor;
+		_serverAddressesFeature = serverAddressesFeature;
 		_contextFactory = contextFactory;
 		_diagnosticContext = diagnosticContext;
 		_imageService = imageService;
-		_authenticationStateProvider = authenticationStateProvider;
 	}
 
 	public async Task<bool> InitiateDeleteUserAsync(string userId, CancellationToken cancellationToken = default)
@@ -63,9 +60,10 @@ public class DeleteUserService : IDeleteUserService
 			return false;
 		}
 
-		if (_httpContextAccessor.HttpContext is null)
+		var serverAddress = _serverAddressesFeature.Addresses.FirstOrDefault();
+		if (serverAddress is null)
 		{
-			_logger.LogError("IHttpContextAccessor has a null HttpContext. A Delete User Url cannot be created.");
+			_logger.LogError("No addresses found in the IServerAddressFeature. A Delete User Url cannot be created.");
 			return false;
 		}
 
@@ -73,8 +71,8 @@ public class DeleteUserService : IDeleteUserService
 
 		var token = await _userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
-		// TODO: This won't work in Blazor Server, we need something else. IServerAddressFeature?
-		var deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
+		var serverUri = new Uri(serverAddress);
+		var deletionLink = $"{serverUri.Scheme}://{serverUri.Host}/delete-user/{token}";
 
 		var message = CreateDeleteUserEmailMessage(deletionLink);
 
