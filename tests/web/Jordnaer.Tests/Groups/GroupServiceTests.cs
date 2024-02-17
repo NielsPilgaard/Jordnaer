@@ -4,23 +4,23 @@ using Jordnaer.Database;
 using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
 using MassTransit;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
 using Serilog;
 using Xunit;
-using NotFound = Microsoft.AspNetCore.Http.HttpResults.NotFound;
+using NotFound = OneOf.Types.NotFound;
 
 namespace Jordnaer.Tests.Groups;
 
 [Trait("Category", "IntegrationTest")]
 public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
 {
-	private readonly IGroupService _groupService;
+	private readonly GroupService _groupService;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
 	private readonly JordnaerDbContext _context;
+
 	private readonly string _userProfileId;
 
 	private readonly Faker<Group> _groupFaker = new Faker<Group>("nb_NO")
@@ -33,12 +33,17 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		.RuleFor(g => g.Description, f => f.Lorem.Paragraph())
 		.RuleFor(g => g.CreatedUtc, f => f.Date.Past(3));
 
+	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
+
 	public GroupServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
+		_sqlServerContainer = sqlServerContainer;
+
+		_context = _sqlServerContainer.CreateContext();
+
 		_userProfileId = Guid.NewGuid().ToString();
 
-		_context = sqlServerContainer.Context;
-		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(sqlServerContainer.Context);
+		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(sqlServerContainer.CreateContext());
 
 		_groupService = new GroupService(_contextFactory,
 			Substitute.For<ILogger<GroupService>>(),
@@ -55,7 +60,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.GetGroupByIdAsync(id);
 
 		// Assert
-		result.Should().BeOfType<NotFound>();
+		result.Value.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -70,7 +75,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var groupDto = await _groupService.GetGroupByIdAsync(group.Id);
 
 		// Assert
-		groupDto.Should().BeOfType<Group>();
+		groupDto.Value.Should().BeOfType<Group>();
 		group = groupDto.AsT0;
 		group.Should().NotBeNull();
 		group.Name.Should().Be(group.Name);
@@ -85,6 +90,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 	{
 		// Arrange
 		AddUserProfile();
+		await _context.SaveChangesAsync();
 		var group = new Group
 		{
 			Id = Guid.NewGuid(),
@@ -99,7 +105,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
 		// Assert
-		result.Should().BeOfType<Success>();
+		result.Value.Should().BeOfType<Success>();
 	}
 
 	[Fact]
@@ -124,7 +130,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
 		// Assert
-		result.Should().BeOfType<Error<string>>();
+		result.Value.Should().BeOfType<Error<string>>();
 	}
 
 	[Fact]
@@ -145,7 +151,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.UpdateGroupAsync(_userProfileId, group);
 
 		// Assert
-		result.Should().BeOfType<NotFound>();
+		result.Value.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -171,7 +177,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.UpdateGroupAsync(_userProfileId, updatedGroup);
 
 		// Assert
-		result.Should().BeOfType<NoContent>();
+		result.Value.Should().BeOfType<Success>();
 	}
 
 	[Fact]
@@ -184,7 +190,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(_userProfileId, id);
 
 		// Assert
-		result.Should().BeOfType<NotFound>();
+		result.Value.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -208,7 +214,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
 
 		// Assert
-		result.Should().BeOfType<UnauthorizedHttpResult>();
+		result.Value.Should().BeOfType<Error>();
 	}
 
 	[Fact]
@@ -224,7 +230,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(NewId.NextGuid().ToString(), group.Id);
 
 		// Assert
-		result.Should().BeOfType<UnauthorizedHttpResult>();
+		result.Value.Should().BeOfType<Error>();
 	}
 
 	[Fact]
@@ -239,7 +245,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
 
 		// Assert
-		result.Should().BeOfType<NoContent>();
+		result.Value.Should().BeOfType<Success>();
 	}
 
 	public Group AddGroup(string? userId = null)
@@ -248,9 +254,9 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		userId ??= _userProfileId;
 
 		var group = _groupFaker.Generate();
-		group.Memberships = new List<GroupMembership>
-		{
-			new()
+		group.Memberships =
+		[
+			new GroupMembership
 			{
 				GroupId = groupId,
 				UserProfileId = userId,
@@ -261,7 +267,7 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 								  PermissionLevel.Moderator |
 								  PermissionLevel.Admin
 			}
-		};
+		];
 		_context.Groups.Add(group);
 
 		return group;
@@ -274,5 +280,10 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 
 	public Task InitializeAsync() => Task.CompletedTask;
 
-	public async Task DisposeAsync() => await _context.Groups.ExecuteDeleteAsync();
+	public async Task DisposeAsync()
+	{
+		await using var context = _sqlServerContainer.CreateContext();
+		await context.Groups.ExecuteDeleteAsync();
+		await _context.DisposeAsync();
+	}
 }

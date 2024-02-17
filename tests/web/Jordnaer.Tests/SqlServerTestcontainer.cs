@@ -12,16 +12,21 @@ public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : 
 
 	public TDbContext Context = null!;
 
+	public TDbContext CreateContext() => (TDbContext)Activator
+		.CreateInstance(typeof(TDbContext),
+						new DbContextOptionsBuilder<TDbContext>()
+							.UseSqlServer(_connectionString)
+							.Options)!;
+
+	private string _connectionString = null!;
+
 	public virtual async Task InitializeAsync()
 	{
 		await Container.StartAsync();
 
-		string? connectionString = Container.GetConnectionString();
+		_connectionString = Container.GetConnectionString();
 
-		Context = (TDbContext)Activator
-			.CreateInstance(typeof(TDbContext),
-				new DbContextOptionsBuilder<TDbContext>()
-					.UseSqlServer(connectionString).Options)!;
+		Context = CreateContext();
 
 		await Context.Database.EnsureCreatedAsync();
 	}

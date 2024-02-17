@@ -135,11 +135,6 @@ public class DeleteUserService : IDeleteUserService
 				return false;
 			}
 
-			var childrenIds = await context.ChildProfiles
-				.Where(child => child.UserProfileId == userId)
-				.Select(child => child.Id)
-				.ToListAsync(cancellationToken);
-
 			var modifiedRows = await context.UserProfiles
 											 .Where(userProfile => userProfile.Id == userId)
 											 .ExecuteDeleteAsync(cancellationToken);
@@ -157,6 +152,11 @@ public class DeleteUserService : IDeleteUserService
 
 			// Delete all saved images owned by the user
 			await _imageService.DeleteImageAsync(userId, ProfileImageService.UserProfilePicturesContainerName, cancellationToken);
+
+			var childrenIds = await context.ChildProfiles
+										   .Where(child => child.UserProfileId == userId)
+										   .Select(child => child.Id)
+										   .ToListAsync(cancellationToken);
 			foreach (var id in childrenIds)
 			{
 				await _imageService.DeleteImageAsync(id.ToString(), ProfileImageService.ChildProfilePicturesContainerName, cancellationToken);
