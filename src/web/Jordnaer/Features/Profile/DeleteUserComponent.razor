@@ -56,7 +56,7 @@
     {
         var authState = await AuthenticationState;
         _userEmail = authState.User.FindFirstValue(ClaimTypes.Email)!;
-        _currentUserId = authState.User.GetId();
+        _currentUserId = authState.User.GetId()!;
     }
 
     private void OpenDialog() => _dialogIsOpen = true;
