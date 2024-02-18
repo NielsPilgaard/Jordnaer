@@ -16,8 +16,7 @@
 
 <form action="Account/Logout" method="post" id="logout-form">
 	<AntiforgeryToken />
-    @*TODO verify that this works*@
-	@* <input type="hidden" name="ReturnUrl" value="@ReturnUrl" /> *@
+	<input type="hidden" name="ReturnUrl" value="" />
 	<button type="submit" class="nav-link">
 		<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span>
 	</button>
