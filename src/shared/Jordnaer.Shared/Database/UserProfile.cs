@@ -9,58 +9,58 @@ namespace Jordnaer.Shared;
 [Index(nameof(SearchableName))]
 public class UserProfile
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public required string Id { get; set; }
+	[Key]
+	[DatabaseGenerated(DatabaseGeneratedOption.None)]
+	public required string Id { get; set; }
 
-    [MaxLength(100, ErrorMessage = "Brugernavn må højest være 100 karakterer langt.")]
-    [MinLength(3, ErrorMessage = "Brugernavn skal være mindst 3 karakterer langt.")]
-    [RegularExpression("^[a-zA-Z0-9-_]+$",
-        ErrorMessage = "Brugernavn må kun bestå af bogstaver, tal, bindestreg og understreg.")]
-    public string? UserName { get; set; }
+	[MaxLength(100, ErrorMessage = "Brugernavn må højest være 100 karakterer langt.")]
+	[MinLength(3, ErrorMessage = "Brugernavn skal være mindst 3 karakterer langt.")]
+	[RegularExpression("^[\\w@-_\\.^][^\\\\]+$",
+		ErrorMessage = "Brugernavn må kun bestå af bogstaver, tal, bindestreg og understreg.")]
+	public string? UserName { get; set; }
 
-    [MaxLength(100, ErrorMessage = "Fornavn må højest være 100 karakterer langt.")]
-    public string? FirstName { get; set; }
+	[MaxLength(100, ErrorMessage = "Fornavn må højest være 100 karakterer langt.")]
+	public string? FirstName { get; set; }
 
-    [MaxLength(250, ErrorMessage = "Efternavn må højest være 250 karakterer langt.")]
-    public string? LastName { get; set; }
+	[MaxLength(250, ErrorMessage = "Efternavn må højest være 250 karakterer langt.")]
+	public string? LastName { get; set; }
 
-    public string? SearchableName { get; set; }
+	public string? SearchableName { get; set; }
 
-    [Phone(ErrorMessage = "Telefon nummeret må kun indeholde tal, mellemrum og +")]
-    public string? PhoneNumber { get; set; }
+	[Phone(ErrorMessage = "Telefon nummeret må kun indeholde tal, mellemrum og +")]
+	public string? PhoneNumber { get; set; }
 
-    [MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
-    public string? Address { get; set; }
+	[MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
+	public string? Address { get; set; }
 
-    [DanishZipCode(ErrorMessage = "Post nummer skal være mellem 1000 og 9999")]
-    public int? ZipCode { get; set; }
+	[DanishZipCode(ErrorMessage = "Post nummer skal være mellem 1000 og 9999")]
+	public int? ZipCode { get; set; }
 
-    [MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
-    public string? City { get; set; }
+	[MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
+	public string? City { get; set; }
 
-    [MaxLength(2000, ErrorMessage = "Beskrivelse må højest være 2000 karakterer langt.")]
-    public string? Description { get; set; }
+	[MaxLength(2000, ErrorMessage = "Beskrivelse må højest være 2000 karakterer langt.")]
+	public string? Description { get; set; }
 
-    public List<Category> Categories { get; set; } = new();
+	public List<Category> Categories { get; set; } = [];
 
-    public List<ChildProfile> ChildProfiles { get; set; } = new();
+	public List<ChildProfile> ChildProfiles { get; set; } = [];
 
-    public List<UserProfile> Contacts { get; set; } = new();
+	public List<UserProfile> Contacts { get; set; } = [];
 
-    public List<Group> Groups { get; set; } = new();
-    public List<GroupMembership> GroupMemberships { get; set; } = new();
+	public List<Group> Groups { get; set; } = [];
+	public List<GroupMembership> GroupMemberships { get; set; } = [];
 
-    public DateTime? DateOfBirth { get; set; }
+	public DateTime? DateOfBirth { get; set; }
 
-    public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
+	public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
 
-    public int? Age { get; set; }
+	public int? Age { get; set; }
 
-    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+	public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
-    [NotMapped]
-    public string DisplayName => FirstName is not null
-        ? $"{FirstName} {LastName}"
-        : LastName ?? string.Empty;
+	[NotMapped]
+	public string DisplayName => FirstName is not null
+		? $"{FirstName} {LastName}"
+		: LastName ?? string.Empty;
 }
