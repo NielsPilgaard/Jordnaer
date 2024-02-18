@@ -27,7 +27,7 @@ public interface IProfileService
 	/// </summary>
 	/// <param name="updatedUserProfile">The user profile.</param>
 	/// <param name="cancellationToken"></param>
-	Task<OneOf<Success, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
+	Task<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
 }
 
 public sealed class ProfileService(
@@ -53,7 +53,7 @@ public sealed class ProfileService(
 				   : new Success<ProfileDto>(profile);
 	}
 
-	public async Task<OneOf<Success, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
 	{
 		var currentUserId = await authenticationStateProvider.GetCurrentUserId();
 		if (currentUserId is null)
@@ -82,7 +82,7 @@ public sealed class ProfileService(
 
 		await context.SaveChangesAsync(cancellationToken);
 
-		return new Success();
+		return new Success<UserProfile>(currentUserProfile);
 	}
 
 	internal static async Task UpdateExistingUserProfileAsync(UserProfile currentUserProfile,

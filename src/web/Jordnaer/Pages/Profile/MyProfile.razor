@@ -1,4 +1,5 @@
 @page "/profile"
+@using OneOf.Types
 @inject ICategoryCache CategoryCache
 @inject IProfileCache ProfileCache
 @inject IProfileService ProfileService
@@ -144,11 +145,22 @@
     private async Task UpdateUserProfile()
     {
         _isLoading = true;
-        
-        await ProfileService.UpdateUserProfile(_userProfile!);
 
-        Snackbar.Add("Din profil er blevet opdateret!",
-	        Severity.Success, _snackbarOptions);
+        if (_userProfile is null)
+        {
+	        Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error, _snackbarOptions);
+	        _isLoading = false;
+	        return;
+        }
+
+        var updateProfileResult = await ProfileService.UpdateUserProfile(_userProfile);
+        updateProfileResult.Switch(
+	        success =>  
+	        {
+		        Snackbar.Add("Din profil er blevet opdateret!", Severity.Success, _snackbarOptions);
+                ProfileCache.SetProfile(success.Value);
+	        }, 
+	        _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error, _snackbarOptions));
 
         _isLoading = false;
     }

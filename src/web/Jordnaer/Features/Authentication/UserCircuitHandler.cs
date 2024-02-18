@@ -1,22 +1,33 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+﻿using Jordnaer.Extensions;
+using Jordnaer.Features.Profile;
+using Jordnaer.Shared;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 
 namespace Jordnaer.Features.Authentication;
 
 internal sealed class UserCircuitHandler(
 	AuthenticationStateProvider authenticationStateProvider,
-	UserService userService,
+	CurrentUser currentUser,
+	IProfileCache profileCache,
 	ILogger<UserCircuitHandler> logger)
 	: CircuitHandler, IDisposable
 {
-	public override Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
+	public override async Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
-		authenticationStateProvider.AuthenticationStateChanged += AuthenticationChanged;
+		authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationChanged;
+		profileCache.ProfileChanged += OnProfileChanged;
 
-		return base.OnCircuitOpenedAsync(circuit, cancellationToken);
+		OnAuthenticationChanged(authenticationStateProvider.GetAuthenticationStateAsync());
+		currentUser.UserProfile = await profileCache.GetProfileAsync(cancellationToken);
+
+		await base.OnCircuitOpenedAsync(circuit, cancellationToken);
 	}
 
-	private void AuthenticationChanged(Task<AuthenticationState> authenticationChanged)
+	private void OnProfileChanged(object? sender, UserProfile userProfile)
+		=> currentUser.UserProfile = userProfile;
+
+	private void OnAuthenticationChanged(Task<AuthenticationState> authenticationChanged)
 	{
 		_ = UpdateAuthentication(authenticationChanged);
 
@@ -27,20 +38,18 @@ internal sealed class UserCircuitHandler(
 			try
 			{
 				var state = await task;
-				userService.SetUser(state.User);
+				currentUser.User = state.User;
 			}
 			catch (Exception exception)
 			{
-				logger.LogError(exception, "Failed to update authentication state");
+				logger.LogException(exception);
 			}
 		}
 	}
 
-	public override async Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
+	public void Dispose()
 	{
-		var state = await authenticationStateProvider.GetAuthenticationStateAsync();
-		userService.SetUser(state.User);
+		authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationChanged;
+		profileCache.ProfileChanged -= OnProfileChanged;
 	}
-
-	public void Dispose() => authenticationStateProvider.AuthenticationStateChanged -= AuthenticationChanged;
 }

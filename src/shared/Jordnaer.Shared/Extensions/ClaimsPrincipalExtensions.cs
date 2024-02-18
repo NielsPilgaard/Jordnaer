@@ -40,5 +40,5 @@ public static class ClaimsPrincipalExtensions
 	}
 	private static string? FindFirstValue(this ClaimsPrincipal principal, string type) => principal.FindFirst(type)?.Value;
 
-	public static string GetId(this ClaimsPrincipal principal) => principal.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+	public static string? GetId(this ClaimsPrincipal principal) => principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }

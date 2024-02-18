@@ -1,7 +1,6 @@
 using Jordnaer.Database;
-using Jordnaer.Extensions;
+using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -11,21 +10,22 @@ public interface IProfileCache
 {
 	ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default);
 	void SetProfile(UserProfile userProfile);
+	event EventHandler<UserProfile> ProfileChanged;
 }
 
 public class ProfileCache(
 	IMemoryCache memoryCache,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	AuthenticationStateProvider authenticationStateProvider)
+	CurrentUser currentUser)
 	: IProfileCache
 {
 	// TODO: Add CurrentUser to get userId
 	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default) =>
-		await memoryCache.GetOrCreateAsync(nameof(UserProfile), async entry =>
+		await memoryCache.GetOrCreateAsync($"{nameof(UserProfile)}:{currentUser.Id}", async entry =>
 		{
-			var currentUserId = await authenticationStateProvider.GetCurrentUserId();
-			if (currentUserId is null)
+			if (currentUser.Id is null)
 			{
+				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromTicks(1);
 				return null;
 			}
 
@@ -35,7 +35,7 @@ public class ProfileCache(
 									   .AsSingleQuery()
 									   .Include(userProfile => userProfile.ChildProfiles)
 									   .Include(userProfile => userProfile.Categories)
-									   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUserId,
+									   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id,
 															cancellationToken);
 
 			if (profile is not null)
@@ -54,5 +54,16 @@ public class ProfileCache(
 			return null;
 		});
 
-	public void SetProfile(UserProfile userProfile) => memoryCache.Set(nameof(UserProfile), userProfile, TimeSpan.FromHours(1));
+	public void SetProfile(UserProfile userProfile)
+	{
+		if (currentUser.Id is null)
+		{
+			return;
+		}
+
+		memoryCache.Set($"{nameof(UserProfile)}:{currentUser.Id}", userProfile, TimeSpan.FromHours(1));
+		ProfileChanged?.Invoke(this, userProfile);
+	}
+
+	public event EventHandler<UserProfile>? ProfileChanged;
 }
