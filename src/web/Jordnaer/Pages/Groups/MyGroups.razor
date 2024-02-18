@@ -4,6 +4,7 @@
 
 @inject IGroupService GroupService
 @inject ISnackbar Snackbar
+@inject CurrentUser CurrentUser
 
 <MudButton Href="groups/create" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.GroupAdd">Opret gruppe</MudButton>
 
@@ -53,15 +54,9 @@
 
     private UserGroupAccess[] _pendingAccess = Array.Empty<UserGroupAccess>();
 
-    [CascadingParameter]
-    public required Task<AuthenticationState> AuthenticationState { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-	    var authState = await AuthenticationState;
-	    var userId = authState.User.GetId();
-
-        _groupSummaries = await GroupService.GetSlimGroupsForUserAsync(userId);
+        _groupSummaries = await GroupService.GetSlimGroupsForUserAsync(CurrentUser.Id!);
         
         _memberOf = _groupSummaries
             .Where(x => x.MembershipStatus is MembershipStatus.Active)
