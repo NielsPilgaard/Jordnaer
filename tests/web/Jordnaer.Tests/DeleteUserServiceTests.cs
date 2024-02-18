@@ -3,7 +3,6 @@ using Jordnaer.Database;
 using Jordnaer.Features.DeleteUser;
 using Jordnaer.Features.Profile;
 using MassTransit;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,6 +13,7 @@ using SendGrid.Helpers.Mail;
 using Serilog;
 using System.Net;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Xunit;
 using Response = SendGrid.Response;
@@ -25,12 +25,12 @@ public class DeleteUserServiceTests : IClassFixture<SqlServerContainer<JordnaerD
 	private readonly UserManager<ApplicationUser> _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 	private readonly ILogger<DeleteUserService> _logger = Substitute.For<ILogger<DeleteUserService>>();
 	private readonly ISendGridClient _sendGridClient = Substitute.For<ISendGridClient>();
+	private readonly IServer _server = Substitute.For<IServer>();
 	private readonly IServerAddressesFeature _serverAddressesFeature = Substitute.For<IServerAddressesFeature>();
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
 	private readonly IDiagnosticContext _diagnosticContext = Substitute.For<IDiagnosticContext>();
 	private readonly DeleteUserService _deleteUserService;
 	private readonly IImageService _imageService = Substitute.For<IImageService>();
-	private readonly AuthenticationStateProvider _authenticationStateProvider = Substitute.For<AuthenticationStateProvider>();
 	private readonly JordnaerDbContext _context;
 
 	public DeleteUserServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
@@ -39,7 +39,7 @@ public class DeleteUserServiceTests : IClassFixture<SqlServerContainer<JordnaerD
 
 		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(sqlServerContainer.CreateContext());
 
-		_deleteUserService = new DeleteUserService(_userManager, _logger, _sendGridClient, _serverAddressesFeature, _contextFactory, _diagnosticContext, _imageService);
+		_deleteUserService = new DeleteUserService(_userManager, _logger, _sendGridClient, _server, _contextFactory, _diagnosticContext, _imageService);
 	}
 
 	[Fact]
@@ -52,7 +52,8 @@ public class DeleteUserServiceTests : IClassFixture<SqlServerContainer<JordnaerD
 
 		_userManager.GenerateUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose).Returns("token");
 
-		_serverAddressesFeature.Addresses.ReturnsForAnyArgs(["https://localhost"]);
+		_server.Features.Get<IServerAddressesFeature>().ReturnsForAnyArgs(_serverAddressesFeature);
+		_serverAddressesFeature.Addresses.ReturnsForAnyArgs(["https://localhost:7116"]);
 
 		_sendGridClient.SendEmailAsync(Arg.Any<SendGridMessage>()).Returns(new Response(HttpStatusCode.Accepted, null, null));
 

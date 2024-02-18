@@ -1,6 +1,8 @@
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Profile;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +27,7 @@ public class DeleteUserService : IDeleteUserService
 	private readonly UserManager<ApplicationUser> _userManager;
 	private readonly ILogger<DeleteUserService> _logger;
 	private readonly ISendGridClient _sendGridClient;
-	private readonly IServerAddressesFeature _serverAddressesFeature;
+	private readonly IServer _server;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 	private readonly IDiagnosticContext _diagnosticContext;
 	private readonly IImageService _imageService;
@@ -33,7 +35,7 @@ public class DeleteUserService : IDeleteUserService
 	public DeleteUserService(UserManager<ApplicationUser> userManager,
 		ILogger<DeleteUserService> logger,
 		ISendGridClient sendGridClient,
-		IServerAddressesFeature serverAddressesFeature,
+		IServer server,
 		IDbContextFactory<JordnaerDbContext> contextFactory,
 		IDiagnosticContext diagnosticContext,
 		IImageService imageService)
@@ -41,7 +43,7 @@ public class DeleteUserService : IDeleteUserService
 		_userManager = userManager;
 		_logger = logger;
 		_sendGridClient = sendGridClient;
-		_serverAddressesFeature = serverAddressesFeature;
+		_server = server;
 		_contextFactory = contextFactory;
 		_diagnosticContext = diagnosticContext;
 		_imageService = imageService;
@@ -60,7 +62,8 @@ public class DeleteUserService : IDeleteUserService
 			return false;
 		}
 
-		var serverAddress = _serverAddressesFeature.Addresses.FirstOrDefault();
+		var serverAddressFeature = _server.Features.Get<IServerAddressesFeature>();
+		var serverAddress = serverAddressFeature?.Addresses.FirstOrDefault();
 		if (serverAddress is null)
 		{
 			_logger.LogError("No addresses found in the IServerAddressFeature. A Delete User Url cannot be created.");
@@ -71,8 +74,7 @@ public class DeleteUserService : IDeleteUserService
 
 		var token = await _userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
-		var serverUri = new Uri(serverAddress);
-		var deletionLink = $"{serverUri.Scheme}://{serverUri.Host}/delete-user/{token}";
+		var deletionLink = $"{serverAddress}/delete-user/{token}";
 
 		var message = CreateDeleteUserEmailMessage(deletionLink);
 
@@ -134,8 +136,8 @@ public class DeleteUserService : IDeleteUserService
 			}
 
 			var modifiedRows = await context.UserProfiles
-											 .Where(userProfile => userProfile.Id == userId)
-											 .ExecuteDeleteAsync(cancellationToken);
+											.Where(userProfile => userProfile.Id == userId)
+											.ExecuteDeleteAsync(cancellationToken);
 
 			if (modifiedRows <= 0)
 			{
@@ -165,7 +167,7 @@ public class DeleteUserService : IDeleteUserService
 		catch (Exception exception)
 		{
 			await transaction.RollbackAsync(cancellationToken);
-			_logger.LogError(exception, "Exception occurred in function {functionName}", nameof(DeleteUserAsync));
+			_logger.LogException(exception);
 			return false;
 		}
 	}
@@ -179,7 +181,8 @@ public class DeleteUserService : IDeleteUserService
 		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
 		if (user is not null)
 		{
-			return await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+			var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+			return tokenIsValid;
 		}
 
 		_logger.LogError("Cannot verify user token, the user has no ApplicationUser");
