@@ -13,10 +13,11 @@
 
 @*TODO: Opdater denne side, når emailen er bekræftet*@
 <p>Check venligst din email for at bekræfte din konto.</p>
+@*TODO: Allow resending email after 30 seconds in case it never arrives*@
 
 @code {
 	private string? _statusMessage;
-
+    
 	[CascadingParameter]
 	private HttpContext HttpContext { get; set; } = default!;
 
