@@ -19,7 +19,7 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright/dotnet:v1.40.0-jammy
+      image: mcr.microsoft.com/playwright/dotnet:v1.41.2-jammy
       options: --user 1001
     steps:
       - name: Checkout
