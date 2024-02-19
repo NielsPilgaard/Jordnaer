@@ -1,31 +1,26 @@
-using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Net;
 
 namespace Jordnaer.SignalR;
 
-public abstract class AuthenticatedSignalRClientBase(
-	CurrentUser currentUser,
-	ILogger<AuthenticatedSignalRClientBase> logger,
-	UserManager<ApplicationUser> userManager,
-	IServer server,
-	NavigationManager navigationManager,
-	string hubPath)
-	: ISignalRClient
+public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 {
-	protected bool Started { get; private set; }
+	private readonly ILogger<AuthenticatedSignalRClientBase> _logger;
+	private readonly IServer _server;
 
-	public bool IsConnected => HubConnection?.State is HubConnectionState.Connected;
-
-	protected HubConnection? HubConnection { get; private set; }
-
-	public async Task StartAsync(CancellationToken cancellationToken = default)
+	protected AuthenticatedSignalRClientBase(CurrentUser currentUser,
+		ILogger<AuthenticatedSignalRClientBase> logger,
+		IServer server,
+		NavigationManager navigationManager,
+		string hubPath)
 	{
+		_logger = logger;
+		_server = server;
+
 		if (currentUser.Id is null)
 		{
 			logger.LogDebug("CurrentUser is not logged in, cannot create an authenticated SignalR Connection.");
@@ -49,7 +44,16 @@ public abstract class AuthenticatedSignalRClientBase(
 								 options => options.Cookies = cookieContainer)
 						.WithAutomaticReconnect()
 						.Build();
+	}
 
+	protected bool Started { get; private set; }
+
+	public bool IsConnected => HubConnection?.State is HubConnectionState.Connected;
+
+	protected HubConnection? HubConnection { get; private set; }
+
+	public async Task StartAsync(CancellationToken cancellationToken = default)
+	{
 		if (!Started && HubConnection is not null)
 		{
 			await HubConnection.StartAsync(cancellationToken);
@@ -59,10 +63,10 @@ public abstract class AuthenticatedSignalRClientBase(
 
 	private CookieContainer? CreateCookieContainer(string cookie)
 	{
-		var serverUri = server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
+		var serverUri = _server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
 		if (serverUri is null)
 		{
-			logger.LogError("Failed to get server address from IServer");
+			_logger.LogError("Failed to get server address from IServer");
 			return null;
 		}
 

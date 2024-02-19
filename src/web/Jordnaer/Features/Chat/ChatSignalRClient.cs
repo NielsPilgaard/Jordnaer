@@ -1,10 +1,8 @@
-using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
 using Jordnaer.SignalR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Jordnaer.Features.Chat;
@@ -12,10 +10,9 @@ namespace Jordnaer.Features.Chat;
 public class ChatSignalRClient(
 	CurrentUser currentUser,
 	ILogger<AuthenticatedSignalRClientBase> logger,
-	UserManager<ApplicationUser> userManager,
 	IServer server,
 	NavigationManager navigationManager)
-	: AuthenticatedSignalRClientBase(currentUser, logger, userManager, server, navigationManager, "/hubs/chat")
+	: AuthenticatedSignalRClientBase(currentUser, logger, server, navigationManager, "/hubs/chat")
 {
 	public void OnMessageReceived(Func<SendMessage, Task> action)
 	{
