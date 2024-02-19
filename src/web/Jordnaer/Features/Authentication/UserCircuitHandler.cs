@@ -10,11 +10,13 @@ internal sealed class UserCircuitHandler(
 	AuthenticationStateProvider authenticationStateProvider,
 	CurrentUser currentUser,
 	IProfileCache profileCache,
-	ILogger<UserCircuitHandler> logger)
+	ILogger<UserCircuitHandler> logger,
+	IHttpContextAccessor httpContextAccessor)
 	: CircuitHandler, IDisposable
 {
 	public override async Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
+		// TODO: Figure out when the correct cookie exists!
 		authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationChanged;
 		profileCache.ProfileChanged += OnProfileChanged;
 
@@ -46,6 +48,22 @@ internal sealed class UserCircuitHandler(
 				logger.LogException(exception);
 			}
 		}
+	}
+
+	public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
+	{
+		if (httpContextAccessor.HttpContext)
+		{
+			logger.LogInformation();
+		}
+		if (httpContextAccessor.HttpContext is not null && httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
+		{
+			logger.LogInformation("It happened!");
+
+			currentUser.Cookie = cookie;
+		}
+
+		return Task.CompletedTask;
 	}
 
 	public void Dispose()
