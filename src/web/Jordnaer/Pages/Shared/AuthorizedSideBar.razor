@@ -38,12 +38,13 @@
 
     protected override void OnInitialized()
     {
-        _timer = new Timer(
-            // ReSharper disable once AsyncVoidLambda
-            callback: async _ => await GetUnreadMessageCount(),
-            state: null,
-            dueTime: TimeSpan.Zero,
-            period: TimeSpan.FromMinutes(3));
+        // TODO: Remove entirely, this causes a crash
+        // _timer = new Timer(
+        //     // ReSharper disable once AsyncVoidLambda
+        //     callback: async _ => await GetUnreadMessageCount(),
+        //     state: null,
+        //     dueTime: TimeSpan.Zero,
+        //     period: TimeSpan.FromMinutes(3));
 
         _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
         {

@@ -137,7 +137,8 @@
     {
         [Required(ErrorMessage = "Påkrævet.")]
         [StringLength(30, MinimumLength = 2, ErrorMessage = "{0] skal være mellem {2} og {1} karakter langt.")]
-        [RegularExpression(@"^[\w$\-_.+!*'(),]+$", ErrorMessage = "{0} må kun bestå af bogstaver, tal og disse tegn: $-_.+!*'(),")]
+        [RegularExpression("^[\\w@-_\\.^][^\\\\]+$",
+	        ErrorMessage = "Brugernavn må kun bestå af bogstaver, tal, og udvalgte tegn.")]
         [Display(Name = "Brugernavn")]
         public string Username { get; set; } = "";
 

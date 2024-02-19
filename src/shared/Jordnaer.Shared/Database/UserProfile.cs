@@ -16,7 +16,7 @@ public class UserProfile
 	[MaxLength(100, ErrorMessage = "Brugernavn må højest være 100 karakterer langt.")]
 	[MinLength(3, ErrorMessage = "Brugernavn skal være mindst 3 karakterer langt.")]
 	[RegularExpression("^[\\w@-_\\.^][^\\\\]+$",
-		ErrorMessage = "Brugernavn må kun bestå af bogstaver, tal, bindestreg og understreg.")]
+		ErrorMessage = "Brugernavn må kun bestå af bogstaver, tal, og udvalgte tegn.")]
 	public string? UserName { get; set; }
 
 	[MaxLength(100, ErrorMessage = "Fornavn må højest være 100 karakterer langt.")]
