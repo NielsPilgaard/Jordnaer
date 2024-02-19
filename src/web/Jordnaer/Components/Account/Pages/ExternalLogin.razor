@@ -124,8 +124,6 @@
                 _externalLoginInfo.Principal.Identity?.Name,
                 _externalLoginInfo.LoginProvider);
 
-            await SaveCookie(user);
-
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut)
@@ -140,26 +138,6 @@
         }
     }
 
-    private async ValueTask SaveCookie(ApplicationUser user)
-    {
-        if (!HttpContext.Request.Cookies.TryGetValue(IdentityConstants.ExternalScheme, out var cookie))
-	    {
-            Logger.LogError("Failed to get cookie by name '{CookieName}'", AuthenticationConstants.CookieName);
-            return;
-	    }
-
-	    if (user.Cookie != cookie)
-	    {
-		    user.Cookie = cookie;
-		    Context.Users.Update(user);
-		    await Context.SaveChangesAsync();
-		    Logger.LogInformation("Successfully set cookie for User {UserId}", user.Id);
-	    }
-	    else
-	    {
-            Logger.LogInformation("Obtained cookie matches the currently saved cookie, no further action is needed.");
-	    }
-    }
 
     private async Task OnValidSubmitAsync()
     {

@@ -16,7 +16,6 @@ internal sealed class UserCircuitHandler(
 {
 	public override async Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
-		// TODO: Figure out when the correct cookie exists!
 		authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationChanged;
 		profileCache.ProfileChanged += OnProfileChanged;
 
@@ -52,16 +51,21 @@ internal sealed class UserCircuitHandler(
 
 	public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
-		if (httpContextAccessor.HttpContext)
+		if (httpContextAccessor.HttpContext is null)
 		{
-			logger.LogInformation();
+			logger.LogWarning("No HttpContext is associated with Circuit {CircuitId}", circuit.Id);
+			return Task.CompletedTask;
 		}
-		if (httpContextAccessor.HttpContext is not null && httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
-		{
-			logger.LogInformation("It happened!");
 
-			currentUser.Cookie = cookie;
+		if (!httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
+		{
+			logger.LogError("Failed to get cookie by name '{CookieName}'", AuthenticationConstants.CookieName);
+			return Task.CompletedTask;
 		}
+
+		logger.LogInformation("Successfully set cookie for User {UserId}", currentUser.Id);
+
+		currentUser.Cookie = cookie;
 
 		return Task.CompletedTask;
 	}

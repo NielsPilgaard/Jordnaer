@@ -32,15 +32,13 @@ public abstract class AuthenticatedSignalRClientBase(
 			return;
 		}
 
-		var user = await userManager.FindByIdAsync(currentUser.Id);
-		if (user?.Cookie is null)
+		if (currentUser.Cookie is null)
 		{
 			logger.LogWarning("CurrentUser {UserId} does not have a cookie, cannot create an authenticated SignalR Connection.", currentUser.Id);
 			return;
 		}
 
-		return;
-		var cookieContainer = CreateCookieContainer(user);
+		var cookieContainer = CreateCookieContainer(currentUser.Cookie);
 		if (cookieContainer is null)
 		{
 			return;
@@ -59,7 +57,7 @@ public abstract class AuthenticatedSignalRClientBase(
 		}
 	}
 
-	private CookieContainer? CreateCookieContainer(ApplicationUser user)
+	private CookieContainer? CreateCookieContainer(string cookie)
 	{
 		var serverUri = server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
 		if (serverUri is null)
@@ -71,7 +69,7 @@ public abstract class AuthenticatedSignalRClientBase(
 		var domain = new Uri(serverUri).Host;
 
 		var cookieContainer = new CookieContainer(1);
-		cookieContainer.Add(new Cookie(AuthenticationConstants.CookieName, user.Cookie, "/", domain));
+		cookieContainer.Add(new Cookie(AuthenticationConstants.CookieName, cookie, "/", domain));
 
 		return cookieContainer;
 	}
