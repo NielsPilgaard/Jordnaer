@@ -3,7 +3,6 @@
 @using System.Text.Encodings.Web
 @using Mediator
 @using Microsoft.AspNetCore.WebUtilities
-@using Microsoft.EntityFrameworkCore
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -12,7 +11,7 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
-@inject IDbContextFactory<JordnaerDbContext> DbContextFactory
+@inject JordnaerDbContext Context
 @inject IMediator Mediator
 
 <PageTitle>Register</PageTitle>
@@ -115,13 +114,13 @@
                     _externalLoginInfo.LoginProvider,
 			        accessToken));
 	        }
-            
-	        // TODO: Capture the user's cookie and save it in the database
 
             Logger.LogInformation(
                 "{Name} logged in with {LoginProvider} provider.",
                 _externalLoginInfo.Principal.Identity?.Name,
                 _externalLoginInfo.LoginProvider);
+
+            await SaveCookie(user!.Id);
 
             RedirectManager.RedirectTo(ReturnUrl);
         }
@@ -135,6 +134,37 @@
         {
             Input.Email = _externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
         }
+    }
+
+    private async Task SaveCookie(string userId)
+    {
+        // TODO: Extend the ApplicationUser instead of creating an extra table
+        const string cookieName = ".AspNetCore.Identity.Application";
+        if (!HttpContext.Request.Cookies.TryGetValue(cookieName, out var cookie))
+	    {
+            Logger.LogError("Failed to get cookie by name '{CookieName}'", cookieName);
+            return;
+	    }
+
+	    var existingCookie = await Context.UserCookies.FindAsync(userId);
+	    if (existingCookie is null)
+	    {
+		    Context.UserCookies.Add(new UserCookie
+		    {
+			    Id = userId,
+			    Cookie = cookie,
+			    CapturedAtUtc = DateTime.UtcNow
+		    });
+	    }
+	    else
+	    {
+		    existingCookie.Cookie = cookie;
+            existingCookie.CapturedAtUtc = DateTime.UtcNow;
+	    }
+
+	    await Context.SaveChangesAsync();
+
+        Logger.LogInformation("Successfully set cookie for User {UserId}", userId);
     }
 
     private async Task OnValidSubmitAsync()
@@ -154,9 +184,8 @@
                 Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
 
                 var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
-                await using var context = await DbContextFactory.CreateDbContextAsync();
-                context.UserProfiles.Add(userProfile);
-                await context.SaveChangesAsync();
+                Context.UserProfiles.Add(userProfile);
+                await Context.SaveChangesAsync();
 
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
