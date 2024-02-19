@@ -105,11 +105,15 @@
         if (result.Succeeded)
         {
 	        var user = await UserManager.FindByLoginAsync(_externalLoginInfo.LoginProvider, _externalLoginInfo.ProviderKey);
-	        
+	        if (user is null)
+	        {
+		        RedirectManager.RedirectToWithStatus("Account/Login", "Fejl - Det lykkedes ikke at finde dit login. Prøv venligst igen.", HttpContext);
+	        }
+
 	        var accessToken = _externalLoginInfo.AuthenticationProperties?.GetTokenValue("access_token");
 	        if (accessToken is not null)
 	        {
-		        await Mediator.Publish(new AccessTokenAcquired(user!.Id,
+		        await Mediator.Publish(new AccessTokenAcquired(user.Id,
                     _externalLoginInfo.ProviderKey,
                     _externalLoginInfo.LoginProvider,
 			        accessToken));
@@ -120,7 +124,7 @@
                 _externalLoginInfo.Principal.Identity?.Name,
                 _externalLoginInfo.LoginProvider);
 
-            await SaveCookie(user!.Id);
+            await SaveCookie(user);
 
             RedirectManager.RedirectTo(ReturnUrl);
         }
@@ -136,35 +140,25 @@
         }
     }
 
-    private async Task SaveCookie(string userId)
+    private async ValueTask SaveCookie(ApplicationUser user)
     {
-        // TODO: Extend the ApplicationUser instead of creating an extra table
-        const string cookieName = ".AspNetCore.Identity.Application";
-        if (!HttpContext.Request.Cookies.TryGetValue(cookieName, out var cookie))
+        if (!HttpContext.Request.Cookies.TryGetValue(IdentityConstants.ExternalScheme, out var cookie))
 	    {
-            Logger.LogError("Failed to get cookie by name '{CookieName}'", cookieName);
+            Logger.LogError("Failed to get cookie by name '{CookieName}'", AuthenticationConstants.CookieName);
             return;
 	    }
 
-	    var existingCookie = await Context.UserCookies.FindAsync(userId);
-	    if (existingCookie is null)
+	    if (user.Cookie != cookie)
 	    {
-		    Context.UserCookies.Add(new UserCookie
-		    {
-			    Id = userId,
-			    Cookie = cookie,
-			    CapturedAtUtc = DateTime.UtcNow
-		    });
+		    user.Cookie = cookie;
+		    Context.Users.Update(user);
+		    await Context.SaveChangesAsync();
+		    Logger.LogInformation("Successfully set cookie for User {UserId}", user.Id);
 	    }
 	    else
 	    {
-		    existingCookie.Cookie = cookie;
-            existingCookie.CapturedAtUtc = DateTime.UtcNow;
+            Logger.LogInformation("Obtained cookie matches the currently saved cookie, no further action is needed.");
 	    }
-
-	    await Context.SaveChangesAsync();
-
-        Logger.LogInformation("Successfully set cookie for User {UserId}", userId);
     }
 
     private async Task OnValidSubmitAsync()

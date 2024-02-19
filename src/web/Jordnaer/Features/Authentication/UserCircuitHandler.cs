@@ -18,7 +18,8 @@ internal sealed class UserCircuitHandler(
 		authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationChanged;
 		profileCache.ProfileChanged += OnProfileChanged;
 
-		OnAuthenticationChanged(authenticationStateProvider.GetAuthenticationStateAsync());
+		var state = await authenticationStateProvider.GetAuthenticationStateAsync();
+		currentUser.User = state.User;
 		currentUser.UserProfile = await profileCache.GetProfileAsync(cancellationToken);
 
 		await base.OnCircuitOpenedAsync(circuit, cancellationToken);
