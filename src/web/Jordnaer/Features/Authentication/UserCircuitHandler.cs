@@ -59,7 +59,12 @@ internal sealed class UserCircuitHandler(
 
 		if (!httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
 		{
-			logger.LogError("Failed to get cookie by name '{CookieName}'", AuthenticationConstants.CookieName);
+			if (currentUser.Id is not null)
+			{
+				logger.LogError("Failed to get cookie by name '{CookieName}' by logged in User {UserId}", AuthenticationConstants.CookieName, currentUser.Id);
+			}
+
+			// User is not yet logged in, return early.
 			return Task.CompletedTask;
 		}
 
