@@ -46,13 +46,6 @@
 
                     <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat" />
 
-
-                    <MudAnimate @ref="_messageSuccessfullySentAnimation"
-                                AnimationType="AnimationType.Fade"
-                                AnimationTiming="AnimationTiming.EaseIn"
-                                Delay="500"
-                                Selector=".message-sent-successfully-container" />
-
                     @if (LastMessageWasSentSuccessfullyByCurrentUser)
                     {
                         <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
@@ -96,8 +89,6 @@
     private bool _isLoading = true;
     private bool _isMobile = true;
     private Guid _breakpointObserverId = Guid.NewGuid();
-
-    private MudAnimate _messageSuccessfullySentAnimation = null!;
 
     private bool LastMessageWasSentSuccessfullyByCurrentUser;
 
@@ -145,7 +136,6 @@
             var lastChatMessage = chat.Messages.LastOrDefault();
             if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser.Id)
             {
-	            await _messageSuccessfullySentAnimation.Refresh();
 	            await InvokeAsync(StateHasChanged);
                 return;
             }
@@ -168,7 +158,6 @@
             if (message.SenderId == _currentUser.Id)
             {
                 LastMessageWasSentSuccessfullyByCurrentUser = true;
-                await _messageSuccessfullySentAnimation.Refresh();
                 await InvokeAsync(StateHasChanged);
                 return;
             }
