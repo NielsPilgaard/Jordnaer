@@ -145,8 +145,8 @@
             var lastChatMessage = chat.Messages.LastOrDefault();
             if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser.Id)
             {
-                StateHasChanged();
-                await _messageSuccessfullySentAnimation.Refresh();
+	            await _messageSuccessfullySentAnimation.Refresh();
+	            await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -154,7 +154,7 @@
             chatDto.UnreadMessageCount++;
             _chats.Insert(0, chatDto);
 
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         });
 
         ChatSignalRClient.OnMessageReceived(async message =>
@@ -168,8 +168,8 @@
             if (message.SenderId == _currentUser.Id)
             {
                 LastMessageWasSentSuccessfullyByCurrentUser = true;
-                StateHasChanged();
                 await _messageSuccessfullySentAnimation.Refresh();
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -179,14 +179,14 @@
             {
 	            LastMessageWasSentSuccessfullyByCurrentUser = false;
                 await ChatService.MarkMessagesAsReadAsync(_currentUser.Id, message.ChatId);
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
                 await ScrollToBottom();
             }
             else
             {
                 chat.UnreadMessageCount++;
                 _chats = _chats.OrderByDescending(c => c.UnreadMessageCount).ToList();
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
         });
 
