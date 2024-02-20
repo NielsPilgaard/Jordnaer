@@ -42,12 +42,6 @@ public static class WebApplicationBuilderExtensions
 
 	public static WebApplicationBuilder AddSignalR(this WebApplicationBuilder builder)
 	{
-		builder.Services.AddSignalR(options =>
-		{
-			options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
-			options.KeepAliveInterval = TimeSpan.FromMinutes(1);
-		});
-
 		builder.Services.AddResponseCompression(options =>
 			options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/octet-stream"]));
 
