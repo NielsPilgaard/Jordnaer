@@ -306,7 +306,7 @@
         var newChat = new ChatDto
             {
                 Id = NewId.NextGuid(),
-                Recipients = new List<UserSlim> { _currentUser.ToUserSlim() },
+                Recipients = [_currentUser.ToUserSlim()],
                 LastMessageSentUtc = DateTime.UtcNow,
                 StartedUtc = DateTime.UtcNow
             };
@@ -334,6 +334,6 @@
     public async ValueTask DisposeAsync()
     {
         await BrowserViewportService.UnsubscribeAsync(_breakpointObserverId);
-        await ChatSignalRClient.DisposeAsync();
+        await ChatSignalRClient.StopAsync();
     }
 }

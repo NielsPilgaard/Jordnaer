@@ -1,7 +1,9 @@
 @inject IChatService ChatService
 @inject NavigationManager Navigation
 @inject CurrentUser CurrentUser
-@implements IDisposable
+@inject UnreadMessageSignalRClient UnreadMessageSignalRClient
+
+@implements IAsyncDisposable
 
 @attribute [Authorize]
 
@@ -17,7 +19,7 @@
             Icon="@Icons.Material.Filled.Chat">
     @if (_unreadMessageCount > 0)
     {
-        <MudBadge Origin="Origin.CenterRight" BadgeClass="ml-2" Color="Color.Error" Content="@_unreadMessageCount">
+        <MudBadge Origin="Origin.CenterRight" BadgeClass="ml-2" Color="Color.Info" Content="@(_unreadMessageCount > 99 ? "99+" : _unreadMessageCount.ToString())">
             <MudText>Chat</MudText>
         </MudBadge>
     }
@@ -34,41 +36,78 @@
 @code {
     private int _unreadMessageCount = 0;
     private IDisposable? _locationChangedHandler;
-    private Timer? _timer;
+    private string _currentUrl = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // TODO: Remove entirely, this causes a crash
-        // _timer = new Timer(
-        //     // ReSharper disable once AsyncVoidLambda
-        //     callback: async _ => await GetUnreadMessageCount(),
-        //     state: null,
-        //     dueTime: TimeSpan.Zero,
-        //     period: TimeSpan.FromMinutes(3));
+	    await GetUnreadMessageCount();
 
         _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
         {
+            _currentUrl = context.TargetLocation;
             // Only trigger when navigating to specific chats, not just the overall chat page
             if (_unreadMessageCount > 0 && context.TargetLocation.StartsWith("/chat/"))
             {
                 await GetUnreadMessageCount();
             }
         });
+
+        await StartSignalR();
     }
 
-    private async Task GetUnreadMessageCount()
+    private async ValueTask GetUnreadMessageCount()
     {
-        var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id!);
+	    if (CurrentUser.Id is null)
+	    {
+		    return;
+	    }
+
+        var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
         if (_unreadMessageCount != unreadMessageCount)
         {
             _unreadMessageCount = unreadMessageCount;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    public void Dispose()
+    private async Task StartSignalR()
+    {
+        UnreadMessageSignalRClient.OnChatStarted(async chat =>
+        {
+	        if (chat.InitiatorId == CurrentUser.Id)
+	        {
+		        return;
+	        }
+
+            // If we're not already in the new chat, increment unreadMessageCount
+            if (_currentUrl.Contains(chat.Id.ToString()) is false)
+            {
+                _unreadMessageCount++;
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        UnreadMessageSignalRClient.OnMessageReceived(async message =>
+        {
+            if (message.SenderId == CurrentUser.Id)
+            {
+                return;
+            }
+
+            if (_currentUrl.Contains(message.ChatId.ToString()) is false)
+            {
+                _unreadMessageCount++;
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+
+        await UnreadMessageSignalRClient.StartAsync();
+    }
+
+    public async ValueTask DisposeAsync()
     {
         _locationChangedHandler?.Dispose();
-        _timer?.Dispose();
+        await UnreadMessageSignalRClient.StopAsync();
     }
+
 }

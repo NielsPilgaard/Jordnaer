@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Jordnaer.Features.Chat;
 
-public class ChatSignalRClient(
+public class UnreadMessageSignalRClient(
 	CurrentUser currentUser,
 	ILogger<AuthenticatedSignalRClientBase> logger,
 	IServer server,
