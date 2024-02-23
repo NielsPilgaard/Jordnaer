@@ -19,7 +19,6 @@ public class ProfileCache(
 	CurrentUser currentUser)
 	: IProfileCache
 {
-	// TODO: Add CurrentUser to get userId
 	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default) =>
 		await memoryCache.GetOrCreateAsync($"{nameof(UserProfile)}:{currentUser.Id}", async entry =>
 		{

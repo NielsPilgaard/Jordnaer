@@ -45,8 +45,6 @@ public class ChatService(
 						  .AsNoTracking()
 						  .Where(chat => chat.Recipients.Any(recipient => recipient.Id == userId))
 						  .OrderByDescending(chat => chat.LastMessageSentUtc)
-						  // TODO: This include might not be needed
-						  //.Include(chat => chat.Recipients)
 						  .Select(chat => new ChatDto
 						  {
 							  DisplayName = chat.DisplayName,

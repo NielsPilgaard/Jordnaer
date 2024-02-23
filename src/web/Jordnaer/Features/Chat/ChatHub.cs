@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Jordnaer.Features.Chat;
 
+public interface IChatHub
+{
+	Task ReceiveChatMessage(SendMessage message);
+	Task StartChat(StartChat startChat);
+}
+
 [Authorize]
 public class ChatHub(ILogger<ChatHub> logger) : Hub<IChatHub>
 {
