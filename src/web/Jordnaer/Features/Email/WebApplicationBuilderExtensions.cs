@@ -1,7 +1,5 @@
 using Jordnaer.Database;
 using Microsoft.AspNetCore.Identity;
-using Polly;
-using Polly.Contrib.WaitAndRetry;
 using SendGrid.Extensions.DependencyInjection;
 
 namespace Jordnaer.Features.Email;
@@ -16,14 +14,12 @@ public static class WebApplicationBuilderExtensions
 		var sendGridApiKey = builder.Configuration.GetValue<string>("SendGrid:ApiKey")!;
 
 		builder.Services
-			.AddSendGrid(options => options.ApiKey = sendGridApiKey)
-			.AddTransientHttpErrorPolicy(policyBuilder =>
-				// TODO: Replace with Microsoft.Extensions.Resilience
-				policyBuilder.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(500), 3)));
+			   .AddSendGrid(options => options.ApiKey = sendGridApiKey)
+			   .AddStandardResilienceHandler();
 
 		builder.Services
-			.AddHealthChecks()
-			.AddSendGrid(sendGridApiKey);
+			   .AddHealthChecks()
+			   .AddSendGrid(sendGridApiKey);
 
 		return builder;
 	}

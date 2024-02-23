@@ -83,7 +83,8 @@ builder.Services.AddRateLimiting();
 
 builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
 
-builder.Services.AddResilientHttpClient();
+builder.Services.AddHttpClient(HttpClients.Default)
+				.AddStandardResilienceHandler();
 
 builder.Services.AddUserSearchFeature();
 
