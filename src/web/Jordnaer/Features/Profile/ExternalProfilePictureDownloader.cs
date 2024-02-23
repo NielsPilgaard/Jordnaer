@@ -102,7 +102,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 	public async Task<string?> GetFacebookProfilePictureUrlAsync(AccessTokenAcquired notification,
 		CancellationToken cancellationToken)
 	{
-		var client = _httpClientFactory.CreateClient(HttpClients.External);
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
 		var facebookUrl = $"https://graph.facebook.com/v13.0/{notification.ProviderKey}/picture?" +
 						  $"type=large&" +
 						  $"redirect=false&" +
@@ -157,7 +157,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 	{
 		const string googleUrl = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json";
 
-		var client = _httpClientFactory.CreateClient(HttpClients.External);
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", notification.AccessToken);
 
 		var response = await client.GetAsync(googleUrl, cancellationToken);
@@ -209,7 +209,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 	{
 		const string microsoftUrl = "https://graph.microsoft.com/v1.0/me/photo/$value";
 
-		var client = _httpClientFactory.CreateClient(HttpClients.External);
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", notification.AccessToken);
 
 		var response = await client.GetAsync(microsoftUrl, cancellationToken);
@@ -261,7 +261,7 @@ public class ExternalProfilePictureDownloader : INotificationHandler<AccessToken
 
 	private async Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken)
 	{
-		var client = _httpClientFactory.CreateClient(HttpClients.External);
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
 		var response = await client.GetAsync(url, cancellationToken);
 
 		if (!response.IsSuccessStatusCode)
