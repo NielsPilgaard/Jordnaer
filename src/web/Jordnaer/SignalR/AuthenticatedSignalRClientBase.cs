@@ -76,10 +76,27 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 
 	private CookieContainer? CreateCookieContainer(string cookie)
 	{
+		var allServerUris = _server.Features.Get<IServerAddressesFeature>()?.Addresses;
+		_logger.LogDebug("All server addresses: {@ServerAddresses}", allServerUris);
+
 		var serverUri = _server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
 		if (serverUri is null)
 		{
 			_logger.LogError("Failed to get server address from IServer");
+			return null;
+		}
+
+		if (serverUri.Contains("[::]"))
+		{
+			_logger.LogInformation(
+				"First server address was {ServerUri}, trying to get hostname from environment variable 'WEBSITE_HOSTNAME' instead.", serverUri);
+
+			serverUri = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
+		}
+
+		if (serverUri is null)
+		{
+			_logger.LogError("Cannot determine domain for Cookie, Environment.GetEnvironmentVariable(\"WEBSITE_HOSTNAME\") was null.");
 			return null;
 		}
 
