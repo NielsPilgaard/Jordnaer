@@ -1,7 +1,7 @@
 using Jordnaer.Database;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace Jordnaer.Server.Benchmarks;
+namespace Jordnaer.Benchmarks;
 
 public class BenchmarkWebApplicationFactory : WebApplicationFactory<Program>
 {

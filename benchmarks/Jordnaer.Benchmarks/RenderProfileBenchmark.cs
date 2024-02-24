@@ -3,7 +3,7 @@ using Jordnaer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jordnaer.Server.Benchmarks;
+namespace Jordnaer.Benchmarks;
 
 [MemoryDiagnoser]
 public class RenderProfileBenchmark

@@ -4,24 +4,24 @@ using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Refit;
 
-namespace Jordnaer.Server.Benchmarks;
+namespace Jordnaer.Benchmarks;
 
-//TODO: This fails because the search endpoint requires auth and has rate limiting
 [MemoryDiagnoser]
 public class UserSearchBenchmark
 {
 	private IUserSearchService _service = null!;
 	private JordnaerDbContext _context = null!;
 	private UserProfile _randomUser = null!;
-	private List<Category> _categories = new();
+	private List<Category> _categories = [];
 
 	[GlobalSetup]
 	public async Task GlobalSetupAsync()
 	{
 		var factory = new BenchmarkWebApplicationFactory();
 		factory.ClientOptions.AllowAutoRedirect = false;
+
+		const int userCount = 10000;
 
 		using var scope = factory.Services.CreateScope();
 
@@ -31,19 +31,17 @@ public class UserSearchBenchmark
 
 		_categories = await _context.InsertCategoriesAsync();
 
-		await _context.InsertFakeUsersAsync(_categories);
+		await _context.InsertFakeUsersAsync(_categories, userCount);
 
 		await _context.SaveChangesAsync();
 
-		var httpClient = factory.CreateClient();
-
 		_randomUser = (await _context.UserProfiles
-			.Order()
-			.Skip(Random.Shared.Next(0, 10000))
+			.OrderBy(x => x.Id)
+			.Skip(Random.Shared.Next(userCount))
 			.Take(1)
 			.FirstOrDefaultAsync())!;
 
-		_service = RestService.For<IUserSearchService>(httpClient);
+		_service = scope.ServiceProvider.GetRequiredService<IUserSearchService>();
 	}
 
 	[Benchmark]
