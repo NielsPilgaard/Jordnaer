@@ -30,12 +30,6 @@ public static class ClaimsPrincipalExtensions
 			user.UserName = firstName + lastName?.Replace(" ", "");
 		}
 
-		// TODO: Can we get this information from external auth?
-
-		//principal.FindFirst(ClaimTypes.DateOfBirth);
-		//principal.FindFirst(ClaimTypes.PostalCode);
-		//principal.FindFirst(ClaimTypes.Gender);
-
 		return user;
 	}
 	private static string? FindFirstValue(this ClaimsPrincipal principal, string type) => principal.FindFirst(type)?.Value;
