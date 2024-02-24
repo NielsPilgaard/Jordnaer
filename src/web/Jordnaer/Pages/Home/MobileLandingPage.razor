@@ -1,0 +1,61 @@
+@using MudExtensions.Enums
+<!-- Logo  -->
+<div class="hero-section-top">
+    <MudImage Height="150" Src="/images/minimoeder_logo.png" />
+</div>
+
+<!-- Nav Bar -->
+<div class="hero-section-top">
+    <MudToolBar Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 20px;")">
+        <Feature Name="@FeatureFlags.Posts">
+            <MudNavLink Href="/posts" Class="d-none d-sm-flex">OPSLAG</MudNavLink>
+        </Feature>
+        <MudNavLink Href="/Account/Login" Class="hero-navbar-underline">VÆR' MED</MudNavLink>
+        <MudNavLink Href="/groups">GRUPPER</MudNavLink>
+    </MudToolBar>
+</div>
+
+<MudPage Row="2" Column="1" Height="440px">
+    <MudSection Row="2" Column="1" Style="@($"background: {JordnaerPalette.BeigeBackground}")" />
+    <MudSection Row="1" RowSpan="2" Column="1">
+        <MudStack Class="mb-6" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
+            <MudImage id="landing-page-center-image" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
+            <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.GreenBackground}; font-size: 32px")">
+                Velkommen
+            </MudText>
+            <MudText Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 18px; text-align: center")">
+                Til dit online mødested for børnefamilier
+            </MudText>
+        </MudStack>
+    </MudSection>
+</MudPage>
+
+<MiniDivider Class="mt-9" Color="MiniDividerColor.Red" Center />
+
+ <MudContainer MaxWidth="MaxWidth.Medium">
+     <div class="flex-column hero-section">
+         <div class="content-section">
+             <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
+                 Hvad kan jeg bruge Mini Møder til?
+             </MudText>
+             <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-2">
+                 Mini Møder er et online fællesskab for børnefamilier. Her kan du:
+             </MudText>
+             <ul class="custom-list">
+                 <li>Udforske fællesskaber</li>
+                 <li>Arrangere hyggelige legeaftaler</li>
+                 <li>Finde ligesindede</li>
+                 <li>Udforske hjemmeskolingsmuligheder</li>
+                 <li>Opdage private dagplejere i dit område</li>
+                 <li>Skabe din egen gruppe og invitere medlemmer</li>
+                 <li>Organisere eller finde sampasning</li>
+                 <li>Udforske lokale fritidsaktiviteter med andre familier</li>
+                 <li>Deltage i lokale forældregrupper</li>
+             </ul>
+             <div class="d-flex justify-center align-center">
+                 <MudButton Href="/users" Class="mt-5" Variant="Variant.Filled">Find dit næste mini møde nu!</MudButton>
+             </div>
+         </div>
+     </div>
+     <MiniDivider Color="MiniDividerColor.Yellow" Center />
+ </MudContainer>

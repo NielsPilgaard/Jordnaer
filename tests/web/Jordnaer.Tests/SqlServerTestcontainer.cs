@@ -2,29 +2,34 @@ using Microsoft.EntityFrameworkCore;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Jordnaer.Server.Tests;
+namespace Jordnaer.Tests;
 
 public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : DbContext
 {
-    public readonly MsSqlContainer Container = new MsSqlBuilder()
-        .WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
-        .Build();
+	public readonly MsSqlContainer Container = new MsSqlBuilder()
+		.WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
+		.Build();
 
-    public TDbContext Context = null!;
+	public TDbContext Context = null!;
 
-    public virtual async Task InitializeAsync()
-    {
-        await Container.StartAsync();
+	public TDbContext CreateContext() => (TDbContext)Activator
+		.CreateInstance(typeof(TDbContext),
+						new DbContextOptionsBuilder<TDbContext>()
+							.UseSqlServer(_connectionString)
+							.Options)!;
 
-        string? connectionString = Container.GetConnectionString();
+	private string _connectionString = null!;
 
-        Context = (TDbContext)Activator
-            .CreateInstance(typeof(TDbContext),
-                new DbContextOptionsBuilder<TDbContext>()
-                    .UseSqlServer(connectionString).Options)!;
+	public virtual async Task InitializeAsync()
+	{
+		await Container.StartAsync();
 
-        await Context.Database.EnsureCreatedAsync();
-    }
+		_connectionString = Container.GetConnectionString();
 
-    public virtual async Task DisposeAsync() => await Container.DisposeAsync();
+		Context = CreateContext();
+
+		await Context.Database.EnsureCreatedAsync();
+	}
+
+	public virtual async Task DisposeAsync() => await Container.DisposeAsync();
 }

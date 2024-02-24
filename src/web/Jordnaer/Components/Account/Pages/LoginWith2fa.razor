@@ -1,0 +1,98 @@
+﻿@page "/Account/LoginWith2fa"
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<LoginWith2fa> Logger
+
+<PageTitle>To-faktor autentifikation</PageTitle>
+
+<h1>To-faktor autentifikation</h1>
+<hr />
+<StatusMessage Message="@_message" />
+<p>Dit login er beskyttet med en autentifikations-app. Indtast din autentifikations kode nedenfor.</p>
+<div class="row">
+	<div class="col-md-4">
+		<EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
+			<input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+			<input type="hidden" name="RememberMe" value="@RememberMe" />
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="Input.TwoFactorCode" class="form-control" autocomplete="off" />
+                <label for="two-factor-code" class="form-label">Autentifikations kode</label>
+				<ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
+			</div>
+			<div class="checkbox mb-3">
+				<label for="remember-machine" class="form-label">
+					<InputCheckbox @bind-Value="Input.RememberMachine" />
+					Husk denne maskine
+				</label>
+			</div>
+			<div>
+				<button type="submit" class="w-100 btn btn-lg btn-primary">Log ind</button>
+			</div>
+		</EditForm>
+	</div>
+</div>
+<p>
+    Har du ikke adgang til din autentifikations-enhed? Du kan
+	<a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl">logge ind med en gendannelseskode</a>.
+</p>
+
+
+@code {
+    private string? _message;
+    private ApplicationUser _user = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private bool RememberMe { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure the user has gone through the username & password screen first
+        _user = await SignInManager.GetTwoFactorAuthenticationUserAsync() ??
+            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, RememberMe, Input.RememberMachine);
+        var userId = await UserManager.GetUserIdAsync(_user);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
+            _message = "Ugyldig autentifikations kode.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "Påkrævet.")]
+        [StringLength(7, ErrorMessage = "Din {0} skal være mindst {2} og maks {1} karakterer lang.", MinimumLength = 6)]
+        [DataType(DataType.Text)]
+        [Display(Name = "Autentifikations kode")]
+        public string? TwoFactorCode { get; set; }
+
+        [Display(Name = "Husk denne maskine?")]
+        public bool RememberMachine { get; set; }
+    }
+}

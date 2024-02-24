@@ -1,0 +1,78 @@
+@page "/users"
+@inject IUserSearchService UserSearchService
+@inject ISnackbar Snackbar
+@inject ISessionStorageService SessionStorage
+
+<MetadataComponent Title="Mini Møder - Søg efter brugere"
+                   Description="Søg efter brugere" />
+
+<MudLoading @bind-Loading="_isSearching" Darken Overlap>
+
+	<UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+
+	@if (!_hasSearched)
+	{
+		return;
+	}
+
+	@if (_searchResult.TotalCount == 0)
+	{
+		<MudPaper Elevation="3" Class="pa-10 mt-5">
+			<MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+				<MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
+			</MudAlert>
+		</MudPaper>
+		return;
+	}
+
+	<SponsorAd Class="mt-5"
+	           ImageAlt="Reklame for Moon Creative"
+	           MobileImagePath="images/ads/mooncreative_mobile.png"
+	           DesktopImagePath="images/ads/mooncreative_mobile.png" />
+
+	<UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+</MudLoading>
+
+@code {
+    private UserSearchFilter _filter = new();
+    private UserSearchResult _searchResult = new();
+    private bool _isSearching = false;
+    private bool _hasSearched = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _isSearching = true;
+        var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
+        var savedSearchFilter = await SessionStorage.GetItemAsync<UserSearchFilter>(nameof(UserSearchFilter));
+        _isSearching = false;
+
+        if (savedSearchResult is not null)
+        {
+            _searchResult = savedSearchResult;
+            _hasSearched = true;
+        }
+
+        if (savedSearchFilter is not null)
+        {
+            _filter = savedSearchFilter;
+        }
+    }
+
+    private async Task Search()
+    {
+        _isSearching = true;
+        _searchResult = await UserSearchService.GetUsersAsync(_filter);
+
+        _hasSearched = true;
+        await SessionStorage.SetItemAsync(nameof(UserSearchResult), _searchResult);
+        await SessionStorage.SetItemAsync(nameof(UserSearchFilter), _filter);
+
+        _isSearching = false;
+    }
+
+    private async Task OnSelectedPageChanged(int selectedPage)
+    {
+        _filter.PageNumber = selectedPage;
+        await Search();
+    }
+}

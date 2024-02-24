@@ -1,0 +1,50 @@
+﻿@page "/Account/Manage/ResetAuthenticator"
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<ResetAuthenticator> Logger
+
+<PageTitle>Nulstil autentificeringsnøgle</PageTitle>
+
+<StatusMessage />
+<h3>Nulstil autentificeringsnøgle</h3>
+<div class="alert alert-warning" role="alert">
+	<p>
+		<span class="glyphicon glyphicon-warning-sign"></span>
+		<strong>Hvis du nulstiller din autentificeringsnøgle, vil din autentificeringsapp ikke fungere, før du konfigurerer den igen.</strong>
+	</p>
+	<p>
+		Denne proces deaktiverer 2FA, indtil du bekræfter din autentificeringsapp.
+		Hvis du ikke fuldfører konfigurationen af din autentificeringsapp, kan du miste adgangen til din konto.
+	</p>
+</div>
+<div>
+	<form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
+		<AntiforgeryToken />
+		<button class="btn btn-danger" type="submit">Nulstil autentificeringsnøgle</button>
+	</form>
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    private async Task OnSubmitAsync()
+    {
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        await UserManager.SetTwoFactorEnabledAsync(user, false);
+        await UserManager.ResetAuthenticatorKeyAsync(user);
+        var userId = await UserManager.GetUserIdAsync(user);
+        Logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", userId);
+
+        await SignInManager.RefreshSignInAsync(user);
+
+        RedirectManager.RedirectToWithStatus(
+            "Account/Manage/EnableAuthenticator",
+            "Din autentifikations-app-nøgle er blevet nulstillet. Du skal konfigurere din autentifikations-app ved hjælp af den nye nøgle",
+            HttpContext);
+    }
+}

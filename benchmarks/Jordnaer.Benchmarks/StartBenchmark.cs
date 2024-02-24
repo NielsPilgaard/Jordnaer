@@ -1,9 +1,9 @@
 using System.Reflection;
 using BenchmarkDotNet.Running;
 
-namespace Jordnaer.Server.Benchmarks;
+namespace Jordnaer.Benchmarks;
 
 public class StartBenchmark
 {
-    public static void Main() => BenchmarkRunner.Run(Assembly.GetExecutingAssembly());
+	public static void Main() => BenchmarkRunner.Run(Assembly.GetExecutingAssembly());
 }

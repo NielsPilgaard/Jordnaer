@@ -2,15 +2,13 @@
   "profiles": {
     "https": {
       "commandName": "Project",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
+      "applicationUrl": "https://localhost:7116;http://localhost:5099",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ConnectionStrings_JordnaerDbContext": "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=867a4b3a-91d8-423d-8eb5-a16ea6e2b845;Persist Security Info=False;TrustServerCertificate=true;",
-        "DOTNET_MODIFIABLE_ASSEMBLIES": "Debug"
-      },
-      "dotnetRunMessages": true,
-      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
-      "applicationUrl": "https://localhost:7116;http://localhost:5235"
+        "ConnectionStrings_JordnaerDbContext": "Server=localhost,1433;Database=jordnaer;User ID=sa;Password=867a4b3a-91d8-423d-8eb5-a16ea6e2b845;Persist Security Info=False;TrustServerCertificate=true;"
+      }
     }
-  }
+  } 
 }

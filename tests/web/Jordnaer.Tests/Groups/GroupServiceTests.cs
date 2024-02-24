@@ -1,304 +1,289 @@
-using System.Security.Claims;
 using Bogus;
 using FluentAssertions;
-using Jordnaer.Server.Authorization;
-using Jordnaer.Server.Database;
-using Jordnaer.Server.Features.Groups;
+using Jordnaer.Database;
+using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.Http.HttpResults;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using Serilog;
 using Xunit;
-using Claim = System.Security.Claims.Claim;
+using NotFound = OneOf.Types.NotFound;
 
-namespace Jordnaer.Server.Tests.Groups;
+namespace Jordnaer.Tests.Groups;
 
 [Trait("Category", "IntegrationTest")]
 public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
 {
-    private readonly IGroupService _groupService;
-    private readonly JordnaerDbContext _context;
-    private readonly string _userProfileId;
+	private readonly GroupService _groupService;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
+	private readonly JordnaerDbContext _context;
 
-    private readonly Faker<Group> _groupFaker = new Faker<Group>("nb_NO")
-        .RuleFor(g => g.Id, _ => Guid.NewGuid())
-        .RuleFor(g => g.Name, f => f.Company.CompanyName())
-        .RuleFor(g => g.ProfilePictureUrl, f => f.Image.PicsumUrl())
-        .RuleFor(g => g.ShortDescription, f => f.Lorem.Sentence())
-        .RuleFor(u => u.ZipCode, f => f.Random.Int(1000, 9991))
-        .RuleFor(u => u.City, f => f.Address.City())
-        .RuleFor(g => g.Description, f => f.Lorem.Paragraph())
-        .RuleFor(g => g.CreatedUtc, f => f.Date.Past(3));
+	private readonly string _userProfileId;
 
-    public GroupServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
-    {
-        _userProfileId = Guid.NewGuid().ToString();
+	private readonly Faker<Group> _groupFaker = new Faker<Group>("nb_NO")
+		.RuleFor(g => g.Id, _ => Guid.NewGuid())
+		.RuleFor(g => g.Name, f => f.Company.CompanyName())
+		.RuleFor(g => g.ProfilePictureUrl, f => f.Image.PicsumUrl())
+		.RuleFor(g => g.ShortDescription, f => f.Lorem.Sentence())
+		.RuleFor(u => u.ZipCode, f => f.Random.Int(1000, 9991))
+		.RuleFor(u => u.City, f => f.Address.City())
+		.RuleFor(g => g.Description, f => f.Lorem.Paragraph())
+		.RuleFor(g => g.CreatedUtc, f => f.Date.Past(3));
 
-        _context = sqlServerContainer.Context;
+	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
 
-        var currentUser = new CurrentUser
-        {
-            Principal = new ClaimsPrincipal(
-                new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, _userProfileId) }))
-        };
+	public GroupServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
+	{
+		_sqlServerContainer = sqlServerContainer;
 
-        _groupService = new GroupService(_context,
-            currentUser,
-            Substitute.For<ILogger<GroupService>>(),
-            Substitute.For<IDiagnosticContext>());
-    }
+		_context = _sqlServerContainer.CreateContext();
 
-    [Fact]
-    public async Task GetGroupByIdAsync_ReturnsNotFound_WhenGroupDoesNotExist()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
+		_userProfileId = Guid.NewGuid().ToString();
 
-        // Act
-        var result = await _groupService.GetGroupByIdAsync(id);
+		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(sqlServerContainer.CreateContext());
 
-        // Assert
-        result.Result.Should().BeOfType<NotFound>();
-    }
+		_groupService = new GroupService(_contextFactory,
+			Substitute.For<ILogger<GroupService>>(),
+			Substitute.For<IDiagnosticContext>());
+	}
 
-    [Fact]
-    public async Task GetGroupByIdAsync_ReturnsGroupDto_WhenGroupExists()
-    {
-        // Arrange
-        AddUserProfile();
-        var group = AddGroup();
-        await _context.SaveChangesAsync();
+	[Fact]
+	public async Task GetGroupByIdAsync_ReturnsNotFound_WhenGroupDoesNotExist()
+	{
+		// Arrange
+		var id = Guid.NewGuid();
 
-        // Act
-        var result = await _groupService.GetGroupByIdAsync(group.Id);
+		// Act
+		var result = await _groupService.GetGroupByIdAsync(id);
 
-        // Assert
-        result.Result.Should().BeOfType<Ok<Group>>();
-        var groupDto = (result.Result as Ok<Group>)?.Value;
-        groupDto.Should().NotBeNull();
-        groupDto!.Name.Should().Be(group.Name);
-        groupDto.Description.Should().Be(group.Description);
-        groupDto.ShortDescription.Should().Be(group.ShortDescription);
-        groupDto.City.Should().Be(group.City);
-        groupDto.ZipCode.Should().Be(group.ZipCode);
-    }
+		// Assert
+		result.Value.Should().BeOfType<NotFound>();
+	}
 
-    [Fact]
-    public async Task CreateGroupAsync_ReturnsNoContent_WhenGroupIsCreated()
-    {
-        // Arrange
-        AddUserProfile();
-        var group = new Group
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Group",
-            Description = "Test Group Description",
-            ShortDescription = "Test Group Short Description",
-            City = "Test City",
-            ZipCode = 1234
-        };
+	[Fact]
+	public async Task GetGroupByIdAsync_ReturnsGroupDto_WhenGroupExists()
+	{
+		// Arrange
+		AddUserProfile();
+		var group = AddGroup();
+		await _context.SaveChangesAsync();
 
-        // Act
-        var result = await _groupService.CreateGroupAsync(group);
+		// Act
+		var groupDto = await _groupService.GetGroupByIdAsync(group.Id);
 
-        // Assert
-        result.Result.Should().BeOfType<NoContent>();
-    }
+		// Assert
+		groupDto.Value.Should().BeOfType<Group>();
+		group = groupDto.AsT0;
+		group.Should().NotBeNull();
+		group.Name.Should().Be(group.Name);
+		group.Description.Should().Be(group.Description);
+		group.ShortDescription.Should().Be(group.ShortDescription);
+		group.City.Should().Be(group.City);
+		group.ZipCode.Should().Be(group.ZipCode);
+	}
 
-    [Fact]
-    public async Task CreateGroupAsync_ReturnsBadRequest_WhenGroupUsesNonUniqueName()
-    {
-        // Arrange
-        AddUserProfile();
-        var existingGroup = AddGroup();
-        await _context.SaveChangesAsync();
+	[Fact]
+	public async Task CreateGroupAsync_ReturnsNoContent_WhenGroupIsCreated()
+	{
+		// Arrange
+		AddUserProfile();
+		await _context.SaveChangesAsync();
+		var group = new Group
+		{
+			Id = Guid.NewGuid(),
+			Name = "Test Group",
+			Description = "Test Group Description",
+			ShortDescription = "Test Group Short Description",
+			City = "Test City",
+			ZipCode = 1234
+		};
 
-        var group = new Group
-        {
-            Id = Guid.NewGuid(),
-            Name = existingGroup.Name,
-            Description = "Test Group Description",
-            ShortDescription = "Test Group Short Description",
-            City = "Test City",
-            ZipCode = 1234
-        };
+		// Act
+		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
-        // Act
-        var result = await _groupService.CreateGroupAsync(group);
+		// Assert
+		result.Value.Should().BeOfType<Success>();
+	}
 
-        // Assert
-        result.Result.Should().BeOfType<BadRequest<string>>();
-    }
+	[Fact]
+	public async Task CreateGroupAsync_ReturnsBadRequest_WhenGroupUsesNonUniqueName()
+	{
+		// Arrange
+		AddUserProfile();
+		var existingGroup = AddGroup();
+		await _context.SaveChangesAsync();
 
-    [Fact]
-    public async Task UpdateGroupAsync_ReturnsBadRequest_WhenIdDoesNotMatch()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-        var group = new Group
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Group",
-            Description = "Test Group Description",
-            ShortDescription = "Test Group Short Description",
-            City = "Test City",
-            ZipCode = 1234
-        };
+		var group = new Group
+		{
+			Id = Guid.NewGuid(),
+			Name = existingGroup.Name,
+			Description = "Test Group Description",
+			ShortDescription = "Test Group Short Description",
+			City = "Test City",
+			ZipCode = 1234
+		};
 
-        // Act
-        var result = await _groupService.UpdateGroupAsync(id, group);
+		// Act
+		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
 
-        // Assert
-        result.Result.Should().BeOfType<BadRequest<string>>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<Error<string>>();
+	}
 
-    [Fact]
-    public async Task UpdateGroupAsync_ReturnsNotFound_WhenGroupDoesNotExist()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-        var group = new Group
-        {
-            Id = id,
-            Name = "Test Group",
-            Description = "Test Group Description",
-            ShortDescription = "Test Group Short Description",
-            City = "Test City",
-            ZipCode = 1234
-        };
+	[Fact]
+	public async Task UpdateGroupAsync_ReturnsNotFound_WhenGroupDoesNotExist()
+	{
+		// Arrange
+		var group = new Group
+		{
+			Id = NewId.NextGuid(),
+			Name = "Test Group",
+			Description = "Test Group Description",
+			ShortDescription = "Test Group Short Description",
+			City = "Test City",
+			ZipCode = 1234
+		};
 
-        // Act
-        var result = await _groupService.UpdateGroupAsync(id, group);
+		// Act
+		var result = await _groupService.UpdateGroupAsync(_userProfileId, group);
 
-        // Assert
-        result.Result.Should().BeOfType<NotFound>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<NotFound>();
+	}
 
-    [Fact]
-    public async Task UpdateGroupAsync_ReturnsNoContent_WhenGroupIsUpdated()
-    {
-        // Arrange
-        AddUserProfile();
-        var group = AddGroup();
-        await _context.SaveChangesAsync();
-        _context.Entry(group).State = EntityState.Detached;
+	[Fact]
+	public async Task UpdateGroupAsync_ReturnsNoContent_WhenGroupIsUpdated()
+	{
+		// Arrange
+		AddUserProfile();
+		var group = AddGroup();
+		await _context.SaveChangesAsync();
+		_context.Entry(group).State = EntityState.Detached;
 
-        var updatedGroup = new Group
-        {
-            Id = group.Id,
-            Name = "Updated Test Group",
-            Description = "Updated Test Group Description",
-            ShortDescription = "Updated Test Group Short Description",
-            City = "Updated Test City",
-            ZipCode = 4321
-        };
+		var updatedGroup = new Group
+		{
+			Id = group.Id,
+			Name = "Updated Test Group",
+			Description = "Updated Test Group Description",
+			ShortDescription = "Updated Test Group Short Description",
+			City = "Updated Test City",
+			ZipCode = 4321
+		};
 
-        // Act
-        var result = await _groupService.UpdateGroupAsync(group.Id, updatedGroup);
+		// Act
+		var result = await _groupService.UpdateGroupAsync(_userProfileId, updatedGroup);
 
-        // Assert
-        result.Result.Should().BeOfType<NoContent>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<Success>();
+	}
 
-    [Fact]
-    public async Task DeleteGroupAsync_ReturnsNotFound_WhenGroupDoesNotExist()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
+	[Fact]
+	public async Task DeleteGroupAsync_ReturnsNotFound_WhenGroupDoesNotExist()
+	{
+		// Arrange
+		var id = Guid.NewGuid();
 
-        // Act
-        var result = await _groupService.DeleteGroupAsync(id);
+		// Act
+		var result = await _groupService.DeleteGroupAsync(_userProfileId, id);
 
-        // Assert
-        result.Result.Should().BeOfType<NotFound>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<NotFound>();
+	}
 
-    [Fact]
-    public async Task DeleteGroupAsync_ReturnsUnauthorized_WhenGroupHasNoOwner()
-    {
-        // Arrange
-        var group = new Group
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Group",
-            Description = "Test Group Description",
-            ShortDescription = "Test Group Short Description",
-            City = "Test City",
-            ZipCode = 1234
-        };
+	[Fact]
+	public async Task DeleteGroupAsync_ReturnsUnauthorized_WhenGroupHasNoOwner()
+	{
+		// Arrange
+		var group = new Group
+		{
+			Id = Guid.NewGuid(),
+			Name = "Test Group",
+			Description = "Test Group Description",
+			ShortDescription = "Test Group Short Description",
+			City = "Test City",
+			ZipCode = 1234
+		};
 
-        _context.Groups.Add(group);
-        await _context.SaveChangesAsync();
+		_context.Groups.Add(group);
+		await _context.SaveChangesAsync();
 
-        // Act
-        var result = await _groupService.DeleteGroupAsync(group.Id);
+		// Act
+		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
 
-        // Assert
-        result.Result.Should().BeOfType<UnauthorizedHttpResult>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<Error>();
+	}
 
-    [Fact]
-    public async Task DeleteGroupAsync_ReturnsUnauthorized_WhenRequestIsNotFromOwner()
-    {
-        // Arrange
-        string userId = Guid.NewGuid().ToString();
-        AddUserProfile(userId);
-        var group = AddGroup(userId);
-        await _context.SaveChangesAsync();
+	[Fact]
+	public async Task DeleteGroupAsync_ReturnsUnauthorized_WhenRequestIsNotFromOwner()
+	{
+		// Arrange
+		var userId = Guid.NewGuid().ToString();
+		AddUserProfile(userId);
+		var group = AddGroup(userId);
+		await _context.SaveChangesAsync();
 
-        // Act
-        var result = await _groupService.DeleteGroupAsync(group.Id);
+		// Act
+		var result = await _groupService.DeleteGroupAsync(NewId.NextGuid().ToString(), group.Id);
 
-        // Assert
-        result.Result.Should().BeOfType<UnauthorizedHttpResult>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<Error>();
+	}
 
-    [Fact]
-    public async Task DeleteGroupAsync_ReturnsNoContent_WhenGroupIsDeleted()
-    {
-        // Arrange
-        AddUserProfile();
-        var group = AddGroup();
-        await _context.SaveChangesAsync();
+	[Fact]
+	public async Task DeleteGroupAsync_ReturnsNoContent_WhenGroupIsDeleted()
+	{
+		// Arrange
+		AddUserProfile();
+		var group = AddGroup();
+		await _context.SaveChangesAsync();
 
-        // Act
-        var result = await _groupService.DeleteGroupAsync(group.Id);
+		// Act
+		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
 
-        // Assert
-        result.Result.Should().BeOfType<NoContent>();
-    }
+		// Assert
+		result.Value.Should().BeOfType<Success>();
+	}
 
-    public Group AddGroup(string? userId = null)
-    {
-        var groupId = Guid.NewGuid();
-        userId ??= _userProfileId;
+	public Group AddGroup(string? userId = null)
+	{
+		var groupId = Guid.NewGuid();
+		userId ??= _userProfileId;
 
-        var group = _groupFaker.Generate();
-        group.Memberships = new List<GroupMembership>
-        {
-            new()
-            {
-                GroupId = groupId,
-                UserProfileId = userId,
-                OwnershipLevel = OwnershipLevel.Owner,
-                MembershipStatus = MembershipStatus.Active,
-                PermissionLevel = PermissionLevel.Read |
-                                  PermissionLevel.Write |
-                                  PermissionLevel.Moderator |
-                                  PermissionLevel.Admin
-            }
-        };
-        _context.Groups.Add(group);
+		var group = _groupFaker.Generate();
+		group.Memberships =
+		[
+			new GroupMembership
+			{
+				GroupId = groupId,
+				UserProfileId = userId,
+				OwnershipLevel = OwnershipLevel.Owner,
+				MembershipStatus = MembershipStatus.Active,
+				PermissionLevel = PermissionLevel.Read |
+								  PermissionLevel.Write |
+								  PermissionLevel.Moderator |
+								  PermissionLevel.Admin
+			}
+		];
+		_context.Groups.Add(group);
 
-        return group;
-    }
+		return group;
+	}
 
-    private void AddUserProfile(string? userId = null)
-        => _context.UserProfiles.Add(new UserProfile { Id = userId ?? _userProfileId });
+	private void AddUserProfile(string? userId = null)
+	{
+		_context.UserProfiles.Add(new UserProfile { Id = userId ?? _userProfileId });
+	}
 
-    public Task InitializeAsync() => Task.CompletedTask;
+	public Task InitializeAsync() => Task.CompletedTask;
 
-    public async Task DisposeAsync() => await _context.Groups.ExecuteDeleteAsync();
+	public async Task DisposeAsync()
+	{
+		await using var context = _sqlServerContainer.CreateContext();
+		await context.Groups.ExecuteDeleteAsync();
+		await _context.DisposeAsync();
+	}
 }

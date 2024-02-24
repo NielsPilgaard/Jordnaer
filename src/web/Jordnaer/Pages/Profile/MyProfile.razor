@@ -1,0 +1,172 @@
+@page "/profile"
+@using OneOf.Types
+@inject ICategoryCache CategoryCache
+@inject IProfileCache ProfileCache
+@inject IProfileService ProfileService
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<MetadataComponent Title="Redigér Profil"
+                   Description="Her kan du redigere din profil" />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    @if (_userProfile is null)
+    {
+        return;
+    }
+
+    <MudButton Disabled="@(_userProfile.UserName is null)" Href="@($"/{_userProfile.UserName}")" Color="Color.Primary" StartIcon="@Icons.Material.Filled.KeyboardArrowLeft" EndIcon="@Icons.Material.Filled.Person">@(_userProfile.UserName is null ? "Sæt et brugernavn for at gøre din profil offentlig" : "Gå til offentlig profil")</MudButton>
+
+    <EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
+
+        <DataAnnotationsValidator />
+
+        <MudPaper Elevation="3" Class="pa-4">
+
+            <UserProfilePicture @bind-UserProfile="_userProfile" />
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudTextField Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                                  @bind-Value="@_userProfile.UserName"
+                                  For="() => _userProfile.UserName"
+                                  Label="Brugernavn"
+                                  name="username" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="@_userProfile.FirstName"
+                                  For="() => _userProfile.FirstName"
+                                  Label="Fornavn"
+                                  name="name"
+                                  Variant="Variant.Text" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="@_userProfile.LastName"
+                                  For="() => _userProfile.LastName"
+                                  Label="Efternavn"
+                                  name="lastname" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="@_userProfile.ZipCode"
+                                     For="() => _userProfile.ZipCode"
+                                     Label="Postnummer"
+                                     name="zipcode" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="@_userProfile.City"
+                                  For="() => _userProfile.City"
+                                  Label="By"
+                                  name="city"
+                                  Placeholder="Aarhus C" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudDatePicker AdornmentColor="Color.Primary"
+                                   @bind-Date="@_userProfile.DateOfBirth"
+                                   Color="Color.Primary"
+                                   For="() => _userProfile.DateOfBirth"
+                                   Label="Fødselsdato"
+                                   OpenTo="OpenTo.Year"
+                                   PickerVariant="PickerVariant.Dialog"
+                                   Placeholder="@DateTime.Now.ToString("d")"
+                                      Rounded
+                                    name="bday" />
+                 </MudItem>
+                 <MudItem xs="12">
+                     <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                        T="string"
+                                        Label="Interesseret i"
+                                        MultiSelection="true"
+                                        SelectedValues="_userProfile.Categories.Select(e => e.Name)"
+                                        ValuePresenter="ValuePresenter.Chip"
+                                        SelectedValuesChanged="SelectedCategoriesChanged"/>
+                 </MudItem>
+                 <MudItem xs="12">
+                     <MudTextField For="() => _userProfile.Description"
+                                   AutoGrow
+                                   Lines="3"
+                                   @bind-Value="@_userProfile.Description"
+                                   Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags."
+                                   Label="Beskrivelse" />
+                 </MudItem>
+             </MudGrid>
+
+         </MudPaper>
+
+
+         <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+
+
+         <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
+
+         <MudButton Size="Size.Large"
+                    StartIcon="@Icons.Material.Filled.Save"
+                    Class="my-6"
+                    ButtonType="ButtonType.Submit"
+                    Variant="Variant.Filled"
+                   FullWidth
+                    Color="Color.Primary">
+             Gem
+         </MudButton>
+
+     </EditForm>
+
+     <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8" />
+
+     <DeleteUserComponent />
+
+ </MudLoading>
+ @code {
+    private bool _isLoading = true;
+    private UserProfile? _userProfile;
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+
+    private readonly Action<SnackbarOptions> _snackbarOptions = options =>
+    {
+        options.CloseAfterNavigation = true;
+        options.VisibleStateDuration = 3000;
+        options.ShowTransitionDuration = 250;
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userProfile = await ProfileCache.GetProfileAsync();
+        if (userProfile is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh,
+                Severity.Warning, _snackbarOptions);
+            return;
+        }
+        _userProfile = userProfile;
+
+        _isLoading = false;
+        _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+    }
+
+    private async Task UpdateUserProfile()
+    {
+        _isLoading = true;
+
+        if (_userProfile is null)
+        {
+	        Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error, _snackbarOptions);
+	        _isLoading = false;
+	        return;
+        }
+
+        var updateProfileResult = await ProfileService.UpdateUserProfile(_userProfile);
+        updateProfileResult.Switch(
+	        success =>  
+	        {
+		        Snackbar.Add("Din profil er blevet opdateret!", Severity.Success, _snackbarOptions);
+                ProfileCache.SetProfile(success.Value);
+	        }, 
+	        _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error, _snackbarOptions));
+
+        _isLoading = false;
+    }
+
+    private void SelectedCategoriesChanged(IEnumerable<string> categories)
+    {
+        _userProfile!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+    }
+}

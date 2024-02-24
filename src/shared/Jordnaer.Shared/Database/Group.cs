@@ -27,7 +27,7 @@ public class Group
     [MaxLength(128, ErrorMessage = "Gruppens navn må højest være 128 karakterer lang.")]
     public required string Name { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Påkrævet.")]
     [MaxLength(200, ErrorMessage = "Gruppens beskrivelse må højest være 200 karakterer lang.")]
     public required string ShortDescription { get; set; }
 

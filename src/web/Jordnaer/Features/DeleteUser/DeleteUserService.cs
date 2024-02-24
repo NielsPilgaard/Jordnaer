@@ -1,180 +1,211 @@
-using Jordnaer.Server.Authentication;
-using Jordnaer.Server.Database;
-using Jordnaer.Server.Features.Email;
-using Jordnaer.Server.Features.Profile;
+using Jordnaer.Database;
+using Jordnaer.Extensions;
+using Jordnaer.Features.Email;
+using Jordnaer.Features.Profile;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using Serilog;
 
-namespace Jordnaer.Server.Features.DeleteUser;
+namespace Jordnaer.Features.DeleteUser;
 
 public interface IDeleteUserService
 {
-    Task<bool> InitiateDeleteUserAsync(ApplicationUser user, CancellationToken cancellationToken = default);
-    Task<bool> DeleteUserAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default);
-    Task<bool> VerifyTokenAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default);
+	Task<bool> InitiateDeleteUserAsync(string userId, CancellationToken cancellationToken = default);
+	Task<bool> DeleteUserAsync(string userId, string token, CancellationToken cancellationToken = default);
+	Task<bool> VerifyTokenAsync(string userId, string token, CancellationToken cancellationToken = default);
 }
 
 public class DeleteUserService : IDeleteUserService
 {
-    public const string TokenPurpose = "delete-user";
-    public static readonly string TokenProvider = TokenOptions.DefaultEmailProvider;
+	public const string TokenPurpose = "delete-user";
+	public static readonly string TokenProvider = TokenOptions.DefaultEmailProvider;
 
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ILogger<UserService> _logger;
-    private readonly ISendGridClient _sendGridClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly JordnaerDbContext _context;
-    private readonly IDiagnosticContext _diagnosticContext;
-    private readonly IImageService _imageService;
+	private readonly UserManager<ApplicationUser> _userManager;
+	private readonly ILogger<DeleteUserService> _logger;
+	private readonly ISendGridClient _sendGridClient;
+	private readonly IServer _server;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
+	private readonly IDiagnosticContext _diagnosticContext;
+	private readonly IImageService _imageService;
 
-    public DeleteUserService(UserManager<ApplicationUser> userManager,
-        ILogger<UserService> logger,
-        ISendGridClient sendGridClient,
-        IHttpContextAccessor httpContextAccessor,
-        JordnaerDbContext context,
-        IDiagnosticContext diagnosticContext,
-        IImageService imageService)
-    {
-        _userManager = userManager;
-        _logger = logger;
-        _sendGridClient = sendGridClient;
-        _httpContextAccessor = httpContextAccessor;
-        _context = context;
-        _diagnosticContext = diagnosticContext;
-        _imageService = imageService;
-    }
+	public DeleteUserService(UserManager<ApplicationUser> userManager,
+		ILogger<DeleteUserService> logger,
+		ISendGridClient sendGridClient,
+		IServer server,
+		IDbContextFactory<JordnaerDbContext> contextFactory,
+		IDiagnosticContext diagnosticContext,
+		IImageService imageService)
+	{
+		_userManager = userManager;
+		_logger = logger;
+		_sendGridClient = sendGridClient;
+		_server = server;
+		_contextFactory = contextFactory;
+		_diagnosticContext = diagnosticContext;
+		_imageService = imageService;
+	}
 
-    public async Task<bool> InitiateDeleteUserAsync(ApplicationUser user, CancellationToken cancellationToken = default)
-    {
-        _diagnosticContext.Set("userId", user.Id);
+	public async Task<bool> InitiateDeleteUserAsync(string userId, CancellationToken cancellationToken = default)
+	{
+		_diagnosticContext.Set("UserId", userId);
 
-        if (_httpContextAccessor.HttpContext is null)
-        {
-            _logger.LogError("{httpContextAccessor} has a null HttpContext. " +
-                             "A Delete User Url cannot be created.",
-                nameof(IHttpContextAccessor));
-            return false;
-        }
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-        var to = new EmailAddress(user.Email);
+		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+		if (user is null)
+		{
+			_logger.LogError("Cannot initiate deletion of user, the user has no ApplicationUser");
+			return false;
+		}
 
-        string token = await _userManager.GenerateUserTokenAsync(user, TokenProvider,
-            TokenPurpose);
+		var serverAddressFeature = _server.Features.Get<IServerAddressesFeature>();
+		var serverAddress = serverAddressFeature?.Addresses.FirstOrDefault();
+		if (serverAddress is null)
+		{
+			_logger.LogError("No addresses found in the IServerAddressFeature. A Delete User Url cannot be created.");
+			return false;
+		}
 
-        string deletionLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/delete-user/{token}";
+		var to = new EmailAddress(user.Email);
 
-        string message = CreateDeleteUserEmailMessage(deletionLink);
+		var token = await _userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
-        var email = new SendGridMessage
-        {
-            From = EmailConstants.ContactEmail, // Must be from a verified email
-            Subject = "Anmodning om sletning af bruger",
-            HtmlContent = message
-        };
+		var deletionLink = $"{serverAddress}/delete-user/{token}";
 
-        email.AddTo(to);
-        email.TrackingSettings = new TrackingSettings
-        {
-            ClickTracking = new ClickTracking { Enable = false },
-            Ganalytics = new Ganalytics { Enable = false },
-            OpenTracking = new OpenTracking { Enable = false },
-            SubscriptionTracking = new SubscriptionTracking { Enable = false }
-        };
+		var message = CreateDeleteUserEmailMessage(deletionLink);
 
-        // TODO: Turn this email sending into an Azure Function
-        var emailSentResponse = await _sendGridClient.SendEmailAsync(email, cancellationToken);
+		var email = new SendGridMessage
+		{
+			From = EmailConstants.ContactEmail, // Must be from a verified email
+			Subject = "Anmodning om sletning af bruger",
+			HtmlContent = message
+		};
 
-        return emailSentResponse.IsSuccessStatusCode;
-    }
+		email.AddTo(to);
+		email.TrackingSettings = new TrackingSettings
+		{
+			ClickTracking = new ClickTracking { Enable = false },
+			Ganalytics = new Ganalytics { Enable = false },
+			OpenTracking = new OpenTracking { Enable = false },
+			SubscriptionTracking = new SubscriptionTracking { Enable = false }
+		};
 
-    public async Task<bool> DeleteUserAsync(ApplicationUser user, string token, CancellationToken cancellationToken = default)
-    {
-        _diagnosticContext.Set("userId", user.Id);
+		// TODO: Turn this email sending into an Azure Function
+		var emailSentResponse = await _sendGridClient.SendEmailAsync(email, cancellationToken);
 
-        bool tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
-        if (tokenIsValid is false)
-        {
-            _logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
-                               "stopping the deletion of the user.", token, TokenPurpose);
-            return false;
-        }
+		return emailSentResponse.IsSuccessStatusCode;
+	}
 
-        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            // TODO: Make sure all user data is deleted here, and that owned groups are assigned new admins
+	public async Task<bool> DeleteUserAsync(string userId, string token, CancellationToken cancellationToken = default)
+	{
+		_diagnosticContext.Set("UserId", userId);
 
-            var identityResult = await _userManager.DeleteAsync(user);
-            if (identityResult.Succeeded is false)
-            {
-                _logger.LogError("Failed to delete user. Errors: {@identityResultErrors}",
-                     identityResult.Errors.Select(error => $"ErrorCode {error.Code}: {error.Description}"));
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-                await transaction.RollbackAsync(cancellationToken);
-                return false;
-            }
+		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+		if (user is null)
+		{
+			_logger.LogError("Cannot delete user, the user has no ApplicationUser");
+			return false;
+		}
 
-            var childrenIds = await _context.ChildProfiles
-                .Where(child => child.UserProfileId == user.Id)
-                .Select(child => child.Id)
-                .ToListAsync(cancellationToken);
+		var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+		if (tokenIsValid is false)
+		{
+			_logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
+							   "stopping the deletion of the user.", token, TokenPurpose);
+			return false;
+		}
 
-            int modifiedRows = await _context.UserProfiles
-                .Where(userProfile => userProfile.Id == user.Id)
-                .ExecuteDeleteAsync(cancellationToken);
+		await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+		try
+		{
+			// TODO: Make sure all user data is deleted here, and that owned groups are assigned new admins
+			var identityResult = await _userManager.DeleteAsync(user);
+			if (identityResult.Succeeded is false)
+			{
+				_logger.LogError("Failed to delete user. Errors: {@identityResultErrors}",
+					 identityResult.Errors.Select(error => $"ErrorCode {error.Code}: {error.Description}"));
 
-            if (modifiedRows <= 0)
-            {
-                _logger.LogError("Failed to delete the user profile.");
+				await transaction.RollbackAsync(cancellationToken);
+				return false;
+			}
 
-                await transaction.RollbackAsync(cancellationToken);
-                return false;
-            }
+			var modifiedRows = await context.UserProfiles
+											.Where(userProfile => userProfile.Id == userId)
+											.ExecuteDeleteAsync(cancellationToken);
 
-            await _context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+			if (modifiedRows <= 0)
+			{
+				_logger.LogError("Failed to delete the user profile.");
 
-            // Delete all saved images owned by the user
-            await _imageService.DeleteImageAsync(user.Id, ImageService.UserProfilePicturesContainerName, cancellationToken);
-            foreach (var id in childrenIds)
-            {
-                await _imageService.DeleteImageAsync(id.ToString(), ImageService.ChildProfilePicturesContainerName, cancellationToken);
-            }
-            return true;
-        }
-        catch (Exception exception)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            _logger.LogError(exception, "Exception occurred in function {functionName}", nameof(DeleteUserAsync));
-            return false;
-        }
-    }
+				await transaction.RollbackAsync(cancellationToken);
+				return false;
+			}
 
-    public async Task<bool> VerifyTokenAsync(
-        ApplicationUser user,
-        string token,
-        CancellationToken cancellationToken = default) =>
-        await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+			await context.SaveChangesAsync(cancellationToken);
+			await transaction.CommitAsync(cancellationToken);
 
+			// Delete all saved images owned by the user
+			await _imageService.DeleteImageAsync(userId, ProfileImageService.UserProfilePicturesContainerName, cancellationToken);
 
-    private static string CreateDeleteUserEmailMessage(string deletionLink) =>
-        $@"
-<p>Hej,</p>
+			var childrenIds = await context.ChildProfiles
+										   .Where(child => child.UserProfileId == userId)
+										   .Select(child => child.Id)
+										   .ToListAsync(cancellationToken);
+			foreach (var id in childrenIds)
+			{
+				await _imageService.DeleteImageAsync(id.ToString(), ProfileImageService.ChildProfilePicturesContainerName, cancellationToken);
+			}
 
-<p>Du har anmodet om at slette din bruger hos Mini Møder. Hvis du fortsætter, vil alle dine data blive permanent slettet og kan ikke genoprettes.</p>
+			return true;
+		}
+		catch (Exception exception)
+		{
+			await transaction.RollbackAsync(cancellationToken);
+			_logger.LogException(exception);
+			return false;
+		}
+	}
 
-<p>Hvis du er sikker på, at du vil slette din bruger, skal du klikke på linket nedenfor:</p>
+	public async Task<bool> VerifyTokenAsync(string userId,
+		string token,
+		CancellationToken cancellationToken = default)
+	{
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-<p><a href=""{deletionLink}"">Bekræft sletning af bruger</a></p>
+		var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+		if (user is not null)
+		{
+			var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
+			return tokenIsValid;
+		}
 
-<p>Hvis du ikke anmodede om at slette din bruger, kan du ignorere denne e-mail.</p>
+		_logger.LogError("Cannot verify user token, the user has no ApplicationUser");
+		return false;
+	}
 
-<p>Med venlig hilsen,</p>
+	private static string CreateDeleteUserEmailMessage(string deletionLink) =>
+		$"""
 
-<p>Mini Møder-teamet</p>
-";
+		 <p>Hej,</p>
+
+		 <p>Du har anmodet om at slette din bruger hos Mini Møder. Hvis du fortsætter, vil alle dine data blive permanent slettet og kan ikke genoprettes.</p>
+
+		 <p>Hvis du er sikker på, at du vil slette din bruger, skal du klikke på linket nedenfor:</p>
+
+		 <p><a href="{deletionLink}">Bekræft sletning af bruger</a></p>
+
+		 <p>Hvis du ikke anmodede om at slette din bruger, kan du ignorere denne e-mail.</p>
+
+		 <p>Venlig hilsen,</p>
+
+		 <p>Mini Møder teamet</p>
+
+		 """;
 }
 

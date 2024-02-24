@@ -1,288 +1,275 @@
-using System.Diagnostics;
-using System.Net.Http.Headers;
-using Jordnaer.Server.Database;
-using Jordnaer.Server.Extensions;
+using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Shared;
 using Mediator;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
+using System.Diagnostics;
+using System.Net.Http.Headers;
 
-namespace Jordnaer.Server.Features.Profile;
+namespace Jordnaer.Features.Profile;
 
 public readonly struct AccessTokenAcquired : INotification
 {
-    public readonly string UserId;
-    public readonly string Provider;
-    public readonly string AccessToken;
+	public readonly string UserId;
+	public readonly string ProviderKey;
+	public readonly string LoginProvider;
+	public readonly string AccessToken;
 
-    public AccessTokenAcquired(string userId, string provider, string accessToken)
-    {
-        Debug.Assert(!string.IsNullOrEmpty(userId));
-        Debug.Assert(!string.IsNullOrEmpty(provider));
-        Debug.Assert(!string.IsNullOrEmpty(accessToken));
+	public AccessTokenAcquired(string userId, string providerKey, string loginProvider, string accessToken)
+	{
+		Debug.Assert(!string.IsNullOrEmpty(userId));
+		Debug.Assert(!string.IsNullOrEmpty(providerKey));
+		Debug.Assert(!string.IsNullOrEmpty(loginProvider));
+		Debug.Assert(!string.IsNullOrEmpty(accessToken));
 
-        UserId = userId;
-        Provider = provider;
-        AccessToken = accessToken;
-    }
+		UserId = userId;
+		ProviderKey = providerKey;
+		LoginProvider = loginProvider;
+		AccessToken = accessToken;
+	}
 }
 
 public class ExternalProfilePictureDownloader : INotificationHandler<AccessTokenAcquired>
 {
-    private readonly JordnaerDbContext _context;
-    private readonly ILogger<ExternalProfilePictureDownloader> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IImageService _imageService;
+	private readonly JordnaerDbContext _context;
+	private readonly ILogger<ExternalProfilePictureDownloader> _logger;
+	private readonly IHttpClientFactory _httpClientFactory;
+	private readonly IImageService _imageService;
 
-    public ExternalProfilePictureDownloader(
-        JordnaerDbContext context,
-        ILogger<ExternalProfilePictureDownloader> logger,
-        IHttpClientFactory httpClientFactory,
-        IImageService imageService)
-    {
-        _context = context;
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
-        _imageService = imageService;
-    }
+	public ExternalProfilePictureDownloader(
+		JordnaerDbContext context,
+		ILogger<ExternalProfilePictureDownloader> logger,
+		IHttpClientFactory httpClientFactory,
+		IImageService imageService)
+	{
+		_context = context;
+		_logger = logger;
+		_httpClientFactory = httpClientFactory;
+		_imageService = imageService;
+	}
 
-    public async ValueTask Handle(AccessTokenAcquired notification, CancellationToken cancellationToken)
-    {
-        if (!Enum.TryParse<SupportedAuthProviders>(notification.Provider, out var provider))
-        {
-            _logger.LogError("Failed to parse provider {provider} to SupportedAuthProviders enum. " +
-                             "Valid values: {supportedAuthProviders}",
-                notification.Provider, string.Join(", ", Enum.GetValues<SupportedAuthProviders>()));
-            return;
-        }
+	public async ValueTask Handle(AccessTokenAcquired notification, CancellationToken cancellationToken)
+	{
+		if (!Enum.TryParse<SupportedAuthProviders>(notification.LoginProvider, out var provider))
+		{
+			_logger.LogError("Failed to parse provider {provider} to SupportedAuthProviders enum. " +
+							 "Valid values: {supportedAuthProviders}",
+				notification.LoginProvider, string.Join(", ", Enum.GetValues<SupportedAuthProviders>()));
+			return;
+		}
 
-        var user = await _context.UserProfiles.FindAsync(
-            new object[] { notification.UserId },
-            cancellationToken);
+		var user = await _context.UserProfiles.FindAsync([notification.UserId], cancellationToken);
+		if (user is null)
+		{
+			_logger.LogWarning("User has not been created yet, we cannot set their profile picture. " +
+							 "UserId: {UserId} LoginProvider: {Provider}", notification.UserId, notification.LoginProvider);
+			return;
+		}
 
-        if (user is not null && user.ProfilePictureUrl is not ProfileConstants.Default_Profile_Picture)
-        {
-            _logger.LogDebug("User already has a profile picture, no need to download one.");
-            return;
-        }
+		var profilePictureUrl = provider switch
+		{
+			SupportedAuthProviders.Facebook => await GetFacebookProfilePictureUrlAsync(
+				notification,
+				cancellationToken),
 
-        bool userIsKnown = user is not null;
+			SupportedAuthProviders.Google => await GetGoogleProfilePictureUrlAsync(
+				notification,
+				cancellationToken),
 
-        user ??= new UserProfile { Id = notification.UserId };
+			SupportedAuthProviders.Microsoft => await GetMicrosoftProfilePictureUrlAsync(
+				notification,
+				cancellationToken),
 
-        string? profilePictureUrl = provider switch
-        {
-            SupportedAuthProviders.Facebook => await GetFacebookProfilePictureUrlAsync(
-                notification.UserId,
-                notification.AccessToken,
-                cancellationToken),
+			_ => throw new UnreachableException($"Encountered unexpected enum value {provider} in enum {nameof(SupportedAuthProviders)}")
+		};
 
-            SupportedAuthProviders.Google => await GetGoogleProfilePictureUrlAsync(
-                notification.UserId,
-                notification.AccessToken,
-                cancellationToken),
+		if (profilePictureUrl is null)
+		{
+			_logger.LogWarning("Failed to retrieve the {provider} profile picture for user with id {userId}", provider.ToString(), user.Id);
 
-            SupportedAuthProviders.Microsoft => await GetMicrosoftProfilePictureUrlAsync(
-                notification.UserId,
-                notification.AccessToken,
-                cancellationToken),
+			return;
+		}
 
-            _ => throw new UnreachableException($"Encountered unexpected enum value {provider} in enum {nameof(SupportedAuthProviders)}")
-        };
+		user.ProfilePictureUrl = profilePictureUrl;
 
-        if (profilePictureUrl is null)
-        {
-            _logger.LogWarning("Failed to retrieve the {provider} profile picture for user with id {userId}", provider.ToString(), user.Id);
+		_context.UserProfiles.Update(user);
 
-            return;
-        }
+		await _context.SaveChangesAsync(cancellationToken);
+	}
 
-        user.ProfilePictureUrl = profilePictureUrl;
+	public async Task<string?> GetFacebookProfilePictureUrlAsync(AccessTokenAcquired notification,
+		CancellationToken cancellationToken)
+	{
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
+		var facebookUrl = $"https://graph.facebook.com/v13.0/{notification.ProviderKey}/picture?" +
+						  $"type=large&" +
+						  $"redirect=false&" +
+						  $"access_token={notification.AccessToken}";
 
-        if (userIsKnown)
-        {
-            _context.UserProfiles.Update(user);
-        }
-        else
-        {
-            _context.UserProfiles.Add(user);
-        }
+		var response = await client.GetAsync(facebookUrl, cancellationToken);
 
-        await _context.SaveChangesAsync(cancellationToken);
-    }
+		if (!response.IsSuccessStatusCode)
+		{
+			_logger.LogError("Failed to retrieve the Facebook profile picture for user with id {userId}. " +
+							 "Response: {@response}", notification.ProviderKey, await response.Content.ReadAsStringAsync(cancellationToken));
+			return null;
+		}
 
-    public async Task<string?> GetFacebookProfilePictureUrlAsync(string userId, string accessToken,
-        CancellationToken cancellationToken)
-    {
-        var client = _httpClientFactory.CreateClient(HttpClients.External);
-        string facebookUrl = $"https://graph.facebook.com/v13.0/{userId}/picture?" +
-                             $"type=large&" +
-                             $"redirect=false&" +
-                             $"access_token={accessToken}";
+		var profilePictureResponse =
+			await response.Content.ReadFromJsonAsync<FacebookProfilePictureResponse>(
+				cancellationToken: cancellationToken);
 
-        var response = await client.GetAsync(facebookUrl, cancellationToken);
+		if (profilePictureResponse?.Data?.Url is null)
+		{
+			_logger.LogWarning("Failed to retrieve the Facebook profile picture for user with id {userId}." +
+							   "The response was successful, but was not in the expected format." +
+							   "Received JSON: {response}", notification.ProviderKey,
+				await response.Content.ReadAsStringAsync(cancellationToken));
+			return null;
+		}
 
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Failed to retrieve the Facebook profile picture for user with id {userId}. " +
-                             "Response: {@response}", userId, response);
-            return null;
-        }
+		var imageStream = await GetImageStreamFromUrlAsync(
+			profilePictureResponse.Data.Url,
+			cancellationToken);
 
-        var profilePictureResponse =
-            await response.Content.ReadFromJsonAsync<FacebookProfilePictureResponse>(
-                cancellationToken: cancellationToken);
+		if (imageStream is null)
+		{
+			return ProfileConstants.Default_Profile_Picture;
+		}
 
-        if (profilePictureResponse?.Data?.Url is null)
-        {
-            _logger.LogWarning("Failed to retrieve the Facebook profile picture for user with id {userId}." +
-                               "The response was successful, but was not in the expected format." +
-                               "Received JSON: {response}", userId,
-                await response.Content.ReadAsStringAsync(cancellationToken));
-            return null;
-        }
+		var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
 
-        var imageStream = await GetImageStreamFromUrlAsync(
-            profilePictureResponse.Data.Url,
-            cancellationToken);
+		var imageUrl =
+			await _imageService.UploadImageAsync(notification.UserId,
+												 ProfileImageService.UserProfilePicturesContainerName,
+												 resizedImage,
+												 cancellationToken);
 
-        if (imageStream is null)
-        {
-            return ProfileConstants.Default_Profile_Picture;
-        }
+		await resizedImage.DisposeAsync();
 
-        var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
+		return imageUrl;
+	}
 
-        string imageUrl =
-            await _imageService.UploadImageAsync(userId,
-                ImageService.UserProfilePicturesContainerName,
-                resizedImage,
-                cancellationToken);
+	private async Task<string?> GetGoogleProfilePictureUrlAsync(AccessTokenAcquired notification,
+		CancellationToken cancellationToken)
+	{
+		const string googleUrl = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json";
 
-        await resizedImage.DisposeAsync();
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
+		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", notification.AccessToken);
 
-        return imageUrl;
-    }
+		var response = await client.GetAsync(googleUrl, cancellationToken);
 
-    private async Task<string?> GetGoogleProfilePictureUrlAsync(string userId, string accessToken,
-        CancellationToken cancellationToken)
-    {
-        const string googleUrl = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json";
+		if (!response.IsSuccessStatusCode)
+		{
+			_logger.LogError("Failed to retrieve the Google profile picture for user with id {userId}. " +
+							 "{statusCode}: {reasonPhrase}", notification.ProviderKey, response.StatusCode, response.ReasonPhrase);
+			return null;
+		}
 
-        var client = _httpClientFactory.CreateClient(HttpClients.External);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+		var profilePictureResponse =
+			await response.Content.ReadFromJsonAsync<GooglePictureResponse>(
+				cancellationToken: cancellationToken);
 
-        var response = await client.GetAsync(googleUrl, cancellationToken);
+		if (profilePictureResponse?.Picture is null)
+		{
+			_logger.LogWarning("Failed to retrieve the Google profile picture for user with id {userId}." +
+							   "The response was successful, but was not in the expected format." +
+							   "Received JSON: {response}", notification.ProviderKey,
+				await response.Content.ReadAsStringAsync(cancellationToken));
+			return null;
+		}
 
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Failed to retrieve the Google profile picture for user with id {userId}. " +
-                             "{statusCode}: {reasonPhrase}", userId, response.StatusCode, response.ReasonPhrase);
-            return null;
-        }
+		var imageStream = await GetImageStreamFromUrlAsync(
+			profilePictureResponse.Picture,
+			cancellationToken);
 
-        var profilePictureResponse =
-            await response.Content.ReadFromJsonAsync<GooglePictureResponse>(
-                cancellationToken: cancellationToken);
+		if (imageStream is null)
+		{
+			return ProfileConstants.Default_Profile_Picture;
+		}
 
-        if (profilePictureResponse?.Picture is null)
-        {
-            _logger.LogWarning("Failed to retrieve the Google profile picture for user with id {userId}." +
-                               "The response was successful, but was not in the expected format." +
-                               "Received JSON: {response}", userId,
-                await response.Content.ReadAsStringAsync(cancellationToken));
-            return null;
-        }
+		var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
 
-        var imageStream = await GetImageStreamFromUrlAsync(
-            profilePictureResponse.Picture,
-            cancellationToken);
+		var imageUrl =
+			await _imageService.UploadImageAsync(notification.UserId,
+												 ProfileImageService.UserProfilePicturesContainerName,
+												 resizedImage,
+												 cancellationToken);
 
-        if (imageStream is null)
-        {
-            return ProfileConstants.Default_Profile_Picture;
-        }
+		await resizedImage.DisposeAsync();
 
-        var resizedImage = await ResizeImageAsync(imageStream, cancellationToken);
+		return imageUrl;
+	}
 
-        string imageUrl =
-            await _imageService.UploadImageAsync(userId,
-                ImageService.UserProfilePicturesContainerName,
-                resizedImage,
-                cancellationToken);
+	private async Task<string?> GetMicrosoftProfilePictureUrlAsync(AccessTokenAcquired notification,
+		CancellationToken cancellationToken)
+	{
+		const string microsoftUrl = "https://graph.microsoft.com/v1.0/me/photo/$value";
 
-        await resizedImage.DisposeAsync();
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
+		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", notification.AccessToken);
 
-        return imageUrl;
-    }
+		var response = await client.GetAsync(microsoftUrl, cancellationToken);
 
-    private async Task<string?> GetMicrosoftProfilePictureUrlAsync(string userId, string accessToken,
-        CancellationToken cancellationToken)
-    {
-        const string microsoftUrl = "https://graph.microsoft.com/v1.0/me/photo/$value";
+		if (!response.IsSuccessStatusCode)
+		{
+			_logger.LogError("Failed to retrieve the Microsoft profile picture for user with id {userId}. " +
+							 "{statusCode}: {reasonPhrase}",
+							 notification.ProviderKey,
+							 response.StatusCode,
+							 response.ReasonPhrase);
 
-        var client = _httpClientFactory.CreateClient(HttpClients.External);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+			return null;
+		}
 
-        var response = await client.GetAsync(microsoftUrl, cancellationToken);
+		await using var imageAsStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Failed to retrieve the Microsoft profile picture for user with id {userId}. " +
-                             "{statusCode}: {reasonPhrase}",
-                userId,
-                response.StatusCode,
-                response.ReasonPhrase);
+		var resizedImage = await ResizeImageAsync(imageAsStream, cancellationToken);
 
-            return null;
-        }
+		var imageUrl = await _imageService.UploadImageAsync(notification.UserId,
+															ProfileImageService.UserProfilePicturesContainerName,
+															resizedImage,
+															cancellationToken);
 
-        await using var imageAsStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+		await resizedImage.DisposeAsync();
 
-        var resizedImage = await ResizeImageAsync(imageAsStream, cancellationToken);
+		return imageUrl;
+	}
 
-        string imageUrl = await _imageService.UploadImageAsync(userId,
-            ImageService.UserProfilePicturesContainerName,
-            resizedImage,
-            cancellationToken);
+	private static async Task<Stream> ResizeImageAsync(Stream imageAsStream, CancellationToken cancellationToken)
+	{
+		// 0 maintains aspect ratio
+		const int width = 0;
+		const int height = 200;
 
-        await resizedImage.DisposeAsync();
+		using var image = await Image.LoadAsync(imageAsStream, cancellationToken);
 
-        return imageUrl;
-    }
+		var outputStream = new MemoryStream();
 
-    private static async Task<Stream> ResizeImageAsync(Stream imageAsStream, CancellationToken cancellationToken)
-    {
-        // 0 maintains aspect ratio
-        const int width = 0;
-        const int height = 200;
+		image.Mutate(img => img.Resize(width, height));
 
-        using var image = await Image.LoadAsync(imageAsStream, cancellationToken);
+		await image.SaveAsync(outputStream, new WebpEncoder(), cancellationToken);
 
-        var outputStream = new MemoryStream();
+		// Allow the stream to be read again
+		outputStream.Position = 0;
 
-        image.Mutate(img => img.Resize(width, height));
+		return outputStream;
+	}
 
-        await image.SaveAsync(outputStream, new WebpEncoder(), cancellationToken);
+	private async Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken)
+	{
+		var client = _httpClientFactory.CreateClient(HttpClients.Default);
+		var response = await client.GetAsync(url, cancellationToken);
 
-        // Allow the stream to be read again
-        outputStream.Position = 0;
+		if (!response.IsSuccessStatusCode)
+		{
+			_logger.LogError("Failed to get image as byte array from url {url}", url);
+			return null;
+		}
 
-        return outputStream;
-    }
-
-    private async Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken)
-    {
-        var client = _httpClientFactory.CreateClient(HttpClients.External);
-        var response = await client.GetAsync(url, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Failed to get image as byte array from url {url}", url);
-            return null;
-        }
-
-        return await response.Content.ReadAsStreamAsync(cancellationToken);
-    }
+		return await response.Content.ReadAsStreamAsync(cancellationToken);
+	}
 }

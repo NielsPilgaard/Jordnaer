@@ -1,0 +1,53 @@
+@using Blazored.LocalStorage
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject ILocalStorageService LocalStorage
+
+@code {
+    const string CookieBannerId = "cookie-consent";
+    bool _hideBanner = false;
+    async Task Consent() => await LocalStorage.SetItemAsync(CookieBannerId, true);
+
+    RenderFragment _banner =
+      (@<div>
+        <MudText Typo="Typo.body2">
+            Mini Møder anvender cookies for at forbedre din oplevelse og for at hjælpe os med at forstå,
+            hvordan vores hjemmeside bliver brugt.
+        </MudText>
+        <MudText Class="mt-3" Typo="Typo.body2">
+            Du kan læse mere i vores
+            <MudLink Color="Color.Inherit" Href="/privacy" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Privatlivspolitik</b></MudLink> og
+            <MudLink Color="Color.Inherit" Href="/terms" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Servicevilkår</b></MudLink>.
+        </MudText>
+    </div>);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _hideBanner = await LocalStorage.ContainKeyAsync(CookieBannerId);
+        if (_hideBanner)
+        {
+            return;
+        }
+
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+        Snackbar.Add(
+          message: _banner,
+          severity: Severity.Normal,
+          key: CookieBannerId,
+          configure: options =>
+          {
+              options.CloseAfterNavigation = false;
+              options.RequireInteraction = true;
+              options.HideIcon = true;
+              options.Onclick = async _ => await Consent();
+              options.BackgroundBlurred = true;
+              options.ShowCloseIcon = true;
+              options.MaximumOpacity = 75;
+          });
+    }
+}

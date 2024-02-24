@@ -1,0 +1,74 @@
+﻿@page "/Account/Manage"
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Profil</PageTitle>
+
+<h3>Profil</h3>
+<StatusMessage />
+
+<div class="row">
+	<div class="col-md-6">
+		<EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-floating mb-3">
+				<input type="text" value="@_username" class="form-control" placeholder="Vælg venligst dit brugernavn." disabled />
+				<label for="username" class="form-label">Brugernavn</label>
+			</div>
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Indtast venligst dit telefonnummer." />
+				<label for="phone-number" class="form-label">Telefonnummer</label>
+				<ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+			</div>
+			<button type="submit" class="w-100 btn btn-lg btn-primary">Gem</button>
+		</EditForm>
+	</div>
+</div>
+
+
+@code {
+    private ApplicationUser _user = default!;
+    private string? _username;
+    private string? _phoneNumber;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _username = await UserManager.GetUserNameAsync(_user);
+        _phoneNumber = await UserManager.GetPhoneNumberAsync(_user);
+
+        Input.PhoneNumber ??= _phoneNumber;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        if (Input.PhoneNumber != _phoneNumber)
+        {
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(_user, Input.PhoneNumber);
+            if (!setPhoneResult.Succeeded)
+            {
+                RedirectManager.RedirectToCurrentPageWithStatus("Det lykkedes ikke at sætte telefon nummeret.", HttpContext);
+            }
+        }
+
+        await SignInManager.RefreshSignInAsync(_user);
+        RedirectManager.RedirectToCurrentPageWithStatus("Din profil er blevet opdateret.", HttpContext);
+    }
+
+    private sealed class InputModel
+    {
+        [Phone(ErrorMessage = "Skal være et gyldigt telefon nummer.")]
+        [Display(Name = "Telefon nummer")]
+        public string? PhoneNumber { get; set; }
+    }
+}

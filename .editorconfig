@@ -159,11 +159,9 @@ csharp_style_prefer_not_pattern = true:suggestion
 csharp_style_prefer_extended_property_pattern = true:suggestion
 dotnet_diagnostic.xunit2019.severity = warning
 dotnet_diagnostic.xunit2001.severity = warning
-
-[*.{c,c++,cc,cginc,compute,cp,cpp,cppm,cu,cuh,cxx,fx,fxh,h,hh,hlsl,hlsli,hlslinc,hpp,hxx,inc,inl,ino,ipp,ixx,mpp,mq4,mq5,mqh,tpp,usf,ush}]
-indent_style = tab
-indent_size = tab
-tab_width = 4
+csharp_using_directive_placement = outside_namespace:warning
+csharp_prefer_braces = true:warning
+csharp_style_namespace_declarations = file_scoped:warning
 
 [*.{asax,ascx,aspx,axaml,cs,cshtml,htm,html,master,paml,razor,skin,vb,xaml,xamlx,xoml}]
 indent_style = tab
@@ -205,11 +203,6 @@ dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_event = false:suggestion
 
 [*.{appxmanifest,axml,build,config,csproj,dbml,discomap,dtd,jsproj,lsproj,njsproj,nuspec,proj,props,resw,resx,StyleCop,targets,tasks,vbproj,xml,xsd}]
-indent_style = space
-indent_size = 2
-tab_width = 2
-
-[*.{c,c++,cc,cginc,compute,cp,cpp,cppm,cs,cu,cuh,cxx,fx,fxh,h,hh,hlsl,hlsli,hlslinc,hpp,hxx,inc,inl,ino,ipp,ixx,mpp,mq4,mq5,mqh,tpp,usf,ush}]
 indent_style = tab
-indent_size = tab
+indent_size = 4
 tab_width = 4

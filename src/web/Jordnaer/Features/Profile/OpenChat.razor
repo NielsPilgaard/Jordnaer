@@ -1,0 +1,54 @@
+@inject IChatService ChatService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<MudButton Disabled="Disabled"
+           EndIcon="@(_isMessageSent ? Icons.Material.Filled.Check : Icons.Material.Filled.Message)"
+           OnClick="OpenOrStartChat"
+           Color="@(_isMessageSent ? Color.Success : Color.Primary)"
+           Size="Size.Large"
+           Class="mb-5">
+    @(_isMessageSent ? "Besked sendt" : "Send Besked")
+</MudButton>
+
+@code
+{
+    [Parameter]
+    public required List<UserSlim> Recipients { get; set; }
+
+    /// <summary>
+    /// This is the current user's id
+    /// </summary>
+    [Parameter]
+    public required string InitiatorId { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private bool _isMessageSent = false;
+
+    private async Task OpenOrStartChat()
+    {
+        var getChatResponse = await ChatService.GetChatByUserIdsAsync(InitiatorId, Recipients.Select(recipient => recipient.Id).ToArray());
+        await getChatResponse.Match<Task>(chatId =>
+        {
+            NavigationManager.NavigateTo($"/chat/{chatId}");
+            return Task.CompletedTask;
+        }, async notFound =>
+        {
+            var parameters = new DialogParameters<SendMessageDialog>
+                {
+                { dialog => dialog.InitiatorId, InitiatorId },
+                { dialog => dialog.Recipients, Recipients }
+                };
+
+            var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
+
+            var dialogResult = await dialogReference.Result;
+            if (!dialogResult.Canceled && dialogResult.Data is true)
+            {
+                _isMessageSent = true;
+            }
+        });
+    }
+}

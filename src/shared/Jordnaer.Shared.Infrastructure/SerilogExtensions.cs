@@ -82,14 +82,14 @@ public sealed class GrafanaLokiOptions
 {
     public const string SectionName = "GrafanaLoki";
 
-    [Required]
+    [Required(ErrorMessage = "Påkrævet.")]
     [Url]
     public string Uri { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Påkrævet.")]
     public string Login { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Påkrævet.")]
     public string Password { get; set; } = null!;
 
     public int QueueLimit { get; set; } = 500;

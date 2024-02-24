@@ -1,0 +1,79 @@
+@using System.Net
+@using Jordnaer.Features.UserSearch
+@using Jordnaer.Models
+@using Jordnaer.Shared
+@using MudBlazor
+@inject IUserSearchService UserSearchService
+@inject ISnackbar Snackbar
+
+<MudAutocomplete T="UserSlim"
+                 @ref="_autocomplete"
+                 Label="Søg efter bruger"
+                 SearchFuncWithCancel="@SearchForUsers"
+                      ShowProgressIndicator
+                  OpenIcon="@string.Empty"
+                  DebounceInterval="750"
+                      Clearable
+                      SelectValueOnTab
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  MaxItems="10"
+                  ValueChanged="SelectedValueChanged"
+                  MinCharacters="2">
+
+     <ItemTemplate Context="user">
+         <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector">
+
+             <MudAvatar Size="Size.Large" Class="mr-3">
+                 <MudImage Src="@user?.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+             </MudAvatar>
+             <MudText>@user.DisplayName</MudText>
+
+            </MudListItem>
+        </ItemTemplate>
+
+        <MoreItemsTemplate>
+            <MudText Align="Align.Center" Class="px-4 py-1">
+                Kun de første 10 brugere vises
+            </MudText>
+        </MoreItemsTemplate>
+
+        <NoItemsTemplate>
+            <MudText Align="Align.Center" Class="px-4 py-1">
+                Ingen brugere fundet
+            </MudText>
+        </NoItemsTemplate>
+
+    </MudAutocomplete>
+
+
+    @code {
+    [Parameter]
+    public EventCallback<IEnumerable<UserSlim>> SelectedUserChanged { get; set; }
+
+    [Parameter]
+    public required string CurrentUserId { get; set; }
+
+    private MudAutocomplete<UserSlim> _autocomplete = null!;
+
+    private async Task<IEnumerable<UserSlim>> SearchForUsers(string searchString, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return Enumerable.Empty<UserSlim>();
+        }
+
+        return await UserSearchService.GetUsersByNameAsync(CurrentUserId, searchString, cancellationToken);
+    }
+
+    private async Task UserSelected(UserSlim user)
+    {
+        await _autocomplete.ToggleMenu();
+        await SelectedUserChanged.InvokeAsync(new[] { user });
+    }
+
+    private async Task SelectedValueChanged(UserSlim user)
+    {
+        await UserSelected(user);
+    }
+
+}

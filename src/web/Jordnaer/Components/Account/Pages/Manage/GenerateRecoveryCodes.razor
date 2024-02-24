@@ -1,0 +1,66 @@
+﻿@page "/Account/Manage/GenerateRecoveryCodes"
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<GenerateRecoveryCodes> Logger
+
+<PageTitle>Generer To-faktor-autentificerings (2FA) gendannelseskoder</PageTitle>
+
+@if (_recoveryCodes is not null)
+{
+	<ShowRecoveryCodes RecoveryCodes="_recoveryCodes.ToArray()" StatusMessage="@_message" />
+}
+else
+{
+	<h3>Generer To-faktor-autentificerings (2FA) gendannelseskoder</h3>
+	<div class="alert alert-warning" role="alert">
+		<p>
+			<span class="glyphicon glyphicon-warning-sign"></span>
+			<strong>Opbevar disse koder et sikkert sted.</strong>
+		</p>
+		<p>
+			Hvis du mister din enhed og ikke har gendannelseskoderne, vil du miste adgangen til din konto.
+		</p>
+		<p>
+			At generere nye gendannelseskoder ændrer ikke nøglerne, der bruges i autentificeringsapps. Hvis du ønsker at ændre nøglen
+			brugt i en autentificeringsapp, bør du <a href="Account/Manage/ResetAuthenticator">nulstille dine autentificeringsnøgler.</a>
+		</p>
+	</div>
+	<div>
+		<form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post">
+			<AntiforgeryToken />
+			<button class="btn btn-danger" type="submit">Generer Gendannelseskoder</button>
+		</form>
+	</div>
+}
+
+
+@code {
+    private string? _message;
+    private ApplicationUser _user = default!;
+    private IEnumerable<string>? _recoveryCodes;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        var isTwoFactorEnabled = await UserManager.GetTwoFactorEnabledAsync(_user);
+        if (!isTwoFactorEnabled)
+        {
+            throw new InvalidOperationException("Cannot generate recovery codes for user because they do not have 2FA enabled.");
+        }
+    }
+
+    private async Task OnSubmitAsync()
+    {
+        var userId = await UserManager.GetUserIdAsync(_user);
+        _recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(_user, 10);
+        _message = "Du har genereret nye gendannelses koder.";
+
+        Logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
+    }
+}

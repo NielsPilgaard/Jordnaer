@@ -1,0 +1,99 @@
+﻿@page "/Account/Manage/TwoFactorAuthentication"
+
+@using Microsoft.AspNetCore.Http.Features
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>To-faktor-autentificering (2FA)</PageTitle>
+
+<StatusMessage />
+<h3>To-faktor-autentificering (2FA)</h3>
+@if (_canTrack)
+{
+    if (_is2FaEnabled)
+    {
+        if (_recoveryCodesLeft == 0)
+        {
+            <div class="alert alert-danger">
+                <strong>Du har ingen gendannelseskoder tilbage.</strong>
+                <p>Du skal <a href="Account/Manage/GenerateRecoveryCodes">generere et nyt sæt gendannelseskoder</a> før du kan logge ind med en gendannelseskode.</p>
+            </div>
+        }
+        else if (_recoveryCodesLeft == 1)
+        {
+            <div class="alert alert-danger">
+                <strong>Du har 1 gendannelseskode tilbage.</strong>
+                <p>Du kan <a href="Account/Manage/GenerateRecoveryCodes">generere et nyt sæt gendannelseskoder</a>.</p>
+            </div>
+        }
+        else if (_recoveryCodesLeft <= 3)
+        {
+            <div class="alert alert-warning">
+                <strong>Du har @_recoveryCodesLeft gendannelseskoder tilbage.</strong>
+                <p>Du bør <a href="Account/Manage/GenerateRecoveryCodes">generere et nyt sæt gendannelseskoder</a>.</p>
+            </div>
+        }
+
+        if (_isMachineRemembered)
+        {
+            <form style="display: inline-block" @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
+                <AntiforgeryToken />
+                <button type="submit" class="btn btn-primary">Glem denne browser</button>
+            </form>
+        }
+
+        <a href="Account/Manage/Disable2fa" class="btn btn-primary">Deaktiver 2FA</a>
+        <a href="Account/Manage/GenerateRecoveryCodes" class="btn btn-primary">Nulstil gendannelseskoder</a>
+    }
+
+    <h4>Autentificeringsapp</h4>
+    @if (!_hasAuthenticator)
+    {
+        <a href="Account/Manage/EnableAuthenticator" class="btn btn-primary">Tilføj autentificeringsapp</a>
+    }
+    else
+    {
+        <a href="Account/Manage/EnableAuthenticator" class="btn btn-primary">Opsæt autentificeringsapp</a>
+        <a href="Account/Manage/ResetAuthenticator" class="btn btn-primary">Nulstil autentificeringsapp</a>
+    }
+}
+else
+{
+    <div class="alert alert-danger">
+        <strong>Privatlivs- og cookiepolitik er ikke blevet accepteret.</strong>
+        <p>Du skal acceptere politikken, før du kan aktivere To-faktor-autentificering.</p>
+    </div>
+}
+
+
+@code {
+    private bool _canTrack;
+    private bool _hasAuthenticator;
+    private int _recoveryCodesLeft;
+    private bool _is2FaEnabled;
+    private bool _isMachineRemembered;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
+        _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
+        _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
+        _isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(user);
+        _recoveryCodesLeft = await UserManager.CountRecoveryCodesAsync(user);
+    }
+
+    private async Task OnSubmitForgetBrowserAsync()
+    {
+        await SignInManager.ForgetTwoFactorClientAsync();
+
+        RedirectManager.RedirectToCurrentPageWithStatus(
+            "Den nuværende enhed er nu glemt. Næste gang du logger ind fra denne enhed vil du blive bedt om din 2fa kode.", HttpContext);
+    }
+}

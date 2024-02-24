@@ -1,0 +1,110 @@
+@page "/delete-user/{token}"
+
+@inject IDeleteUserService DeleteUserService
+@inject NavigationManager Navigation
+@inject CurrentUser CurrentUser
+
+@attribute [Authorize]
+
+<MetadataComponent Title="Mini Møder - Slet bruger"
+                   Description="Efter at have efterspurgt at få slettet din bruger, kan du slette den endeligt her." />
+
+<MudLoading @bind-Loading="_isLoading" Overlap Darken>
+    <MudGrid Justify="Justify.Center" Spacing="3">
+        <MudPaper Elevation="3" Class="pa-8 mt-5" Style="text-align: center;">
+
+            @switch (_userDeletionState)
+            {
+                case UserDeletionState.VerifyingToken:
+                case UserDeletionState.Completed:
+                    break;
+                case UserDeletionState.InvalidToken:
+                    <MudText Typo="Typo.h5">Den angivne kode er ugyldig</MudText>
+                    <MudText Typo="Typo.body1" Class="mt-3">Hvis du ønsker at slette din bruger, skal du trykke på "Slet Bruger" knappen nederst under redigér profil.</MudText>
+                    break;
+                case UserDeletionState.PendingUserConfirmation:
+                    <MudText Typo="Typo.h5">Bekræft sletning af bruger</MudText>
+                    <MudText Typo="Typo.body1" Class="mt-3">Dette vil permanent slette din bruger og alle tilknyttede data.</MudText>
+                    <MudText Typo="Typo.body1" Class="font-open-sans-bold mt-3">Denne handling kan ikke fortrydes.</MudText>
+                    <MudText Typo="Typo.body1" Class="mt-5">Er du sikker på, at du vil fortsætte?</MudText>
+                    <div style="display: flex; justify-content: center;">
+                        <MudButton StartIcon="@Icons.Material.Filled.DeleteForever"
+                                   Color="Color.Error"
+                                   Variant="Variant.Filled"
+                                   OnClick="DeleteAccount"
+                                   Class="mt-5 justify-center align-center">Bekræft sletning</MudButton>
+                    </div>
+                    break;
+                case UserDeletionState.Failed:
+                default:
+                    <MudText Typo="Typo.body1">
+                        Noget gik galt. Vent et øjeblik og genindlæs så siden, og prøv igen.
+                    </MudText>
+                    <MudText Typo="Typo.body1">
+                        Hvis det ikke virker, anbefaler vi at du starter forfra med at slette din bruger.
+                    </MudText>
+                    <MudText>Hvis det stadig ikke virker, kan du kontakte os via vores <MudLink Href="/contact">kontaktformular.</MudLink></MudText>
+                    break;
+            }
+        </MudPaper>
+    </MudGrid>
+</MudLoading>
+
+@code
+{
+    [Parameter]
+    public required string Token { get; set; }
+
+    [CascadingParameter] 
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
+    private bool _isLoading = false;
+
+    private UserDeletionState _userDeletionState = UserDeletionState.VerifyingToken;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            _userDeletionState = UserDeletionState.InvalidToken;
+        }
+        else
+        {
+            var tokenIsValid = await DeleteUserService.VerifyTokenAsync(CurrentUser.Id!,Token);
+
+            _userDeletionState = tokenIsValid
+              ? UserDeletionState.PendingUserConfirmation
+              : UserDeletionState.InvalidToken;
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task DeleteAccount()
+    {
+        _isLoading = true;
+        var userDeleted = await DeleteUserService.DeleteUserAsync(CurrentUser.Id!, Token);
+        if (userDeleted)
+        {
+            _userDeletionState = UserDeletionState.Completed;
+            Navigation.NavigateTo("user-deleted", true);
+        }
+        else
+        {
+            _userDeletionState = UserDeletionState.Failed;
+        }
+
+        _isLoading = false;
+    }
+
+    private enum UserDeletionState
+    {
+        VerifyingToken = 0,
+        InvalidToken = 1,
+        PendingUserConfirmation = 2,
+        Failed = 3,
+        Completed = 4,
+    }
+}

@@ -1,0 +1,55 @@
+@inject ISnackbar Snackbar
+@inject IProfileImageService ProfileImageService
+
+<MudFileUpload T="IBrowserFile"
+               Accept="image/jpeg, image/png"
+               OnFilesChanged="OnInputFileChanged"
+               MaximumFileCount="1"
+               Hidden="false"
+               title="Klik her for at skifte billede"
+               Class="flex-1"
+               InputClass="absolute mud-height-full overflow-hidden z-20"
+               InputStyle="opacity:0;cursor: pointer">
+    <ButtonTemplate>
+        <MudImage ObjectPosition="ObjectPosition.Center"
+                  loading="lazy"
+                    Fluid
+                  Class="editable-image"
+                  Src="@ChildProfile.PictureUrl"
+                  Alt="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? "Billede af barn" : $"Billede af {ChildProfile.FirstName}")" />
+    </ButtonTemplate>
+</MudFileUpload>
+
+@code {
+    [Parameter]
+    public required ChildProfile ChildProfile { get; set; }
+    [Parameter]
+    public required EventCallback<ChildProfile> ChildProfileChanged { get; set; }
+
+    private BrowserFileValidator _browserFileValidator = new();
+
+    private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
+    {
+        var validationResult = await _browserFileValidator.ValidateAsync(inputFileChange.File);
+        if (!validationResult.IsValid)
+        {
+            Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
+            return;
+        }
+
+        var contentType = inputFileChange.File.ContentType;
+        var resizedImageFile = await inputFileChange.File.RequestImageFileAsync(contentType, 200, 200);
+
+        using var ms = new MemoryStream();
+        await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        var setChildProfilePictureResult = await ProfileImageService.SetChildProfilePictureAsync(new SetChildProfilePicture(ChildProfile, bytes));
+
+	    ChildProfile.PictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+
+	    await ChildProfileChanged.InvokeAsync(ChildProfile);
+
+	    Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+    }
+}

@@ -1,22 +1,22 @@
 using Jordnaer.Shared;
 
-namespace Jordnaer.Server.Features.UserSearch;
+namespace Jordnaer.Features.UserSearch;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddUserSearchFeature(this IServiceCollection services)
-    {
-        services.AddOptions<DataForsyningenOptions>()
-            .BindConfiguration(DataForsyningenOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+	public static IServiceCollection AddUserSearchFeature(this IServiceCollection services)
+	{
+		services.AddOptions<DataForsyningenOptions>()
+			.BindConfiguration(DataForsyningenOptions.SectionName)
+			.ValidateDataAnnotations()
+			.ValidateOnStart();
 
-        services.AddScoped<IUserSearchService, UserSearchService>();
+		services.AddScoped<IUserSearchService, UserSearchService>();
 
-        services.AddDataForsyningenClient();
+		services.AddDataForsyningenClient();
 
-        services.AddHealthChecks().AddCheck<DataForsyningenHealthCheck>("dataforsyningen", tags: new[] { "external", "api" });
+		services.AddHealthChecks().AddCheck<DataForsyningenHealthCheck>("dataforsyningen", tags: ["external", "api"]);
 
-        return services;
-    }
+		return services;
+	}
 }

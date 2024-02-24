@@ -1,0 +1,44 @@
+﻿@page "/Account/RegisterConfirmation"
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IEmailSender<ApplicationUser> EmailSender
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Registreringsbekræftelse</PageTitle>
+
+<h1>Registreringsbekræftelse</h1>
+
+<StatusMessage Message="@_statusMessage" />
+
+@*TODO: Opdater denne side, når emailen er bekræftet*@
+<p>Check venligst din email for at bekræfte din konto.</p>
+@*TODO: Allow resending email after 30 seconds in case it never arrives*@
+
+@code {
+	private string? _statusMessage;
+    
+	[CascadingParameter]
+	private HttpContext HttpContext { get; set; } = default!;
+
+	[SupplyParameterFromQuery]
+	private string? Email { get; set; }
+
+	[SupplyParameterFromQuery]
+	private string? ReturnUrl { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (Email is null)
+		{
+			RedirectManager.RedirectTo("");
+		}
+
+		var user = await UserManager.FindByEmailAsync(Email);
+		if (user is null)
+		{
+			HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+			_statusMessage = "Fejl i at finde bruger for uspecificeret email";
+		}
+	}
+}

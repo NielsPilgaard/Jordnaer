@@ -1,0 +1,128 @@
+@page "/groups/edit/{GroupId:guid}"
+
+@attribute [Authorize]
+
+@inject IGroupService GroupService
+@inject ICategoryCache CategoryCache
+@inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    @if (_group is null)
+    {
+        <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
+        return;
+    }
+
+    <EditForm Model="@_group" OnValidSubmit="Update">
+        <DataAnnotationsValidator/>
+        <MudPaper Elevation="3" Class="pa-4">
+
+            <GroupProfilePicture @bind-Group="_group"/>
+
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.Name"
+                                  For="() => _group.Name"
+                                  Label="Gruppenavn"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12" sm="8">
+                    <MudTextField @bind-Value="_group.ShortDescription"
+                                  For="() => _group.ShortDescription"
+                                  Label="Kort beskrivelse"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.Address"
+                                  For="() => _group.Address"
+                                  Label="Adresse"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.ZipCode"
+                                  For="() => _group.ZipCode"
+                                  Label="Postnummer"
+                                  name="zipCode"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_group.City"
+                                  For="() => _group.City"
+                                  Label="By"
+                                  name="city"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                       T="string"
+                                       Label="Kategorier"
+                                       MultiSelection="true"
+                                       SelectedValues="_group.Categories.Select(e => e.Name)"
+                                       ValuePresenter="ValuePresenter.Chip"
+                                       SelectedValuesChanged="SelectedCategoriesChanged">
+                    </MudSelectExtended>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_group.Description"
+                                  For="() => _group.Description"
+                                  Label="Beskrivelse"
+                                  Lines="10"
+                                  Variant="Variant.Filled"/>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Class="my-6"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   FullWidth
+                   Color="Color.Primary">
+            Opret
+        </MudButton>
+    </EditForm>
+</MudLoading>
+
+@code {
+    [Parameter]
+    public Guid GroupId { get; set; }
+
+    private Group? _group;
+
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+    private bool _isLoading = true;
+
+    private readonly Action<SnackbarOptions> _snackbarOptions = options =>
+    {
+        options.CloseAfterNavigation = true;
+        options.VisibleStateDuration = 3000;
+        options.ShowTransitionDuration = 250;
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await GroupService.GetGroupByIdAsync(GroupId);
+        response.Switch(
+	        group => _group = group, 
+	        _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning, _snackbarOptions));
+
+        _isLoading = false;
+
+        _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+    }
+
+    private void SelectedCategoriesChanged(IEnumerable<string> categories)
+    {
+        _group!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+    }
+
+    private Task Update()
+    {
+        _isLoading = true;
+        _isLoading = false;
+
+        return Task.CompletedTask;
+    }
+
+}

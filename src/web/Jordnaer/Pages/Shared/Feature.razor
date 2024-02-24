@@ -1,0 +1,24 @@
+@using Microsoft.FeatureManagement
+
+@inject IFeatureManager FeatureManager
+
+@if (_featureIsEnabled)
+{
+    @ChildContent
+}
+
+@code
+{
+	private bool _featureIsEnabled;
+
+	[Parameter]
+    public required string Name { get; set; }
+
+    [Parameter]
+    public required RenderFragment ChildContent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+	    _featureIsEnabled = await FeatureManager.IsEnabledAsync(Name);
+    }
+}

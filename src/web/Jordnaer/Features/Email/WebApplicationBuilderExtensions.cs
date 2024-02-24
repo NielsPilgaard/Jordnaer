@@ -1,24 +1,26 @@
-using Polly;
-using Polly.Contrib.WaitAndRetry;
+using Jordnaer.Database;
+using Microsoft.AspNetCore.Identity;
 using SendGrid.Extensions.DependencyInjection;
 
-namespace Jordnaer.Server.Features.Email;
+namespace Jordnaer.Features.Email;
 
 public static class WebApplicationBuilderExtensions
 {
-    public static WebApplicationBuilder AddEmailServices(this WebApplicationBuilder builder)
-    {
-        string sendGridApiKey = builder.Configuration.GetValue<string>("SendGrid:ApiKey")!;
+	public static WebApplicationBuilder AddEmailServices(this WebApplicationBuilder builder)
+	{
+		builder.Services.AddScoped<IEmailSender<ApplicationUser>, SendGridEmailSender>();
+		builder.Services.AddScoped<IEmailService, EmailService>();
 
-        builder.Services
-            .AddSendGrid(options => options.ApiKey = sendGridApiKey)
-            .AddTransientHttpErrorPolicy(policyBuilder =>
-                policyBuilder.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(500), 3)));
+		var sendGridApiKey = builder.Configuration.GetValue<string>("SendGrid:ApiKey")!;
 
-        builder.Services
-            .AddHealthChecks()
-            .AddSendGrid(sendGridApiKey);
+		builder.Services
+			   .AddSendGrid(options => options.ApiKey = sendGridApiKey)
+			   .AddStandardResilienceHandler();
 
-        return builder;
-    }
+		builder.Services
+			   .AddHealthChecks()
+			   .AddSendGrid(sendGridApiKey);
+
+		return builder;
+	}
 }

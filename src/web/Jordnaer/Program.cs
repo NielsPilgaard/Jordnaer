@@ -1,35 +1,77 @@
-using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
+using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Blazr.RenderState.Server;
-using Jordnaer.Client;
-using Jordnaer.Client.SignalR;
-using Jordnaer.Server.Authentication;
-using Jordnaer.Server.Authorization;
-using Jordnaer.Server.Components;
-using Jordnaer.Server.Database;
-using Jordnaer.Server.Extensions;
-using Jordnaer.Server.Features.Category;
-using Jordnaer.Server.Features.Chat;
-using Jordnaer.Server.Features.DeleteUser;
-using Jordnaer.Server.Features.Email;
-using Jordnaer.Server.Features.Groups;
-using Jordnaer.Server.Features.GroupSearch;
-using Jordnaer.Server.Features.Profile;
-using Jordnaer.Server.Features.UserSearch;
+using Jordnaer.Components;
+using Jordnaer.Components.Account;
+using Jordnaer.Database;
+using Jordnaer.Extensions;
+using Jordnaer.Features.Category;
+using Jordnaer.Features.Chat;
+using Jordnaer.Features.DeleteUser;
+using Jordnaer.Features.Email;
+using Jordnaer.Features.Groups;
+using Jordnaer.Features.GroupSearch;
+using Jordnaer.Features.Profile;
+using Jordnaer.Features.UserSearch;
+using Jordnaer.Shared;
 using Jordnaer.Shared.Infrastructure;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.FeatureManagement;
+using Microsoft.AspNetCore.Identity;
+using MudBlazor;
+using MudBlazor.Services;
+using MudExtensions.Services;
 using Serilog;
+using System.Text.Json.Serialization;
+using Jordnaer.Features.Authentication;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+			 .WriteTo.Console()
+			 .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents()
-    .AddInteractiveServerComponents();
+	   .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddCurrentUser();
+
+builder.Services.AddAuthentication(options =>
+{
+	options.DefaultScheme = IdentityConstants.ApplicationScheme;
+	options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+}).AddFacebook(options =>
+{
+	options.AppId = builder.Configuration.GetValue<string>("Authentication:Schemes:Facebook:AppId")!;
+	options.AppSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Facebook:AppSecret")!;
+	options.SaveTokens = true;
+}).AddMicrosoftAccount(options =>
+{
+	options.ClientId = builder.Configuration.GetValue<string>("Authentication:Schemes:Microsoft:ClientId")!;
+	options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Microsoft:ClientSecret")!;
+	options.SaveTokens = true;
+}).AddGoogle(options =>
+{
+	options.ClientId = builder.Configuration.GetValue<string>("Authentication:Schemes:Google:ClientId")!;
+	options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Google:ClientSecret")!;
+	options.SaveTokens = true;
+}).AddIdentityCookies();
+
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+{
+	options.SignIn.RequireConfirmedAccount = true;
+	options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<JordnaerDbContext>()
+.AddSignInManager()
+.AddDefaultTokenProviders();
+
+builder.Services.AddAuthorization();
 
 builder.AddAzureAppConfiguration();
 
@@ -37,32 +79,24 @@ builder.AddSerilog();
 
 builder.AddDatabase();
 
-builder.Services.AddCurrentUser();
-
-builder.AddAuthentication();
-builder.Services.AddAuthorizationBuilder().AddCurrentUserHandler();
-
 builder.Services.AddRateLimiting();
 
 builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
 
-builder.Services.AddResilientHttpClient();
+builder.Services.AddHttpClient(HttpClients.Default)
+				.AddStandardResilienceHandler();
 
 builder.Services.AddUserSearchFeature();
 
-builder.Services.AddOutputCache();
-
 builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+	options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.AddEmailServices();
 
 builder.AddDeleteUserFeature();
 
 builder.Services.AddSingleton(_ =>
-    new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
-
-builder.Services.AddHttpContextAccessor();
+	new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
 
 builder.AddMassTransit();
 
@@ -75,24 +109,54 @@ builder.AddGroupSearchServices();
 
 builder.AddBlazrRenderStateServerServices();
 
+builder.AddCategoryServices();
+builder.AddProfileServices();
+builder.AddChatServices();
+
+builder.Services.AddMudServices(configuration =>
+{
+	configuration.ResizeOptions = new ResizeOptions
+	{
+		NotifyOnBreakpointOnly = true
+	};
+	configuration.SnackbarConfiguration = new SnackbarConfiguration
+	{
+		VisibleStateDuration = 2500,
+		ShowTransitionDuration = 250,
+		BackgroundBlurred = true,
+		MaximumOpacity = 95,
+		MaxDisplayedSnackbars = 3,
+		PositionClass = Defaults.Classes.Position.BottomCenter,
+		HideTransitionDuration = 100,
+		ShowCloseIcon = false
+	};
+});
+builder.Services.AddMudExtensions();
+
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredSessionStorage();
+
+builder.Services.AddMemoryCache();
+
+builder.Services.AddDataForsyningenClient();
+builder.Services.Configure<DataForsyningenOptions>(builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseWebAssemblyDebugging();
-    await app.InitializeDatabaseAsync();
+	await app.InitializeDatabaseAsync();
 }
 else
 {
-    app.UseResponseCompression();
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+	app.UseResponseCompression();
+	app.UseExceptionHandler("/Error");
+	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+	app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 
-app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -102,32 +166,19 @@ app.UseAzureAppConfiguration();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
 app.UseRateLimiter();
-app.UseOutputCache();
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
-    .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Routes).Assembly)
-    .AddInteractiveServerRenderMode();
+	.AddInteractiveServerRenderMode();
 
-// Configure the APIs
-app.MapAuthentication();
-app.MapProfiles();
-app.MapCategories();
-app.MapUserSearch();
-app.MapEmail();
-app.MapImages();
-app.MapDeleteUsers();
-app.MapChat();
-app.MapGroups();
-app.MapGroupSearch();
+app.MapAdditionalIdentityEndpoints();
 
 app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
 
@@ -135,17 +186,20 @@ app.MapHub<ChatHub>("/hubs/chat");
 
 try
 {
-    app.Run();
+	app.Run();
 }
 catch (Exception exception)
 {
-    Log.Fatal(exception, "An unhandled exception occurred.");
+	Log.Fatal(exception, "An unhandled exception occurred.");
 }
 finally
 {
-    // Wait 0.5 seconds before closing and flushing, to gather the last few logs.
-    await Task.Delay(TimeSpan.FromMilliseconds(500));
-    await Log.CloseAndFlushAsync();
+	// Wait 0.5 seconds before closing and flushing, to gather the last few logs.
+	await Task.Delay(TimeSpan.FromMilliseconds(500));
+	await Log.CloseAndFlushAsync();
 }
 
-public partial class Program { }
+namespace Jordnaer
+{
+	public class Program;
+}

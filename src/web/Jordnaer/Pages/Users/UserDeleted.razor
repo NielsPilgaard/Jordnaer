@@ -1,0 +1,29 @@
+@page "/user-deleted"
+
+<MetadataComponent Title="Mini Møder - Slet bruger"
+                   Description="Denne side vises efter at man successfuldt har slettet sin bruger." />
+
+<MudGrid Justify="Justify.Center" Spacing="3">
+    <MudPaper Elevation="3" Class="pa-8 mt-5" Style="text-align: center;">
+        <MudText Typo="Typo.body1" Class="font-open-sans-bold">
+            Din bruger er nu slettet.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">
+            Vi takker for denne gang, og håber at du fik nogle gode oplevelser ud af Mini Møder.
+        </MudText>
+    </MudPaper>
+</MudGrid>
+
+<form action="Account/Logout" method="post" id="logout-form">
+	<AntiforgeryToken />
+	<input type="hidden" name="ReturnUrl" value="" />
+	<button type="submit" class="nav-link">
+		<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span>
+	</button>
+</form>
+
+<script>
+    window.onload = function () {
+        document.getElementById('logout-form').submit();
+    };
+</script>

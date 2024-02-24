@@ -1,0 +1,213 @@
+﻿@page "/Account/ExternalLogin"
+@using System.Text
+@using System.Text.Encodings.Web
+@using Mediator
+@using Microsoft.AspNetCore.WebUtilities
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject IEmailSender<ApplicationUser> EmailSender
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<ExternalLogin> Logger
+@inject JordnaerDbContext Context
+@inject IMediator Mediator
+
+<PageTitle>Register</PageTitle>
+
+<StatusMessage Message="@_message" />
+<h1>Register</h1>
+<h2>Associate your @ProviderDisplayName account.</h2>
+<hr />
+
+<div class="alert alert-info">
+	Du er blevet succesfuldt registreret med <strong>@ProviderDisplayName</strong>.
+	Vælg venligst din emailadresse til denne hjemmeside nedenfor og klik på "Registrer"-knappen for at fuldføre login-processen.
+</div>
+
+<div class="row">
+	<div class="col-md-4">
+		<EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" placeholder="Indtast venligst din email." />
+				<label for="email" class="form-label">Email</label>
+				<ValidationMessage For="() => Input.Email" />
+			</div>
+			<button type="submit" class="w-100 btn btn-lg btn-primary">Registrer</button>
+		</EditForm>
+	</div>
+</div>
+
+@code {
+    public const string LoginCallbackAction = "LoginCallback";
+
+    private string? _message;
+    private ExternalLoginInfo? _externalLoginInfo;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? RemoteError { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Action { get; set; }
+
+    private string? ProviderDisplayName => _externalLoginInfo?.ProviderDisplayName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RemoteError is not null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Login", $"Fejl fra ekstern login udbyder: {RemoteError}", HttpContext);
+        }
+
+        var info = await SignInManager.GetExternalLoginInfoAsync();
+        if (info is null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Login", "Fejl ved indlæsning af ekstern login information.", HttpContext);
+        }
+
+        _externalLoginInfo = info;
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            if (Action == LoginCallbackAction)
+            {
+                await OnLoginCallbackAsync();
+                return;
+            }
+
+            // We should only reach this page via the login callback, so redirect back to
+            // the login page if we get here some other way.
+            RedirectManager.RedirectTo("Account/Login");
+        }
+    }
+
+    private async Task OnLoginCallbackAsync()
+    {
+        // Sign in the user with this external login provider if the user already has a login.
+        var result = await SignInManager.ExternalLoginSignInAsync(
+            _externalLoginInfo!.LoginProvider,
+            _externalLoginInfo.ProviderKey,
+            isPersistent: false,
+            bypassTwoFactor: true);
+            
+        if (result.Succeeded)
+        {
+	        var user = await UserManager.FindByLoginAsync(_externalLoginInfo.LoginProvider, _externalLoginInfo.ProviderKey);
+	        if (user is null)
+	        {
+		        RedirectManager.RedirectToWithStatus("Account/Login", "Fejl - Det lykkedes ikke at finde dit login. Prøv venligst igen.", HttpContext);
+	        }
+
+	        var accessToken = _externalLoginInfo.AuthenticationProperties?.GetTokenValue("access_token");
+	        if (accessToken is not null)
+	        {
+		        await Mediator.Publish(new AccessTokenAcquired(user.Id,
+                    _externalLoginInfo.ProviderKey,
+                    _externalLoginInfo.LoginProvider,
+			        accessToken));
+	        }
+
+            Logger.LogInformation(
+                "{Name} logged in with {LoginProvider} provider.",
+                _externalLoginInfo.Principal.Identity?.Name,
+                _externalLoginInfo.LoginProvider);
+
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+
+        // If the user does not have an account, then ask the user to create an account.
+        if (_externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+        {
+            Input.Email = _externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+        }
+    }
+
+
+    private async Task OnValidSubmitAsync()
+    {
+        var emailStore = GetEmailStore();
+        var user = CreateUser();
+
+        await UserStore.SetUserNameAsync(user,  Input.Email, CancellationToken.None);
+        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+        var result = await UserManager.CreateAsync(user);
+        if (result.Succeeded)
+        {
+            result = await UserManager.AddLoginAsync(user, _externalLoginInfo!);
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
+
+                var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
+                Context.UserProfiles.Add(userProfile);
+                await Context.SaveChangesAsync();
+
+                var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                    NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                    new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
+
+                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
+                // If account confirmation is required, we need to show the link if we don't have a real email sender
+                if (UserManager.Options.SignIn.RequireConfirmedAccount)
+                {
+                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+                }
+
+                await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+        }
+
+        _message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
+    }
+
+    private static ApplicationUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<ApplicationUser>)UserStore;
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "Email er påkrævet.")]
+        [EmailAddress(ErrorMessage = "Email skal være gyldig.")]
+        public string Email { get; set; } = "";
+    }
+}

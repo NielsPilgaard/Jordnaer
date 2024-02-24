@@ -1,0 +1,10 @@
+<TopBar ToggleDrawer="@ToggleDrawer" />
+<SideBar @bind-Open="_isDrawerOpen"  />
+
+@rendermode InteractiveServer
+
+@code
+{
+	private bool _isDrawerOpen = false;
+	private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
+}

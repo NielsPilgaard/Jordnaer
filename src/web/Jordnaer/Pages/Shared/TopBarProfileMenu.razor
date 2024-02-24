@@ -1,0 +1,68 @@
+@inject NavigationManager Navigation
+@inject IProfileCache ProfileCache
+@inject ILocalStorageService LocalStorage
+
+@rendermode @(InteractiveServer)
+
+<ThemeProvider @bind-IsDarkMode="_isDarkMode" />
+
+<MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
+    <ActivatorContent>
+        <MudAvatar>
+            <MudImage Src="@_profilePictureUrl" />
+        </MudAvatar>
+    </ActivatorContent>
+    <ChildContent>
+        <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">Redigér Profil</MudMenuItem>
+        <MudMenuItem AutoClose="false"
+                     OnClick="UpdateDarkMode"
+                     Icon="@(_isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
+                     IconColor="@(_isDarkMode ? Color.Dark : Color.Warning)">
+            Skift tema
+        </MudMenuItem>
+        <MudDivider />
+        <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnAction="Logout">
+            Log af
+        </MudMenuItem>
+    </ChildContent>
+</MudMenu>
+@code {
+	private bool _isDarkMode;
+
+    private const string Key = "dark-mode";
+
+    private string _profilePictureUrl = ProfileConstants.Default_Profile_Picture;
+
+    private string? _currentUrl;
+    
+    private void Logout() => Navigation.NavigateTo($"Account/Logout?returnUrl={_currentUrl}", true);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userProfile = await ProfileCache.GetProfileAsync();
+        if (userProfile?.ProfilePictureUrl is not null)
+        {
+            _profilePictureUrl = userProfile.ProfilePictureUrl;
+        }
+
+        _currentUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private async Task UpdateDarkMode()
+    {
+        _isDarkMode = !_isDarkMode;
+
+        await LocalStorage.SetItemAsync(Key, _isDarkMode);
+
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _currentUrl = Navigation.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

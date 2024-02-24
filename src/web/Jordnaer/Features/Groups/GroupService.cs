@@ -1,259 +1,267 @@
-using Jordnaer.Server.Authorization;
-using Jordnaer.Server.Database;
-using Jordnaer.Server.Extensions;
+using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
+using OneOf.Types;
 using Serilog;
+using NotFound = OneOf.Types.NotFound;
 
-namespace Jordnaer.Server.Features.Groups;
+namespace Jordnaer.Features.Groups;
 
 public interface IGroupService
 {
-    Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id);
-    Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name);
-    Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group);
-    Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group);
-    Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id);
-    Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync();
+	Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default);
+	Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> CreateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(string userId, Guid id, CancellationToken cancellationToken = default);
+	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default);
 }
 
 public class GroupService : IGroupService
 {
-    private readonly JordnaerDbContext _context;
-    private readonly CurrentUser _currentUser;
-    private readonly ILogger<GroupService> _logger;
-    private readonly IDiagnosticContext _diagnosticContext;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
+	private readonly ILogger<GroupService> _logger;
+	private readonly IDiagnosticContext _diagnosticContext;
 
-    public GroupService(JordnaerDbContext context,
-        CurrentUser currentUser,
-        ILogger<GroupService> logger,
-        IDiagnosticContext diagnosticContext)
-    {
-        _context = context;
-        _currentUser = currentUser;
-        _logger = logger;
-        _diagnosticContext = diagnosticContext;
-    }
+	public GroupService(IDbContextFactory<JordnaerDbContext> contextFactory,
+		ILogger<GroupService> logger,
+		IDiagnosticContext diagnosticContext)
+	{
+		_contextFactory = contextFactory;
+		_logger = logger;
+		_diagnosticContext = diagnosticContext;
+	}
 
-    public async Task<Results<Ok<Group>, NotFound>> GetGroupByIdAsync(Guid id)
-    {
-        _logger.LogFunctionBegan();
+	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
+	{
+		_logger.LogFunctionBegan();
 
-        var group = await _context.Groups
-            .AsNoTracking()
-            .FirstOrDefaultAsync(group => group.Id == id);
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		var group = await context.Groups
+								 .AsNoTracking()
+								 .FirstOrDefaultAsync(group => group.Id == id, cancellationToken: cancellationToken);
 
-        return group is null
-            ? TypedResults.NotFound()
-            : TypedResults.Ok(group);
-    }
+		return group is null
+			? new NotFound()
+			: group;
+	}
 
-    public async Task<Results<Ok<GroupSlim>, NotFound>> GetSlimGroupByNameAsync(string name)
-    {
-        _logger.LogFunctionBegan();
+	public async Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name, CancellationToken cancellationToken = default)
+	{
+		_logger.LogFunctionBegan();
 
-        var group = await _context.Groups
-            .AsNoTracking()
-            .Select(x => new GroupSlim
-            {
-                Id = x.Id,
-                Name = x.Name,
-                ShortDescription = x.ShortDescription,
-                ZipCode = x.ZipCode,
-                City = x.City,
-                ProfilePictureUrl = x.ProfilePictureUrl,
-                MemberCount = x.Memberships.Count(membership => membership.MembershipStatus == MembershipStatus.Active),
-                Categories = x.Categories.Select(category => category.Name).ToArray()
-            })
-            .FirstOrDefaultAsync(group => group.Name == name);
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		var group = await context.Groups
+			.AsNoTracking()
+			.Select(x => new GroupSlim
+			{
+				Id = x.Id,
+				Name = x.Name,
+				ShortDescription = x.ShortDescription,
+				ZipCode = x.ZipCode,
+				City = x.City,
+				ProfilePictureUrl = x.ProfilePictureUrl,
+				MemberCount = x.Memberships.Count(membership => membership.MembershipStatus == MembershipStatus.Active),
+				Categories = x.Categories.Select(category => category.Name).ToArray()
+			})
+			.FirstOrDefaultAsync(group => group.Name == name, cancellationToken: cancellationToken);
 
-        return group is null
-            ? TypedResults.NotFound()
-            : TypedResults.Ok(group);
-    }
-    public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync()
-    {
-        _logger.LogFunctionBegan();
+		return group is null
+			? new NotFound()
+			: group;
+	}
+	public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)
+	{
+		_logger.LogFunctionBegan();
 
-        var groups = await _context.GroupMemberships
-            .AsNoTracking()
-            .Where(membership => membership.UserProfileId == _currentUser.Id &&
-                                 membership.MembershipStatus != MembershipStatus.Rejected)
-            .Select(x => new UserGroupAccess
-            {
-                Group = new GroupSlim
-                {
-                    Id = x.Group.Id,
-                    Name = x.Group.Name,
-                    ShortDescription = x.Group.ShortDescription,
-                    ZipCode = x.Group.ZipCode,
-                    City = x.Group.City,
-                    ProfilePictureUrl = x.Group.ProfilePictureUrl,
-                    MemberCount =
-                        x.Group.Memberships.Count(membership =>
-                            membership.MembershipStatus == MembershipStatus.Active),
-                    Categories = x.Group.Categories.Select(category => category.Name).ToArray()
-                },
-                MembershipStatus = x.MembershipStatus,
-                OwnershipLevel = x.OwnershipLevel,
-                PermissionLevel = x.PermissionLevel,
-                LastUpdatedUtc = x.LastUpdatedUtc
-            })
-            .OrderByDescending(x => x.OwnershipLevel)
-            .ThenByDescending(x => x.PermissionLevel)
-            .ThenByDescending(x => x.LastUpdatedUtc)
-            .ToListAsync();
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		var groups = await context.GroupMemberships
+			.AsNoTracking()
+			.Where(membership => membership.UserProfileId == userId &&
+								 membership.MembershipStatus != MembershipStatus.Rejected)
+			.Select(x => new UserGroupAccess
+			{
+				Group = new GroupSlim
+				{
+					Id = x.Group.Id,
+					Name = x.Group.Name,
+					ShortDescription = x.Group.ShortDescription,
+					ZipCode = x.Group.ZipCode,
+					City = x.Group.City,
+					ProfilePictureUrl = x.Group.ProfilePictureUrl,
+					MemberCount =
+						x.Group.Memberships.Count(membership =>
+							membership.MembershipStatus == MembershipStatus.Active),
+					Categories = x.Group.Categories.Select(category => category.Name).ToArray()
+				},
+				MembershipStatus = x.MembershipStatus,
+				OwnershipLevel = x.OwnershipLevel,
+				PermissionLevel = x.PermissionLevel,
+				LastUpdatedUtc = x.LastUpdatedUtc
+			})
+			.OrderByDescending(x => x.OwnershipLevel)
+			.ThenByDescending(x => x.PermissionLevel)
+			.ThenByDescending(x => x.LastUpdatedUtc)
+			.ToListAsync(cancellationToken);
 
-        return groups;
-    }
+		return groups;
+	}
 
-    public async Task<Results<NoContent, BadRequest<string>>> CreateGroupAsync(Group group)
-    {
-        _logger.LogFunctionBegan();
+	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default)
+	{
+		_logger.LogFunctionBegan();
 
-        if (await _context.Groups.AnyAsync(x => x.Name == group.Name))
-        {
-            return TypedResults.BadRequest($"Gruppenavnet '{group.Name}' er allerede taget.");
-        }
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		if (await context.Groups.AsNoTracking().AnyAsync(x => x.Name == group.Name, cancellationToken))
+		{
+			return new Error<string>($"Gruppenavnet '{group.Name}' er allerede taget.");
+		}
 
-        group.Memberships = new List<GroupMembership>
-        {
-            new ()
-            {
-                UserProfileId = _currentUser.Id,
-                GroupId = group.Id,
-                OwnershipLevel = OwnershipLevel.Owner,
-                MembershipStatus = MembershipStatus.Active,
-                PermissionLevel = PermissionLevel.Read |
-                                  PermissionLevel.Write |
-                                  PermissionLevel.Moderator |
-                                  PermissionLevel.Admin
-            }
-        };
+		group.Memberships = new List<GroupMembership>
+		{
+			new ()
+			{
+				UserProfileId = userId,
+				GroupId = group.Id,
+				OwnershipLevel = OwnershipLevel.Owner,
+				MembershipStatus = MembershipStatus.Active,
+				PermissionLevel = PermissionLevel.Read |
+								  PermissionLevel.Write |
+								  PermissionLevel.Moderator |
+								  PermissionLevel.Admin
+			}
+		};
 
-        var selectedCategories = group.Categories.ToArray();
-        group.Categories.Clear();
-        foreach (var categoryDto in selectedCategories)
-        {
-            var category = await _context.Categories.FindAsync(categoryDto.Id);
-            if (category is null)
-            {
-                group.Categories.Add(categoryDto);
-                _context.Entry(categoryDto).State = EntityState.Added;
-            }
-            else
-            {
-                category.LoadValuesFrom(categoryDto);
-                group.Categories.Add(category);
-                _context.Entry(category).State = EntityState.Modified;
-            }
-        }
+		var selectedCategories = group.Categories.ToArray();
+		group.Categories.Clear();
+		foreach (var categoryDto in selectedCategories)
+		{
+			var category = await context.Categories.FindAsync([categoryDto.Id], cancellationToken);
+			if (category is null)
+			{
+				group.Categories.Add(categoryDto);
+				context.Entry(categoryDto).State = EntityState.Added;
+			}
+			else
+			{
+				category.LoadValuesFrom(categoryDto);
+				group.Categories.Add(category);
+				context.Entry(category).State = EntityState.Modified;
+			}
+		}
 
-        _context.Groups.Add(group);
-        await _context.SaveChangesAsync();
+		context.Groups.Add(group);
+		await context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("{userIdentifier} created group '{groupName}'",
-            _currentUser.User?.Email ?? _currentUser.User?.UserName, group.Name);
+		_logger.LogInformation("{UserId} created group '{groupName}'", userId, group.Name);
 
-        return TypedResults.NoContent();
-    }
+		return new Success();
+	}
 
-    public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound, BadRequest<string>>> UpdateGroupAsync(Guid id, Group group)
-    {
-        _logger.LogFunctionBegan();
+	public async Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default)
+	{
+		_logger.LogFunctionBegan();
 
-        if (id != group.Id)
-        {
-            return TypedResults.BadRequest(string.Empty);
-        }
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		if (await context.Groups.AsNoTracking().AnyAsync(x => x.Name == group.Name, cancellationToken))
+		{
+			return new Error<string>($"Gruppenavnet '{group.Name}' er allerede taget.");
+		}
 
-        if (await _context.Groups.AnyAsync(x => x.Name == group.Name))
-        {
-            return TypedResults.BadRequest($"Gruppenavnet '{group.Name}' er allerede taget.");
-        }
+		var existingGroup = await context.Groups
+			.AsNoTracking()
+			.Include(e => e.Categories)
+			.FirstOrDefaultAsync(e => e.Id == group.Id, cancellationToken);
 
-        var existingGroup = await _context.Groups
-            .AsNoTracking()
-            .Include(e => e.Categories)
-            .FirstOrDefaultAsync(e => e.Id == id);
+		if (existingGroup is null)
+		{
+			return new NotFound();
+		}
 
-        if (existingGroup is null)
-        {
-            return TypedResults.NotFound();
-        }
+		var membership = await context.GroupMemberships.FirstOrDefaultAsync(x =>
+																				x.UserProfileId == userId &&
+																				x.GroupId == group.Id, cancellationToken);
 
-        await UpdateExistingGroupAsync(existingGroup, group, _context);
-        _context.Entry(group).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+		if (membership?.PermissionLevel < PermissionLevel.Write)
+		{
+			return new Error<string>("Du har ikke adgang til at ændre denne gruppe.");
+		}
 
-        return TypedResults.NoContent();
-    }
+		await UpdateExistingGroupAsync(existingGroup, group, context, cancellationToken);
+		context.Entry(group).State = EntityState.Modified;
+		await context.SaveChangesAsync(cancellationToken);
 
-    public async Task<Results<NoContent, UnauthorizedHttpResult, NotFound>> DeleteGroupAsync(Guid id)
-    {
-        _logger.LogFunctionBegan();
+		return new Success();
+	}
 
-        _diagnosticContext.Set("group_id", id);
+	public async Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(string userId, Guid id, CancellationToken cancellationToken = default)
+	{
+		_logger.LogFunctionBegan();
 
-        var group = await _context.Groups.FindAsync(id);
-        if (group is null)
-        {
-            _logger.LogInformation("Failed to find group by id.");
-            return TypedResults.NotFound();
-        }
+		_diagnosticContext.Set("group_id", id);
 
-        _diagnosticContext.Set("group_name", group.Name);
+		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		var group = await context.Groups.FindAsync(id);
+		if (group is null)
+		{
+			_logger.LogInformation("Failed to find group by id.");
+			return new NotFound();
+		}
 
-        var groupOwner = await _context.GroupMemberships
-            .SingleOrDefaultAsync(e => e.UserProfileId == _currentUser.Id &&
-                                       e.OwnershipLevel == OwnershipLevel.Owner);
+		_diagnosticContext.Set("group_name", group.Name);
 
-        if (groupOwner is null)
-        {
-            _logger.LogError("Failed to delete group because it has no owner.");
-            return TypedResults.Unauthorized();
-        }
+		var groupOwner = await context.GroupMemberships
+									  .SingleOrDefaultAsync(e => e.UserProfileId == userId &&
+																 e.OwnershipLevel == OwnershipLevel.Owner,
+															 cancellationToken);
 
-        if (groupOwner.UserProfileId != _currentUser.Id)
-        {
-            _logger.LogError("Failed to delete group because the request came from someone other than the owner. " +
-                             "The deletion was requested by the user: {@currentUser}", _currentUser.User);
-            return TypedResults.Unauthorized();
-        }
+		if (groupOwner is null)
+		{
+			_logger.LogError("Failed to delete group because it has no owner.");
+			return new Error();
+		}
 
-        _context.Groups.Remove(group);
-        await _context.SaveChangesAsync();
+		if (groupOwner.UserProfileId != userId)
+		{
+			_logger.LogError("Failed to delete group because the request came from someone other than the owner. " +
+							 "The deletion was requested by the user: {@UserId}", userId);
+			return new Error();
+		}
 
-        _logger.LogInformation("Successfully deleted group");
+		context.Groups.Remove(group);
+		await context.SaveChangesAsync(cancellationToken);
 
-        return TypedResults.NoContent();
-    }
+		_logger.LogInformation("Successfully deleted group");
 
-    private static async Task UpdateExistingGroupAsync(Group group, Group dto, JordnaerDbContext context)
-    {
-        group.Name = dto.Name;
-        group.Address = dto.Address;
-        group.City = dto.City;
-        group.ZipCode = dto.ZipCode;
-        group.ShortDescription = dto.ShortDescription;
-        group.Description = dto.Description;
+		return new Success();
+	}
 
-        group.Categories.Clear();
-        foreach (var categoryDto in dto.Categories)
-        {
-            var category = await context.Categories.FindAsync(categoryDto.Id);
-            if (category is null)
-            {
-                group.Categories.Add(categoryDto);
-                context.Entry(categoryDto).State = EntityState.Added;
-            }
-            else
-            {
-                category.LoadValuesFrom(categoryDto);
-                group.Categories.Add(category);
-                context.Entry(category).State = EntityState.Modified;
-            }
-        }
-    }
+	private static async Task UpdateExistingGroupAsync(Group group, Group dto, JordnaerDbContext context, CancellationToken cancellationToken = default)
+	{
+		group.Name = dto.Name;
+		group.Address = dto.Address;
+		group.City = dto.City;
+		group.ZipCode = dto.ZipCode;
+		group.ShortDescription = dto.ShortDescription;
+		group.Description = dto.Description;
+
+		group.Categories.Clear();
+		foreach (var categoryDto in dto.Categories)
+		{
+			var category = await context.Categories.FindAsync([categoryDto.Id], cancellationToken);
+			if (category is null)
+			{
+				group.Categories.Add(categoryDto);
+				context.Entry(categoryDto).State = EntityState.Added;
+			}
+			else
+			{
+				category.LoadValuesFrom(categoryDto);
+				group.Categories.Add(category);
+				context.Entry(category).State = EntityState.Modified;
+			}
+		}
+	}
 }

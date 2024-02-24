@@ -4,7 +4,7 @@ namespace Jordnaer.Shared;
 
 public class ExternalUserInfo
 {
-    [Required]
+    [Required(ErrorMessage = "Påkrævet.")]
     public required string Email { get; set; }
 
     /// <summary>
@@ -13,6 +13,6 @@ public class ExternalUserInfo
     /// We use it as <c>UserProfile.Id</c> and <c>ApplicationUser.Id</c>.
     /// </para>
     /// </summary>
-    [Required]
+    [Required(ErrorMessage = "Påkrævet.")]
     public required string ProviderKey { get; set; }
 }
