@@ -48,12 +48,16 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 
 	public async Task StopAsync(CancellationToken cancellationToken = default)
 	{
-		if (Started && HubConnection is not null)
+		if (HubConnection?.State is HubConnectionState.Connected)
 		{
 			_logger.LogDebug("Stopping SignalR Client");
 			await HubConnection.StopAsync(cancellationToken);
-			Started = false;
 			_logger.LogDebug("SignalR Client stopped");
+		}
+		else
+		{
+			_logger.LogDebug("Stop SignalR was called, but the Connection is currently in the {State} state. " +
+							 "No further action is taken.", HubConnection?.State);
 		}
 	}
 
