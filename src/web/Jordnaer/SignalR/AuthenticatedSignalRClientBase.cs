@@ -86,26 +86,35 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 			return null;
 		}
 
-		if (serverUri.Contains("[::]"))
+		if (!serverUri.Contains("[::]"))
 		{
-			_logger.LogInformation(
-				"First server address was {ServerUri}, trying to get hostname from environment variable 'WEBSITE_HOSTNAME' instead.", serverUri);
-
-			serverUri = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
+			var cookieContainer = new CookieContainer(1);
+			cookieContainer.Add(new Cookie(
+									name: AuthenticationConstants.CookieName,
+									value: cookie,
+									path: "/",
+									domain: new Uri(serverUri).Host));
+			return cookieContainer;
 		}
 
-		if (serverUri is null)
+		_logger.LogInformation(
+			"First server address was {ServerUri}, trying to get hostname from environment variable 'WEBSITE_HOSTNAME' instead.", serverUri);
+
+		var domain = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
+		if (domain is null)
 		{
-			_logger.LogError("Cannot determine domain for Cookie, Environment.GetEnvironmentVariable(\"WEBSITE_HOSTNAME\") was null.");
+			_logger.LogError("Cannot determine domain for Cookie, " +
+							 "environment variable 'WEBSITE_HOSTNAME' was null.");
+
 			return null;
 		}
 
-		var domain = new Uri(serverUri).Host;
-
-		var cookieContainer = new CookieContainer(1);
-		cookieContainer.Add(new Cookie(AuthenticationConstants.CookieName, cookie, "/", domain));
-
-		return cookieContainer;
+		var container = new CookieContainer(1);
+		container.Add(new Cookie(name: AuthenticationConstants.CookieName,
+								 value: cookie,
+								 path: "/",
+								 domain: domain));
+		return container;
 	}
 
 	public async ValueTask DisposeAsync()
