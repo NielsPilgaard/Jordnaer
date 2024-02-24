@@ -145,7 +145,6 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-	app.UseWebAssemblyDebugging();
 	await app.InitializeDatabaseAsync();
 }
 else
@@ -158,7 +157,6 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
