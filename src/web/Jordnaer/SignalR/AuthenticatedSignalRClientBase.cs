@@ -37,6 +37,7 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 
 	public async Task StartAsync(CancellationToken cancellationToken = default)
 	{
+		//TODO: SignalR is flaky on Azure, maybe locally, investigate
 		if (!Started && HubConnection is not null)
 		{
 			_logger.LogDebug("Starting SignalR Client");
