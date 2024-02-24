@@ -31,7 +31,6 @@ public class GroupSearchService : IGroupSearchService
 
 	public async Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken = default)
 	{
-		// TODO: Convert to Dapper
 		var groups = _context.Groups
 			.AsNoTracking()
 			.AsQueryable()
