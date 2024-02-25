@@ -1,4 +1,5 @@
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Features.Chat;
 using Jordnaer.Shared;
 using MassTransit;
@@ -50,11 +51,11 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 			});
 		}
 
-		await _chatHub.Clients.Users(recipientIds).ReceiveChatMessage(chatMessage);
-
 		try
 		{
 			await _context.SaveChangesAsync(consumeContext.CancellationToken);
+
+			await _chatHub.Clients.Users(recipientIds).ReceiveChatMessage(chatMessage);
 
 			await _context.Chats
 				.Where(chat => chat.Id == chatMessage.ChatId)
@@ -64,7 +65,7 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 		}
 		catch (Exception exception)
 		{
-			_logger.LogError(exception, "Exception occurred while processing {command} command", nameof(SendMessage));
+			_logger.LogException(exception);
 			throw;
 		}
 	}

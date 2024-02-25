@@ -14,17 +14,23 @@ public class UnreadMessageSignalRClient(
 {
 	public void OnMessageReceived(Func<SendMessage, Task> action)
 	{
-		if (!Started && HubConnection is not null)
+		if (HubConnection is null)
 		{
-			HubConnection.On(nameof(IChatHub.ReceiveChatMessage), action);
+			return;
 		}
+
+		HubConnection.Remove(nameof(IChatHub.ReceiveChatMessage));
+		HubConnection.On(nameof(IChatHub.ReceiveChatMessage), action);
 	}
 
 	public void OnChatStarted(Func<StartChat, Task> action)
 	{
-		if (!Started && HubConnection is not null)
+		if (HubConnection is null)
 		{
-			HubConnection.On(nameof(IChatHub.StartChat), action);
+			return;
 		}
+
+		HubConnection.Remove(nameof(IChatHub.StartChat));
+		HubConnection.On(nameof(IChatHub.StartChat), action);
 	}
 }

@@ -41,24 +41,26 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 		if (!Started && HubConnection is not null)
 		{
 			_logger.LogDebug("Starting SignalR Client");
+
 			await HubConnection.StartAsync(cancellationToken);
+
 			Started = true;
+
 			_logger.LogDebug("SignalR Client Started");
 		}
 	}
 
 	public async Task StopAsync(CancellationToken cancellationToken = default)
 	{
-		if (HubConnection?.State is HubConnectionState.Connected)
+		if (Started && HubConnection is not null)
 		{
 			_logger.LogDebug("Stopping SignalR Client");
+
 			await HubConnection.StopAsync(cancellationToken);
+
+			Started = false;
+
 			_logger.LogDebug("SignalR Client stopped");
-		}
-		else
-		{
-			_logger.LogDebug("Stop SignalR was called, but the Connection is currently in the {State} state. " +
-							 "No further action is taken.", HubConnection?.State);
 		}
 	}
 
@@ -67,7 +69,9 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 		if (HubConnection is not null)
 		{
 			_logger.LogInformation("Disposing SignalR Client");
+
 			await HubConnection.DisposeAsync();
+
 			_logger.LogInformation("SignalR Client disposed");
 		}
 

@@ -7,10 +7,13 @@
 @inject ChatSignalRClient ChatSignalRClient
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
+
+@rendermode @(new InteractiveServerRenderMode(false))
+
 @attribute [Authorize]
 
 <MetadataComponent Title="Mini Møder - Chat"
-                   Description="Her kan du skrive med andre"/>
+                   Description="Her kan du skrive med andre" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <MudGrid Style="height: 85svh">
@@ -136,7 +139,6 @@
             var lastChatMessage = chat.Messages.LastOrDefault();
             if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser.Id)
             {
-	            await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -166,16 +168,18 @@
 
             if (_activeChat?.Id == chat.Id)
             {
-	            LastMessageWasSentSuccessfullyByCurrentUser = false;
+                LastMessageWasSentSuccessfullyByCurrentUser = false;
                 await ChatService.MarkMessagesAsReadAsync(_currentUser.Id, message.ChatId);
                 await InvokeAsync(StateHasChanged);
-                await ScrollToBottom();
             }
             else
             {
-                chat.UnreadMessageCount++;
-                _chats = _chats.OrderByDescending(c => c.UnreadMessageCount).ToList();
-                await InvokeAsync(StateHasChanged);
+                await InvokeAsync(() =>
+                {
+                    chat.UnreadMessageCount++;
+                    _chats = _chats.OrderByDescending(c => c.UnreadMessageCount).ToList();
+                    StateHasChanged();
+                });
             }
         });
 
@@ -186,7 +190,6 @@
     {
         if (_activeChat is null)
         {
-            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
             return;
         }
 
@@ -211,7 +214,7 @@
 
         MarkMessageIfSuccessfullySentByCurrentUser();
 
-        if (!Navigation.Uri.EndsWith($"/chat/{_activeChat.Id}"))
+        if (_activeChat is not null && !Navigation.Uri.EndsWith($"/chat/{_activeChat.Id}"))
         {
             Navigation.NavigateTo($"/chat/{_activeChat.Id}");
         }
@@ -219,19 +222,19 @@
 
     private void MarkMessageIfSuccessfullySentByCurrentUser()
     {
-	    if (_activeChat is null)
-	    {
-		    return;
-	    }
+        if (_activeChat is null)
+        {
+            return;
+        }
 
-	    var lastMessage = _activeChat.Messages.LastOrDefault();
-	    if (lastMessage is null)
-	    {
-		    LastMessageWasSentSuccessfullyByCurrentUser = false;
-		    return;
-	    }
-	    
-	    LastMessageWasSentSuccessfullyByCurrentUser= lastMessage.SenderId == _currentUser.Id;
+        var lastMessage = _activeChat.Messages.LastOrDefault();
+        if (lastMessage is null)
+        {
+            LastMessageWasSentSuccessfullyByCurrentUser = false;
+            return;
+        }
+
+        LastMessageWasSentSuccessfullyByCurrentUser = lastMessage.SenderId == _currentUser.Id;
     }
 
     private async Task HideFooter() => await JsRuntime.InvokeVoidAsync("utilities.hideElement", ".footer");
@@ -241,7 +244,7 @@
     private void BackToList()
     {
         _activeChat = null;
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("activeChat", (Guid?)null));
+        Navigation.NavigateTo($"{Navigation.BaseUri}chat");
     }
 
     private async Task SendMessage()

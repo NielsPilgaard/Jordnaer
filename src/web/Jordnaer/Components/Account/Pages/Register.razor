@@ -25,11 +25,6 @@
             <h2>Opret en ny konto.</h2>
             <hr />
             <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder=""/>
-                <label for="username">Brugernavn</label>
-                <ValidationMessage For="() => Input.Username" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="navn@eksempel.com" />
                 <label for="email">Email</label>
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
@@ -87,7 +82,7 @@
 
         var userId = await UserManager.GetUserIdAsync(user);
 
-        var userProfile = new UserProfile { Id = user.Id, UserName = Input.Username };
+        var userProfile = new UserProfile { Id = user.Id };
         await using var context = await DbContextFactory.CreateDbContextAsync();
         context.UserProfiles.Add(userProfile);
         await context.SaveChangesAsync();
@@ -135,13 +130,6 @@
 
     private sealed class InputModel
     {
-        [Required(ErrorMessage = "Påkrævet.")]
-        [StringLength(30, MinimumLength = 2, ErrorMessage = "{0] skal være mellem {2} og {1} karakter langt.")]
-        [RegularExpression("^[\\w@-_\\.^][^\\\\]+$",
-	        ErrorMessage = "Brugernavn må kun bestå af bogstaver, tal, og udvalgte tegn.")]
-        [Display(Name = "Brugernavn")]
-        public string Username { get; set; } = "";
-
         [Required(ErrorMessage = "Påkrævet.")]
         [EmailAddress(ErrorMessage = "Email skal være gyldig.")]
         [Display(Name = "Email")]
