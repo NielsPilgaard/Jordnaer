@@ -25,7 +25,7 @@
 
             @if ((_activeChat is null && _isMobile) || _isMobile is false)
             {
-                <ChatSelector CurrentUser="_currentUser" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
+                <ChatSelector Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
             }
 
             @if (_isMobile is false)
@@ -52,7 +52,7 @@
                     <MudList Class="chat-message-list" DisablePadding Dense>
                         <MudSpacer />
 
-                        <ChatMessageList CurrentUser="_currentUser" ActiveChat="_activeChat" />
+                        <ChatMessageList ActiveChat="_activeChat" />
 
                         @if (LastMessageWasSentSuccessfullyByCurrentUser)
                         {
@@ -62,20 +62,20 @@
                             </div>
                         }
 
-
-                        <MudTextField @bind-Value="_userText"
-                                      id="chat-message-input"
+                        <MudTextField id="chat-message-input"
+                                      @ref="_messageInput"
+                                      T="string"
                                       FullWidth
                                       Immediate
+                                      Clearable
                                       Adornment="Adornment.End"
                                       OnKeyDown="SendMessageOnEnter"
                                       AdornmentIcon="@Icons.Material.Filled.Send"
-                                      AdornmentColor="@(string.IsNullOrWhiteSpace(_userText) ? Color.Default : Color.Primary)"
+                                      AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Primary)"
                                       OnAdornmentClick="SendMessage"
                                       Class="mt-3"
                                       Lines="3"
                                       IconSize="Size.Large"
-                                      TextUpdateSuppression="false"
                                       Style="background: var(--mud-palette-chip-default)" />
                     </MudList>
                 </MudItem>
@@ -92,7 +92,7 @@
     private List<ChatDto> _chats = [];
     private ChatDto? _activeChat;
 
-    private string _userText = string.Empty;
+    private MudTextField<string> _messageInput = new();
 
     private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
@@ -252,22 +252,24 @@
 
     private async Task SendMessage()
     {
-        if (_activeChat is null || string.IsNullOrWhiteSpace(_userText))
+        if (_activeChat is null || string.IsNullOrWhiteSpace(_messageInput.Value))
         {
             return;
         }
 
         var message = new ChatMessageDto
-            {
-                ChatId = _activeChat.Id,
-                Id = NewId.NextGuid(),
-                SentUtc = DateTime.UtcNow,
-                SenderId = _currentUser.Id,
-                Text = _userText
-            };
+        {
+            ChatId = _activeChat.Id,
+            Id = NewId.NextGuid(),
+            SentUtc = DateTime.UtcNow,
+            SenderId = _currentUser.Id,
+            Text = _messageInput.Value
+        };
+
+        await _messageInput.BlurAsync();
+        await _messageInput.Clear();
 
         _activeChat.Messages.Add(message);
-        _userText = string.Empty;
 
         if (_isActiveChatPublished)
         {
@@ -287,8 +289,6 @@
         if (keyboardEventArgs is { Key: "Enter", ShiftKey: false })
         {
             await SendMessage();
-
-            _userText = "";
         }
     }
 

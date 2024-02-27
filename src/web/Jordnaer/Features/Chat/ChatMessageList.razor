@@ -1,3 +1,5 @@
+@inject CurrentUser CurrentUser
+
 <Virtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
 
     @if (IsMessageFromSelf(message))
@@ -40,8 +42,6 @@
 
 @code
 {
-    [Parameter]
-    public required UserProfile CurrentUser { get; set; } = null!;
     [Parameter]
     public required ChatDto? ActiveChat { get; set; }
 

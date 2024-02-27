@@ -1,7 +1,11 @@
 @using Jordnaer.Extensions
 @using Jordnaer.Shared
 
-@if (CurrentUser is null)
+@inject CurrentUser CurrentUser
+
+@attribute [Authorize]
+
+@if (CurrentUser.Id is null)
 {
 	return;
 }
@@ -36,8 +40,6 @@
 </MudItem>
 
 @code{
-    [Parameter]
-    public UserProfile? CurrentUser { get; set; } 
     [Parameter]
     public required List<ChatDto> Chats { get; set; } =[];
 
