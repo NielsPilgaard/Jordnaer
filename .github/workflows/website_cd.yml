@@ -35,7 +35,10 @@ jobs:
         run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test "${{ env.TESTS_DIRECTORY }}" --logger "trx;LogFileName=test-results.trx" --filter Category!=ManualTest
+        run: >
+          dotnet test "${{ env.WORKING_DIRECTORY }}" 
+          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
+          --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
 
