@@ -33,7 +33,10 @@ jobs:
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
         if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
-        run: dotnet test "${{ env.WORKING_DIRECTORY }}" --logger "trx;LogFileName=frontend-test-results.trx" --filter Category!=ManualTest
+        run: >
+          dotnet test "${{ env.WORKING_DIRECTORY }}" 
+          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
+          --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
 
