@@ -8,11 +8,6 @@ on:
       - ".github/workflows/website_frontend_ci.yml"
   workflow_dispatch:
 
-# Needed by dorny/test-reporter@v1
-permissions:
-  statuses: write
-  checks: write
-
 env:
   WORKING_DIRECTORY: tests/web/Jordnaer.E2E.Tests
 jobs:
@@ -39,15 +34,6 @@ jobs:
           --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
-
-      - name: Test Report
-        # Dependabot cannot access secrets, so we disable this step for Dependabot
-        if: (success() || failure()) && (github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]')
-        uses: dorny/test-reporter@v1
-        with:
-          name: Test Report
-          path: "**.trx"
-          reporter: dotnet-trx
 
       - name: Upload Screenshots
         if: always()
