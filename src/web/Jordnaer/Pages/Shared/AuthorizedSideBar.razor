@@ -38,6 +38,9 @@
     private IDisposable? _locationChangedHandler;
     private string _currentUrl = string.Empty;
 
+    [Parameter]
+    public bool IsSideBarOpen { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
 	    await GetUnreadMessageCount();
@@ -66,7 +69,10 @@
         if (_unreadMessageCount != unreadMessageCount)
         {
             _unreadMessageCount = unreadMessageCount;
-            await InvokeAsync(StateHasChanged);
+            if (IsSideBarOpen)
+            {
+	            await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
@@ -83,7 +89,10 @@
             if (_currentUrl.Contains(chat.Id.ToString()) is false)
             {
                 _unreadMessageCount++;
-                await InvokeAsync(StateHasChanged);
+                if (IsSideBarOpen)
+                {
+	                await InvokeAsync(StateHasChanged);
+                }
             }
         });
 
@@ -97,7 +106,10 @@
             if (_currentUrl.Contains(message.ChatId.ToString()) is false)
             {
                 _unreadMessageCount++;
-                await InvokeAsync(StateHasChanged);
+                if (IsSideBarOpen)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
             }
         });
 

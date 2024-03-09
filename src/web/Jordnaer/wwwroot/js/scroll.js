@@ -13,7 +13,7 @@ window.scrollFunctions = {
         const element = document.querySelector(selector);
 
         if (!element) return;
-
+        
         element.scrollTop = element.scrollHeight;
     }
 };
