@@ -25,6 +25,11 @@ using MudExtensions.Services;
 using Serilog;
 using System.Text.Json.Serialization;
 using Jordnaer.Features.Authentication;
+using Grafana.OpenTelemetry;
+using MassTransit.Logging;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MassTransit.Monitoring;
+using OpenTelemetry.Metrics;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -139,7 +144,17 @@ builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddDataForsyningenClient();
-builder.Services.Configure<DataForsyningenOptions>(builder.Configuration.GetSection(DataForsyningenOptions.SectionName));
+
+builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
+builder.Services
+	   .AddOpenTelemetry()
+	   .WithMetrics(x => x.AddMeter(InstrumentationOptions.MeterName)
+						  .AddMeter("Polly")
+						  // TODO: Only used to see which metrics we have so we can trim
+						  .AddPrometheusExporter())
+	   .WithTracing(x => x.AddSource(DiagnosticHeaders.DefaultListenerName))
+	   .UseGrafana();
 
 var app = builder.Build();
 
@@ -180,7 +195,7 @@ app.MapRazorComponents<App>()
 
 app.MapAdditionalIdentityEndpoints();
 
-app.MapHealthChecks("/health").AllowAnonymous().RequireHealthCheckRateLimit();
+app.MapObservabilityEndpoints();
 
 app.MapHub<ChatHub>("/hubs/chat");
 
