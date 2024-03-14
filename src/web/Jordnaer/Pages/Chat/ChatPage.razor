@@ -297,6 +297,8 @@
         }
 
         await _messageInput.FocusAsync();
+        StateHasChanged();
+        await ScrollToBottom();
     }
 
     private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
