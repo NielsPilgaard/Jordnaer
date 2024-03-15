@@ -66,6 +66,7 @@ public class UserSearchService : IUserSearchService
 			users = users.OrderBy(user => user.CreatedUtc);
 		}
 
+		// TODO: This uses a ton of memory, Dapper? (60+mb)
 		var usersToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedUsers = await users
 			.Skip(usersToSkip)
