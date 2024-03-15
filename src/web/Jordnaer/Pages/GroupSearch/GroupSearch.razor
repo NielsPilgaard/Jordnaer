@@ -42,20 +42,36 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+        {
+            return;
+        }
+
         _isSearching = true;
+
+        var stateHasChanged = false;
+
         var savedSearchResult = await SessionStorage.GetItemAsync<GroupSearchResult>(nameof(UserSearchResult));
         var savedSearchFilter = await SessionStorage.GetItemAsync<GroupSearchFilter>(nameof(UserSearchFilter));
+        
         _isSearching = false;
 
         if (savedSearchResult is not null)
         {
             _searchResult = savedSearchResult;
             _hasSearched = true;
+            stateHasChanged = true;
         }
 
         if (savedSearchFilter is not null)
         {
             _filter = savedSearchFilter;
+            stateHasChanged = true;
+        }
+        
+        if (stateHasChanged)
+        {
+	        StateHasChanged();
         }
     }
 
