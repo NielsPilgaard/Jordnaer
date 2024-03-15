@@ -72,7 +72,7 @@ public class UserSearchService : IUserSearchService
 			.Take(filter.PageSize)
 			.Include(user => user.Categories)
 			.Include(user => user.ChildProfiles)
-			.AsSingleQuery()
+			.AsSplitQuery()
 			.Select(user => new UserDto
 			{
 				ProfilePictureUrl = user.ProfilePictureUrl,
