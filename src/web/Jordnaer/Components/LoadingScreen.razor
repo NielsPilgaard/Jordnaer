@@ -1,0 +1,19 @@
+﻿@inject Blazr.RenderState.IBlazrRenderStateService RenderStateService
+
+@if (RenderStateService.IsPreRender)
+{
+	<div id="fullscreen-loader">
+		<div style="display: flex; justify-content: center; align-items: center; height: 100svh;">
+			<img src="images/minimoeder_logo_payoff.png" alt="Mini Møder Logo" style="max-width: 100%;" />
+		</div>
+	</div>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public required RenderFragment ChildContent { get; set; }
+}
