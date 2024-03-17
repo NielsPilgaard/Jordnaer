@@ -1,7 +1,7 @@
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
-using Jordnaer.Features.Profile;
+using Jordnaer.Features.Images;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;

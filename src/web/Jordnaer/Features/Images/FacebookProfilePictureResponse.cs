@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Jordnaer.Features.Profile;
+namespace Jordnaer.Features.Images;
 
 public class FacebookProfilePictureResponse
 {

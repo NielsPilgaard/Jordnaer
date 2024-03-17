@@ -1,3 +1,5 @@
+using Jordnaer.Features.Images;
+
 namespace Jordnaer.Features.Profile;
 
 public static class WebApplicationBuilderExtensions
@@ -7,6 +9,10 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddScoped<IProfileCache, ProfileCache>();
 		builder.Services.AddScoped<IProfileService, ProfileService>();
 		builder.Services.AddScoped<IProfileImageService, ProfileImageService>();
+
+		builder.Services.AddScoped<IExternalProviderPictureDownloader, MicrosoftPictureDownloader>();
+		builder.Services.AddScoped<IExternalProviderPictureDownloader, FacebookPictureDownloader>();
+		builder.Services.AddScoped<IExternalProviderPictureDownloader, GooglePictureDownloader>();
 
 		return builder;
 	}

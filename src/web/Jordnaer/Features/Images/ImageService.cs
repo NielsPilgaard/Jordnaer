@@ -1,12 +1,16 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Jordnaer.Extensions;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
-namespace Jordnaer.Features.Profile;
+namespace Jordnaer.Features.Images;
 
 public interface IImageService
 {
 	/// <summary>
-	/// Uploads an image to Azure Blob Storage an returns the url.
+	/// Uploads an image to Azure Blob Storage and returns the url.
 	/// <para>
 	/// If container <paramref name="containerName"/> already has a blob
 	/// with the name <paramref name="blobName"/>, it is overriden.
@@ -15,7 +19,7 @@ public interface IImageService
 	/// <param name="blobName"></param>
 	/// <param name="containerName"></param>
 	/// <param name="fileBytes"></param>
-	/// <returns></returns>
+	/// <param name="cancellationToken"></param>
 	Task<string> UploadImageAsync(
 		string blobName,
 		string containerName,
@@ -23,7 +27,7 @@ public interface IImageService
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Uploads an image to Azure Blob Storage an returns the url.
+	/// Uploads an image to Azure Blob Storage and returns the url.
 	/// <para>
 	/// If container <paramref name="containerName"/> already has a blob
 	/// with the name <paramref name="blobName"/>, it is overriden.
@@ -32,31 +36,32 @@ public interface IImageService
 	/// <param name="blobName"></param>
 	/// <param name="containerName"></param>
 	/// <param name="fileStream"></param>
-	/// <returns></returns>
+	/// <param name="cancellationToken"></param>
 	Task<string> UploadImageAsync(
 		string blobName,
 		string containerName,
 		Stream fileStream,
 		CancellationToken cancellationToken = default);
 
-	Task DeleteImageAsync(string blobName, string containerName,
+	Task DeleteImageAsync(
+		string blobName,
+		string containerName,
 		CancellationToken cancellationToken = default);
+
+	Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken = default);
+
+	Task<Stream> ResizeImageAsync(Stream imageAsStream, CancellationToken cancellationToken = default);
 }
 
-public class ImageService : IImageService
+public class ImageService(
+	BlobServiceClient blobServiceClient,
+	ILogger<ImageService> logger,
+	IHttpClientFactory httpClientFactory)
+	: IImageService
 {
-	private readonly BlobServiceClient _blobServiceClient;
-	private readonly ILogger<ImageService> _logger;
-
-	public ImageService(BlobServiceClient blobServiceClient, ILogger<ImageService> logger)
-	{
-		_blobServiceClient = blobServiceClient;
-		_logger = logger;
-	}
-
 	public async Task<string> UploadImageAsync(string blobName, string containerName, Stream fileStream, CancellationToken cancellationToken = default)
 	{
-		var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 		await containerClient.CreateIfNotExistsAsync(
 			publicAccessType: PublicAccessType.Blob,
 			cancellationToken: cancellationToken);
@@ -78,7 +83,7 @@ public class ImageService : IImageService
 	public async Task DeleteImageAsync(string blobName, string containerName,
 		CancellationToken cancellationToken = default)
 	{
-		var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 		await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
 
 		var blobClient = containerClient.GetBlobClient(blobName);
@@ -87,7 +92,42 @@ public class ImageService : IImageService
 
 		if (response.HasValue && response.Value is false)
 		{
-			_logger.LogWarning("Failed to delete blob {blobName} from container {containerName}", blobName, containerName);
+			logger.LogWarning("Failed to delete blob {blobName} from container {containerName}", blobName, containerName);
 		}
+	}
+
+	public async Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken = default)
+	{
+
+		var client = httpClientFactory.CreateClient(HttpClients.Default);
+		var response = await client.GetAsync(url, cancellationToken);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			logger.LogError("Failed to get image as byte array from url {url}", url);
+			return null;
+		}
+
+		return await response.Content.ReadAsStreamAsync(cancellationToken);
+	}
+
+	public async Task<Stream> ResizeImageAsync(Stream imageAsStream, CancellationToken cancellationToken = default)
+	{
+		// 0 maintains aspect ratio
+		const int width = 0;
+		const int height = 200;
+
+		using var image = await Image.LoadAsync(imageAsStream, cancellationToken);
+
+		var outputStream = new MemoryStream();
+
+		image.Mutate(img => img.Resize(width, height));
+
+		await image.SaveAsync(outputStream, new WebpEncoder(), cancellationToken);
+
+		// Allow the stream to be read again
+		outputStream.Position = 0;
+
+		return outputStream;
 	}
 }

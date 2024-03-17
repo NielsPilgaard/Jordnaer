@@ -26,6 +26,7 @@ using Serilog;
 using System.Text.Json.Serialization;
 using Jordnaer.Features.Authentication;
 using Grafana.OpenTelemetry;
+using Jordnaer.Features.Images;
 using MassTransit.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MassTransit.Monitoring;

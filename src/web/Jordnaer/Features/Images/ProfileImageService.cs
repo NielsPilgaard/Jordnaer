@@ -2,7 +2,7 @@ using Jordnaer.Database;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 
-namespace Jordnaer.Features.Profile;
+namespace Jordnaer.Features.Images;
 
 public interface IProfileImageService
 {
