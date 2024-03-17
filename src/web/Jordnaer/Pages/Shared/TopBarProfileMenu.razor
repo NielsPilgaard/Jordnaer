@@ -4,8 +4,6 @@
 
 @rendermode @(InteractiveServer)
 
-<ThemeProvider @bind-IsDarkMode="_isDarkMode" />
-
 <MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
     <ActivatorContent>
         <MudAvatar>
@@ -14,12 +12,7 @@
     </ActivatorContent>
     <ChildContent>
         <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">Redigér Profil</MudMenuItem>
-        <MudMenuItem AutoClose="false"
-                     OnClick="UpdateDarkMode"
-                     Icon="@(_isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
-                     IconColor="@(_isDarkMode ? Color.Dark : Color.Warning)">
-            Skift tema
-        </MudMenuItem>
+        <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts" Href="Account/Manage">Konto Indstillinger</MudMenuItem>
         <MudDivider />
         <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnAction="Logout">
             Log af
@@ -27,10 +20,6 @@
     </ChildContent>
 </MudMenu>
 @code {
-	private bool _isDarkMode;
-
-    private const string Key = "dark-mode";
-
     private string _profilePictureUrl = ProfileConstants.Default_Profile_Picture;
 
     private string? _currentUrl;
@@ -44,25 +33,30 @@
         {
             _profilePictureUrl = userProfile.ProfilePictureUrl;
         }
+        else
+        {
+	        ProfileCache.ProfileChanged += SetProfilePictureOnUpdate;
+        }
 
         _currentUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
         Navigation.LocationChanged += OnLocationChanged;
     }
 
-    private async Task UpdateDarkMode()
+    private void SetProfilePictureOnUpdate(object? sender, UserProfile profile)
     {
-        _isDarkMode = !_isDarkMode;
-
-        await LocalStorage.SetItemAsync(Key, _isDarkMode);
-
-        StateHasChanged();
+        _profilePictureUrl = profile.ProfilePictureUrl;
     }
+
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         _currentUrl = Navigation.ToBaseRelativePath(e.Location);
-        StateHasChanged();
     }
 
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    public void Dispose()
+    {
+	    Navigation.LocationChanged -= OnLocationChanged;
+	    ProfileCache.ProfileChanged -= SetProfilePictureOnUpdate;
+    }
+
 }
