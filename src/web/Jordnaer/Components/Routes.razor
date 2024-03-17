@@ -1,32 +1,38 @@
-@attribute [StreamRendering]
+@using Blazr.RenderState
+@inject Blazr.RenderState.IBlazrRenderStateService RenderStateService
 
-<LoadingScreen>
-	<Router AppAssembly="@typeof(Program).Assembly">
-		<Found Context="routeData">
-			<AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-				<NotAuthorized>
-					@if (context.User.Identity?.IsAuthenticated is not true)
-					{
-						<RedirectToLogin />
-					}
-					else
-					{
-						<MudContainer MaxWidth="MaxWidth.Small">
-							<MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke adgang til at se denne side</MudAlert>
-						</MudContainer>
-					}
-				</NotAuthorized>
-				<Authorizing>
-					<MudLoading Loading="true" />
-				</Authorizing>
-			</AuthorizeRouteView>
-			<FocusOnNavigate RouteData="@routeData" Selector="h1" />
-		</Found>
-		<NotFound>
-			<LayoutView Layout="typeof(MainLayout)">
-				<NotFoundComponent />
-			</LayoutView>
-		</NotFound>
-	</Router>
 
-</LoadingScreen>
+@* @if (RenderStateService.IsPreRender && RenderStateService.RenderState is not BlazrRenderState.None)
+{   TODO: Figure out how to make a good loader
+    <LoadingScreen />
+    return;
+} *@
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <NotAuthorized>
+                @if (context.User.Identity?.IsAuthenticated is not true)
+                {
+                    <RedirectToLogin />
+                }
+                else
+                {
+                    <MudContainer MaxWidth="MaxWidth.Small">
+                        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke adgang til at se denne side</MudAlert>
+                    </MudContainer>
+                }
+            </NotAuthorized>
+            <Authorizing>
+                <MudLoading Loading="true" />
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(MainLayout)">
+            <NotFoundComponent />
+        </LayoutView>
+    </NotFound>
+</Router>
+

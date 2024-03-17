@@ -2,7 +2,7 @@
 @inject IProfileCache ProfileCache
 @inject ILocalStorageService LocalStorage
 
-@rendermode @(InteractiveServer)
+@rendermode InteractiveServer
 
 <MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
     <ActivatorContent>
@@ -12,7 +12,9 @@
     </ActivatorContent>
     <ChildContent>
         <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">Redigér Profil</MudMenuItem>
-        <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts" Href="Account/Manage">Konto Indstillinger</MudMenuItem>
+        <Feature Name="@FeatureFlags.AccountSettings">
+	        <MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts" Href="Account/Manage">Konto Indstillinger</MudMenuItem>
+        </Feature>        
         <MudDivider />
         <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnAction="Logout">
             Log af
