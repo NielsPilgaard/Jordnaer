@@ -1,6 +1,6 @@
 using Azure.Storage.Blobs;
 using FluentAssertions;
-using Jordnaer.Features.Profile;
+using Jordnaer.Features.Images;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Features.DeleteUser;
-using Jordnaer.Features.Profile;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +11,7 @@ using SendGrid;
 using SendGrid.Helpers.Mail;
 using Serilog;
 using System.Net;
+using Jordnaer.Features.Images;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
