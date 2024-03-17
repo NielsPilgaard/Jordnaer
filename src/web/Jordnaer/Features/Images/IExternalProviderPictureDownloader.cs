@@ -1,5 +1,3 @@
-using Jordnaer.Features.Profile;
-
 namespace Jordnaer.Features.Images;
 
 public interface IExternalProviderPictureDownloader

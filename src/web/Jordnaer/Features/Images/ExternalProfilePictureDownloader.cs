@@ -1,5 +1,4 @@
 using Jordnaer.Database;
-using Jordnaer.Features.Profile;
 using Mediator;
 
 namespace Jordnaer.Features.Images;

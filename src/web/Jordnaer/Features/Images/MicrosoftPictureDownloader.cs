@@ -1,6 +1,5 @@
 using System.Net.Http.Headers;
 using Jordnaer.Extensions;
-using Jordnaer.Features.Profile;
 
 namespace Jordnaer.Features.Images;
 

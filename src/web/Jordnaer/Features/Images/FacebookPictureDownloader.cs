@@ -1,5 +1,4 @@
 using Jordnaer.Extensions;
-using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 
 namespace Jordnaer.Features.Images;

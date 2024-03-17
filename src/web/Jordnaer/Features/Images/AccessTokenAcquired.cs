@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Mediator;
 
-namespace Jordnaer.Features.Profile;
+namespace Jordnaer.Features.Images;
 
 public readonly struct AccessTokenAcquired : INotification
 {
