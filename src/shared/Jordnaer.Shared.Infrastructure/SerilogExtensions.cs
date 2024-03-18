@@ -21,6 +21,12 @@ public static class SerilogExtensions
 			.ValidateDataAnnotations()
 			.ValidateOnStart();
 
+		builder.Services
+			   .AddOptions<ElmahIoOptions>()
+			   .BindConfiguration(ElmahIoOptions.SectionName)
+			   .ValidateDataAnnotations()
+			   .ValidateOnStart();
+
 		builder.Host.UseSerilog((context, provider, loggerConfiguration) =>
 		{
 			loggerConfiguration.ReadFrom.Configuration(context.Configuration)
@@ -31,10 +37,7 @@ public static class SerilogExtensions
 			loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 
 			loggerConfiguration.WriteToLoki(provider);
-
-			loggerConfiguration.WriteTo.ElmahIo(
-				new ElmahIoSinkOptions(apiKey: "47b4edcca90b48e79f4bf487ab2f1606",
-									   logId: new Guid("d6047f4f-273c-45e1-ba5c-b3c2a8d8ac92")));
+			loggerConfiguration.WriteToElmahIo(provider);
 		});
 
 		return builder;
@@ -49,6 +52,16 @@ public static class SerilogExtensions
 				>= 400 => LogEventLevel.Warning,
 				_ => app.Environment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Debug
 			});
+
+	private static void WriteToElmahIo(this LoggerConfiguration loggerConfiguration,
+		IServiceProvider provider)
+	{
+		var elmahIoOptions = provider.GetRequiredService<IOptions<ElmahIoOptions>>().Value;
+
+		loggerConfiguration.WriteTo.ElmahIo(
+			new ElmahIoSinkOptions(elmahIoOptions.ApiKey,
+									elmahIoOptions.LogIdGuid));
+	}
 
 	private static void WriteToLoki(this LoggerConfiguration loggerConfiguration,
 		IServiceProvider provider)
@@ -82,6 +95,18 @@ public static class SerilogExtensions
 	}
 }
 
+public sealed class ElmahIoOptions
+{
+	public const string SectionName = "ElmahIo";
+
+	[Required(ErrorMessage = "Påkrævet.")]
+	public required string ApiKey { get; set; }
+
+	[Required(ErrorMessage = "Påkrævet.")]
+	public required string LogId { get; set; }
+
+	public Guid LogIdGuid => new(LogId);
+}
 
 public sealed class GrafanaLokiOptions
 {
