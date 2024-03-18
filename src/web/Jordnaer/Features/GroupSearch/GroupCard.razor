@@ -1,0 +1,15 @@
+<MudCard Elevation="3">
+    <MudCardContent>
+        <MudImage ObjectPosition="ObjectPosition.Left" Style="border-radius: 50%" Src="@Group.ProfilePictureUrl" loading="lazy" />
+        <MudTextField Label="Group Name" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Group" ReadOnly T="string" Text="@Group.Name" />
+        <MudTextField Label="Location" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@Group.DisplayLocation()" />
+        <MudTextField Label="Short Description" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" ReadOnly T="string" Text="@Group.ShortDescription" />
+        <MudTextField Label="Member Count" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.People" ReadOnly T="int" Text="@Group.MemberCount.ToString()" />
+        <MudText Class="mt-3" Typo="Typo.body1">@Group.ShortDescription</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter]
+    public required GroupSlim Group { get; set; }
+}

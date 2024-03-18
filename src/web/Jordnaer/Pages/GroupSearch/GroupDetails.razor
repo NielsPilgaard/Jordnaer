@@ -8,7 +8,7 @@
 
     @if (_group is null && _isLoading is false)
     {
-        <NotFoundComponent Message="Vi fandt ingen gruppe med det navn, beklager!"/>
+        <NotFoundComponent Message="Vi fandt ingen gruppe med det navn, beklager!" />
         return;
     }
     @if (_group is null)
@@ -26,7 +26,7 @@
 
     <MudGrid>
         <MudItem xs="12">
-            @*  TODO: Display group nicely          <UserProfileCard Profile="_profile" UserName="@UserName" />*@
+	        <GroupCard Group="_group"/>
         </MudItem>
 
         @if (_group.Categories.Length > 0)
@@ -37,7 +37,7 @@
             </MudItem>
             <MudItem xs="12" Class="d-flex justify-start">
                 <MudChipSet ReadOnly>
-                @foreach (var category in _group.Categories)
+                    @foreach (var category in _group.Categories)
                     {
                         <MudChip Color="Color.Tertiary">@category</MudChip>
                     }
@@ -61,8 +61,8 @@
         {
             var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
             response.Switch(
-	            groupSlim => _group = groupSlim,
-	            _ => {});
+                groupSlim => _group = groupSlim,
+                _ => { });
         }
 
         _isLoading = false;
