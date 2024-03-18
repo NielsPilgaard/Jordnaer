@@ -54,3 +54,4 @@ jobs:
           version: ${{ github.ref_name }}
           logId: ${{ secrets.ELMAH_IO_LOG_ID }}
           userName: ${{ github.actor }}
+          description: ${{ github.event.head_commit.message }}
