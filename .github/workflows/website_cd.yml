@@ -6,11 +6,6 @@ on:
       - "release-website-v*.*.*"
   workflow_dispatch:
 
-# Needed by dorny/test-reporter@v1
-permissions:
-  statuses: write
-  checks: write
-
 env:
   AZURE_WEBAPP_PACKAGE_PATH: src/web/Jordnaer/publish
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests
@@ -51,3 +46,11 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
+
+      - name: Create Deployment on elmah.io
+        uses: elmahio/github-create-deployment-action@v1
+        with:
+          apiKey: ${{ secrets.ELMAH_IO_API_KEY }}
+          version: ${{ github.ref_name }}
+          logId: ${{ secrets.ELMAH_IO_LOG_ID }}
+          userName: ${{ github.actor }}
