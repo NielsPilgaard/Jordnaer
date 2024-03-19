@@ -1,10 +1,12 @@
 @page "/"
+
+@inject ISnackbar Snackbar
+
 @attribute [Layout(typeof(LandingPageLayout))]
-@rendermode @(InteractiveServer)
 
 <MetadataComponent Title="Mini Møder"
                    Description="Et online mødested for børnefamilier" />
-
+                   
 <MudHidden Breakpoint="Breakpoint.SmAndDown">
 
     <DesktopLandingPage />
@@ -16,3 +18,27 @@
     <MobileLandingPage />
 
 </MudHidden>
+
+@code
+{
+	protected override void OnInitialized()
+	{
+		Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+		Snackbar.Add("Mini Møder er under opbygning.\n" +
+		             "Du kan godt begynde at bruge Mini Møder, men der mangler stadig nogle ting hist og her \ud83d\ude0a",
+			Severity.Info,
+			options =>
+			{
+				options.CloseAfterNavigation = true;
+				options.VisibleStateDuration = int.MaxValue;
+				options.SnackbarVariant = Variant.Filled;
+				options.ShowCloseIcon = true;
+				options.Onclick = snackbar =>
+				{
+					snackbar.Dispose();
+                    Snackbar.Clear();
+					return Task.CompletedTask;
+				};
+			});
+	}
+}
