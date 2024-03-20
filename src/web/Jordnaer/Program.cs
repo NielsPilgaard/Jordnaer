@@ -2,7 +2,6 @@ using Azure.Storage.Blobs;
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Blazr.RenderState.Server;
-using Jordnaer.Components;
 using Jordnaer.Components.Account;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
@@ -16,21 +15,12 @@ using Jordnaer.Features.Profile;
 using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
 using Jordnaer.Shared.Infrastructure;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Identity;
-using MudBlazor;
-using MudBlazor.Services;
-using MudExtensions.Services;
 using Serilog;
 using System.Text.Json.Serialization;
-using Jordnaer.Features.Authentication;
-using Grafana.OpenTelemetry;
+using Jordnaer.Components;
 using Jordnaer.Features.Images;
-using MassTransit.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using MassTransit.Monitoring;
-using OpenTelemetry.Metrics;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -41,41 +31,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
 	   .AddInteractiveServerComponents();
 
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<IdentityUserAccessor>();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-builder.Services.AddCurrentUser();
-
-builder.Services.AddAuthentication(options =>
-{
-	options.DefaultScheme = IdentityConstants.ApplicationScheme;
-	options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-}).AddFacebook(options =>
-{
-	options.AppId = builder.Configuration.GetValue<string>("Authentication:Schemes:Facebook:AppId")!;
-	options.AppSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Facebook:AppSecret")!;
-	options.SaveTokens = true;
-}).AddMicrosoftAccount(options =>
-{
-	options.ClientId = builder.Configuration.GetValue<string>("Authentication:Schemes:Microsoft:ClientId")!;
-	options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Microsoft:ClientSecret")!;
-	options.SaveTokens = true;
-}).AddGoogle(options =>
-{
-	options.ClientId = builder.Configuration.GetValue<string>("Authentication:Schemes:Google:ClientId")!;
-	options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Google:ClientSecret")!;
-	options.SaveTokens = true;
-}).AddIdentityCookies();
-
-builder.Services.AddIdentityCore<ApplicationUser>(options =>
-{
-	options.SignIn.RequireConfirmedAccount = true;
-	options.User.RequireUniqueEmail = true;
-})
-.AddEntityFrameworkStores<JordnaerDbContext>()
-.AddSignInManager()
-.AddDefaultTokenProviders();
+builder.AddAuthentication();
 
 builder.Services.AddAuthorization();
 
@@ -84,8 +40,6 @@ builder.AddAzureAppConfiguration();
 builder.AddSerilog();
 
 builder.AddDatabase();
-
-builder.Services.AddRateLimiting();
 
 builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
 
@@ -119,25 +73,7 @@ builder.AddCategoryServices();
 builder.AddProfileServices();
 builder.AddChatServices();
 
-builder.Services.AddMudServices(configuration =>
-{
-	configuration.ResizeOptions = new ResizeOptions
-	{
-		NotifyOnBreakpointOnly = true
-	};
-	configuration.SnackbarConfiguration = new SnackbarConfiguration
-	{
-		VisibleStateDuration = 2500,
-		ShowTransitionDuration = 250,
-		BackgroundBlurred = true,
-		MaximumOpacity = 95,
-		MaxDisplayedSnackbars = 3,
-		PositionClass = Defaults.Classes.Position.BottomCenter,
-		HideTransitionDuration = 100,
-		ShowCloseIcon = false
-	};
-});
-builder.Services.AddMudExtensions();
+builder.AddMudBlazor();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();
@@ -148,14 +84,7 @@ builder.Services.AddDataForsyningenClient();
 
 builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-builder.Services
-	   .AddOpenTelemetry()
-	   .WithMetrics(x => x.AddMeter(InstrumentationOptions.MeterName)
-						  .AddMeter("Polly")
-						  // TODO: Only used to see which metrics we have so we can trim
-						  .AddPrometheusExporter())
-	   .WithTracing(x => x.AddSource(DiagnosticHeaders.DefaultListenerName))
-	   .UseGrafana();
+builder.AddOpenTelemetry();
 
 var app = builder.Build();
 
@@ -184,8 +113,6 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
 	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
-
-app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
