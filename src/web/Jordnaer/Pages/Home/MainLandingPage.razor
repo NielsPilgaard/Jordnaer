@@ -23,16 +23,16 @@
 {
 	protected override void OnInitialized()
 	{
-		Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
 		Snackbar.Add("Mini Møder er under opbygning.\n" +
-		             "Du kan godt begynde at bruge Mini Møder, men der mangler stadig nogle ting hist og her \ud83d\ude0a",
+		             "Du kan godt begynde at bruge hjemmesiden nu, men der mangler stadig nogle ting hist og her \ud83d\ude0a",
 			Severity.Info,
 			options =>
 			{
 				options.CloseAfterNavigation = true;
 				options.VisibleStateDuration = int.MaxValue;
 				options.SnackbarVariant = Variant.Filled;
-				options.ShowCloseIcon = true;
+                options.ShowCloseIcon = true;
+                options.MaximumOpacity = 85;
 				options.Onclick = snackbar =>
 				{
 					snackbar.Dispose();
