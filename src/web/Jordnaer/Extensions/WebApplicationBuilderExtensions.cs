@@ -96,7 +96,6 @@ public static class WebApplicationBuilderExtensions
 				   options.Instrumentations.Clear();
 				   options.Instrumentations.Add(Instrumentation.AspNetCore);
 				   options.Instrumentations.Add(Instrumentation.EntityFrameworkCore);
-				   options.Instrumentations.Add(Instrumentation.HttpClient);
 				   options.Instrumentations.Add(Instrumentation.NetRuntime);
 				   options.Instrumentations.Add(Instrumentation.Process);
 				   options.Instrumentations.Add(Instrumentation.SqlClient);
