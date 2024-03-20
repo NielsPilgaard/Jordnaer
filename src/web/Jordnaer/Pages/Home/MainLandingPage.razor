@@ -1,7 +1,9 @@
 @page "/"
+@using Microsoft.AspNetCore.OutputCaching
 
 @inject ISnackbar Snackbar
 
+@attribute [OutputCache(Duration = 300)]
 @attribute [Layout(typeof(LandingPageLayout))]
 
 <MetadataComponent Title="Mini Møder"
