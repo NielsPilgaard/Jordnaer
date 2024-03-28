@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
-using OpenTelemetry.Metrics;
 
 namespace Jordnaer.Extensions;
 
@@ -88,8 +87,7 @@ public static class WebApplicationBuilderExtensions
 		builder.Services
 			   .AddOpenTelemetry()
 			   .WithMetrics(x => x.AddMeter(InstrumentationOptions.MeterName)
-								  .AddMeter("Polly")
-								  .AddPrometheusExporter())
+								  .AddMeter("Polly"))
 			   .WithTracing(x => x.AddSource(DiagnosticHeaders.DefaultListenerName))
 			   .UseGrafana(options =>
 			   {
