@@ -1,6 +1,9 @@
 @inject IChatService ChatService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject CurrentUser CurrentUser
+
+@attribute [Authorize]
 
 <MudButton Disabled="Disabled"
            EndIcon="@(_isMessageSent ? Icons.Material.Filled.Check : Icons.Material.Filled.Message)"
@@ -14,22 +17,22 @@
 @code
 {
     [Parameter]
-    public required List<UserSlim> Recipients { get; set; }
-
-    /// <summary>
-    /// This is the current user's id
-    /// </summary>
-    [Parameter]
-    public required string InitiatorId { get; set; }
+    public required IEnumerable<UserSlim> Recipients { get; set; }
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? ChatName { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
 
     private bool _isMessageSent = false;
 
     private async Task OpenOrStartChat()
     {
-        var getChatResponse = await ChatService.GetChatByUserIdsAsync(InitiatorId, Recipients.Select(recipient => recipient.Id).ToArray());
+        var getChatResponse = await ChatService.GetChatByUserIdsAsync(CurrentUser.Id!, Recipients.Select(recipient => recipient.Id).ToArray());
         await getChatResponse.Match<Task>(chatId =>
         {
             NavigationManager.NavigateTo($"/chat/{chatId}");
@@ -37,10 +40,11 @@
         }, async notFound =>
         {
             var parameters = new DialogParameters<SendMessageDialog>
-                {
-                { dialog => dialog.InitiatorId, InitiatorId },
-                { dialog => dialog.Recipients, Recipients }
-                };
+            {
+            { dialog => dialog.InitiatorId, CurrentUser.Id! },
+            { dialog => dialog.Recipients, Recipients },
+            { dialog => dialog.ChatName, ChatName }
+            };
 
             var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
 

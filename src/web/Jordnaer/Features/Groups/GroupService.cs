@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using Serilog;
+using System.Linq.Expressions;
+using Jordnaer.Features.Authentication;
 using NotFound = OneOf.Types.NotFound;
 
 namespace Jordnaer.Features.Groups;
@@ -17,28 +19,23 @@ public interface IGroupService
 	Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(string userId, Guid id, CancellationToken cancellationToken = default);
 	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default);
+
+	Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default);
+	Task<bool> IsGroupMemberAsync(Guid groupId, CancellationToken cancellationToken = default);
 }
 
-public class GroupService : IGroupService
+public class GroupService(
+	IDbContextFactory<JordnaerDbContext> contextFactory,
+	ILogger<GroupService> logger,
+	IDiagnosticContext diagnosticContext,
+	CurrentUser currentUser)
+	: IGroupService
 {
-	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
-	private readonly ILogger<GroupService> _logger;
-	private readonly IDiagnosticContext _diagnosticContext;
-
-	public GroupService(IDbContextFactory<JordnaerDbContext> contextFactory,
-		ILogger<GroupService> logger,
-		IDiagnosticContext diagnosticContext)
-	{
-		_contextFactory = contextFactory;
-		_logger = logger;
-		_diagnosticContext = diagnosticContext;
-	}
-
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
-		_logger.LogFunctionBegan();
+		logger.LogFunctionBegan();
 
-		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var group = await context.Groups
 								 .AsNoTracking()
 								 .FirstOrDefaultAsync(group => group.Id == id, cancellationToken: cancellationToken);
@@ -50,9 +47,9 @@ public class GroupService : IGroupService
 
 	public async Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name, CancellationToken cancellationToken = default)
 	{
-		_logger.LogFunctionBegan();
+		logger.LogFunctionBegan();
 
-		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var group = await context.Groups
 			.AsNoTracking()
 			.Select(x => new GroupSlim
@@ -74,9 +71,9 @@ public class GroupService : IGroupService
 	}
 	public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)
 	{
-		_logger.LogFunctionBegan();
+		logger.LogFunctionBegan();
 
-		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var groups = await context.GroupMemberships
 			.AsNoTracking()
 			.Where(membership => membership.UserProfileId == userId &&
@@ -109,11 +106,52 @@ public class GroupService : IGroupService
 		return groups;
 	}
 
+	public async Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var members = await context.GroupMemberships
+								  .AsNoTracking()
+								  .Where(predicate)
+								  .OrderByDescending(x => x.OwnershipLevel)
+								  .ThenByDescending(x => x.PermissionLevel)
+								  .Select(x => new UserSlim
+								  {
+									  DisplayName = x.UserProfile.DisplayName,
+									  Id = x.UserProfileId,
+									  ProfilePictureUrl = x.UserProfile.ProfilePictureUrl,
+									  UserName = x.UserProfile.UserName
+								  })
+								  .ToListAsync(cancellationToken);
+
+		return members;
+	}
+
+	public async Task<bool> IsGroupMemberAsync(Guid groupId, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		if (currentUser.Id is null)
+		{
+			return false;
+		}
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var isGroupMember = await context.GroupMemberships
+								   .AsNoTracking()
+								   .AnyAsync(x => x.UserProfileId == currentUser.Id &&
+												  x.GroupId == groupId,
+											  cancellationToken);
+
+		return isGroupMember;
+	}
+
 	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default)
 	{
-		_logger.LogFunctionBegan();
+		logger.LogFunctionBegan();
 
-		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		if (await context.Groups.AsNoTracking().AnyAsync(x => x.Name == group.Name, cancellationToken))
 		{
 			return new Error<string>($"Gruppenavnet '{group.Name}' er allerede taget.");
@@ -155,16 +193,16 @@ public class GroupService : IGroupService
 		context.Groups.Add(group);
 		await context.SaveChangesAsync(cancellationToken);
 
-		_logger.LogInformation("{UserId} created group '{groupName}'", userId, group.Name);
+		logger.LogInformation("{UserId} created group '{groupName}'", userId, group.Name);
 
 		return new Success();
 	}
 
 	public async Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default)
 	{
-		_logger.LogFunctionBegan();
+		logger.LogFunctionBegan();
 
-		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		if (await context.Groups.AsNoTracking().AnyAsync(x => x.Name == group.Name, cancellationToken))
 		{
 			return new Error<string>($"Gruppenavnet '{group.Name}' er allerede taget.");
@@ -198,19 +236,19 @@ public class GroupService : IGroupService
 
 	public async Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(string userId, Guid id, CancellationToken cancellationToken = default)
 	{
-		_logger.LogFunctionBegan();
+		logger.LogFunctionBegan();
 
-		_diagnosticContext.Set("group_id", id);
+		diagnosticContext.Set("group_id", id);
 
-		await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
-		var group = await context.Groups.FindAsync(id);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var group = await context.Groups.FindAsync([id], cancellationToken);
 		if (group is null)
 		{
-			_logger.LogInformation("Failed to find group by id.");
+			logger.LogInformation("Failed to find group by id.");
 			return new NotFound();
 		}
 
-		_diagnosticContext.Set("group_name", group.Name);
+		diagnosticContext.Set("group_name", group.Name);
 
 		var groupOwner = await context.GroupMemberships
 									  .SingleOrDefaultAsync(e => e.UserProfileId == userId &&
@@ -219,13 +257,13 @@ public class GroupService : IGroupService
 
 		if (groupOwner is null)
 		{
-			_logger.LogError("Failed to delete group because it has no owner.");
+			logger.LogError("Failed to delete group because it has no owner.");
 			return new Error();
 		}
 
 		if (groupOwner.UserProfileId != userId)
 		{
-			_logger.LogError("Failed to delete group because the request came from someone other than the owner. " +
+			logger.LogError("Failed to delete group because the request came from someone other than the owner. " +
 							 "The deletion was requested by the user: {@UserId}", userId);
 			return new Error();
 		}
@@ -233,7 +271,7 @@ public class GroupService : IGroupService
 		context.Groups.Remove(group);
 		await context.SaveChangesAsync(cancellationToken);
 
-		_logger.LogInformation("Successfully deleted group");
+		logger.LogInformation("Successfully deleted group");
 
 		return new Success();
 	}

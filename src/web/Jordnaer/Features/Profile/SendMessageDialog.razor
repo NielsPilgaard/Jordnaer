@@ -23,6 +23,7 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public required string InitiatorId { get; set; }
     [Parameter] public required List<UserSlim> Recipients { get; set; }
+    [Parameter] public string? ChatName { get; set; }
 
     private bool _startingChat = false;
     private string _userText = string.Empty;
@@ -50,19 +51,23 @@
         var chatId = NewId.NextGuid();
         await ChatService.StartChatAsync(new StartChat
             {
+                DisplayName = ChatName,
                 LastMessageSentUtc = DateTime.UtcNow,
                 StartedUtc = DateTime.UtcNow,
                 Id = chatId,
                 InitiatorId = InitiatorId,
                 Recipients = Recipients,
-                Messages = new List<ChatMessageDto> {new()
-                {
-                    ChatId = chatId,
-                    Id = NewId.NextGuid(),
-                    Text = _userText,
-                    SentUtc = DateTime.UtcNow,
-                    SenderId = InitiatorId
-                }}
+                Messages =
+                [
+	                new ChatMessageDto
+	                {
+		                ChatId = chatId,
+		                Id = NewId.NextGuid(),
+		                Text = _userText,
+		                SentUtc = DateTime.UtcNow,
+		                SenderId = InitiatorId
+	                }
+                ]
             });
 
         MudDialog.Close(DialogResult.Ok(true));

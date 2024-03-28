@@ -21,6 +21,8 @@ public class StartChatConsumer : IConsumer<StartChat>
 
 	public async Task Consume(ConsumeContext<StartChat> consumeContext)
 	{
+		_logger.LogInformation("Consuming StartChat message. ChatId: {ChatId}", consumeContext.Message.Id);
+
 		var chat = consumeContext.Message;
 
 		_context.Chats.Add(new Chat

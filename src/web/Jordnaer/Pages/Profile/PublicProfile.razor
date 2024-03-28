@@ -1,9 +1,10 @@
 @page "/{userName}"
 
-@inject ISnackbar Snackbar
 @inject IProfileService ProfileService
 @inject IJSRuntime JsRuntime
 @inject IProfileCache ProfileCache
+
+@attribute [StreamRendering]
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null && _isLoading is false)

@@ -1,8 +1,9 @@
 @page "/groups/{GroupName}"
 
 @inject IGroupService GroupService
-@inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
+@inject IProfileCache ProfileCache
+
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
@@ -22,11 +23,24 @@
 
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
 
-    @*// TODO: Request to join button*@
+    <AuthorizeView>
+        <Authorized>
+            <OpenChat Disabled="_isMemberOfGroup"
+                      Recipients="_recipients"
+                      ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
+
+            <MudButton Disabled="_isMemberOfGroup"
+                       Class="mb-5"
+                       Color="Color.Tertiary"
+                       EndIcon="@Icons.Material.Filled.GroupAdd">
+                Anmod om Medlemskab
+            </MudButton>
+        </Authorized>
+    </AuthorizeView>
 
     <MudGrid>
         <MudItem xs="12">
-	        <GroupCard Group="_group"/>
+            <GroupCard Group="_group" />
         </MudItem>
 
         @if (_group.Categories.Length > 0)
@@ -52,8 +66,12 @@
     public string? GroupName { get; set; }
 
     private GroupSlim? _group;
+    private List<UserSlim> _groupAdmins = [];
 
     private bool _isLoading = true;
+    private UserProfile? _currentUser;
+    private bool _isMemberOfGroup = true;
+    private IEnumerable<UserSlim> _recipients = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,8 +81,34 @@
             response.Switch(
                 groupSlim => _group = groupSlim,
                 _ => { });
+
+            if (_group is null)
+            {
+                return;
+            }
+
+            _currentUser = await ProfileCache.GetProfileAsync();
+            if (_currentUser is null)
+            {
+                return;
+            }
+
+            _isMemberOfGroup = await GroupService
+                .IsGroupMemberAsync(_group.Id);
+
+            if (_isMemberOfGroup is false)
+            {
+	            _groupAdmins = await GroupService
+		            .GetGroupMembersByPredicateAsync(x =>
+			            x.GroupId == _group.Id &&
+			            x.PermissionLevel.HasFlag(PermissionLevel.Admin));
+
+                _recipients = _groupAdmins.Concat([_currentUser.ToUserSlim()]);
+            }
+            
         }
 
         _isLoading = false;
+
     }
 }

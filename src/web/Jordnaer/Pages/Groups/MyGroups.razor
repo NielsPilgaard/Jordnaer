@@ -3,8 +3,10 @@
 @attribute [Authorize]
 
 @inject IGroupService GroupService
-@inject ISnackbar Snackbar
 @inject CurrentUser CurrentUser
+
+<MetadataComponent Title="Dine grupper"
+                   Description="Oversigt over dine grupper, og dine afventende anmodninger"/>
 
 <MudButton Href="groups/create" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.GroupAdd">Opret gruppe</MudButton>
 
@@ -26,7 +28,7 @@
 		<MudGrid Justify="Justify.FlexStart" Spacing="3">
 			@foreach (var group in _memberOf)
 			{
-				<MudItem xs="12" sm="6" md="4" lg="3">
+				<MudItem xs="12" sm="6" md="6" lg="4">
 					<GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
 				</MudItem>
 			}

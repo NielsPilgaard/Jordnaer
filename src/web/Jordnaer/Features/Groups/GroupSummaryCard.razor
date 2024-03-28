@@ -2,7 +2,7 @@
 	<MudCard Elevation="3" Style="position: relative">
 		<MudIcon Title="Du er ejer af denne gruppe" Icon="@Icons.Material.Filled.Star" Style="position: absolute;top: 16px; right: 16px; font-size: 24px" />
 		<MudCardContent>
-			<MudText Typo="Typo.h4" Align="Align.Left">@UserGroupAccess.Group.Name</MudText>
+			<MudText Typo="Typo.h5" Align="Align.Left">@UserGroupAccess.Group.Name</MudText>
 			@if (UserGroupAccess.Group.ProfilePictureUrl is not null)
 			{
 				<MudImage ObjectPosition="ObjectPosition.Left" Style="border-radius: 50%" Src="@UserGroupAccess.Group.ProfilePictureUrl" loading="lazy" />

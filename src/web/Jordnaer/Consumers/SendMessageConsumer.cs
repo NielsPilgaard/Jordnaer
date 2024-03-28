@@ -23,6 +23,8 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 
 	public async Task Consume(ConsumeContext<SendMessage> consumeContext)
 	{
+		_logger.LogDebug("Consuming SendMessage message. ChatId: {ChatId}", consumeContext.Message.ChatId);
+
 		var chatMessage = consumeContext.Message;
 
 		_context.ChatMessages.Add(
