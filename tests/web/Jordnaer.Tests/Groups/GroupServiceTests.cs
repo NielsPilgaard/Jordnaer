@@ -1,6 +1,7 @@
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Database;
+using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
 using MassTransit;
@@ -47,7 +48,8 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 
 		_groupService = new GroupService(_contextFactory,
 			Substitute.For<ILogger<GroupService>>(),
-			Substitute.For<IDiagnosticContext>());
+			Substitute.For<IDiagnosticContext>(),
+			new CurrentUser());
 	}
 
 	[Fact]
