@@ -1,4 +1,4 @@
-name: Chat - Publish Docker Image
+name: Deploy Chat App
 
 on:
   push:

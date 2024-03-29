@@ -3,7 +3,7 @@ name: GitHub Release
 on:
   push:
     tags:
-      - release-website-*
+      - "release-website-v*.*.*"
 
 jobs:
   release:

@@ -1,4 +1,4 @@
-name: Website Backend - Run Tests
+name: Run Website Backend Tests
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Chat - Run Tests
+name: Test Chat App
 
 on:
   push:

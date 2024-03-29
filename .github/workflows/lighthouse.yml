@@ -1,6 +1,10 @@
 name: Run Lighthouse
 
-on:
+on: 
+  workflow_run:
+    workflows: ["Deploy Website"]
+    types: 
+      - completed
   workflow_dispatch:
 
 permissions:
