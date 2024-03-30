@@ -69,7 +69,12 @@
 <body>
     @*TODO: Add loading image*@
     <Routes @rendermode="RenderModeForPage" />
-    <script src="_framework/blazor.web.js"></script>
+    
+    @*Start and reconnection logic based on: https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/signalr?view=aspnetcore-7.0#automatically-refresh-the-page-when-server-side-reconnection-fails*@
+    <div id="reconnect-modal" style="display: none;"></div>
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script src="js/boot.js"></script>
+
     <script src="js/scroll.js?v=1.0"></script>
     <script src="js/utilities.js?v=1.0"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
