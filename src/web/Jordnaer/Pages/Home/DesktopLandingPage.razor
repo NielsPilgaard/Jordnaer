@@ -2,7 +2,7 @@
 <MudPage FullScreen="FullScreen.Full" Row="2" Column="5" Height="800px">
 
     <MudSection Row="1" ColSpan="2" Column="1" Class="hero-section-top">
-        <MudImage Height="250" Src="/images/minimoeder_logo.png" />
+        <MudImage fetchpriority="high" Height="250" Src="/images/minimoeder_logo.png" />
     </MudSection>
 
     <MudSection Row="1" ColSpan="2" Column="4" Class="hero-section-top">
@@ -19,7 +19,7 @@
 
     <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section-top">
         <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
-            <MudImage id="landing-page-center-image" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
+            <MudImage id="landing-page-center-image" fetchpriority="high" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
             <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.GreenBackground}; font-size: 48px")">Velkommen</MudText>
             <MudText Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 24px")">Til dit online mødested for børnefamilier</MudText>
         </MudStack>

@@ -1,7 +1,7 @@
 @using MudExtensions.Enums
 <!-- Logo  -->
 <div class="hero-section-top">
-    <MudImage Height="150" Src="/images/minimoeder_logo.png" />
+    <MudImage fetchpriority="high" Height="150" Src="/images/minimoeder_logo.png" />
 </div>
 
 <!-- Nav Bar -->
@@ -19,7 +19,7 @@
     <MudSection Row="2" Column="1" Style="@($"background: {JordnaerPalette.BeigeBackground}")" />
     <MudSection Row="1" RowSpan="2" Column="1">
         <MudStack Class="mb-6" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
-            <MudImage id="landing-page-center-image" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
+            <MudImage id="landing-page-center-image" fetchpriority="high" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
             <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.GreenBackground}; font-size: 32px")">
                 Velkommen
             </MudText>
