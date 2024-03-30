@@ -2,10 +2,13 @@ name: Run Website Backend Tests
 
 on:
   push:
-    branches:
-      - "*"
+    paths:
+      - "src/web/Jordnaer/**"
+      - "tests/web/Jordnaer.Tests/**"
+      - ".github/workflows/website_backend_ci.yml"
     tags:
       - "!*"
+  workflow_dispatch:
 
 env:
   WORKING_DIRECTORY: tests/web/Jordnaer.Tests
