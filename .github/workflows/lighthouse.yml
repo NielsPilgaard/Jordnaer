@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  WEBSITE_URL: https://jordnaer.azurewebsites.net
+  WEBSITE_URL: https://mini-moeder.dk
 jobs:
   lighthose:
     runs-on: ubuntu-latest
