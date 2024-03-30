@@ -6,13 +6,13 @@ on:
       - "src/web/Jordnaer/**"
       - "tests/web/Jordnaer.Tests/**"
       - ".github/workflows/website_backend_ci.yml"
-    tags:
-      - "!*"
 
 env:
   WORKING_DIRECTORY: tests/web/Jordnaer.Tests
 jobs:
   test:
+    # Don't run the action if it was triggered by a tag push  
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
