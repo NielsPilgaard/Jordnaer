@@ -8,7 +8,6 @@ on:
       - ".github/workflows/container_apps_chat_ci.yml"
     tags:
       - "!*"
-  workflow_dispatch:
 
 env:
   WORKING_DIRECTORY: tests/container_apps/Jordnaer.Chat.Tests
