@@ -27,43 +27,18 @@
 
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
 
-    <link href="css/landing-page.css?v=1.1" rel="stylesheet" />
-    <link href="css/fonts.css?v=1.0" rel="stylesheet" />
-    <link href="css/app.css?v=1.1" rel="stylesheet" />
-    <link defer href="bootstrap/bootstrap.min.css" rel="stylesheet" />
-    <link defer href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link defer href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
-    <link defer href="css/chat.css?v=1.2" rel="stylesheet" />
-    <link defer href="Jordnaer.styles.css" rel="stylesheet" />
+    <link preload="true" href="css/landing-page.css?v=1.1" rel="stylesheet" />
+    <link preload="true" href="css/fonts.css?v=1.0" rel="stylesheet" />
+    <link preload="true" href="css/app.css?v=1.1" rel="stylesheet" />
+    <link preload="true" href="bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link preload="true" href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link preload="true" href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
+    <link preload="true" href="css/chat.css?v=1.2" rel="stylesheet" />
+    <link preload="true" href="Jordnaer.styles.css" rel="stylesheet" />
 
     <HeadOutlet @rendermode="RenderModeForPage" />
 
-    <script>
-        (function () {
-            const script = document.createElement("script");
-
-            // Initialize the Web-SDK at the onLoad event of the script tag above so it will be called when the library is loaded.
-            script.onload = () => {
-                window.GrafanaFaroWebSdk.initializeFaro({
-                    // Mandatory, the URL of the Grafana Cloud collector with embedded application key.
-                    url: 'https://faro-collector-prod-eu-west-2.grafana.net/collect/bd7c8e7f952b79cf8fcebea0f94ea33a',
-
-                    // Mandatory, the identification label(s) of your application
-                    app: {
-                        name: 'Mini Møder',
-                        version: "1.0.0"
-                    }
-                });
-            };
-
-            // Set the source of the script tag to the CDN
-            script.src =
-                "https://unpkg.com/@@grafana/faro-web-sdk@@^1.4.0/dist/bundle/faro-web-sdk.iife.js";
-
-            // Append the script tag to the head of the HTML page
-            document.head.appendChild(script);
-        })();
-    </script>
+    <GrafanaFaro />
 </head>
 
 <body>
@@ -73,7 +48,7 @@
     @*Start and reconnection logic based on: https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/signalr?view=aspnetcore-7.0#automatically-refresh-the-page-when-server-side-reconnection-fails*@
     <div id="reconnect-modal" style="display: none;"></div>
     <script src="_framework/blazor.web.js" autostart="false"></script>
-    <script src="js/boot.js"></script>
+    <script src="js/boot.js?v=1.0"></script>
 
     <script src="js/scroll.js?v=1.0"></script>
     <script src="js/utilities.js?v=1.0"></script>
@@ -87,7 +62,8 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account")
-        ? null
+    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account") || 
+                                                       HttpContext.Request.Path == PathString.Empty
+	    ? null
         : InteractiveServer;
 }
