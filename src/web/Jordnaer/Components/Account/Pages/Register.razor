@@ -61,7 +61,9 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => _identityErrors is null ? null : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
+    private AlertMessage? Message => _identityErrors is null 
+	    ? null 
+	    : new AlertMessage(_identityErrors.Select(error => error.Description), true);
 
     public async Task RegisterUser(EditContext editContext)
     {

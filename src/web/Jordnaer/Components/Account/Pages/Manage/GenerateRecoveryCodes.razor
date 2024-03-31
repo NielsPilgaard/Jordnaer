@@ -37,7 +37,7 @@ else
 
 
 @code {
-    private string? _message;
+    private AlertMessage? _message;
     private ApplicationUser _user = default!;
     private IEnumerable<string>? _recoveryCodes;
 
@@ -59,7 +59,7 @@ else
     {
         var userId = await UserManager.GetUserIdAsync(_user);
         _recoveryCodes = await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(_user, 10);
-        _message = "Du har genereret nye gendannelses koder.";
+        _message = new AlertMessage("Du har genereret nye gendannelses koder.");
 
         Logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
     }

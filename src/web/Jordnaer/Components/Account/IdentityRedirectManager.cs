@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using System.Diagnostics.CodeAnalysis;
+using Jordnaer.Components.Account.Shared;
 
 namespace Jordnaer.Components.Account;
 
@@ -44,6 +45,15 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 	public void RedirectToWithStatus(string uri, string message, HttpContext context)
 	{
 		context.Response.Cookies.Append(StatusCookieName, message, StatusCookieBuilder.Build(context));
+		RedirectTo(uri);
+	}
+
+	[DoesNotReturn]
+	public void RedirectToWithStatus(string uri, AlertMessage? message, HttpContext context)
+	{
+		context.Response.Cookies.Append(key: StatusCookieName,
+										value: message?.Message ?? string.Empty,
+										options: StatusCookieBuilder.Build(context));
 		RedirectTo(uri);
 	}
 

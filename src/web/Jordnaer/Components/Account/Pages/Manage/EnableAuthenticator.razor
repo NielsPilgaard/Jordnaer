@@ -65,7 +65,7 @@ else
 @code {
     private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
-    private string? _message;
+    private AlertMessage? _message;
     private ApplicationUser _user = default!;
     private string? _sharedKey;
     private string? _authenticatorUri;
@@ -94,7 +94,7 @@ else
 
         if (!is2FaTokenValid)
         {
-            _message = "Din verifikationskode er ugyldig.";
+            _message = new AlertMessage("Din verifikationskode er ugyldig.", true);
             return;
         }
 
@@ -102,7 +102,7 @@ else
         var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
 
-        _message = "Din autentifikations app er blevet godkendt.";
+        _message = new AlertMessage("Din autentifikations app er blevet godkendt.");
 
         if (await UserManager.CountRecoveryCodesAsync(_user) == 0)
         {

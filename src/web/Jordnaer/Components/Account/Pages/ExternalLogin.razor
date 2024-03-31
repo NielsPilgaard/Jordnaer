@@ -22,29 +22,29 @@
 <hr />
 
 <div class="alert alert-info">
-	Du er blevet succesfuldt registreret med <strong>@ProviderDisplayName</strong>.
-	Vælg venligst din emailadresse til denne hjemmeside nedenfor og klik på "Registrer"-knappen for at fuldføre login-processen.
+    Du er blevet succesfuldt registreret med <strong>@ProviderDisplayName</strong>.
+    Vælg venligst din emailadresse til denne hjemmeside nedenfor og klik på "Registrer"-knappen for at fuldføre login-processen.
 </div>
 
 <div class="row">
-	<div class="col-md-4">
-		<EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
-			<DataAnnotationsValidator />
-			<ValidationSummary class="text-danger" role="alert" />
-			<div class="form-floating mb-3">
-				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" placeholder="Indtast venligst din email." />
-				<label for="email" class="form-label">Email</label>
-				<ValidationMessage For="() => Input.Email" />
-			</div>
-			<button type="submit" class="w-100 btn btn-lg btn-primary">Registrer</button>
-		</EditForm>
-	</div>
+    <div class="col-md-4">
+        <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" placeholder="Indtast venligst din email." />
+                <label for="email" class="form-label">Email</label>
+                <ValidationMessage For="() => Input.Email" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Registrer</button>
+        </EditForm>
+    </div>
 </div>
 
 @code {
     public const string LoginCallbackAction = "LoginCallback";
 
-    private string? _message;
+    private AlertMessage? _message;
     private ExternalLoginInfo? _externalLoginInfo;
 
     [CascadingParameter]
@@ -101,23 +101,23 @@
             _externalLoginInfo.ProviderKey,
             isPersistent: false,
             bypassTwoFactor: true);
-            
+
         if (result.Succeeded)
         {
-	        var user = await UserManager.FindByLoginAsync(_externalLoginInfo.LoginProvider, _externalLoginInfo.ProviderKey);
-	        if (user is null)
-	        {
-		        RedirectManager.RedirectToWithStatus("Account/Login", "Fejl - Det lykkedes ikke at finde dit login. Prøv venligst igen.", HttpContext);
-	        }
+            var user = await UserManager.FindByLoginAsync(_externalLoginInfo.LoginProvider, _externalLoginInfo.ProviderKey);
+            if (user is null)
+            {
+                RedirectManager.RedirectToWithStatus("Account/Login", "Fejl - Det lykkedes ikke at finde dit login. Prøv venligst igen.", HttpContext);
+            }
 
-	        var accessToken = _externalLoginInfo.AuthenticationProperties?.GetTokenValue("access_token");
-	        if (accessToken is not null)
-	        {
-		        await Mediator.Publish(new AccessTokenAcquired(user.Id,
+            var accessToken = _externalLoginInfo.AuthenticationProperties?.GetTokenValue("access_token");
+            if (accessToken is not null)
+            {
+                await Mediator.Publish(new AccessTokenAcquired(user.Id,
                     _externalLoginInfo.ProviderKey,
                     _externalLoginInfo.LoginProvider,
-			        accessToken));
-	        }
+                    accessToken));
+            }
 
             Logger.LogInformation(
                 "{Name} logged in with {LoginProvider} provider.",
@@ -144,42 +144,43 @@
         var emailStore = GetEmailStore();
         var user = CreateUser();
 
-        await UserStore.SetUserNameAsync(user,  Input.Email, CancellationToken.None);
+        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
         var result = await UserManager.CreateAsync(user);
-        if (result.Succeeded)
+        if (!result.Succeeded)
         {
-            result = await UserManager.AddLoginAsync(user, _externalLoginInfo!);
-            if (result.Succeeded)
-            {
-                Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
-
-                var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
-                Context.UserProfiles.Add(userProfile);
-                await Context.SaveChangesAsync();
-
-                var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                    NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                    new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
-
-                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-                // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                {
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
-                }
-
-                await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
-                RedirectManager.RedirectTo(ReturnUrl);
-            }
+	        _message = new AlertMessage(result.Errors.Select(error => error.Description), true);
+            return;
         }
 
-        _message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
+        result = await UserManager.AddLoginAsync(user, _externalLoginInfo!);
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
+
+            var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
+            Context.UserProfiles.Add(userProfile);
+            await Context.SaveChangesAsync();
+
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+            var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
+
+            await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
+            // If account confirmation is required, we need to show the link if we don't have a real email sender
+            if (UserManager.Options.SignIn.RequireConfirmedAccount)
+            {
+                RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+            }
+
+            await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
     }
 
     private static ApplicationUser CreateUser()

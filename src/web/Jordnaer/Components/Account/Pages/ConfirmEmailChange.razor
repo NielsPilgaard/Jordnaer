@@ -14,7 +14,7 @@
 <StatusMessage Message="@_message" />
 
 @code {
-    private string? _message;
+    private AlertMessage? _message;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -39,7 +39,7 @@
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            _message = "Kan ikke finde bruger med Id '{userId}'";
+            _message = new AlertMessage($"Kan ikke finde bruger med Id '{UserId}'", true);
             return;
         }
 
@@ -47,11 +47,11 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            _message = "Fejl ved ændring af email.";
+            _message = new AlertMessage("Fejl ved ændring af email.", true);
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        _message = "Tak fordi du bekræftede din emailændring.";
+        _message = new AlertMessage("Tak fordi du bekræftede din emailændring.");
     }
 }

@@ -30,7 +30,7 @@
 </div>
 
 @code {
-    private string? _message;
+    private AlertMessage? _message;
     private ApplicationUser _user = default!;
 
     [SupplyParameterFromForm]
@@ -67,7 +67,7 @@
         else
         {
             Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", userId);
-            _message = "Ugyldig autentifikations kode indtastet.";
+            _message = new AlertMessage("Ugyldig autentifikations kode indtastet.", true);
         }
     }
 

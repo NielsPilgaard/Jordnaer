@@ -1,21 +1,21 @@
 ﻿@if (!string.IsNullOrEmpty(DisplayMessage))
 {
-    var statusMessageClass = DisplayMessage.StartsWith("Fejl") ? "danger" : "success";
-    <div class="alert alert-@statusMessageClass" role="alert">
-        @DisplayMessage
-    </div>
+    var severity = Message?.IsError is true || DisplayMessage.StartsWith("Fejl") ? Severity.Warning : Severity.Info;
+    <MudAlert Severity="severity">
+	    @DisplayMessage
+    </MudAlert>
 }
 
 @code {
     private string? _messageFromCookie;
-    
+
     [Parameter]
-    public string? Message { get; set; }
+    public AlertMessage? Message { get; set; }
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    private string? DisplayMessage => Message ?? _messageFromCookie;
+    private string? DisplayMessage => Message?.Message ?? _messageFromCookie;
 
     protected override void OnInitialized()
     {

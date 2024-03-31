@@ -51,7 +51,7 @@
 
 
 @code {
-    private string? _message;
+    private AlertMessage? _message;
     private ApplicationUser _user = default!;
     private string? _email;
     private bool _isEmailConfirmed;
@@ -75,7 +75,7 @@
     {
         if (Input.NewEmail is null || Input.NewEmail == _email)
         {
-            _message = "Your email is unchanged.";
+            _message = new AlertMessage("Din email er uændret.", true);
             return;
         }
 
@@ -88,7 +88,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(_user, Input.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        _message = "Bekræftelses email er sendt. Tjek venligst din email.";
+        _message = new AlertMessage("Bekræftelses email er sendt. Tjek venligst din email.");
     }
 
     private async Task OnSendEmailVerificationAsync()
@@ -107,7 +107,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(_user, _email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        _message = "Bekræftelses email er sendt. Tjek venligst din email.";
+        _message = new AlertMessage("Bekræftelses email er sendt. Tjek venligst din email.");
     }
 
     private sealed class InputModel

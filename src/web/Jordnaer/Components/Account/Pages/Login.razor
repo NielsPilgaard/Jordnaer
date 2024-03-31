@@ -60,7 +60,7 @@
 </div>
 
 @code {
-    private string? _errorMessage;
+    private AlertMessage? _errorMessage;
     
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -102,7 +102,7 @@
         }
         else
         {
-            _errorMessage = "Ugyldigt login.";
+            _errorMessage = new AlertMessage("Ugyldigt login.", true);
         }
     }
 

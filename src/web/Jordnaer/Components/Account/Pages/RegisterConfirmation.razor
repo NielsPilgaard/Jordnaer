@@ -16,7 +16,7 @@
 @*TODO: Allow resending email after 30 seconds in case it never arrives*@
 
 @code {
-	private string? _statusMessage;
+	private AlertMessage? _statusMessage;
     
 	[CascadingParameter]
 	private HttpContext HttpContext { get; set; } = default!;
@@ -38,7 +38,7 @@
 		if (user is null)
 		{
 			HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-			_statusMessage = "Fejl i at finde bruger for uspecificeret email";
+            _statusMessage = new AlertMessage("Fejl i at finde bruger for uspecificeret email", true);
 		}
 	}
 }

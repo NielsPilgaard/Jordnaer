@@ -31,7 +31,7 @@
 
 
 @code {
-    private string? _message;
+    private AlertMessage? _message;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -41,7 +41,7 @@
         var user = await UserManager.FindByEmailAsync(Input.Email!);
         if (user is null)
         {
-            _message = "Bekræftelses-emailen er afsendt. Tjek venligst din email.";
+            _message = new AlertMessage("Bekræftelses-emailen er afsendt. Tjek venligst din email.");
             return;
         }
 
@@ -53,7 +53,7 @@
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        _message = "Bekræftelses-emailen er afsendt. Tjek venligst din email.";
+        _message = new AlertMessage("Bekræftelses-emailen er afsendt. Tjek venligst din email.");
     }
 
     private sealed class InputModel
