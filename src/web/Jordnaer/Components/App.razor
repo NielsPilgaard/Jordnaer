@@ -26,7 +26,7 @@
     <meta name="og:image" content="images/minimoeder_logo_payoff.png" />
 
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
-	<meta name="facebook-domain-verification" content="ispr6bue0cvuoatohe859eubl32ujh" />
+    <meta name="facebook-domain-verification" content="ispr6bue0cvuoatohe859eubl32ujh" />
 
     <link preload="true" href="css/landing-page.css?v=1.1" rel="stylesheet" />
     <link preload="true" href="css/fonts.css?v=1.0" rel="stylesheet" />
@@ -39,13 +39,13 @@
 
     <HeadOutlet @rendermode="RenderModeForPage" />
 
-    <GrafanaFaro />
+    @*<GrafanaFaro />*@
 </head>
 
 <body>
     @*TODO: Add loading image*@
     <Routes @rendermode="RenderModeForPage" />
-    
+
     @*Start and reconnection logic based on: https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/signalr?view=aspnetcore-7.0#automatically-refresh-the-page-when-server-side-reconnection-fails*@
     <div id="reconnect-modal" style="display: none;"></div>
     <script src="_framework/blazor.web.js" autostart="false"></script>
@@ -63,8 +63,8 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account") || 
+    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account") ||
                                                        HttpContext.Request.Path == PathString.Empty
-	    ? null
+        ? null
         : InteractiveServer;
 }
