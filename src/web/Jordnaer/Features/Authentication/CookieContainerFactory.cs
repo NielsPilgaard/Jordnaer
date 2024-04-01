@@ -24,7 +24,7 @@ public sealed class CookieContainerFactory(
 		}
 
 		var allServerUris = server.Features.Get<IServerAddressesFeature>()?.Addresses;
-		logger.LogDebug("All server addresses: {@ServerAddresses}", allServerUris);
+		logger.LogInformation("All server addresses: {@ServerAddresses}", allServerUris);
 
 		var serverUri = server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
 		if (serverUri is null)
