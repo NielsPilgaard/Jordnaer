@@ -24,7 +24,7 @@ public sealed class CookieContainerFactory(
 		}
 
 		var allServerUris = server.Features.Get<IServerAddressesFeature>()?.Addresses;
-		logger.LogInformation("All server addresses: {@ServerAddresses}", allServerUris);
+		logger.LogDebug("All server addresses: {@ServerAddresses}", allServerUris);
 
 		var serverUri = server.Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
 		if (serverUri is null)
@@ -44,13 +44,7 @@ public sealed class CookieContainerFactory(
 		logger.LogInformation(
 			"First server address was {ServerUri}, trying to get hostname from environment variable 'WEBSITE_HOSTNAME' instead.", serverUri);
 
-		var domain = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
-		if (domain is null)
-		{
-			logger.LogError("Cannot determine domain for Cookie, " +
-							"environment variable 'WEBSITE_HOSTNAME' was null.");
-			return null;
-		}
+		const string domain = "mini-moeder.dk";
 
 		cookieContainer.Add(CreateCookie(domain));
 
