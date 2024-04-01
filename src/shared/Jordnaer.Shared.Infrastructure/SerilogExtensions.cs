@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -36,8 +37,11 @@ public static class SerilogExtensions
 
 			loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 
-			loggerConfiguration.WriteToLoki(provider);
-			loggerConfiguration.WriteToElmahIo(provider);
+			if (context.HostingEnvironment.IsDevelopment() is false)
+			{
+				loggerConfiguration.WriteToLoki(provider);
+				loggerConfiguration.WriteToElmahIo(provider);
+			}
 		});
 
 		return builder;
@@ -67,18 +71,16 @@ public static class SerilogExtensions
 		IServiceProvider provider)
 	{
 		var grafanaLokiOptions = provider.GetRequiredService<IOptions<GrafanaLokiOptions>>().Value;
-
+		var configuration = provider.GetRequiredService<IConfiguration>();
 		var labels =
 			new LokiLabel[] {
 				new()
 				{
-					Key = "environment_machine_name",
-					Value = Environment.MachineName
-				},
-				new()
-				{
 					Key = "environment",
-					Value = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Not Configured"
+					Value = configuration["ENVIRONMENT"] ??
+							configuration["ASPNETCORE_ENVIRONMENT"] ??
+							configuration["DOTNET_ENVIRONMENT"] ??
+							"Not Configured"
 				}
 			};
 
