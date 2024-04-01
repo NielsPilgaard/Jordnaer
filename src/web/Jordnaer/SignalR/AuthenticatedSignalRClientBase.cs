@@ -10,21 +10,22 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 
 	protected AuthenticatedSignalRClientBase(
 		ILogger<AuthenticatedSignalRClientBase> logger,
-		CookieContainerFactory cookieContainerFactory,
+		CurrentUser currentUser,
 		NavigationManager navigationManager,
 		string hubPath)
 	{
 		_logger = logger;
 
-		var cookieContainer = cookieContainerFactory.Create();
-		if (cookieContainer is null)
+		if (currentUser.CookieContainer is null)
 		{
+			_logger.LogInformation("Cannot create authenticated HubConnection, " +
+								   "CurrentUser {UserId} does not have a cookie.", currentUser.Id);
 			return;
 		}
 
 		HubConnection = new HubConnectionBuilder()
 						.WithUrl(navigationManager.ToAbsoluteUri(hubPath),
-								 options => options.Cookies = cookieContainer)
+								 options => options.Cookies = currentUser.CookieContainer)
 						.WithAutomaticReconnect()
 						.Build();
 	}
@@ -37,7 +38,6 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 
 	public async Task StartAsync(CancellationToken cancellationToken = default)
 	{
-		//TODO: SignalR is flaky on Azure, maybe locally, investigate
 		if (!Started && HubConnection is not null)
 		{
 			_logger.LogDebug("Starting SignalR Client");

@@ -11,7 +11,8 @@ internal sealed class UserCircuitHandler(
 	CurrentUser currentUser,
 	IProfileCache profileCache,
 	ILogger<UserCircuitHandler> logger,
-	IHttpContextAccessor httpContextAccessor)
+	IHttpContextAccessor httpContextAccessor,
+	CookieContainerFactory cookieContainerFactory)
 	: CircuitHandler, IDisposable
 {
 	public override async Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
@@ -51,13 +52,20 @@ internal sealed class UserCircuitHandler(
 
 	public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
+		if (currentUser.CookieContainer is not null)
+		{
+			logger.LogDebug("CurrentUser already has a Cookie Container, returning.");
+			return Task.CompletedTask;
+		}
+
 		if (httpContextAccessor.HttpContext is null)
 		{
 			logger.LogWarning("No HttpContext is associated with Circuit {CircuitId}", circuit.Id);
 			return Task.CompletedTask;
 		}
 
-		if (!httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
+		if (!httpContextAccessor.HttpContext.Request.Cookies
+								.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
 		{
 			if (currentUser.Id is not null)
 			{
@@ -68,9 +76,13 @@ internal sealed class UserCircuitHandler(
 			return Task.CompletedTask;
 		}
 
-		logger.LogInformation("Successfully set cookie for User {UserId}", currentUser.Id);
+		var domain = httpContextAccessor.HttpContext.Request.Host.Host;
 
-		currentUser.Cookie = cookie;
+		var cookieContainer = cookieContainerFactory.Create(cookie, domain);
+
+		currentUser.CookieContainer = cookieContainer;
+
+		logger.LogInformation("Successfully set cookie for User {UserId}", currentUser.Id);
 
 		return Task.CompletedTask;
 	}

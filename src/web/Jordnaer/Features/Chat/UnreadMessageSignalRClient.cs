@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.SignalR.Client;
 namespace Jordnaer.Features.Chat;
 
 public class UnreadMessageSignalRClient(
-	CookieContainerFactory cookieContainerFactory,
+	CurrentUser currentUser,
 	ILogger<AuthenticatedSignalRClientBase> logger,
 	NavigationManager navigationManager)
-	: AuthenticatedSignalRClientBase(logger, cookieContainerFactory, navigationManager, "/hubs/chat")
+	: AuthenticatedSignalRClientBase(logger, currentUser, navigationManager, "/hubs/chat")
 {
 	public void OnMessageReceived(Func<SendMessage, Task> action)
 	{
