@@ -15,7 +15,6 @@ using Jordnaer.Features.Profile;
 using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
 using Jordnaer.Shared.Infrastructure;
-using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using System.Text.Json.Serialization;
 using Jordnaer.Components;
@@ -108,11 +107,6 @@ app.UseRouting();
 app.UseSerilog();
 
 app.UseAzureAppConfiguration();
-
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
 
 app.UseAuthentication();
 app.UseAuthorization();
