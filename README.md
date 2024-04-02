@@ -14,4 +14,4 @@ This is in the early stages of development, you can see the [roadmap here](https
 
 <img src="https://jordnaer.blob.core.windows.net/sponsor-images/elmahio-wide-logo-highquality.png" alt="Elmah.io logo" width="200"/>
 
-[Elmah.io](https://elmah.io/) for their support! Their error handling tools help ensure a bug-free user experience in our applications.
+[elmah.io](https://elmah.io/) for their support! Their error handling tools help ensure a bug-free user experience in our applications.
