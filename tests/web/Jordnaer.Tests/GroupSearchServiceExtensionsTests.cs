@@ -5,7 +5,6 @@ using Xunit;
 
 namespace Jordnaer.Tests;
 
-
 [Trait("Category", "UnitTest")]
 public class GroupSearchServiceExtensionsTests
 {
