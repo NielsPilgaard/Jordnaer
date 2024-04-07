@@ -70,7 +70,6 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 				$"ISNULL([{nameof(UserProfile.UserName)}], '')",
 				stored: true);
 
-
 		modelBuilder.Entity<UserProfile>()
 			.Property(user => user.Age)
 			.HasComputedColumnSql(
