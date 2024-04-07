@@ -12,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace Jordnaer.Extensions;
 
@@ -84,23 +87,77 @@ public static class WebApplicationBuilderExtensions
 	}
 	public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
 	{
-		builder.Services
+		var openTelemetryBuilder = builder.Services
 			   .AddOpenTelemetry()
-			   .WithMetrics(x => x.AddMeter(InstrumentationOptions.MeterName)
-								  .AddMeter("Polly"))
-			   .WithTracing(x => x.AddSource(DiagnosticHeaders.DefaultListenerName))
-			   .UseGrafana(options =>
+			   .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation()
+											  .AddHttpClientInstrumentation()
+											  .AddProcessInstrumentation()
+											  .AddRuntimeInstrumentation()
+											  .AddMeter(InstrumentationOptions.MeterName)
+											  .AddMeter("Polly"))
+			   .WithTracing(tracing =>
 			   {
-				   options.Instrumentations.Clear();
-				   options.Instrumentations.Add(Instrumentation.AspNetCore);
-				   options.Instrumentations.Add(Instrumentation.EntityFrameworkCore);
-				   options.Instrumentations.Add(Instrumentation.NetRuntime);
-				   options.Instrumentations.Add(Instrumentation.Process);
-				   options.Instrumentations.Add(Instrumentation.SqlClient);
+				   if (builder.Environment.IsDevelopment())
+				   {
+					   // We want to view all traces in development
+					   tracing.SetSampler(new AlwaysOnSampler());
+				   }
+
+				   tracing.AddAspNetCoreInstrumentation()
+						  .AddHttpClientInstrumentation()
+						  .AddSource(DiagnosticHeaders.DefaultListenerName);
 			   });
+
+		// Use the Aspire Dashboard in development
+		if (builder.Environment.IsDevelopment())
+		{
+			builder.AddAspireOpenTelemetryExporters();
+
+			builder.Logging.AddOpenTelemetry(logging =>
+			{
+				logging.IncludeFormattedMessage = true;
+				logging.IncludeScopes = true;
+			});
+		}
+		else // Use Grafana in production
+		{
+			openTelemetryBuilder.UseGrafana(options =>
+			{
+				options.Instrumentations.Clear();
+				options.Instrumentations.Add(Instrumentation.AspNetCore);
+				options.Instrumentations.Add(Instrumentation.EntityFrameworkCore);
+				options.Instrumentations.Add(Instrumentation.NetRuntime);
+				options.Instrumentations.Add(Instrumentation.Process);
+				options.Instrumentations.Add(Instrumentation.SqlClient);
+			});
+		}
 
 		return builder;
 	}
+
+	private static IHostApplicationBuilder AddAspireOpenTelemetryExporters(this IHostApplicationBuilder builder)
+	{
+		// The default endpoint is http://localhost:4318, it's automatically set when using Aspire
+		// If you want to run the Aspire dashboard standalone, set
+		// the OTEL_EXPORTER_OTLP_ENDPOINT environment variable or appsetting to http://localhost:4318
+		var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+		if (useOtlpExporter)
+		{
+			builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
+			builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
+			builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
+		}
+
+		// Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
+		//if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+		//{
+		//    builder.Services.AddOpenTelemetry()
+		//       .UseAzureMonitor();
+		//}
+
+		return builder;
+	}
+
 	public static WebApplicationBuilder AddAuthentication(this WebApplicationBuilder builder)
 	{
 		builder.Services.AddCascadingAuthenticationState();
@@ -158,9 +215,6 @@ public static class WebApplicationBuilderExtensions
 	}
 
 	private static string GetConnectionString(IConfiguration configuration) =>
-		   Environment.GetEnvironmentVariable($"ConnectionStrings_{nameof(JordnaerDbContext)}")
-		?? Environment.GetEnvironmentVariable($"ConnectionStrings__{nameof(JordnaerDbContext)}")
-		?? configuration.GetConnectionString(nameof(JordnaerDbContext))
-		?? throw new InvalidOperationException(
-			$"Connection string '{nameof(JordnaerDbContext)}' not found.");
+		   configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
+		   throw new InvalidOperationException($"Connection string '{nameof(JordnaerDbContext)}' not found.");
 }
