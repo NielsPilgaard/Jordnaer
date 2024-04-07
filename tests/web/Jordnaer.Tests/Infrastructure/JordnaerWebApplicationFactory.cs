@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Jordnaer.Tests;
+namespace Jordnaer.Tests.Infrastructure;
 
 public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {

@@ -31,7 +31,7 @@ public class UserSearchService : IUserSearchService
 		_options = options.Value;
 	}
 
-	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken)
+	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default)
 	{
 		var users = ApplyNameFilter(searchString, _context.UserProfiles);
 
@@ -52,14 +52,14 @@ public class UserSearchService : IUserSearchService
 		return firstTenUsers;
 	}
 
-	public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken)
+	public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		var users = _context.UserProfiles.AsQueryable();
 
 		users = ApplyChildFilters(filter, users);
 		users = ApplyNameFilter(filter.Name, users);
 		users = ApplyCategoryFilter(filter, users);
-		(users, var isOrdered) = await ApplyLocationFilterAsync(filter, users);
+		(users, var isOrdered) = await ApplyLocationFilterAsync(filter, users, cancellationToken);
 
 		if (!isOrdered)
 		{
@@ -102,14 +102,17 @@ public class UserSearchService : IUserSearchService
 
 	private async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilterAsync(
 		UserSearchFilter filter,
-		IQueryable<UserProfile> users)
+		IQueryable<UserProfile> users,
+		CancellationToken cancellationToken = default)
 	{
 		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
 		{
 			return (users, false);
 		}
 
-		var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(filter.Location);
+		var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(
+								 filter.Location,
+								 cancellationToken);
 		if (!searchResponse.IsSuccessStatusCode)
 		{
 			_logger.LogError(searchResponse.Error,
@@ -134,7 +137,9 @@ public class UserSearchService : IUserSearchService
 
 		var circle = Circle.FromAddress(addressDetails.Value, searchRadiusMeters);
 
-		var zipCodeSearchResponse = await _dataForsyningenClient.GetZipCodesWithinCircle(circle.ToString());
+		var zipCodeSearchResponse = await _dataForsyningenClient.GetZipCodesWithinCircle(
+										circle.ToString(),
+										cancellationToken);
 		if (!zipCodeSearchResponse.IsSuccessStatusCode)
 		{
 			_logger.LogError("Failed to get zip codes within {radius}m of the coordinates x={x}, y={y}", filter.WithinRadiusKilometers, addressDetails.Value.X, addressDetails.Value.Y);

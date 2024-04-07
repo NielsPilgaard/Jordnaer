@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Jordnaer.Database;
+using Jordnaer.Tests.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
@@ -11,21 +12,14 @@ namespace Jordnaer.Tests;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
-public class AzureAppConfiguration_Should
+public class AzureAppConfigurationTests(JordnaerWebApplicationFactory factory)
 {
-	private readonly JordnaerWebApplicationFactory _factory;
-
-	public AzureAppConfiguration_Should(JordnaerWebApplicationFactory factory)
-	{
-		_factory = factory;
-	}
-
 	[Fact]
 	public void Contain_Authentication_Scheme_Facebook()
 	{
 		// Arrange
 		var facebookOptions = new FacebookOptions();
-		var configuration = _factory.Services.GetRequiredService<IConfiguration>();
+		var configuration = factory.Services.GetRequiredService<IConfiguration>();
 
 		// Act
 		configuration.GetSection("Authentication:Schemes:Facebook").Bind(facebookOptions);
@@ -40,7 +34,7 @@ public class AzureAppConfiguration_Should
 	{
 		// Arrange
 		var microsoftAccountOptions = new MicrosoftAccountOptions();
-		var configuration = _factory.Services.GetRequiredService<IConfiguration>();
+		var configuration = factory.Services.GetRequiredService<IConfiguration>();
 
 		// Act
 		configuration.GetSection("Authentication:Schemes:Microsoft").Bind(microsoftAccountOptions);
@@ -55,7 +49,7 @@ public class AzureAppConfiguration_Should
 	{
 		// Arrange
 		var facebookOptions = new GoogleOptions();
-		var configuration = _factory.Services.GetRequiredService<IConfiguration>();
+		var configuration = factory.Services.GetRequiredService<IConfiguration>();
 
 		// Act
 		configuration.GetSection("Authentication:Schemes:Google").Bind(facebookOptions);
@@ -69,7 +63,7 @@ public class AzureAppConfiguration_Should
 	public void Contain_ConnectionString_JordnaerDbContext()
 	{
 		// Arrange
-		var configuration = _factory.Services.GetRequiredService<IConfiguration>();
+		var configuration = factory.Services.GetRequiredService<IConfiguration>();
 
 		// Act
 		var connectionString = configuration.GetConnectionString(nameof(JordnaerDbContext));

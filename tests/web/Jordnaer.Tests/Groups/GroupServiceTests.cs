@@ -4,6 +4,7 @@ using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
+using Jordnaer.Tests.Infrastructure;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -275,10 +276,8 @@ public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbCont
 		return group;
 	}
 
-	private void AddUserProfile(string? userId = null)
-	{
+	private void AddUserProfile(string? userId = null) =>
 		_context.UserProfiles.Add(new UserProfile { Id = userId ?? _userProfileId });
-	}
 
 	public Task InitializeAsync() => Task.CompletedTask;
 

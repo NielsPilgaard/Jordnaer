@@ -120,25 +120,24 @@ public class GroupSearchServiceExtensionsTests
 
 	// Helper method to create a list of groups with the required properties
 	private static Group[] CreateGroups() =>
-		new[]
-		{
-			new Group
+	[
+		new Group
 			{
 				Name = "Group 1",
 				ShortDescription = "A short description for Group 1",
-				Categories = new List<Shared.Category> {new() {Name = "Category 1"}}
+				Categories = [new Shared.Category {Name = "Category 1"}]
 			},
 			new Group
 			{
 				Name = "Group 2",
 				ShortDescription = "A short description for Group 2",
-				Categories = new List<Shared.Category> {new() {Name = "Category 2"}}
+				Categories = [new Shared.Category {Name = "Category 2"}]
 			},
 			new Group
 			{
 				Name = "Group 3",
 				ShortDescription = "A short description for Group 3",
-				Categories = new List<Shared.Category> {new() {Name = "Category 3"}}
+				Categories = [new Shared.Category {Name = "Category 3"}]
 			}
-		};
+	];
 }

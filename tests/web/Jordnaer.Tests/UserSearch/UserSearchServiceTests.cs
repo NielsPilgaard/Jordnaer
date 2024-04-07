@@ -3,6 +3,7 @@ using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
+using Jordnaer.Tests.Infrastructure;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,16 +16,16 @@ using Xunit;
 namespace Jordnaer.Tests.UserSearch;
 
 [Trait("Category", "UnitTest")]
-public class UserSearchService_Should : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
+public class UserSearchServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
 	private readonly IDataForsyningenClient _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
-	private readonly IUserSearchService _sut;
+	private readonly UserSearchService _sut;
 	private readonly Faker _faker = new();
 
-	public UserSearchService_Should(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
+	public UserSearchServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
-		_context = sqlServerContainer.Context;
+		_context = sqlServerContainer.CreateContext();
 
 		_sut = new UserSearchService(
 			Substitute.For<ILogger<UserSearchService>>(),
@@ -52,7 +53,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 	public async Task Return_UserSearchResult_With_Category_Filter()
 	{
 		// Arrange
-		var filter = new UserSearchFilter { Categories = new[] { _faker.Lorem.Word() } };
+		var filter = new UserSearchFilter { Categories = [_faker.Lorem.Word()] };
 		var users = CreateTestUsers(5);
 		// Ensure at least one user is looking for the specified activity
 		users[0].Categories.Add(new Shared.Category { Name = filter.Categories.First() });
@@ -71,7 +72,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 	public async Task Return_UserSearchResult_With_FirstName_Filter()
 	{
 		// Arrange
-		string? firstName = _faker.Name.FirstName();
+		var firstName = _faker.Name.FirstName();
 		var filter = new UserSearchFilter { Name = firstName };
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
@@ -91,7 +92,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 	public async Task Return_UserSearchResult_With_LastName_Filter()
 	{
 		// Arrange
-		string? lastName = _faker.Name.LastName();
+		var lastName = _faker.Name.LastName();
 		var filter = new UserSearchFilter { Name = lastName };
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
@@ -111,7 +112,7 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 	public async Task Return_UserSearchResult_With_ProfileName_Filter()
 	{
 		// Arrange
-		string? userName = _faker.Internet.UserName();
+		var userName = _faker.Internet.UserName();
 		var filter = new UserSearchFilter { Name = userName };
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
@@ -131,8 +132,8 @@ public class UserSearchService_Should : IClassFixture<SqlServerContainer<Jordnae
 	public async Task Return_UserSearchResult_With_CombinedName_Filter()
 	{
 		// Arrange
-		string? firstName = _faker.Name.FirstName();
-		string? lastName = _faker.Name.LastName();
+		var firstName = _faker.Name.FirstName();
+		var lastName = _faker.Name.LastName();
 
 		var filter = new UserSearchFilter { Name = $"{firstName} {lastName}" };
 		var users = CreateTestUsers(5);

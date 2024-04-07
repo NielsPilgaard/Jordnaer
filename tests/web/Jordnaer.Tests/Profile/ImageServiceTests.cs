@@ -1,6 +1,7 @@
 using Azure.Storage.Blobs;
 using FluentAssertions;
 using Jordnaer.Features.Images;
+using Jordnaer.Tests.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -8,14 +9,14 @@ namespace Jordnaer.Tests.Profile;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
-public class ImageService_Should
+public class ImageServiceTests
 {
 	private readonly BlobServiceClient _blobServiceClient;
 	private readonly IImageService _sut;
 
 	private const string ContainerName = "test-container";
 
-	public ImageService_Should(JordnaerWebApplicationFactory factory)
+	public ImageServiceTests(JordnaerWebApplicationFactory factory)
 	{
 		using var scope = factory.Services.CreateScope();
 		_blobServiceClient = scope.ServiceProvider.GetRequiredService<BlobServiceClient>();
@@ -26,11 +27,11 @@ public class ImageService_Should
 	public async Task UploadImage_UsingFileStream_Successfully()
 	{
 		// Arrange
-		string blobName = nameof(UploadImage_UsingFileStream_Successfully);
-		var fileStream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
+		const string blobName = nameof(UploadImage_UsingFileStream_Successfully);
+		var fileStream = new MemoryStream([1, 2, 3, 4, 5]);
 
 		// Act
-		string result = await _sut.UploadImageAsync(blobName, ContainerName, fileStream);
+		var result = await _sut.UploadImageAsync(blobName, ContainerName, fileStream);
 
 		// Assert
 		result.Should().NotBeNullOrEmpty();
@@ -43,11 +44,11 @@ public class ImageService_Should
 	public async Task UploadImage_UsingByteArray_Successfully()
 	{
 		// Arrange
-		string blobName = nameof(UploadImage_UsingByteArray_Successfully);
-		byte[] fileBytes = { 1, 2, 3, 4, 5 };
+		const string blobName = nameof(UploadImage_UsingByteArray_Successfully);
+		byte[] fileBytes = [1, 2, 3, 4, 5];
 
 		// Act
-		string result = await _sut.UploadImageAsync(blobName, ContainerName, fileBytes);
+		var result = await _sut.UploadImageAsync(blobName, ContainerName, fileBytes);
 
 		// Assert
 		result.Should().NotBeNullOrEmpty();
@@ -60,8 +61,8 @@ public class ImageService_Should
 	public async Task DeleteImage_Successfully()
 	{
 		// Arrange
-		string blobName = nameof(DeleteImage_Successfully);
-		byte[] fileBytes = { 1, 2, 3, 4, 5 };
+		const string blobName = nameof(DeleteImage_Successfully);
+		byte[] fileBytes = [1, 2, 3, 4, 5];
 		await _sut.UploadImageAsync(blobName, ContainerName, fileBytes);
 
 		// Act
@@ -79,9 +80,9 @@ public class ImageService_Should
 	public async Task UploadImage_OverridesExistingBlob_Successfully()
 	{
 		// Arrange
-		string blobName = nameof(UploadImage_OverridesExistingBlob_Successfully);
-		byte[] initialBytes = { 1, 2, 3, 4, 5 };
-		byte[] newBytes = { 6, 7, 8, 9, 10 };
+		const string blobName = nameof(UploadImage_OverridesExistingBlob_Successfully);
+		byte[] initialBytes = [1, 2, 3, 4, 5];
+		byte[] newBytes = [6, 7, 8, 9, 10];
 		await _sut.UploadImageAsync(blobName, ContainerName, initialBytes);
 
 		// Assert that the initial bytes are stored
@@ -91,7 +92,7 @@ public class ImageService_Should
 		blob.Value.Content.ToArray().Should().BeEquivalentTo(initialBytes);
 
 		// Act
-		string result = await _sut.UploadImageAsync(blobName, ContainerName, newBytes);
+		var result = await _sut.UploadImageAsync(blobName, ContainerName, newBytes);
 
 		// Assert
 		result.Should().NotBeNullOrEmpty();

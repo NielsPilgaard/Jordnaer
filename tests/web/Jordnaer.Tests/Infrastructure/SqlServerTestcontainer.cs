@@ -2,15 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Testcontainers.MsSql;
 using Xunit;
 
-namespace Jordnaer.Tests;
+namespace Jordnaer.Tests.Infrastructure;
 
 public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : DbContext
 {
 	public readonly MsSqlContainer Container = new MsSqlBuilder()
 		.WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
 		.Build();
-
-	public TDbContext Context = null!;
 
 	public TDbContext CreateContext() => (TDbContext)Activator
 		.CreateInstance(typeof(TDbContext),
@@ -26,9 +24,8 @@ public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : 
 
 		_connectionString = Container.GetConnectionString();
 
-		Context = CreateContext();
-
-		await Context.Database.EnsureCreatedAsync();
+		await using var context = CreateContext();
+		await context.Database.EnsureCreatedAsync();
 	}
 
 	public virtual async Task DisposeAsync() => await Container.DisposeAsync();

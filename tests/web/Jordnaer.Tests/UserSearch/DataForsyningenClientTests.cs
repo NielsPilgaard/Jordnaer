@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Jordnaer.Shared;
+using Jordnaer.Tests.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -7,14 +8,9 @@ namespace Jordnaer.Tests.UserSearch;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(JordnaerWebApplicationFactoryCollection))]
-public class DataForsyningenClient_Should
+public class DataForsyningenClientTests(JordnaerWebApplicationFactory factory)
 {
-	private readonly IDataForsyningenClient _dataForsyningenClient;
-
-	public DataForsyningenClient_Should(JordnaerWebApplicationFactory factory)
-	{
-		_dataForsyningenClient = factory.Services.GetRequiredService<IDataForsyningenClient>();
-	}
+	private readonly IDataForsyningenClient _dataForsyningenClient = factory.Services.GetRequiredService<IDataForsyningenClient>();
 
 	[Fact]
 	public async Task Get_Addresses_With_AutoComplete()
