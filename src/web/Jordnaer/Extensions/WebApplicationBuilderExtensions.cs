@@ -203,19 +203,21 @@ public static class WebApplicationBuilderExtensions
 	{
 		var dbConnectionString = GetConnectionString(builder.Configuration);
 
-		builder.Services.AddDbContextFactory<JordnaerDbContext>(
-			optionsBuilder => optionsBuilder
-				.UseSqlServer(dbConnectionString,
-							  contextOptionsBuilder => contextOptionsBuilder.UseAzureSqlDefaults()),
-			ServiceLifetime.Scoped);
+		builder.Services.AddDbContextFactory<JordnaerDbContext>(optionsBuilder => optionsBuilder.UseSqlServer(
+																	dbConnectionString,
+																	contextOptionsBuilder =>
+																		contextOptionsBuilder.UseAzureSqlDefaults()),
+																ServiceLifetime.Scoped);
 
 		builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
+
+		builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 		return builder;
 	}
 
 	/// <summary>
-	/// We use ConnectionStrings:jordnaer-dev in development,
+	/// We use ConnectionStrings:jordnaer in development,
 	/// and ConnectionStrings:JordnaerDbContext in production.
 	/// <para>The dev connection string is injected by Aspire</para>
 	/// </summary>
@@ -223,7 +225,7 @@ public static class WebApplicationBuilderExtensions
 	/// <returns></returns>
 	/// <exception cref="InvalidOperationException"></exception>
 	private static string GetConnectionString(IConfiguration configuration) =>
-		configuration.GetConnectionString("jordnaer-dev") ??
+		configuration.GetConnectionString("jordnaer") ??
 		configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
 		throw new InvalidOperationException($"Connection string '{nameof(JordnaerDbContext)}' not found.");
 }
