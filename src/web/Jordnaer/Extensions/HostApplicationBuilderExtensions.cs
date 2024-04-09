@@ -15,6 +15,9 @@ public static class HostApplicationBuilderExtensions
 			Predicate = registration => registration.Tags.Contains("live")
 		}).AllowAnonymous().RequireHealthCheckRateLimit();
 
+		// elmah.io sends head requests to check if the server is alive
+		app.MapMethods("/", [HttpMethods.Head, HttpMethods.Options], () => "Ok");
+
 		return app;
 	}
 }
