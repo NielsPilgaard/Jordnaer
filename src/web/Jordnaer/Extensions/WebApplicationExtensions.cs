@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Jordnaer.Extensions;
 
-public static class HostApplicationBuilderExtensions
+public static class WebApplicationExtensions
 {
 	public static WebApplication MapObservabilityEndpoints(this WebApplication app)
 	{
