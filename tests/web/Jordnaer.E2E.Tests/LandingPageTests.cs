@@ -5,10 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace Jordnaer.E2E.Tests;
 
-[Parallelizable(ParallelScope.Self)]
+[Parallelizable(ParallelScope.All)]
 [TestFixture]
-[Category("UITest")]
-public partial class LandingPageTests : PageTest
+[Category(Constants.TestCategory)]
+public partial class LandingPageTests : BrowserTest
 {
 	[GeneratedRegex(".*/Account/Login")]
 	private partial Regex LoginRegex();
@@ -22,31 +22,40 @@ public partial class LandingPageTests : PageTest
 	[Test]
 	public async Task When_User_Clicks_Join_User_Should_Be_Redirected_To_Login()
 	{
-		await Page.GotoAsync(Constants.MainUrl);
+		var page = await Browser.NewPageAsync();
 
-		await Page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).ClickAsync();
+		await page.GotoAsync(Constants.MainUrl);
 
-		await Expect(Page).ToHaveURLAsync(LoginRegex());
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).ClickAsync();
+
+		await Expect(page).ToHaveURLAsync(LoginRegex());
 	}
 
 	[Test]
 	[Ignore("The Posts navlink is currently hidden")]
 	public async Task When_User_Clicks_Posts_User_Should_Be_Redirected_To_Posts()
 	{
-		await Page.GotoAsync(Constants.MainUrl);
+		var page = await Browser.NewPageAsync();
 
-		await Page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "OPSLAG" }).ClickAsync();
+		await page.GotoAsync(Constants.MainUrl);
 
-		await Expect(Page).ToHaveURLAsync(PostsRegex());
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "OPSLAG" }).ClickAsync();
+
+		await Expect(page).ToHaveURLAsync(PostsRegex());
 	}
 
 	[Test]
 	public async Task When_User_Clicks_Groups_User_Should_Be_Redirected_To_Groups()
 	{
-		await Page.GotoAsync(Constants.MainUrl);
+		var page = await Browser.NewPageAsync();
 
-		await Page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "GRUPPER", Exact = true }).ClickAsync();
+		await page.GotoAsync(Constants.MainUrl);
 
-		await Expect(Page).ToHaveURLAsync(GroupsRegex());
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
+		{
+			Name = "GRUPPER", Exact = true
+		}).ClickAsync();
+
+		await Expect(page).ToHaveURLAsync(GroupsRegex());
 	}
 }
