@@ -33,6 +33,8 @@ jobs:
           --filter Category!=ManualTest
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
+          InstallPlaywright: false
+          BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
 
       - name: Upload Screenshots
         if: always()
