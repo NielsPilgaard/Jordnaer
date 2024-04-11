@@ -3,7 +3,6 @@ using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Blazr.RenderState.Server;
 using Jordnaer.Components.Account;
-using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Category;
 using Jordnaer.Features.Chat;
@@ -18,6 +17,7 @@ using Jordnaer.Shared.Infrastructure;
 using Serilog;
 using System.Text.Json.Serialization;
 using Jordnaer.Components;
+using Jordnaer.Database;
 using Jordnaer.Features.Images;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -89,7 +89,9 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-	await app.InitializeDatabaseAsync();
+	app.UseMigrationsEndPoint();
+	app.UseDeveloperExceptionPage();
+	_ = Task.Run(app.InitializeDatabaseAsync);
 }
 else
 {

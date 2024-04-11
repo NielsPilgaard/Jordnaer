@@ -9,11 +9,12 @@ public static class SeedDatabase
 {
 	public static async Task InitializeDatabaseAsync(this WebApplication app)
 	{
+		// Wait for the database to be ready
+		await Task.Delay(TimeSpan.FromSeconds(30));
+
 		using var scope = app.Services.CreateScope();
 
 		var context = scope.ServiceProvider.GetRequiredService<JordnaerDbContext>();
-
-		await context.Database.MigrateAsync();
 
 		var categories = await context.InsertCategoriesAsync();
 
