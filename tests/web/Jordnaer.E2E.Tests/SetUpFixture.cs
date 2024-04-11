@@ -9,13 +9,7 @@ public class SetUpFixture
 	[OneTimeSetUp]
 	public void GlobalSetup()
 	{
-		//// We set this environment variable to false in the CI pipeline,
-		//// so if it's null or true, run installation
-		//var installPlaywright = Environment.GetEnvironmentVariable("InstallPlaywright");
-		//if (string.IsNullOrEmpty(installPlaywright) ||
-		//	installPlaywright.Equals(bool.TrueString, StringComparison.InvariantCultureIgnoreCase))
-		//{
+		// Always run install, it stops if Playwright is already installed
 		Program.Main(["install"]);
-		//}
 	}
 }
