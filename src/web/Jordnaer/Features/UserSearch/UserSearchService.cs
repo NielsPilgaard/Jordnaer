@@ -54,7 +54,9 @@ public class UserSearchService : IUserSearchService
 
 	public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default)
 	{
-		var users = _context.UserProfiles.AsQueryable();
+		var users = _context.UserProfiles
+							.Where(user => !string.IsNullOrEmpty(user.UserName))
+							.AsQueryable();
 
 		users = ApplyChildFilters(filter, users);
 		users = ApplyNameFilter(filter.Name, users);

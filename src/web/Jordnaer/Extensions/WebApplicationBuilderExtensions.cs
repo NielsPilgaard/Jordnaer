@@ -211,7 +211,10 @@ public static class WebApplicationBuilderExtensions
 
 		builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
 
-		builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+		if (builder.Environment.IsDevelopment())
+		{
+			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+		}
 
 		return builder;
 	}
