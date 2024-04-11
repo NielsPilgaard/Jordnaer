@@ -12,9 +12,11 @@ public static class SeedDatabase
 		// Wait for the database to be ready
 		await Task.Delay(TimeSpan.FromSeconds(30));
 
-		using var scope = app.Services.CreateScope();
+		await using var scope = app.Services.CreateAsyncScope();
 
-		var context = scope.ServiceProvider.GetRequiredService<JordnaerDbContext>();
+		await using var context = await scope.ServiceProvider
+											 .GetRequiredService<IDbContextFactory<JordnaerDbContext>>()
+											 .CreateDbContextAsync();
 
 		var categories = await context.InsertCategoriesAsync();
 
@@ -73,7 +75,7 @@ public static class SeedDatabase
 	{
 		if (await context.Categories.AnyAsync())
 		{
-			return new List<Category>();
+			return [];
 		}
 
 		var categories = new List<Category>()

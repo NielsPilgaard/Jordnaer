@@ -17,9 +17,9 @@ using Jordnaer.Shared.Infrastructure;
 using Serilog;
 using System.Text.Json.Serialization;
 using Jordnaer.Components;
-using Jordnaer.Database;
 using Jordnaer.Features.Images;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Jordnaer.Database;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -91,7 +91,6 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseMigrationsEndPoint();
 	app.UseDeveloperExceptionPage();
-	_ = Task.Run(app.InitializeDatabaseAsync);
 }
 else
 {
@@ -122,6 +121,11 @@ app.MapAdditionalIdentityEndpoints();
 app.MapObservabilityEndpoints();
 
 app.MapHub<ChatHub>("/hubs/chat");
+
+if (app.Environment.IsDevelopment())
+{
+	_ = Task.Run(app.InitializeDatabaseAsync);
+}
 
 try
 {
