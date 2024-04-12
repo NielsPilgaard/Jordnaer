@@ -89,7 +89,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-	_ = Task.Run(app.InitializeDatabaseAsync);
+	await app.InitializeDatabaseAsync();
 }
 else
 {

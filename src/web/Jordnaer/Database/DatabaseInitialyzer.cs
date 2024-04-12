@@ -9,9 +9,6 @@ public static class SeedDatabase
 {
 	public static async Task InitializeDatabaseAsync(this WebApplication app)
 	{
-		// Wait for the database to be ready
-		await Task.Delay(TimeSpan.FromSeconds(30));
-
 		await using var scope = app.Services.CreateAsyncScope();
 
 		await using var context = await scope.ServiceProvider
