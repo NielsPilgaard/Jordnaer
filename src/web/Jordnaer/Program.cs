@@ -89,8 +89,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-	app.UseMigrationsEndPoint();
-	app.UseDeveloperExceptionPage();
+	await app.InitializeDatabaseAsync();
 }
 else
 {
@@ -121,11 +120,6 @@ app.MapAdditionalIdentityEndpoints();
 app.MapObservabilityEndpoints();
 
 app.MapHub<ChatHub>("/hubs/chat");
-
-if (app.Environment.IsDevelopment())
-{
-	_ = Task.Run(app.InitializeDatabaseAsync);
-}
 
 try
 {

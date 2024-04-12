@@ -1,13 +1,5 @@
 {
   "dependencies": {
-    "appInsights1": {
-      "type": "appInsights.sdk",
-      "dynamicId": null
-    },
-    "identityapp1": {
-      "ignored": "true",
-      "type": "identityapp"
-    },
     "secrets1": {
       "type": "secrets.user",
       "dynamicId": null
@@ -18,9 +10,9 @@
       "secretStore": "LocalSecretsFile",
       "containerName": "mssql",
       "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
+      "resourceId": null,
       "type": "mssql.container",
-      "connectionId": "ConnectionStrings:JordnaerDbContext",
-      "dynamicId": null
+      "connectionId": "ConnectionStrings:JordnaerDbContext_dev"
     }
   }
 }
