@@ -18,6 +18,8 @@ public static class SeedDatabase
 											 .GetRequiredService<IDbContextFactory<JordnaerDbContext>>()
 											 .CreateDbContextAsync();
 
+		await context.Database.MigrateAsync();
+
 		var categories = await context.InsertCategoriesAsync();
 
 		await context.InsertFakeUsersAsync(categories);

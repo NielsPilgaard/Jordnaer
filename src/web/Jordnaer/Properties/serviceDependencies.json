@@ -10,8 +10,7 @@
     },
     "mssql1": {
       "type": "mssql",
-      "connectionId": "ConnectionStrings:JordnaerDbContext",
-      "dynamicId": null
+      "connectionId": "ConnectionStrings:JordnaerDbContext_dev"
     }
   }
 }

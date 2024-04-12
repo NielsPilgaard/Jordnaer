@@ -220,15 +220,16 @@ public static class WebApplicationBuilderExtensions
 	}
 
 	/// <summary>
-	/// We use ConnectionStrings:jordnaer in development,
-	/// and ConnectionStrings:JordnaerDbContext in production.
-	/// <para>The dev connection string is injected by Aspire</para>
+	/// ConnectionStrings:jordnaer -> Aspire
+	/// ConnectionStrings:JordnaerDbContext_dev -> local container, created by Visual Studio
+	/// ConnectionStrings:JordnaerDbContext -> production Azure SQL Database
 	/// </summary>
 	/// <param name="configuration"></param>
 	/// <returns></returns>
 	/// <exception cref="InvalidOperationException"></exception>
 	private static string GetConnectionString(IConfiguration configuration) =>
 		configuration.GetConnectionString("jordnaer") ??
+		configuration.GetConnectionString($"{nameof(JordnaerDbContext)}_dev") ??
 		configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
 		throw new InvalidOperationException($"Connection string '{nameof(JordnaerDbContext)}' not found.");
 }
