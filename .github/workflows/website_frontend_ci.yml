@@ -30,13 +30,12 @@ jobs:
         run: >
           dotnet test "${{ env.WORKING_DIRECTORY }}" 
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
-          --filter Category!=ManualTest
+          --filter Category!=SkipInCi
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
-          InstallPlaywright: false
-          BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
-          TestUser_Name: ${{ secrets.TEST_USER_NAME }}
-          TestUser_Password: ${{ secrets.TEST_USER_PASSWORD }}
+          Playwright_BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
+          Playwright_Username: ${{ secrets.TEST_USER_NAME }}
+          Playwright_Password: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: Upload Screenshots
         if: always()

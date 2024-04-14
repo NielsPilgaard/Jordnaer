@@ -1,3 +1,4 @@
+using Jordnaer.E2E.Tests.Infrastructure;
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
@@ -5,14 +6,13 @@ using NUnit.Framework;
 namespace Jordnaer.E2E.Tests;
 
 [TestFixture]
-[Category(Constants.TestCategory)]
-[Category("ManualTest")]
+[Category(nameof(TestCategory.UI))]
+[Category(nameof(TestCategory.SkipInCi))]
 [Parallelizable(ParallelScope.All)]
 public class ScreenResolutionTests : BrowserTest
 {
 	[Test]
 	[Description("This test will take screenshots of the landing page in different screen resolutions.")]
-	// List of resolutions as test cases
 	[TestCase(360, 800)]
 	[TestCase(390, 844)]
 	[TestCase(393, 873)]
@@ -33,10 +33,10 @@ public class ScreenResolutionTests : BrowserTest
 	[TestCase(4096, 2160)]
 	public async Task LandingPage(int width, int height)
 	{
-		var page = await Browser.NewPageAsync();
+		var page = await Browser.NewPageAsync(Playwright);
 
 		await page.SetViewportSizeAsync(width, height);
-		await page.GotoAsync(Constants.MainUrl);
+		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 		await page.Locator("img#landing-page-center-image")
 			.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
