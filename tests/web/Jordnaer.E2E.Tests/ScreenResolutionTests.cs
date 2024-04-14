@@ -33,7 +33,7 @@ public class ScreenResolutionTests : BrowserTest
 	[TestCase(4096, 2160)]
 	public async Task LandingPage(int width, int height)
 	{
-		var page = await Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 
 		await page.SetViewportSizeAsync(width, height);
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
@@ -43,5 +43,7 @@ public class ScreenResolutionTests : BrowserTest
 		var path = $"{Constants.ScreenshotFolder}/{width}x{height}.png";
 		await page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
 		Console.WriteLine($"Saved image to path '{Path.GetFullPath(path)}'");
+
+		await page.CloseAsync();
 	}
 }

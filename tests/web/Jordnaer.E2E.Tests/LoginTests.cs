@@ -12,7 +12,8 @@ namespace Jordnaer.E2E.Tests;
 public class LoginTests : BrowserTest
 {
 	[Test]
-	public async Task When_User_Logs_In_With_Email_And_Password_It_Succeeds() => await Browser.Login(Playwright);
+	public async Task When_User_Logs_In_With_Email_And_Password_It_Succeeds()
+		=> await Browser.Login(Playwright);
 
 	[Test]
 	[TestCase("Facebook")]
@@ -28,6 +29,8 @@ public class LoginTests : BrowserTest
 		{
 			Name = $"Log ind med {externalProvider}"
 		})).ToBeVisibleAsync();
+
+		await page.CloseAsync();
 	}
 
 	[Test]
@@ -36,7 +39,7 @@ public class LoginTests : BrowserTest
 	[TestCase("emailbekræftelse")]
 	public async Task When_User_Goes_To_Login_Links_Are_Visible(string linkTextRegex)
 	{
-		var page = await Browser.NewPageAsync(Playwright, false);
+		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
 
@@ -44,12 +47,14 @@ public class LoginTests : BrowserTest
 		{
 			NameRegex = new Regex(linkTextRegex)
 		})).ToBeVisibleAsync();
+
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task When_User_Goes_To_Login_Topbar_Menu_Should_Be_Clickable_And_Have_Links()
 	{
-		var page = await Browser.NewPageAsync(Playwright, false);
+		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
 
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
@@ -59,17 +64,21 @@ public class LoginTests : BrowserTest
 			.ToBeVisibleAsync();
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Grupper", Exact = true }))
 			.ToBeVisibleAsync();
+
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task When_User_Goes_To_Login_Topbar_Logo_Should_Be_Visible()
 	{
-		var page = await Browser.NewPageAsync(Playwright, false);
+		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
 
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
 
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Logo" }))
 			.ToBeVisibleAsync();
+
+		await page.CloseAsync();
 	}
 }

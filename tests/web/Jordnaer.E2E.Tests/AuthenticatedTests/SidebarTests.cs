@@ -15,10 +15,17 @@ public class AuthenticatedSidebarTests : BrowserTest
 	[Test]
 	public async Task My_Groups_Link_Should_Be_Visible_In_The_Sidebar_And_Redirect_Correctly()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 
+		// Wait for main page to load
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
+		{
+			Name = "VÆR' MED"
+		}).WaitForAsync();
+
 		await page.GetByRole(AriaRole.Banner).GetByRole(AriaRole.Button).ClickAsync();
+
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
 			Name = "Mine Grupper"
@@ -30,13 +37,21 @@ public class AuthenticatedSidebarTests : BrowserTest
 		}).ClickAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/personal/groups"));
+
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task Chat_Link_Should_Be_Visible_In_The_Sidebar_And_Redirect_Correctly()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+
+		// Wait for main page to load
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
+		{
+			Name = "VÆR' MED"
+		}).WaitForAsync();
 
 		await page.GetByRole(AriaRole.Banner).GetByRole(AriaRole.Button).ClickAsync();
 
@@ -51,5 +66,7 @@ public class AuthenticatedSidebarTests : BrowserTest
 		}).ClickAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/chat"));
+
+		await page.CloseAsync();
 	}
 }

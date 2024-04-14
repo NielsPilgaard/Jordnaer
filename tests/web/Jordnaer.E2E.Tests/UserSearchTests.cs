@@ -12,7 +12,9 @@ public class UserSearchTests : BrowserTest
 	[Test]
 	public async Task When_User_Clicks_Search_Results_Are_Returned()
 	{
-		var page = await Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+
+		await page.CloseAsync();
 	}
 }

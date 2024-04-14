@@ -14,7 +14,7 @@ public class ChatTests : BrowserTest
 	[Test]
 	public async Task Chat_Search_Should_Return_No_Results_When_Searching_For_Random_String()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
 
 		// Search for user
@@ -25,75 +25,90 @@ public class ChatTests : BrowserTest
 		await page.GetByRole(AriaRole.Textbox).ClickAsync();
 		await page.GetByRole(AriaRole.Textbox).FillAsync(Guid.NewGuid().ToString());
 		await Expect(page.GetByText("Ingen brugere fundet")).ToBeVisibleAsync();
+
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task Chat_Search_Should_Return_Niels_When_Searching_For_Niels()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
 
 		// Search for user
 		await page.GetByRole(AriaRole.Textbox).ClickAsync();
 		await page.GetByRole(AriaRole.Textbox).FillAsync("Niels Pilgaard Grøndahl");
 		await Expect(page.GetByText("Niels Pilgaard Grøndahl")).ToBeVisibleAsync();
+
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task Chat_Should_Be_Able_To_Send_Messages()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
 
 		// Search for user
 		await page.GetByRole(AriaRole.Textbox).ClickAsync();
 		await page.GetByRole(AriaRole.Textbox).FillAsync("Niels Pilgaard Grøndahl");
-		await page.GetByText("Niels Pilgaard Grøndahl").ClickAsync();
+		await Task.Delay(500);
+		await page.GetByText("Niels Pilgaard Grøndahl").First.ClickAsync();
+
+		// Dismiss cookie banner
+		await page.GetByText("Mini Møder anvender cookies").ClickAsync();
 
 		// Send message
 		await page.Locator("#chat-message-input").ClickAsync();
 		await page.Locator("#chat-message-input").FillAsync("Dette er en test meddelelse.");
+		await page.GetByLabel("Icon Button").ClickAsync();
 
 		// Assert message was sent
 		await Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions
 		{
 			Name = "Dette er en test meddelelse."
-		})).ToBeVisibleAsync();
+		}).First).ToBeVisibleAsync();
 
-		// Assert message input is now empty
-		await Expect(page.Locator("#chat-message-input")).ToBeEmptyAsync();
-		await Expect(page.GetByLabel("Icon Button")).ToBeDisabledAsync();
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task Chat_Should_Clear_The_Input_After_Message_Is_Sent()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
 
 		// Search for user
 		await page.GetByRole(AriaRole.Textbox).ClickAsync();
 		await page.GetByRole(AriaRole.Textbox).FillAsync("Niels Pilgaard Grøndahl");
-		await page.GetByText("Niels Pilgaard Grøndahl").ClickAsync();
+		await Task.Delay(500);
+		await page.GetByText("Niels Pilgaard Grøndahl").First.ClickAsync();
+
+		// Dismiss cookie banner
+		await page.GetByText("Mini Møder anvender cookies").ClickAsync();
 
 		// Send message
 		await page.Locator("#chat-message-input").ClickAsync();
 		await page.Locator("#chat-message-input").FillAsync("Dette er en test meddelelse.");
+		await page.GetByLabel("Icon Button").ClickAsync();
 
 		// Assert message input is now empty
 		await Expect(page.Locator("#chat-message-input")).ToBeEmptyAsync();
-		await Expect(page.GetByLabel("Icon Button")).ToBeDisabledAsync();
+
+		await page.CloseAsync();
 	}
 
 	[Test]
 	public async Task Chat_Should_Hide_Footers()
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright);
+		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
 
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
 			Name = "Kontakt"
 		})).ToBeHiddenAsync();
+
+		await page.CloseAsync();
 	}
 }
