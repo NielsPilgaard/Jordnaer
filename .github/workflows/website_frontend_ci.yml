@@ -1,4 +1,4 @@
-name: Run Playwright Website Tests
+name: Run Playwright Website Tests & Swap Slots if successful
 
 on: 
   workflow_run:
@@ -9,6 +9,8 @@ on:
 
 env:
   WORKING_DIRECTORY: tests/web/Jordnaer.E2E.Tests
+  AZURE_WEBAPP_NAME: Jordnaer
+  RESOURCE_GROUP: Jordnaer
 jobs:
   playwright:
     runs-on: ubuntu-latest
@@ -25,8 +27,6 @@ jobs:
           dotnet-version: "8.x"
 
       - name: Test
-        # Dependabot cannot access secrets, so we disable this step for Dependabot
-        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
         run: >
           dotnet test "${{ env.WORKING_DIRECTORY }}" 
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
@@ -34,8 +34,17 @@ jobs:
         env:
           ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
           Playwright_BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
-          Playwright_Username: ${{ secrets.TEST_USER_NAME }}
-          Playwright_Password: ${{ secrets.TEST_USER_PASSWORD }}
+          Playwright_Username: ${{ secrets.Playwright_Username }}
+          Playwright_Password: ${{ secrets.Playwright_Password }}
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.MINIMOEDER_AZURE_CREDENTIALS }}
+
+      - name: Swap Slots
+        run: >
+          az webapp deployment slot swap --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --slot staging --target-slot production
 
       - name: Upload Screenshots
         if: always()
