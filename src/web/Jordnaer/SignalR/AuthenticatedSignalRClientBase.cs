@@ -68,11 +68,11 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 	{
 		if (HubConnection is not null)
 		{
-			_logger.LogInformation("Disposing SignalR Client");
+			_logger.LogDebug("Disposing SignalR Client");
 
 			await HubConnection.DisposeAsync();
 
-			_logger.LogInformation("SignalR Client disposed");
+			_logger.LogDebug("SignalR Client disposed");
 		}
 
 		GC.SuppressFinalize(this);

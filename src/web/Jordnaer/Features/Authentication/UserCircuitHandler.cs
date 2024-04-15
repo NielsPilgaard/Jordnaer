@@ -82,7 +82,7 @@ internal sealed class UserCircuitHandler(
 
 		currentUser.CookieContainer = cookieContainer;
 
-		logger.LogInformation("Successfully set cookie for User {UserId}", currentUser.Id);
+		logger.LogDebug("Successfully set cookie for User {UserId}", currentUser.Id);
 
 		return Task.CompletedTask;
 	}
