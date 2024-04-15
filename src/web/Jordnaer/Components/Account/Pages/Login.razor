@@ -14,9 +14,7 @@
             <StatusMessage Message="@_errorMessage" />
             <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
                 <DataAnnotationsValidator />
-                <h2>Brug en konto til at logge ind.</h2>
                 <hr />
-                <ValidationSummary class="text-danger" role="alert" />
                 <div class="form-floating mb-3">
                     <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com" />
                     <label for="email" class="form-label">Email</label>
