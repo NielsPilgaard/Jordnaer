@@ -8,18 +8,18 @@ namespace Jordnaer.E2E.Tests;
 [Parallelizable(ParallelScope.All)]
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
-public class UserSearchTests : BrowserTest
+public class GroupSearchTests : BrowserTest
 {
 	[Test]
 	public async Task When_User_Searches_For_Random_Guid_Empty_Alert_Is_Returned()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync($"{TestConfiguration.Values.BaseUrl}/users");
+		await page.GotoAsync($"{TestConfiguration.Values.BaseUrl}/groups");
 
 		await Task.Delay(500);
 
 		// Search for random name
-		await page.GetByPlaceholder("Fornavn, efternavn eller").FillAsync(Guid.NewGuid().ToString());
+		await page.GetByRole(AriaRole.Textbox).First.FillAsync(Guid.NewGuid().ToString());
 
 		// Click search button
 		await page.GetByRole(AriaRole.Group).GetByRole(AriaRole.Button).First.ClickAsync();
