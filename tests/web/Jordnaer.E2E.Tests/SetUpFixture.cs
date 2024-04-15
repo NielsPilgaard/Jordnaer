@@ -33,9 +33,9 @@ public class SetUpFixture
 			SlowMo = TestConfiguration.Values.SlowMo
 		});
 
-		Context = await NewContext();
-
 		await Browser.Login(_playwright);
+
+		Context = await NewContext();
 	}
 
 	private async Task<IBrowserContext> NewContext()
