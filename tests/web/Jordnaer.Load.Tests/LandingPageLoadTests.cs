@@ -41,12 +41,12 @@ public class LandingPageLoadTest
 		Assert.True(result.AllBytes > 0);
 		Assert.True(result.AllRequestCount > 0);
 		Assert.True(result.AllOkCount > 0);
-		Assert.True(result.AllFailCount == 0);
+		Assert.Equal(0, result.AllFailCount);
 
 		var scnStats = result.GetScenarioStats(nameof(LandingPageLoadTest));
 
 		Assert.True(scnStats.Ok.Latency.MinMs > 0);
 		Assert.True(scnStats.Ok.Latency.MaxMs < 1_000);
-		Assert.True(scnStats.Fail.Request.Count == 0);
+		Assert.Equal(0, scnStats.Fail.Request.Count);
 	}
 }
