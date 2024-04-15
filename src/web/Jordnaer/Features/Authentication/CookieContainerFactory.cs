@@ -15,7 +15,7 @@ public sealed class CookieContainerFactory(ILogger<CookieContainerFactory> logge
 
 	private Cookie CreateCookie(string cookie, string domain)
 	{
-		logger.LogInformation("Creating cookie with domain {Domain}", domain);
+		logger.LogDebug("Creating cookie with domain {Domain}", domain);
 
 		return new Cookie(name: AuthenticationConstants.CookieName,
 						  value: cookie,
