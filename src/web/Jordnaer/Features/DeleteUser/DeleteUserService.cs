@@ -116,8 +116,9 @@ public class DeleteUserService : IDeleteUserService
 		var tokenIsValid = await _userManager.VerifyUserTokenAsync(user, TokenProvider, TokenPurpose, token);
 		if (tokenIsValid is false)
 		{
-			_logger.LogWarning("The token {token} is not valid for the token purpose {tokenPurpose}, " +
-							   "stopping the deletion of the user.", token, TokenPurpose);
+			_logger.LogWarning("The token provided by User {UserId} is not valid for " +
+							   "the token purpose {tokenPurpose}, " +
+							   "stopping the deletion of the user.", userId, TokenPurpose);
 			return false;
 		}
 
