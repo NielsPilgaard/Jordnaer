@@ -3,8 +3,7 @@ name: Run Playwright Website Tests & Swap Slots if successful
 on: 
   workflow_run:
     workflows: ["Deploy Website"]
-    types: 
-      - completed
+    types: [completed]
   workflow_dispatch:
 
 env:
@@ -13,6 +12,8 @@ env:
   RESOURCE_GROUP: Jordnaer
 jobs:
   playwright:
+    # Only run this if the workflow that triggered it was successful  
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright/dotnet:v1.42.0-jammy

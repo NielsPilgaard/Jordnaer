@@ -23,6 +23,8 @@ env:
   WEBSITE_URL: https://mini-moeder.dk
 jobs:
   lighthose:
+    # Only run this if the workflow that triggered it was successful  
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
