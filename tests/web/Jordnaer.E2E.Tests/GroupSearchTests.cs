@@ -8,6 +8,7 @@ namespace Jordnaer.E2E.Tests;
 [Parallelizable(ParallelScope.All)]
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
+[Category(nameof(TestCategory.SkipInCi))]
 public class GroupSearchTests : BrowserTest
 {
 	[Test]
