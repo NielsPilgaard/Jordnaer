@@ -37,7 +37,10 @@ jobs:
           Playwright_BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
           Playwright_Username: ${{ secrets.Playwright_Username }}
           Playwright_Password: ${{ secrets.Playwright_Password }}
-
+                      
+      - name: Install Azure CLI
+        uses: pietrobolcato/install-azure-cli-action@v1.0.1
+          
       - name: Login to Azure
         uses: azure/login@v2
         with:
