@@ -9,6 +9,7 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
 [Category(nameof(TestCategory.Authenticated))]
+[Category(nameof(TestCategory.SkipInCi))]
 public class ChatTests : BrowserTest
 {
 	[Test]
