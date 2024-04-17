@@ -1,6 +1,6 @@
 name: Run Playwright Website Tests & Swap Slots if successful
 
-on: 
+on:
   workflow_run:
     workflows: ["Deploy Website"]
     types: [completed]
@@ -10,9 +10,10 @@ env:
   WORKING_DIRECTORY: tests/web/Jordnaer.E2E.Tests
   AZURE_WEBAPP_NAME: Jordnaer
   RESOURCE_GROUP: Jordnaer
+
 jobs:
   playwright:
-    # Only run this if the workflow that triggered it was successful  
+    # Only run this if the workflow that triggered it was successful
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     container:
@@ -37,7 +38,18 @@ jobs:
           Playwright_BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
           Playwright_Username: ${{ secrets.Playwright_Username }}
           Playwright_Password: ${{ secrets.Playwright_Password }}
-          
+
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: "${{ env.WORKING_DIRECTORY }}/bin/Release/screenshots"
+
+  swap-deployment:
+    needs: playwright
+    runs-on: ubuntu-latest
+    steps:
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -46,10 +58,3 @@ jobs:
       - name: Swap Slots
         run: >
           az webapp deployment slot swap --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --slot staging --target-slot production
-
-      - name: Upload Screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"
