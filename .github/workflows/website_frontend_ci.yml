@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
-          path: "${{ env.WORKING_DIRECTORY }}/bin/Release/screenshots"
+          path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"
 
   swap-deployment:
     needs: playwright
