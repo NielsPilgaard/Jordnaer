@@ -4,7 +4,6 @@
 @inject IJSRuntime JsRuntime
 @inject IProfileCache ProfileCache
 
-
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
     @if (_group is null && _isLoading is false)
@@ -75,40 +74,41 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (GroupName is not null)
+        if (GroupName is null)
         {
-            var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
-            response.Switch(
-                groupSlim => _group = groupSlim,
-                _ => { });
-
-            if (_group is null)
-            {
-                return;
-            }
-
-            _currentUser = await ProfileCache.GetProfileAsync();
-            if (_currentUser is null)
-            {
-                return;
-            }
-
-            _isMemberOfGroup = await GroupService
-                .IsGroupMemberAsync(_group.Id);
-
-            if (_isMemberOfGroup is false)
-            {
-	            _groupAdmins = await GroupService
-		            .GetGroupMembersByPredicateAsync(x =>
-			            x.GroupId == _group.Id &&
-			            x.PermissionLevel.HasFlag(PermissionLevel.Admin));
-
-                _recipients = _groupAdmins.Concat([_currentUser.ToUserSlim()]);
-            }
-            
+	        _isLoading = false;
+	        return;
         }
 
-        _isLoading = false;
+        var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
+	    response.Switch(
+		    groupSlim => _group = groupSlim,
+		    _ => { });
 
+	    if (_group is null)
+	    {
+		    return;
+	    }
+
+	    _isMemberOfGroup = await GroupService
+		    .IsGroupMemberAsync(_group.Id);
+
+	    _currentUser = await ProfileCache.GetProfileAsync();
+	    if (_currentUser is null)
+	    {
+		    return;
+	    }
+
+	    if (_isMemberOfGroup is false)
+	    {
+		    _groupAdmins = await GroupService
+			    .GetGroupMembersByPredicateAsync(x =>
+				    x.GroupId == _group.Id &&
+				    x.PermissionLevel.HasFlag(PermissionLevel.Admin));
+
+		    _recipients = _groupAdmins.Concat([_currentUser.ToUserSlim()]);
+	    }
+
+	    _isLoading = false;
     }
 }
