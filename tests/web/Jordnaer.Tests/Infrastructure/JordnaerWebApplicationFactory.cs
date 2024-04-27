@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Testcontainers.MsSql;
 using Xunit;
 
@@ -28,8 +30,22 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
+		builder.ConfigureAppConfiguration(configurationBuilder =>
+		{
+			var configuration = configurationBuilder.Build();
+
+			var connectionString = configuration.GetConnectionString("AppConfig");
+
+			configurationBuilder.AddAzureAppConfiguration(options => options.
+																	 Connect(connectionString)
+																	 .Select("*"));
+		});
+
 		builder.ConfigureTestServices(services =>
 		{
+			services.AddFeatureManagement();
+			services.AddAzureAppConfiguration();
+
 			services.RemoveAll<IHostedService>();
 
 			services.RemoveAll<JordnaerDbContext>();
