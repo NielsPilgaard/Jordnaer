@@ -50,7 +50,7 @@ jobs:
     needs: playwright
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-${{ env.AZURE_WEBAPP_NAME }}-swap
+      group: ${{ env.AZURE_WEBAPP_NAME }}-swap
       cancel-in-progress: false
     steps:
       - name: Login to Azure
