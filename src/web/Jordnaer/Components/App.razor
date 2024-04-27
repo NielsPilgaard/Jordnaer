@@ -31,8 +31,14 @@
     <link preload="true" href="css/landing-page.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="css/fonts.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="css/app.css" rel="stylesheet" asp-append-version="true" />
-    <link preload="true" href="bootstrap/bootstrap.min.css" rel="stylesheet" asp-append-version="true" />
-    <link preload="true" href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" asp-append-version="true" />
+    
+    @*Expirament*@
+    <link rel="preload" href="bootstrap/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" asp-append-version="true">
+
+    <link rel="preload" href="_content/MudBlazor/MudBlazor.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" asp-append-version="true">
+
     <link preload="true" href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="css/chat.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="Jordnaer.styles.css" rel="stylesheet" asp-append-version="true" />
