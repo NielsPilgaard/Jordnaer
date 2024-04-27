@@ -19,9 +19,11 @@ using Xunit;
 using Response = SendGrid.Response;
 using Jordnaer.Tests.Infrastructure;
 
-namespace Jordnaer.Tests;
+namespace Jordnaer.Tests.User;
 
-public class DeleteUserServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
+[Trait("Category", "IntegrationTest")]
+[Collection(nameof(SqlServerContainerCollection))]
+public class DeleteUserServiceTests : IAsyncLifetime
 {
 	private readonly UserManager<ApplicationUser> _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 	private readonly ILogger<DeleteUserService> _logger = Substitute.For<ILogger<DeleteUserService>>();

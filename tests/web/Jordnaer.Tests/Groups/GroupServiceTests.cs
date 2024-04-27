@@ -17,7 +17,8 @@ using NotFound = OneOf.Types.NotFound;
 namespace Jordnaer.Tests.Groups;
 
 [Trait("Category", "IntegrationTest")]
-public class GroupServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
+[Collection(nameof(SqlServerContainerCollection))]
+public class GroupServiceTests : IAsyncLifetime
 {
 	private readonly GroupService _groupService;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();

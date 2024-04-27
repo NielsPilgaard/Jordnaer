@@ -3,7 +3,7 @@ using Jordnaer.Features.GroupSearch;
 using Jordnaer.Shared;
 using Xunit;
 
-namespace Jordnaer.Tests;
+namespace Jordnaer.Tests.Groups;
 
 [Trait("Category", "UnitTest")]
 public class GroupSearchServiceExtensionsTests

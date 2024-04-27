@@ -15,8 +15,9 @@ using Xunit;
 
 namespace Jordnaer.Tests.UserSearch;
 
-[Trait("Category", "UnitTest")]
-public class UserSearchServiceTests : IClassFixture<SqlServerContainer<JordnaerDbContext>>, IAsyncLifetime
+[Trait("Category", "IntegrationTest")]
+[Collection(nameof(SqlServerContainerCollection))]
+public class UserSearchServiceTests : IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
 	private readonly IDataForsyningenClient _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
