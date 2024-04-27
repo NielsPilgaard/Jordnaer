@@ -1,16 +1,14 @@
 using FluentAssertions;
 using Jordnaer.Shared;
-using Jordnaer.Tests.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Jordnaer.Tests.UserSearch;
 
 [Trait("Category", "IntegrationTest")]
-[Collection(nameof(JordnaerWebApplicationFactoryCollection))]
-public class DataForsyningenClientTests(JordnaerWebApplicationFactory factory)
+public class DataForsyningenClientTests
 {
-	private readonly IDataForsyningenClient _dataForsyningenClient = factory.Services.GetRequiredService<IDataForsyningenClient>();
+	private readonly IDataForsyningenClient _dataForsyningenClient = Refit.RestService.For<IDataForsyningenClient>(
+		new HttpClient { BaseAddress = new Uri("https://api.dataforsyningen.dk") });
 
 	[Fact]
 	public async Task Get_Addresses_With_AutoComplete()
