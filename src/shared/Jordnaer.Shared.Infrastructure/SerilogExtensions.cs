@@ -57,14 +57,22 @@ public static class SerilogExtensions
 				_ => app.Environment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Debug
 			});
 
+	/// <summary>
+	/// Write to elmah.io if not in development, and the log level is warning or higher
+	/// </summary>
+	/// <param name="loggerConfiguration"></param>
+	/// <param name="provider"></param>
 	private static void WriteToElmahIo(this LoggerConfiguration loggerConfiguration,
 		IServiceProvider provider)
 	{
 		var elmahIoOptions = provider.GetRequiredService<IOptions<ElmahIoOptions>>().Value;
 
-		loggerConfiguration.WriteTo.ElmahIo(
-			new ElmahIoSinkOptions(elmahIoOptions.ApiKey,
-									elmahIoOptions.LogIdGuid));
+		loggerConfiguration
+			.WriteTo
+			.Conditional(logEvent => logEvent.Level >= LogEventLevel.Warning,
+						 configuration => configuration.ElmahIo(
+							 new ElmahIoSinkOptions(elmahIoOptions.ApiKey,
+													elmahIoOptions.LogIdGuid)));
 	}
 
 	private static void WriteToLoki(this LoggerConfiguration loggerConfiguration,
