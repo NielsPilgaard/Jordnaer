@@ -20,6 +20,7 @@ using Jordnaer.Components;
 using Jordnaer.Features.Images;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Jordnaer.Database;
+using Microsoft.Net.Http.Headers;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -101,7 +102,15 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+	OnPrepareResponse = ctx =>
+	{
+		const int durationInSeconds = 60 * 60 * 24; // 24 hours
+		ctx.Context.Response.Headers[HeaderNames.CacheControl] =
+			"public,max-age=" + durationInSeconds;
+	}
+});
 app.UseRouting();
 
 app.UseSerilog();
