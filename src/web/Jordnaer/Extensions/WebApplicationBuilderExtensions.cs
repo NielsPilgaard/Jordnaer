@@ -1,12 +1,8 @@
 using Grafana.OpenTelemetry;
-using Jordnaer.Components.Account;
 using Jordnaer.Database;
-using Jordnaer.Features.Authentication;
 using MassTransit;
 using MassTransit.Logging;
 using MassTransit.Monitoring;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
@@ -135,12 +131,13 @@ public static class WebApplicationBuilderExtensions
 		return builder;
 	}
 
-	private static IHostApplicationBuilder AddAspireOpenTelemetryExporters(this IHostApplicationBuilder builder)
+	private static void AddAspireOpenTelemetryExporters(this IHostApplicationBuilder builder)
 	{
 		// The default endpoint is http://localhost:4318, it's automatically set when using Aspire
 		// If you want to run the Aspire dashboard standalone, set
 		// the OTEL_EXPORTER_OTLP_ENDPOINT environment variable or appsetting to http://localhost:4318
 		var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
 		if (useOtlpExporter)
 		{
 			builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
@@ -154,82 +151,27 @@ public static class WebApplicationBuilderExtensions
 		//    builder.Services.AddOpenTelemetry()
 		//       .UseAzureMonitor();
 		//}
-
-		return builder;
-	}
-
-	public static WebApplicationBuilder AddAuthentication(this WebApplicationBuilder builder)
-	{
-		builder.Services.AddCascadingAuthenticationState();
-		builder.Services.AddScoped<IdentityUserAccessor>();
-		builder.Services.AddScoped<IdentityRedirectManager>();
-		builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-		builder.Services.AddCurrentUser();
-
-		builder.Services.AddAuthentication(options =>
-		{
-			options.DefaultScheme = IdentityConstants.ApplicationScheme;
-			options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-		}).AddFacebook(options =>
-		{
-			options.AppId = builder.Configuration.GetValue<string>("Authentication:Schemes:Facebook:AppId")!;
-			options.AppSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Facebook:AppSecret")!;
-			options.SaveTokens = true;
-		}).AddMicrosoftAccount(options =>
-		{
-			options.ClientId = builder.Configuration.GetValue<string>("Authentication:Schemes:Microsoft:ClientId")!;
-			options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Microsoft:ClientSecret")!;
-			options.SaveTokens = true;
-		}).AddGoogle(options =>
-		{
-			options.ClientId = builder.Configuration.GetValue<string>("Authentication:Schemes:Google:ClientId")!;
-			options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Schemes:Google:ClientSecret")!;
-			options.SaveTokens = true;
-		}).AddIdentityCookies();
-
-		builder.Services.AddIdentityCore<ApplicationUser>(options =>
-			   {
-				   options.SignIn.RequireConfirmedAccount = true;
-				   options.User.RequireUniqueEmail = true;
-			   })
-			   .AddEntityFrameworkStores<JordnaerDbContext>()
-			   .AddSignInManager()
-			   .AddDefaultTokenProviders();
-
-		return builder;
 	}
 
 	public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
 	{
-		var dbConnectionString = GetConnectionString(builder.Configuration);
+		var connectionString = GetConnectionString(builder.Configuration);
 
-		builder.Services.AddDbContextFactory<JordnaerDbContext>(optionsBuilder => optionsBuilder.UseSqlServer(
-																	dbConnectionString,
-																	contextOptionsBuilder =>
-																		contextOptionsBuilder.UseAzureSqlDefaults()),
-																ServiceLifetime.Scoped);
+		builder.Services
+			   .AddDbContextFactory<JordnaerDbContext>(
+				   optionsBuilder =>
+					   optionsBuilder.UseSqlServer(connectionString,
+												   contextOptionsBuilder =>
+													   contextOptionsBuilder.UseAzureSqlDefaults()),
+				   ServiceLifetime.Scoped);
 
-		builder.Services.AddHealthChecks().AddSqlServer(dbConnectionString);
-
-		if (builder.Environment.IsDevelopment())
-		{
-			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-		}
+		builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 
 		return builder;
 	}
 
-	/// <summary>
-	/// ConnectionStrings:jordnaer -> Aspire
-	/// ConnectionStrings:JordnaerDbContext_dev -> local container, created by Visual Studio
-	/// ConnectionStrings:JordnaerDbContext -> production Azure SQL Database
-	/// </summary>
-	/// <param name="configuration"></param>
-	/// <returns></returns>
-	/// <exception cref="InvalidOperationException"></exception>
 	private static string GetConnectionString(IConfiguration configuration) =>
-		configuration.GetConnectionString("jordnaer") ??
-		configuration.GetConnectionString($"{nameof(JordnaerDbContext)}_dev") ??
-		configuration.GetConnectionString(nameof(JordnaerDbContext)) ??
-		throw new InvalidOperationException($"Connection string '{nameof(JordnaerDbContext)}' not found.");
+		configuration.GetConnectionString(nameof(JordnaerDbContext))
+		?? throw new InvalidOperationException(
+			$"Connection string '{nameof(JordnaerDbContext)}' not found.");
 }
