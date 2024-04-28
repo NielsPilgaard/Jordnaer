@@ -28,10 +28,7 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
 	{
 		builder.UseSetting($"ConnectionStrings:{nameof(JordnaerDbContext)}", MsSqlContainer.GetConnectionString());
 
-		builder.ConfigureTestServices(services =>
-		{
-			services.RemoveAll<IHostedService>();
-		});
+		builder.ConfigureTestServices(services => services.RemoveAll<IHostedService>());
 
 		builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
 	}

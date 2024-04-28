@@ -31,4 +31,4 @@ jobs:
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
           --filter Category!=ManualTest
         env:
-          ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
+          ConnectionStrings:AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
