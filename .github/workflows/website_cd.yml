@@ -35,7 +35,7 @@ jobs:
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
           --filter Category!=ManualTest
         env:
-          ConnectionStrings:AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
+          ConnectionStrings:AzureServiceBus: ${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}
 
       - name: Publish
         run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
