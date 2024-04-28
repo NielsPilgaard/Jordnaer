@@ -49,15 +49,18 @@ public static class AuthenticationExtensions
 		this AuthenticationBuilder builder,
 		ConfigurationManager configuration, bool isDevelopment)
 	{
+		const string provider = "Google";
+
 		var googleOptions = new GoogleOptions();
-		configuration.GetSection("Authentication:Schemes:Google").Bind(googleOptions);
+		configuration.GetSection($"Authentication:Schemes:{provider}").Bind(googleOptions);
 
 		if ((string.IsNullOrEmpty(googleOptions.ClientId) || string.IsNullOrEmpty(googleOptions.ClientSecret))
 			&& isDevelopment)
 		{
-			Log.Warning("Google Authentication is not enabled, " +
+			Log.Warning("{Provider} Authentication is not enabled, " +
 						"because it's configuration section was not set. " +
-						"SectionName {SectionName}", "Authentication:Schemes:Google");
+						"SectionName {SectionName}",
+						provider, $"Authentication:Schemes:{provider}");
 			return builder;
 		}
 
@@ -76,15 +79,18 @@ public static class AuthenticationExtensions
 		ConfigurationManager configuration,
 		bool isDevelopment)
 	{
+		const string provider = "Facebook";
+
 		var facebookOptions = new FacebookOptions();
-		configuration.GetSection("Authentication:Schemes:Facebook").Bind(facebookOptions);
+		configuration.GetSection($"Authentication:Schemes:{provider}").Bind(facebookOptions);
 
 		if ((string.IsNullOrEmpty(facebookOptions.AppId) || string.IsNullOrEmpty(facebookOptions.AppSecret))
 			&& isDevelopment)
 		{
-			Log.Warning("Google Authentication is not enabled, " +
+			Log.Warning("{Provider} Authentication is not enabled, " +
 							"because it's configuration section was not set. " +
-							"SectionName {SectionName}", "Authentication:Schemes:Google");
+							"SectionName {SectionName}",
+						provider, $"Authentication:Schemes:{provider}");
 			return builder;
 		}
 
@@ -103,22 +109,25 @@ public static class AuthenticationExtensions
 		ConfigurationManager configuration,
 		bool isDevelopment)
 	{
-		var microsoftOptions = new MicrosoftAccountOptions();
-		configuration.GetSection("Authentication:Schemes:Microsoft").Bind(microsoftOptions);
+		const string provider = "Microsoft";
 
-		if ((string.IsNullOrEmpty(microsoftOptions.ClientId) || string.IsNullOrEmpty(microsoftOptions.ClientSecret))
+		var microsoftAccountOptions = new MicrosoftAccountOptions();
+		configuration.GetSection($"Authentication:Schemes:{provider}").Bind(microsoftAccountOptions);
+
+		if ((string.IsNullOrEmpty(microsoftAccountOptions.ClientId) || string.IsNullOrEmpty(microsoftAccountOptions.ClientSecret))
 			&& isDevelopment)
 		{
-			Log.Warning("Google Authentication is not enabled, " +
+			Log.Warning("{Provider} Authentication is not enabled, " +
 						"because it's configuration section was not set. " +
-						"SectionName {SectionName}", "Authentication:Schemes:Google");
+						"SectionName {SectionName}",
+						provider, $"Authentication:Schemes:{provider}");
 			return builder;
 		}
 
 		builder.AddMicrosoftAccount(options =>
 		{
-			options.ClientId = microsoftOptions.ClientId;
-			options.ClientSecret = microsoftOptions.ClientSecret;
+			options.ClientId = options.ClientId;
+			options.ClientSecret = options.ClientSecret;
 			options.SaveTokens = true;
 		});
 
