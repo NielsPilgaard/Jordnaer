@@ -31,11 +31,11 @@ jobs:
 
       - name: Test
         run: >
-          dotnet test "${{ env.WORKING_DIRECTORY }}" 
+          dotnet test "${{ env.TESTS_DIRECTORY }}" 
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
           --filter Category!=ManualTest
         env:
-          ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
+          ConnectionStrings:AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
 
       - name: Publish
         run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
