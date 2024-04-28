@@ -16,18 +16,6 @@ public static class SerilogExtensions
 {
 	public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
 	{
-		builder.Services
-			.AddOptions<GrafanaLokiOptions>()
-			.BindConfiguration(GrafanaLokiOptions.SectionName)
-			.ValidateDataAnnotations()
-			.ValidateOnStart();
-
-		builder.Services
-			   .AddOptions<ElmahIoOptions>()
-			   .BindConfiguration(ElmahIoOptions.SectionName)
-			   .ValidateDataAnnotations()
-			   .ValidateOnStart();
-
 		builder.Host.UseSerilog((context, provider, loggerConfiguration) =>
 		{
 			loggerConfiguration.ReadFrom.Configuration(context.Configuration)
@@ -37,11 +25,25 @@ public static class SerilogExtensions
 
 			loggerConfiguration.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] [{Level}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 
-			if (context.HostingEnvironment.IsDevelopment() is false)
+			if (context.HostingEnvironment.IsDevelopment())
 			{
-				loggerConfiguration.WriteToLoki(provider);
-				loggerConfiguration.WriteToElmahIo(provider);
+				return;
 			}
+
+			builder.Services
+				   .AddOptions<GrafanaLokiOptions>()
+				   .BindConfiguration(GrafanaLokiOptions.SectionName)
+				   .ValidateDataAnnotations()
+				   .ValidateOnStart();
+
+			builder.Services
+				   .AddOptions<ElmahIoOptions>()
+				   .BindConfiguration(ElmahIoOptions.SectionName)
+				   .ValidateDataAnnotations()
+				   .ValidateOnStart();
+
+			loggerConfiguration.WriteToLoki(provider);
+			loggerConfiguration.WriteToElmahIo(provider);
 		});
 
 		return builder;
