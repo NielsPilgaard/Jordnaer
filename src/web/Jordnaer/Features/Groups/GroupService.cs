@@ -21,7 +21,7 @@ public interface IGroupService
 	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default);
 
 	Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default);
-	Task<bool> IsGroupMemberAsync(Guid groupId, CancellationToken cancellationToken = default);
+	Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default);
 }
 
 public class GroupService(
@@ -128,7 +128,7 @@ public class GroupService(
 		return members;
 	}
 
-	public async Task<bool> IsGroupMemberAsync(Guid groupId, CancellationToken cancellationToken = default)
+	public async Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 

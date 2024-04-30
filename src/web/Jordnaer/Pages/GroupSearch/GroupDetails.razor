@@ -23,18 +23,18 @@
     <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
 
     <AuthorizeView>
-        <Authorized>
-            <OpenChat Disabled="_isMemberOfGroup"
-                      Recipients="_recipients"
-                      ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
+	    <Authorized>
+		    <OpenChat Disabled="_isMemberOfGroup"
+		              Recipients="_recipients"
+		              ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")"/>
 
-            <MudButton Disabled="_isMemberOfGroup"
-                       Class="mb-5"
-                       Color="Color.Tertiary"
-                       EndIcon="@Icons.Material.Filled.GroupAdd">
-                Anmod om Medlemskab
-            </MudButton>
-        </Authorized>
+		    <MudButton Disabled="_isMemberOfGroup"
+		               Class="mb-5"
+		               Color="Color.Tertiary"
+		               EndIcon="@Icons.Material.Filled.GroupAdd">
+			    Anmod om Medlemskab
+		    </MudButton>
+	    </Authorized>
     </AuthorizeView>
 
     <MudGrid>
@@ -69,7 +69,7 @@
 
     private bool _isLoading = true;
     private UserProfile? _currentUser;
-    private bool _isMemberOfGroup = true;
+    private bool _isMemberOfGroup = false;
     private IEnumerable<UserSlim> _recipients = [];
 
     protected override async Task OnInitializedAsync()
@@ -90,8 +90,7 @@
 		    return;
 	    }
 
-	    _isMemberOfGroup = await GroupService
-		    .IsGroupMemberAsync(_group.Id);
+	    _isMemberOfGroup = await GroupService.IsCurrentUserMemberOfGroupAsync(_group.Id);
 
 	    _currentUser = await ProfileCache.GetProfileAsync();
 	    if (_currentUser is null)
