@@ -1,76 +1,93 @@
 @page "/users"
+
 @inject IUserSearchService UserSearchService
 @inject ISessionStorageService SessionStorage
+@inject NavigationManager Navigation
 
 <MetadataComponent Title="Mini Møder - Søg efter brugere"
                    Description="Søg efter brugere" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-	<UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+    <UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
 
-	@if (!_hasSearched)
-	{
-		return;
-	}
+    @if (!_hasSearched)
+    {
+        return;
+    }
 
-	@if (_searchResult.TotalCount == 0)
-	{
-		<MudPaper Elevation="3" Class="pa-10 mt-5">
-			<MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-				<MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
-			</MudAlert>
-		</MudPaper>
-		return;
-	}
+    @if (_searchResult.TotalCount == 0)
+    {
+        <MudPaper Elevation="3" Class="pa-10 mt-5">
+            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                <MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
+            </MudAlert>
+        </MudPaper>
+        return;
+    }
 
-	<SponsorAd Class="mt-5"
-	           ImageAlt="Reklame for Moon Creative"
-	           MobileImagePath="images/ads/mooncreative_mobile.png"
-	           DesktopImagePath="images/ads/mooncreative_mobile.png" />
+    <SponsorAd Class="mt-5"
+               ImageAlt="Reklame for Moon Creative"
+               MobileImagePath="images/ads/mooncreative_mobile.png"
+               DesktopImagePath="images/ads/mooncreative_mobile.png" />
 
-	<UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+    <UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
 </MudLoading>
 
 @code {
+    [SupplyParameterFromQuery]
+    public string? Name { get; set; }
+    [SupplyParameterFromQuery]
+    public string[]? Categories { get; set; }
+    [SupplyParameterFromQuery]
+    public int? WithinRadiusKilometers { get; set; }
+    [SupplyParameterFromQuery]
+    public string? Location { get; set; }
+    [SupplyParameterFromQuery]
+    public int? MinimumChildAge { get; set; }
+    [SupplyParameterFromQuery]
+    public int? MaximumChildAge { get; set; }
+    [SupplyParameterFromQuery]
+    public string? ChildGender { get; set; }
+
     private UserSearchFilter _filter = new();
     private UserSearchResult _searchResult = new();
+
+    public static readonly UserSearchFilter DefaultFilter = new();
+
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    if (!firstRender)
-	    {
-		    return;
-	    }
+        if (firstRender is false)
+        {
+            return;
+        }
 
-	    _isSearching = true;
+        _isSearching = true;
 
-	    var stateHasChanged = false;
+        var runStateHasChanged = LoadFromQueryString();
 
-	    var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
-	    var savedSearchFilter = await SessionStorage.GetItemAsync<UserSearchFilter>(nameof(UserSearchFilter));
+        var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
+        if (savedSearchResult is null && _filter.Equals(DefaultFilter))
+        {
+            await Search();
+        }
 
-	    _isSearching = false;
+        _isSearching = false;
 
-	    if (savedSearchResult is not null)
-	    {
-		    _searchResult = savedSearchResult;
-		    _hasSearched = true;
-		    stateHasChanged = true;
-	    }
+        if (savedSearchResult is not null)
+        {
+            _searchResult = savedSearchResult;
+            _hasSearched = true;
+            runStateHasChanged = true;
+        }
 
-	    if (savedSearchFilter is not null)
-	    {
-		    _filter = savedSearchFilter;
-		    stateHasChanged = true;
-	    }
-
-	    if (stateHasChanged)
-	    {
-		    StateHasChanged();
-	    }
+        if (runStateHasChanged)
+        {
+            StateHasChanged();
+        }
     }
 
     private async Task Search()
@@ -78,11 +95,56 @@
         _isSearching = true;
         _searchResult = await UserSearchService.GetUsersAsync(_filter);
 
+        UpdateQueryString();
+
         _hasSearched = true;
         await SessionStorage.SetItemAsync(nameof(UserSearchResult), _searchResult);
-        await SessionStorage.SetItemAsync(nameof(UserSearchFilter), _filter);
 
         _isSearching = false;
+    }
+
+    private void UpdateQueryString()
+    {
+	    var queryParameters = new Dictionary<string, object?>
+	    {
+		    [nameof(_filter.Name)] = _filter.Name,
+		    [nameof(_filter.Categories)] = _filter.Categories,
+		    [nameof(_filter.WithinRadiusKilometers)] = _filter.WithinRadiusKilometers,
+		    [nameof(_filter.Location)] = _filter.Location,
+		    [nameof(_filter.MinimumChildAge)] = _filter.MinimumChildAge,
+		    [nameof(_filter.MaximumChildAge)] = _filter.MaximumChildAge,
+		    [nameof(_filter.ChildGender)] = _filter.ChildGender.HasValue ? _filter.ChildGender.ToString() : null
+	    };
+
+	    var newUrl = Navigation.GetUriWithQueryParameters(queryParameters);
+	    Navigation.NavigateTo(newUrl);
+    }
+
+    private bool LoadFromQueryString()
+    {
+	    var filter = new UserSearchFilter
+	    {
+		    Name = Name,
+		    Categories = Categories,
+		    WithinRadiusKilometers = WithinRadiusKilometers,
+		    Location = Location,
+		    MinimumChildAge = MinimumChildAge,
+		    MaximumChildAge = MaximumChildAge
+	    };
+
+	    if (Enum.TryParse<Gender>(ChildGender, out var gender))
+        {
+            filter.ChildGender = gender;
+        }
+
+        // Filter in query string is the same as the current filter
+	    if (filter.Equals(_filter))
+	    {
+		    return false;
+	    }
+
+	    _filter = filter;
+        return true;
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
