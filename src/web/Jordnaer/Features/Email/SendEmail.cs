@@ -7,6 +7,7 @@ public class SendEmail
 	public required string HtmlContent { get; set; }
 	public required string Subject { get; set; }
 	public required List<EmailAddress> To { get; set; }
+	public List<EmailAddress>? Bcc { get; set; }
 	public EmailAddress? ReplyTo { get; set; }
 
 	/// <summary>

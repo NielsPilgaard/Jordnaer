@@ -64,6 +64,11 @@ public class SendEmailConsumer(
 			email.ReplyTo = message.ReplyTo;
 		}
 
+		if (message.Bcc?.Count is > 0)
+		{
+			email.AddBccs(message.Bcc);
+		}
+
 		email.TrackingSettings = message.TrackingSettings ?? DefaultTrackingSettings;
 
 		var response = await Retry.ExecuteAsync(
