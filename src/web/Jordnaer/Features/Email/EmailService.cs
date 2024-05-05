@@ -41,7 +41,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint) : IEmailServi
 		{
 			Subject = "Ny medlemskabsanmodning",
 			HtmlContent = "Der er en ny medlemskabsanmodning",
-			To = EmailConstants.MembershipEmail
+			Bcc = EmailConstants.MembershipEmail
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);

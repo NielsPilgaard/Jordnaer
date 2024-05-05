@@ -57,7 +57,10 @@ public class SendEmailConsumer(
 			HtmlContent = message.HtmlContent
 		};
 
-		email.AddTos(message.To);
+		if (message.To?.Count is > 0)
+		{
+			email.AddTos(message.To);
+		}
 
 		if (message.ReplyTo is not null)
 		{
