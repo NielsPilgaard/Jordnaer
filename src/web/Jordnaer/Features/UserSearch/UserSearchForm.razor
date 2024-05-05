@@ -25,7 +25,7 @@
                 </MudItem>
 
                 <MudItem xs="8">
-                    <AddressAutoComplete For="@(() => Filter.Location)" @bind-Location="Filter.Location" />
+                    <AddressAutoComplete For="@(() => Filter.Location)" Location="@Filter.Location" LocationChanged="LocationChanged" />
                 </MudItem>
                 <MudItem xs="4">
                     <MudNumericField For="() => Filter.WithinRadiusKilometers"
@@ -100,6 +100,11 @@
         await FilterChanged.InvokeAsync(Filter);
 
         await SessionStorage.RemoveItemAsync(nameof(UserSearchResult));
-        await SessionStorage.RemoveItemAsync(nameof(UserSearchFilter));
+    }
+
+    private void LocationChanged(string location)
+    {
+	    Filter.Location = location;
+	    Filter.WithinRadiusKilometers ??= 10;
     }
 }
