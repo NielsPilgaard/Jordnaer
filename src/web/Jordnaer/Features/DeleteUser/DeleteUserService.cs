@@ -2,11 +2,11 @@ using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Images;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SendGrid;
 using SendGrid.Helpers.Mail;
 using Serilog;
 
@@ -26,7 +26,7 @@ public class DeleteUserService : IDeleteUserService
 
 	private readonly UserManager<ApplicationUser> _userManager;
 	private readonly ILogger<DeleteUserService> _logger;
-	private readonly ISendGridClient _sendGridClient;
+	private readonly IPublishEndpoint _publishEndpoint;
 	private readonly IServer _server;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 	private readonly IDiagnosticContext _diagnosticContext;
@@ -34,7 +34,7 @@ public class DeleteUserService : IDeleteUserService
 
 	public DeleteUserService(UserManager<ApplicationUser> userManager,
 		ILogger<DeleteUserService> logger,
-		ISendGridClient sendGridClient,
+		IPublishEndpoint publishEndpoint,
 		IServer server,
 		IDbContextFactory<JordnaerDbContext> contextFactory,
 		IDiagnosticContext diagnosticContext,
@@ -42,7 +42,7 @@ public class DeleteUserService : IDeleteUserService
 	{
 		_userManager = userManager;
 		_logger = logger;
-		_sendGridClient = sendGridClient;
+		_publishEndpoint = publishEndpoint;
 		_server = server;
 		_contextFactory = contextFactory;
 		_diagnosticContext = diagnosticContext;
@@ -78,26 +78,17 @@ public class DeleteUserService : IDeleteUserService
 
 		var message = CreateDeleteUserEmailMessage(deletionLink);
 
-		var email = new SendGridMessage
+		var email = new SendEmail
 		{
 			From = EmailConstants.ContactEmail, // Must be from a verified email
 			Subject = "Anmodning om sletning af bruger",
-			HtmlContent = message
+			HtmlContent = message,
+			To = to
 		};
 
-		email.AddTo(to);
-		email.TrackingSettings = new TrackingSettings
-		{
-			ClickTracking = new ClickTracking { Enable = false },
-			Ganalytics = new Ganalytics { Enable = false },
-			OpenTracking = new OpenTracking { Enable = false },
-			SubscriptionTracking = new SubscriptionTracking { Enable = false }
-		};
+		await _publishEndpoint.Publish(email, cancellationToken);
 
-		// TODO: Turn this email sending into an Azure Function
-		var emailSentResponse = await _sendGridClient.SendEmailAsync(email, cancellationToken);
-
-		return emailSentResponse.IsSuccessStatusCode;
+		return true;
 	}
 
 	public async Task<bool> DeleteUserAsync(string userId, string token, CancellationToken cancellationToken = default)
@@ -163,6 +154,10 @@ public class DeleteUserService : IDeleteUserService
 				await _imageService.DeleteImageAsync(id.ToString(), ProfileImageService.ChildProfilePicturesContainerName, cancellationToken);
 			}
 
+			_logger.LogInformation("User {UserId} has been deleted.", userId);
+
+			await _publishEndpoint.Publish(new UserDeleted(userId), cancellationToken);
+
 			return true;
 		}
 		catch (Exception exception)
@@ -210,3 +205,4 @@ public class DeleteUserService : IDeleteUserService
 		 """;
 }
 
+public record UserDeleted(string Id);

@@ -1,52 +1,22 @@
 ﻿using Jordnaer.Database;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
-using SendGrid;
 using SendGrid.Helpers.Mail;
 
 namespace Jordnaer.Features.Email;
 
-public class SendGridEmailSender : IEmailSender<ApplicationUser>
+public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSender<ApplicationUser>
 {
-	private readonly ISendGridClient _sendGridClient;
-	private readonly ILogger<SendGridEmailSender> _logger;
-
-	public SendGridEmailSender(ISendGridClient sendGridClient, ILogger<SendGridEmailSender> logger)
-	{
-		_sendGridClient = sendGridClient;
-		_logger = logger;
-	}
-
 	internal async Task Send(string email, string subject, string message)
 	{
-		var msg = new SendGridMessage
+		var sendEmail = new SendEmail
 		{
-			From = EmailConstants.ContactEmail,
 			Subject = subject,
-			HtmlContent = message
+			HtmlContent = message,
+			To = new EmailAddress(email)
 		};
 
-		var to = new EmailAddress(email);
-		msg.AddTo(to);
-
-		msg.TrackingSettings = new TrackingSettings
-		{
-			ClickTracking = new ClickTracking { Enable = false },
-			Ganalytics = new Ganalytics { Enable = false },
-			OpenTracking = new OpenTracking { Enable = false },
-			SubscriptionTracking = new SubscriptionTracking { Enable = false }
-		};
-
-		// TODO: This needs to go on a queue
-		var response = await _sendGridClient.SendEmailAsync(msg);
-		if (response.IsSuccessStatusCode)
-		{
-			_logger.LogInformation("Email sent successfully");
-		}
-		else
-		{
-			_logger.LogError("Failed to send email to {Email}. StatusCode: {StatusCode}. Response: {Response}",
-							 email, response.StatusCode.ToString(), await response.Body.ReadAsStringAsync());
-		}
+		await publishEndpoint.Publish(sendEmail);
 	}
 
 	public async Task SendConfirmationLinkAsync(ApplicationUser user, string email, string confirmationLink)
