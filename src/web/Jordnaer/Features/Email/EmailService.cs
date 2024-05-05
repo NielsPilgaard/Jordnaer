@@ -1,4 +1,3 @@
-using Jordnaer.Consumers;
 using Jordnaer.Shared;
 using MassTransit;
 using SendGrid.Helpers.Mail;
@@ -7,12 +6,13 @@ namespace Jordnaer.Features.Email;
 
 public interface IEmailService
 {
-	Task<bool> SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
+	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
+	Task SendMembershipRequestEmails(Guid groupId, CancellationToken cancellationToken = default);
 }
 
 public sealed class EmailService(IPublishEndpoint publishEndpoint) : IEmailService
 {
-	public async Task<bool> SendEmailFromContactForm(
+	public async Task SendEmailFromContactForm(
 		ContactForm contactForm,
 		CancellationToken cancellationToken = default)
 	{
@@ -27,11 +27,23 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint) : IEmailServi
 			Subject = subject,
 			ReplyTo = replyTo,
 			HtmlContent = contactForm.Message,
-			To = EmailConstants.ContactEmail
+			To = [EmailConstants.ContactEmail]
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);
+	}
 
-		return true;
+	public async Task SendMembershipRequestEmails(
+		Guid groupId,
+		CancellationToken cancellationToken = default)
+	{
+		var email = new SendEmail
+		{
+			Subject = "Ny medlemskabsanmodning",
+			HtmlContent = "Der er en ny medlemskabsanmodning",
+			To = EmailConstants.MembershipEmail
+		};
+
+		await publishEndpoint.Publish(email, cancellationToken);
 	}
 }

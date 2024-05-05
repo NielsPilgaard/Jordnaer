@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using Jordnaer.Database;
+﻿using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
+using Jordnaer.Features.Email;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
@@ -11,9 +11,10 @@ namespace Jordnaer.Features.Membership;
 
 public class MembershipService(CurrentUser currentUser,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
+	IEmailService emailService,
 	ILogger<MembershipService> logger)
 {
-	public async Task<OneOf<Success, Error<string>>> RequestMembership(
+	public async Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
 		Guid groupId,
 		CancellationToken cancellationToken = default)
 	{
@@ -29,17 +30,7 @@ public class MembershipService(CurrentUser currentUser,
 
 			if (existingMembership is not null)
 			{
-				return existingMembership.MembershipStatus switch
-				{
-					MembershipStatus.Active => new Error<string>("Du er allerede medlem af denne gruppe."),
-					MembershipStatus.PendingApprovalFromGroup => new Error<string>(
-						"Gruppen har endnu ikke svaret på din anmodning."),
-					MembershipStatus.PendingApprovalFromUser => new Error<string>(
-						"Gruppen har inviteret dig til at blive medlem."),
-					MembershipStatus.Rejected => new Error<string>(
-						"Gruppen har afvist din anmodning om at blive medlem."),
-					_ => throw new UnreachableException($"Unknown {nameof(MembershipStatus)} received.")
-				};
+				return new Error<MembershipStatus>(existingMembership.MembershipStatus);
 			}
 
 			context.GroupMemberships.Add(new GroupMembership
@@ -47,7 +38,7 @@ public class MembershipService(CurrentUser currentUser,
 				GroupId = groupId,
 				UserProfileId = currentUser.Id!,
 				MembershipStatus = MembershipStatus.PendingApprovalFromGroup,
-				PermissionLevel = PermissionLevel.None | PermissionLevel.Read | PermissionLevel.Write,
+				PermissionLevel = PermissionLevel.Read | PermissionLevel.Write,
 				UserInitiatedMembership = true,
 				CreatedUtc = DateTime.UtcNow,
 				LastUpdatedUtc = DateTime.UtcNow,
@@ -55,7 +46,8 @@ public class MembershipService(CurrentUser currentUser,
 			});
 			await context.SaveChangesAsync(cancellationToken);
 
-			// TODO: Send an email to group moderators and above
+			await emailService.SendMembershipRequestEmails(groupId, cancellationToken);
+
 			return new Success();
 		}
 		catch (Exception exception)

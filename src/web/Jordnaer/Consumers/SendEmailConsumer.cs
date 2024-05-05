@@ -57,7 +57,7 @@ public class SendEmailConsumer(
 			HtmlContent = message.HtmlContent
 		};
 
-		email.AddTo(message.To);
+		email.AddTos(message.To);
 
 		if (message.ReplyTo is not null)
 		{
@@ -72,16 +72,16 @@ public class SendEmailConsumer(
 
 		if (!response.IsSuccessStatusCode)
 		{
-			logger.LogError("Failed to send email to {Recipient}. " +
+			logger.LogError("Failed to send email to {@Recipient}. " +
 							"StatusCode: {StatusCode}. " +
 							"Response: {Response}. " +
 							"Email: {Email}",
-							message.To.Email, response.StatusCode.ToString(),
+							message.To, response.StatusCode.ToString(),
 							await response.Body.ReadAsStringAsync(), message);
 		}
 		else
 		{
-			logger.LogInformation("Email sent to {Recipient}. Subject: {Subject}", message.To.Email, message.Subject);
+			logger.LogInformation("Email sent to {@Recipient}. Subject: {Subject}", message.To, message.Subject);
 		}
 	}
 }
