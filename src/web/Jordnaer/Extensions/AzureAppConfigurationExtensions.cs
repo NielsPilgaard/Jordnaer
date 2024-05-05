@@ -15,10 +15,11 @@ public static class AzureAppConfigurationExtensions
 
 		builder.Services.AddAzureAppConfiguration();
 
-		var connectionString = builder.Configuration.GetConnectionString("AppConfig");
+		// This is set by Azure Service Connector
+		var connectionString = builder.Configuration["AZURE_APPCONFIGURATION_ENDPOINT"];
 		if (connectionString is null)
 		{
-			throw new InvalidOperationException("Failed to find connection string to Azure App Configuration. Keys checked: 'ConnectionStrings:AppConfig'");
+			throw new InvalidOperationException("Failed to find connection string to Azure App Configuration. Keys checked: 'AZURE_APPCONFIGURATION_ENDPOINT'");
 		}
 
 		builder.Configuration.AddAzureAppConfiguration(options =>

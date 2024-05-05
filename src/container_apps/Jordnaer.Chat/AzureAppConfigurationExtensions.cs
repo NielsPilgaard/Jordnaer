@@ -2,27 +2,33 @@ namespace Jordnaer.Chat;
 
 public static class AzureAppConfigurationExtensions
 {
-    public static WebApplicationBuilder AddAzureAppConfiguration(this WebApplicationBuilder builder)
-    {
-        string? connectionString = builder.Configuration.GetConnectionString("AppConfig") ?? builder.Configuration["appconfig"];
-        if (connectionString is null)
-        {
-            throw new InvalidOperationException("Failed to find connection string to Azure App Configuration. Keys checked: 'ConnectionStrings:AppConfig' and 'appconfig'");
-        }
+	public static WebApplicationBuilder AddAzureAppConfiguration(this WebApplicationBuilder builder)
+	{
+		builder.Services.AddFeatureManagement();
 
-        builder.Services.AddAzureAppConfiguration();
-        builder.Configuration.AddAzureAppConfiguration(options =>
-            options.Connect(connectionString)
-                // Load all keys that have no label
-                .Select("*")
-                // Configure to reload builder if the registered sentinel key is modified
-                .ConfigureRefresh(refreshOptions =>
-                {
-                    refreshOptions.Register("Sentinel", refreshAll: true);
-                    refreshOptions.SetCacheExpiration(TimeSpan.FromMinutes(5));
-                })
-                .UseFeatureFlags(flagOptions => flagOptions.CacheExpirationInterval = TimeSpan.FromMinutes(3)));
+		if (builder.Environment.IsDevelopment())
+		{
+			return builder;
+		}
 
-        return builder;
-    }
+		builder.Services.AddAzureAppConfiguration();
+
+		// This is set by Azure Service Connector
+		var connectionString = builder.Configuration["AZURE_APPCONFIGURATION_ENDPOINT"];
+		if (connectionString is null)
+		{
+			throw new InvalidOperationException("Failed to find connection string to Azure App Configuration. Keys checked: 'AZURE_APPCONFIGURATION_ENDPOINT'");
+		}
+
+		builder.Configuration.AddAzureAppConfiguration(options =>
+			options.Connect(connectionString)
+				   // Load all keys that have no label
+				   .Select("*")
+				   .ConfigureRefresh(refreshOptions =>
+										 // Only reload configs if the 'Sentinel' key is modified
+										 refreshOptions.Register("Sentinel", refreshAll: true))
+				   .UseFeatureFlags());
+
+		return builder;
+	}
 }
