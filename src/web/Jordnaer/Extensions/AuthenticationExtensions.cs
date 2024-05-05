@@ -126,8 +126,8 @@ public static class AuthenticationExtensions
 
 		builder.AddMicrosoftAccount(options =>
 		{
-			options.ClientId = options.ClientId;
-			options.ClientSecret = options.ClientSecret;
+			options.ClientId = microsoftAccountOptions.ClientId;
+			options.ClientSecret = microsoftAccountOptions.ClientSecret;
 			options.SaveTokens = true;
 		});
 

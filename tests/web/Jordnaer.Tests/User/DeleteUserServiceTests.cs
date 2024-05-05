@@ -7,16 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SendGrid;
-using SendGrid.Helpers.Mail;
 using Serilog;
-using System.Net;
+using Jordnaer.Features.Email;
 using Jordnaer.Features.Images;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Xunit;
-using Response = SendGrid.Response;
 using Jordnaer.Tests.Infrastructure;
 
 namespace Jordnaer.Tests.User;
@@ -27,7 +24,7 @@ public class DeleteUserServiceTests : IAsyncLifetime
 {
 	private readonly UserManager<ApplicationUser> _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 	private readonly ILogger<DeleteUserService> _logger = Substitute.For<ILogger<DeleteUserService>>();
-	private readonly ISendGridClient _sendGridClient = Substitute.For<ISendGridClient>();
+	private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
 	private readonly IServer _server = Substitute.For<IServer>();
 	private readonly IServerAddressesFeature _serverAddressesFeature = Substitute.For<IServerAddressesFeature>();
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
@@ -42,7 +39,7 @@ public class DeleteUserServiceTests : IAsyncLifetime
 
 		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(sqlServerContainer.CreateContext());
 
-		_deleteUserService = new DeleteUserService(_userManager, _logger, _sendGridClient, _server, _contextFactory, _diagnosticContext, _imageService);
+		_deleteUserService = new DeleteUserService(_userManager, _logger, _publishEndpoint, _server, _contextFactory, _diagnosticContext, _imageService);
 	}
 
 	[Fact]
@@ -58,7 +55,7 @@ public class DeleteUserServiceTests : IAsyncLifetime
 		_server.Features.Get<IServerAddressesFeature>().ReturnsForAnyArgs(_serverAddressesFeature);
 		_serverAddressesFeature.Addresses.ReturnsForAnyArgs(["https://localhost:7116"]);
 
-		_sendGridClient.SendEmailAsync(Arg.Any<SendGridMessage>()).Returns(new Response(HttpStatusCode.Accepted, null, null));
+		_publishEndpoint.Publish(Arg.Any<SendEmail>()).Returns(Task.CompletedTask);
 
 		// Act
 		var result = await _deleteUserService.InitiateDeleteUserAsync(user.Id);
