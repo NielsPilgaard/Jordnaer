@@ -16,6 +16,22 @@ public static class SerilogExtensions
 {
 	public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
 	{
+		if (!builder.Environment.IsDevelopment())
+		{
+
+			builder.Services
+				   .AddOptions<GrafanaLokiOptions>()
+				   .BindConfiguration(GrafanaLokiOptions.SectionName)
+				   .ValidateDataAnnotations()
+				   .ValidateOnStart();
+
+			builder.Services
+				   .AddOptions<ElmahIoOptions>()
+				   .BindConfiguration(ElmahIoOptions.SectionName)
+				   .ValidateDataAnnotations()
+				   .ValidateOnStart();
+		}
+
 		builder.Host.UseSerilog((context, provider, loggerConfiguration) =>
 		{
 			loggerConfiguration.ReadFrom.Configuration(context.Configuration)
@@ -29,18 +45,6 @@ public static class SerilogExtensions
 			{
 				return;
 			}
-
-			builder.Services
-				   .AddOptions<GrafanaLokiOptions>()
-				   .BindConfiguration(GrafanaLokiOptions.SectionName)
-				   .ValidateDataAnnotations()
-				   .ValidateOnStart();
-
-			builder.Services
-				   .AddOptions<ElmahIoOptions>()
-				   .BindConfiguration(ElmahIoOptions.SectionName)
-				   .ValidateDataAnnotations()
-				   .ValidateOnStart();
 
 			loggerConfiguration.WriteToLoki(provider);
 			loggerConfiguration.WriteToElmahIo(provider);
