@@ -16,9 +16,7 @@ public static class AzureAppConfigurationExtensions
 			return builder;
 		}
 
-		builder.Services.AddAzureAppConfiguration();
 
-		// This is set by Azure Service Connector
 		var connectionString = builder.Configuration.GetConnectionString("")
 							   ?? throw new InvalidOperationException(
 								   "Failed to find connection string to Azure App Configuration. " +
@@ -32,6 +30,8 @@ public static class AzureAppConfigurationExtensions
 					// Only reload configs if the 'Sentinel' key is modified
 					refreshOptions.Register("Sentinel", refreshAll: true))
 				.UseFeatureFlags());
+
+		builder.Services.AddAzureAppConfiguration();
 
 		return builder;
 	}
