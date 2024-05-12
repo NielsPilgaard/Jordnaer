@@ -1,4 +1,5 @@
-﻿using Jordnaer.Extensions;
+﻿using System.Net;
+using Jordnaer.Extensions;
 using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -12,7 +13,7 @@ internal sealed class UserCircuitHandler(
 	IProfileCache profileCache,
 	ILogger<UserCircuitHandler> logger,
 	IHttpContextAccessor httpContextAccessor,
-	CookieContainerFactory cookieContainerFactory)
+	CookieFactory cookieFactory)
 	: CircuitHandler, IDisposable
 {
 	public override async Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
@@ -52,9 +53,16 @@ internal sealed class UserCircuitHandler(
 
 	public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
-		if (currentUser.CookieContainer is not null)
+		// If user's circuit already has a cookie container with all our known cookies, return early.
+		if (currentUser.CookieContainer?.Count is > 3)
 		{
 			logger.LogDebug("CurrentUser already has a Cookie Container, returning.");
+			return Task.CompletedTask;
+		}
+
+		if (currentUser.Id is null)
+		{
+			logger.LogTrace("CurrentUser is not logged in yet, returning.");
 			return Task.CompletedTask;
 		}
 
@@ -64,25 +72,31 @@ internal sealed class UserCircuitHandler(
 			return Task.CompletedTask;
 		}
 
-		if (!httpContextAccessor.HttpContext.Request.Cookies
-								.TryGetValue(AuthenticationConstants.CookieName, out var cookie))
-		{
-			if (currentUser.Id is not null)
-			{
-				logger.LogError("Failed to get cookie by name '{CookieName}' by logged in User {UserId}", AuthenticationConstants.CookieName, currentUser.Id);
-			}
-
-			// User is not yet logged in, return early.
-			return Task.CompletedTask;
-		}
-
 		var domain = httpContextAccessor.HttpContext.Request.Host.Host;
 
-		var cookieContainer = cookieContainerFactory.Create(cookie, domain);
+		currentUser.CookieContainer = new CookieContainer();
 
-		currentUser.CookieContainer = cookieContainer;
+		string[] cookieNames = ["ARRAffinity", "ARRAffinitySameSite", AuthenticationConstants.CookieName];
 
-		logger.LogDebug("Successfully set cookie for User {UserId}", currentUser.Id);
+		foreach (var cookieName in cookieNames)
+		{
+			if (httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(cookieName, out var sessionAffinityCookie))
+			{
+				currentUser.CookieContainer.Add(
+					cookieFactory.Create(name: cookieName,
+										 cookie: sessionAffinityCookie,
+										 // Session Affinity Cookies have a "." as prefix
+										 domain: cookieName.StartsWith("ARR") ? $".{domain}" : domain));
+			}
+			else
+			{
+				logger.LogWarning("Failed to get cookie by name '{CookieName}' " +
+								"for logged in User {UserId}. SignalR Connection may be in a broken state.",
+								cookieName, currentUser.Id);
+			}
+		}
+
+		logger.LogDebug("Finished setting cookies for User {UserId}", currentUser.Id);
 
 		return Task.CompletedTask;
 	}

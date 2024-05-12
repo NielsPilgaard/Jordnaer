@@ -1,17 +1,12 @@
-@using Jordnaer.Shared
-@using Microsoft.JSInterop
-@using MudBlazor
-@using MudBlazor.Services
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
 
 <MudGrid Justify="Justify.Center">
-
     @foreach (var user in SearchResult.Users)
     {
         <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
-            <MudNavLink Class="card-link" OnClick="()=>SaveScrollPosition(user)">
+            <MudNavLink Class="card-link" OnClick="async () => await SaveScrollPositionAndNavigateTo(user)">
                 <MudCard Class="pa-3 my-3" Elevation="3">
                     <MudCardContent Class="d-flex flex-column align-center">
                         <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" loading="lazy" />
@@ -50,16 +45,32 @@
         </MudItem>
     }
 </MudGrid>
-<MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3" UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)" />
+<MudPagination Class="mt-5 d-flex justify-center" 
+               BoundaryCount="0" 
+               MiddleCount="3" 
+               UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})" 
+               SelectedChanged="@SelectedPageChanged" 
+               Variant="Variant.Filled" 
+               Count="@(SearchResult.TotalCount / Filter.PageSize)"
+               Selected="Filter.PageNumber"/>
 
 @code {
+    
+    [Parameter]
+    public required UserSearchFilter Filter { get; set; }
+
+    [Parameter]
+    public required UserSearchResult SearchResult { get; set; }
+
+    [Parameter]
+    public EventCallback<int> SelectedPageChanged { get; set; }
 
     private string GetAgeString(ChildDto child)
     {
         return child.Age is not null ? $"{child.Age} år" : "?";
     }
 
-    private async Task SaveScrollPosition(UserDto user)
+    private async Task SaveScrollPositionAndNavigateTo(UserDto user)
     {
         await JsRuntime.InvokeVoidAsync("scrollFunctions.saveScrollPosition");
         Navigation.NavigateTo($"/{user.UserName}");
@@ -72,14 +83,4 @@
             await JsRuntime.InvokeVoidAsync("scrollFunctions.loadScrollPosition");
         }
     }
-
-    [Parameter]
-    public required UserSearchFilter Filter { get; set; }
-
-    [Parameter]
-    public required UserSearchResult SearchResult { get; set; }
-
-    [Parameter]
-    public EventCallback<int> SelectedPageChanged { get; set; }
-
 }

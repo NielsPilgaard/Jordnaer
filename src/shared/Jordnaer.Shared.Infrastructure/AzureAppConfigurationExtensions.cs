@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 
-namespace Jordnaer.Extensions;
+namespace Jordnaer.Shared.Infrastructure;
 
 public static class AzureAppConfigurationExtensions
 {
@@ -13,13 +16,10 @@ public static class AzureAppConfigurationExtensions
 			return builder;
 		}
 
-		builder.Services.AddAzureAppConfiguration();
-
-		var connectionString = builder.Configuration.GetConnectionString("AppConfig");
-		if (connectionString is null)
-		{
-			throw new InvalidOperationException("Failed to find connection string to Azure App Configuration. Keys checked: 'ConnectionStrings:AppConfig'");
-		}
+		var connectionString = builder.Configuration.GetConnectionString("AppConfig")
+							   ?? throw new InvalidOperationException(
+								   "Failed to find connection string to Azure App Configuration. " +
+								   "Keys checked: 'ConnectionStrings:AppConfig'");
 
 		builder.Configuration.AddAzureAppConfiguration(options =>
 			options.Connect(connectionString)
@@ -29,6 +29,7 @@ public static class AzureAppConfigurationExtensions
 					// Only reload configs if the 'Sentinel' key is modified
 					refreshOptions.Register("Sentinel", refreshAll: true))
 				.UseFeatureFlags());
+		builder.Services.AddAzureAppConfiguration();
 
 		return builder;
 	}
