@@ -1,7 +1,7 @@
 @page "/users"
+@using System.Collections.Concurrent
 
 @inject IUserSearchService UserSearchService
-@inject ISessionStorageService SessionStorage
 @inject NavigationManager Navigation
 
 <MetadataComponent Title="Mini Møder - Søg efter brugere"
@@ -37,8 +37,8 @@
 @code {
     [SupplyParameterFromQuery]
     public string? Name { get; set; }
-    [SupplyParameterFromQuery]
-    public string[]? Categories { get; set; }
+    [SupplyParameterFromQuery] 
+    public string[]? Categories { get; set; } = [];
     [SupplyParameterFromQuery]
     public int? WithinRadiusKilometers { get; set; }
     [SupplyParameterFromQuery]
@@ -49,6 +49,10 @@
     public int? MaximumChildAge { get; set; }
     [SupplyParameterFromQuery]
     public string? ChildGender { get; set; }
+    [SupplyParameterFromQuery]
+    public int? PageNumber { get; set; }
+    [SupplyParameterFromQuery]
+    public int? PageSize { get; set; }
 
     private UserSearchFilter _filter = new();
     private UserSearchResult _searchResult = new();
@@ -67,26 +71,17 @@
 
         _isSearching = true;
 
-        var runStateHasChanged = LoadFromQueryString();
+        LoadFromQueryString();
 
-        var savedSearchResult = await SessionStorage.GetItemAsync<UserSearchResult>(nameof(UserSearchResult));
-        if (savedSearchResult is null && _filter.Equals(DefaultFilter))
+        if (!_filter.Equals(DefaultFilter))
         {
             await Search();
-        }
-
-        _isSearching = false;
-
-        if (savedSearchResult is not null)
-        {
-            _searchResult = savedSearchResult;
-            _hasSearched = true;
-            runStateHasChanged = true;
-        }
-
-        if (runStateHasChanged)
-        {
             StateHasChanged();
+        }
+        else 
+        {
+            _hasSearched = true; 
+            _isSearching = false;
         }
     }
 
@@ -98,53 +93,61 @@
         UpdateQueryString();
 
         _hasSearched = true;
-        await SessionStorage.SetItemAsync(nameof(UserSearchResult), _searchResult);
 
         _isSearching = false;
     }
 
+    private static readonly ConcurrentDictionary<string, object?> _queryStrings = [];
     private void UpdateQueryString()
     {
-	    var queryParameters = new Dictionary<string, object?>
-	    {
-		    [nameof(_filter.Name)] = _filter.Name,
-		    [nameof(_filter.Categories)] = _filter.Categories,
-		    [nameof(_filter.WithinRadiusKilometers)] = _filter.WithinRadiusKilometers,
-		    [nameof(_filter.Location)] = _filter.Location,
-		    [nameof(_filter.MinimumChildAge)] = _filter.MinimumChildAge,
-		    [nameof(_filter.MaximumChildAge)] = _filter.MaximumChildAge,
-		    [nameof(_filter.ChildGender)] = _filter.ChildGender.HasValue ? _filter.ChildGender.ToString() : null
-	    };
+	    _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
+        _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
+        _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
+        _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
+        _queryStrings[nameof(_filter.MinimumChildAge).ToLower()] = _filter.MinimumChildAge;
+        _queryStrings[nameof(_filter.MaximumChildAge).ToLower()] = _filter.MaximumChildAge; 
+		_queryStrings[nameof(_filter.ChildGender).ToLower()] = _filter.ChildGender.HasValue ? _filter.ChildGender.ToString() : null;
+        _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
+        _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
-	    var newUrl = Navigation.GetUriWithQueryParameters(queryParameters);
-	    Navigation.NavigateTo(newUrl);
+        var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
+        Navigation.NavigateTo(newUrl);
     }
 
-    private bool LoadFromQueryString()
+    private void LoadFromQueryString()
     {
-	    var filter = new UserSearchFilter
-	    {
-		    Name = Name,
-		    Categories = Categories,
-		    WithinRadiusKilometers = WithinRadiusKilometers,
-		    Location = Location,
-		    MinimumChildAge = MinimumChildAge,
-		    MaximumChildAge = MaximumChildAge
-	    };
+        var filter = new UserSearchFilter
+        {
+            Name = Name,
+            Categories = Categories,
+            WithinRadiusKilometers = WithinRadiusKilometers,
+            Location = Location,
+            MinimumChildAge = MinimumChildAge,
+            MaximumChildAge = MaximumChildAge
+        };
 
-	    if (Enum.TryParse<Gender>(ChildGender, out var gender))
+        if (Enum.TryParse<Gender>(ChildGender, out var gender))
         {
             filter.ChildGender = gender;
         }
 
-        // Filter in query string is the same as the current filter
-	    if (filter.Equals(_filter))
-	    {
-		    return false;
-	    }
+        if (PageNumber is not null)
+        {
+            filter.PageNumber = PageNumber.Value;
+        }
 
-	    _filter = filter;
-        return true;
+        if (PageSize is not null)
+        {
+            filter.PageSize = PageSize.Value;
+        }
+
+        if (filter.Equals(_filter))
+        {
+	        // Filter in query string is the same as the current filter
+	        return;
+        }
+
+        _filter = filter;
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

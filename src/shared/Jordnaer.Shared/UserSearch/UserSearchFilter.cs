@@ -4,7 +4,7 @@ namespace Jordnaer.Shared;
 public record UserSearchFilter
 {
 	public string? Name { get; set; }
-	public string[]? Categories { get; set; }
+	public string[]? Categories { get; set; } = [];
 
 	/// <summary>
 	/// Only show user results within this many kilometers of the <see cref="Location"/>.

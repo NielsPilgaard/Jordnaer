@@ -1,14 +1,15 @@
-@using System.Linq.Expressions
 @inject IDataForsyningenClient DataForsyningenClient
 
 <MudAutocomplete T="string"
                  ValueChanged="SearchValueChanged"
-                 Label="Søg i nærheden af"
+                 Placeholder="Søg i nærheden af"
                  Value="Location"
                  SearchFuncWithCancel="@SearchForAddresses"
                  SelectValueOnTab
                  ShowProgressIndicator
                  OpenIcon="@string.Empty"
+                 AdornmentIcon="@Icons.Material.Filled.Place"
+                 Adornment="Adornment.Start"
                  DebounceInterval="250"
                  Clearable
                  For="@For"
@@ -23,7 +24,6 @@
 
     [Parameter]
     public required Expression<Func<string?>> For { get; set; }
-
 
     public async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
     {
