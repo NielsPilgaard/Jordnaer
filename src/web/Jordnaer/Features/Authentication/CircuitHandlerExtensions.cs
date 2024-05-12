@@ -8,7 +8,7 @@ public static class CircuitHandlerExtensions
 	public static IServiceCollection AddCurrentUser(this IServiceCollection services)
 	{
 		services.AddScoped<CurrentUser>();
-		services.AddScoped<CookieContainerFactory>();
+		services.AddScoped<CookieFactory>();
 		services.TryAddEnumerable(ServiceDescriptor.Scoped<CircuitHandler, UserCircuitHandler>());
 		return services;
 	}
