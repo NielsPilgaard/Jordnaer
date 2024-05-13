@@ -10,6 +10,9 @@ public class DataForsyningenClientTests
 	private readonly IDataForsyningenClient _dataForsyningenClient = Refit.RestService.For<IDataForsyningenClient>(
 		new HttpClient { BaseAddress = new Uri("https://api.dataforsyningen.dk") });
 
+	private readonly IDataForsyningenPingClient _dataForsyningenPingClient = Refit.RestService.For<IDataForsyningenPingClient>(
+		new HttpClient { BaseAddress = new Uri("https://api.dataforsyningen.dk") });
+
 	[Fact]
 	public async Task Get_Addresses_With_AutoComplete()
 	{
@@ -42,7 +45,7 @@ public class DataForsyningenClientTests
 	public async Task Ping_Data_Forsyningen_API()
 	{
 		// Act
-		var response = await _dataForsyningenClient.Ping();
+		var response = await _dataForsyningenPingClient.Ping();
 
 		// Assert
 		response.IsSuccessStatusCode.Should().BeTrue();
