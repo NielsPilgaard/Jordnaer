@@ -53,10 +53,9 @@ internal sealed class UserCircuitHandler(
 
 	public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
 	{
-		// If user's circuit already has a cookie container with all our known cookies, return early.
 		if (currentUser.CookieContainer?.Count is > 3)
 		{
-			logger.LogDebug("CurrentUser already has a Cookie Container, returning.");
+			logger.LogTrace("CurrentUser already has a Cookie Container with 3 or more cookies, returning.");
 			return Task.CompletedTask;
 		}
 
@@ -80,25 +79,30 @@ internal sealed class UserCircuitHandler(
 
 		foreach (var cookieName in cookieNames)
 		{
-			if (httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(cookieName, out var sessionAffinityCookie))
-			{
-				currentUser.CookieContainer.Add(
-					cookieFactory.Create(name: cookieName,
-										 cookie: sessionAffinityCookie,
-										 // Session Affinity Cookies have a "." as prefix
-										 domain: cookieName.StartsWith("ARR") ? $".{domain}" : domain));
-			}
-			else
-			{
-				logger.LogWarning("Failed to get cookie by name '{CookieName}' " +
-								"for logged in User {UserId}. SignalR Connection may be in a broken state.",
-								cookieName, currentUser.Id);
-			}
+			AddCookieToCookieContainer(cookieName, domain);
 		}
 
 		logger.LogDebug("Finished setting cookies for User {UserId}", currentUser.Id);
 
 		return Task.CompletedTask;
+	}
+
+	private void AddCookieToCookieContainer(string cookieName, string domain)
+	{
+		if (httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(cookieName, out var sessionAffinityCookie))
+		{
+			currentUser.CookieContainer!.Add(
+				cookieFactory.Create(name: cookieName,
+									 cookie: sessionAffinityCookie,
+									 // Session Affinity Cookies have a "." as prefix
+									 domain: cookieName.StartsWith("ARR") ? $".{domain}" : domain));
+		}
+		else
+		{
+			logger.LogWarning("Failed to get cookie by name '{CookieName}' " +
+							  "for logged in User {UserId}. SignalR Connection may be in a broken state.",
+							  cookieName, currentUser.Id);
+		}
 	}
 
 	public void Dispose()
