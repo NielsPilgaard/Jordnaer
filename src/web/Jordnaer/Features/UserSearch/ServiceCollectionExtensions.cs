@@ -15,7 +15,8 @@ public static class ServiceCollectionExtensions
 
 		services.AddDataForsyningenClient();
 
-		services.AddHealthChecks().AddCheck<DataForsyningenHealthCheck>("dataforsyningen", tags: ["external", "api"]);
+		services.AddHealthChecks().AddCheck<DataForsyningenHealthCheck>("dataforsyningen",
+																		tags: ["external", "api"]);
 
 		return services;
 	}

@@ -4,37 +4,35 @@ using System.Net;
 
 namespace Jordnaer.Features.UserSearch;
 
-public class DataForsyningenHealthCheck : IHealthCheck
+public class DataForsyningenHealthCheck(
+	IDataForsyningenPingClient dataForsyningenPingClient,
+	ILogger<DataForsyningenHealthCheck> logger)
+	: IHealthCheck
 {
-	private readonly IDataForsyningenClient _dataForsyningenClient;
-	private readonly ILogger<DataForsyningenHealthCheck> _logger;
-
-	public DataForsyningenHealthCheck(IDataForsyningenClient dataForsyningenClient, ILogger<DataForsyningenHealthCheck> logger)
-	{
-		_dataForsyningenClient = dataForsyningenClient;
-		_logger = logger;
-	}
+	private static readonly HealthCheckResult Healthy = new(HealthStatus.Healthy);
 
 	public async Task<HealthCheckResult> CheckHealthAsync(
 		HealthCheckContext context,
 		CancellationToken cancellationToken = default)
 	{
-		var pingResult = await _dataForsyningenClient.Ping(cancellationToken);
+		var pingResult = await dataForsyningenPingClient.Ping(cancellationToken);
 
 		if (pingResult.IsSuccessStatusCode)
 		{
-			return HealthCheckResult.Healthy();
+			return Healthy;
 		}
+
 		if (pingResult.StatusCode is HttpStatusCode.TooManyRequests)
 		{
-			_logger.LogWarning("The {healthCheckName} has hit the rate limit.", nameof(DataForsyningenHealthCheck));
-			return HealthCheckResult.Healthy();
+			logger.LogWarning("The {healthCheckName} has hit the rate limit.", nameof(DataForsyningenHealthCheck));
+			return Healthy;
 		}
+
 		if (pingResult.Error is not null)
 		{
 			return new HealthCheckResult(HealthStatus.Degraded, pingResult.Error.Message, pingResult.Error);
 		}
 
-		return HealthCheckResult.Healthy();
+		return Healthy;
 	}
 }
