@@ -83,7 +83,7 @@ public class DeleteUserService : IDeleteUserService
 			From = EmailConstants.ContactEmail, // Must be from a verified email
 			Subject = "Anmodning om sletning af bruger",
 			HtmlContent = message,
-			To = to
+			To = [to]
 		};
 
 		await _publishEndpoint.Publish(email, cancellationToken);

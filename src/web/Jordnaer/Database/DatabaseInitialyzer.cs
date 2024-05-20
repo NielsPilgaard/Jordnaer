@@ -77,16 +77,12 @@ public static class SeedDatabase
 			return [];
 		}
 
-		var categories = new List<Category>()
+		var categories = new List<Category>
 		{
 			new() {Name = "Legeaftale"},
+			new() {Name = "Hjemmeskole"},
 			new() {Name = "Legegruppe"},
-			new() {Name = "Legestue"},
-			new() {Name = "Hjemmepasning"},
-			new() {Name = "Hjemmeundervisning"},
 			new() {Name = "Privat Dagpleje"},
-			new() {Name = "Mødregruppe"},
-			new() {Name = "Fædregruppe"},
 			new() {Name = "Forældregruppe"},
 			new() {Name = "Sportsaktiviteter"},
 			new() {Name = "Andet"}
