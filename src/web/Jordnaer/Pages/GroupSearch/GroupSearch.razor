@@ -56,19 +56,9 @@
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender is false)
-        {
-            return;
-        }
-
-        _isSearching = true;
-
         LoadFromQueryString();
-
-        _hasSearched = true;
-        _isSearching = false;
     }
 
     private async Task Search()

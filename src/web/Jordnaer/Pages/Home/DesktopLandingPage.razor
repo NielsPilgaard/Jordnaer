@@ -30,21 +30,15 @@
     <div class="flex-row-reverse hero-section" style="height: 600px;">
         <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash_small.webp" Class="ml-10" Style="max-width: 50%" />
         <div class="content-section">
-            <MudText Class="font-cherry-bomb-one mb-3 mt-15" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
+            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3 mt-15" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
                 Hvad kan jeg bruge Mini Møder til?
             </MudText>
-            <MudText Class="mb-2">
-                Her kan du:
-            </MudText>
 
-            <LandingPageLinkComponent />
+            <LandingPageLinkComponent IsMobile="false"/>
 
-            <div class="d-flex justify-center align-center">
-                <MudButton Href="/users" Class="mt-5" Variant="Variant.Filled">Find dit næste mini møde nu!</MudButton>
-            </div>
         </div>
     </div>
 
-    <MiniDivider Class="mt-15" Color="MiniDividerColor.Red" Center />
+    <MiniDivider Class="mt-15" Color="MiniDividerColor.Yellow" Center />
 
 </MudContainer>

@@ -62,12 +62,7 @@
 
     protected override void OnInitialized()
     {
-        _isSearching = true;
-
         LoadFromQueryString();
-
-        _hasSearched = true;
-        _isSearching = false;
     }
 
     private async Task Search()
