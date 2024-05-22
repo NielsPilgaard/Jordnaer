@@ -1,15 +1,8 @@
 @inherits LayoutComponentBase
 
-<MudDialogProvider CloseOnEscapeKey="true"
-                   DisableBackdropClick="false"
-                   Position="DialogPosition.Center"
-                   MaxWidth="MaxWidth.Large"
-                   CloseButton="true" />
-<MudSnackbarProvider />
 <MudThemeProvider Theme="JordnaerTheme.CustomTheme" />
 
 <MudLayout>
-    <TopAndSideBarWrapper />
     @Body
     <MudSpacer />
     <Footer></Footer>

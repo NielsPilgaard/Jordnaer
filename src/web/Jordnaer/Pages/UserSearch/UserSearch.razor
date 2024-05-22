@@ -37,7 +37,7 @@
 @code {
     [SupplyParameterFromQuery]
     public string? Name { get; set; }
-    [SupplyParameterFromQuery] 
+    [SupplyParameterFromQuery]
     public string[]? Categories { get; set; } = [];
     [SupplyParameterFromQuery]
     public int? WithinRadiusKilometers { get; set; }
@@ -57,32 +57,17 @@
     private UserSearchFilter _filter = new();
     private UserSearchResult _searchResult = new();
 
-    public static readonly UserSearchFilter DefaultFilter = new();
-
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender is false)
-        {
-            return;
-        }
-
         _isSearching = true;
 
         LoadFromQueryString();
 
-        if (!_filter.Equals(DefaultFilter))
-        {
-            await Search();
-            StateHasChanged();
-        }
-        else 
-        {
-            _hasSearched = true; 
-            _isSearching = false;
-        }
+        _hasSearched = true;
+        _isSearching = false;
     }
 
     private async Task Search()
@@ -100,13 +85,13 @@
     private static readonly ConcurrentDictionary<string, object?> _queryStrings = [];
     private void UpdateQueryString()
     {
-	    _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
+        _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
         _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
         _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
         _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
         _queryStrings[nameof(_filter.MinimumChildAge).ToLower()] = _filter.MinimumChildAge;
-        _queryStrings[nameof(_filter.MaximumChildAge).ToLower()] = _filter.MaximumChildAge; 
-		_queryStrings[nameof(_filter.ChildGender).ToLower()] = _filter.ChildGender.HasValue ? _filter.ChildGender.ToString() : null;
+        _queryStrings[nameof(_filter.MaximumChildAge).ToLower()] = _filter.MaximumChildAge;
+        _queryStrings[nameof(_filter.ChildGender).ToLower()] = _filter.ChildGender.HasValue ? _filter.ChildGender.ToString() : null;
         _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
         _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
@@ -117,14 +102,14 @@
     private void LoadFromQueryString()
     {
         var filter = new UserSearchFilter
-        {
-            Name = Name,
-            Categories = Categories,
-            WithinRadiusKilometers = WithinRadiusKilometers,
-            Location = Location,
-            MinimumChildAge = MinimumChildAge,
-            MaximumChildAge = MaximumChildAge
-        };
+            {
+                Name = Name,
+                Categories = Categories,
+                WithinRadiusKilometers = WithinRadiusKilometers,
+                Location = Location,
+                MinimumChildAge = MinimumChildAge,
+                MaximumChildAge = MaximumChildAge
+            };
 
         if (Enum.TryParse<Gender>(ChildGender, out var gender))
         {
@@ -143,11 +128,12 @@
 
         if (filter.Equals(_filter))
         {
-	        // Filter in query string is the same as the current filter
-	        return;
+            // Filter in query string is the same as the current filter
+            return;
         }
 
         _filter = filter;
+        StateHasChanged();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

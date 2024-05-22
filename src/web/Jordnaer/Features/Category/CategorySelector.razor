@@ -7,12 +7,16 @@
                    MultiSelection="true"
                    ValuePresenter="ValuePresenter.Chip"
                    AnchorOrigin="Origin.BottomCenter"
+                   SelectedValues="@CategoriesFromQueryString"
                    SelectedValuesChanged="SelectedCategoriesChanged">
 </MudSelectExtended>
 @code
 {
     private List<string> _categories = [];
 
+    [SupplyParameterFromQuery(Name = "categories")]
+    public string[]? CategoriesFromQueryString { get; set; }
+    
     [Parameter]
     public string[]? Categories { get; set; }
 

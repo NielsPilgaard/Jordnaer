@@ -4,8 +4,8 @@
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 
-<MetadataComponent Title="Mini Møder - Grupper" 
-                   Description="Søg efter grupper"/>
+<MetadataComponent Title="Mini Møder - Grupper"
+                   Description="Søg efter grupper" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -36,16 +36,16 @@
 </MudLoading>
 
 @code {
-    
-	[SupplyParameterFromQuery]
-	public string? Name { get; set; }
-	[SupplyParameterFromQuery] 
+
+    [SupplyParameterFromQuery]
+    public string? Name { get; set; }
+    [SupplyParameterFromQuery]
     public string[]? Categories { get; set; } = [];
-	[SupplyParameterFromQuery]
-	public int? WithinRadiusKilometers { get; set; }
-	[SupplyParameterFromQuery]
-	public string? Location { get; set; }
-	[SupplyParameterFromQuery]
+    [SupplyParameterFromQuery]
+    public int? WithinRadiusKilometers { get; set; }
+    [SupplyParameterFromQuery]
+    public string? Location { get; set; }
+    [SupplyParameterFromQuery]
     public int? PageNumber { get; set; }
     [SupplyParameterFromQuery]
     public int? PageSize { get; set; }
@@ -53,32 +53,22 @@
     private GroupSearchFilter _filter = new();
     private GroupSearchResult _searchResult = new();
 
-    public static readonly GroupSearchFilter DefaultFilter = new();
-
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnAfterRender(bool firstRender)
     {
-	    if (firstRender is false)
-	    {
-		    return;
-	    }
+        if (firstRender is false)
+        {
+            return;
+        }
 
-	    _isSearching = true;
+        _isSearching = true;
 
-	    LoadFromQueryString();
+        LoadFromQueryString();
 
-	    if (!_filter.Equals(DefaultFilter))
-	    {
-		    await Search();
-		    StateHasChanged();
-	    }
-	    else 
-	    {
-		    _hasSearched = true; 
-		    _isSearching = false;
-	    }
+        _hasSearched = true;
+        _isSearching = false;
     }
 
     private async Task Search()
@@ -97,44 +87,44 @@
     private static readonly ConcurrentDictionary<string, object?> _queryStrings = [];
     private void UpdateQueryString()
     {
-	    _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
-	    _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
-	    _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
-	    _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
-	    _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
-	    _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
+        _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
+        _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
+        _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
+        _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
+        _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
+        _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
-	    var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
-	    Navigation.NavigateTo(newUrl);
+        var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
+        Navigation.NavigateTo(newUrl);
     }
 
     private void LoadFromQueryString()
     {
-	    var filter = new GroupSearchFilter
-	    {
-		    Name = Name,
-		    Categories = Categories,
-		    WithinRadiusKilometers = WithinRadiusKilometers,
-		    Location = Location,
-	    };
+        var filter = new GroupSearchFilter
+            {
+                Name = Name,
+                Categories = Categories,
+                WithinRadiusKilometers = WithinRadiusKilometers,
+                Location = Location,
+            };
 
-	    if (PageNumber is not null)
-	    {
+        if (PageNumber is not null)
+        {
             filter.PageNumber = PageNumber.Value;
-	    }
+        }
 
         if (PageSize is not null)
-	    {
+        {
             filter.PageSize = PageSize.Value;
-	    }
-        
-	    if (filter.Equals(_filter))
-	    {
-		    // Filter in query string is the same as the current filter
-		    return;
-	    }
+        }
 
-	    _filter = filter;
+        if (filter.Equals(_filter))
+        {
+            // Filter in query string is the same as the current filter
+            return;
+        }
+
+        _filter = filter;
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

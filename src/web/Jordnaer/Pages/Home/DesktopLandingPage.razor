@@ -1,4 +1,3 @@
-@using MudExtensions.Enums
 <MudPage FullScreen="FullScreen.Full" Row="2" Column="5" Height="800px">
 
     <MudSection Row="1" ColSpan="2" Column="1" Class="hero-section-top">
@@ -37,16 +36,9 @@
             <MudText Class="mb-2">
                 Her kan du:
             </MudText>
-            <ul class="custom-list">
-                <li>Udforske fællesskaber</li>
-                <li>Arrangere hyggelige legeaftaler</li>
-                <li>Finde ligesindede</li>
-                <li>Udforske hjemmeskolingsmuligheder</li>
-                <li>Opdage private dagplejere i dit område</li>
-                <li>Skabe din egen gruppe og invitere medlemmer</li>
-                <li>Organisere eller finde sampasning</li>
-                <li>Udforske lokale fritidsaktiviteter med andre familier</li>
-            </ul>
+
+            <LandingPageLinkComponent />
+
             <div class="d-flex justify-center align-center">
                 <MudButton Href="/users" Class="mt-5" Variant="Variant.Filled">Find dit næste mini møde nu!</MudButton>
             </div>
