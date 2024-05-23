@@ -23,7 +23,7 @@
                 Velkommen
             </MudText>
             <MudText Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 18px; text-align: center")">
-	            Til mødestedet for børnefamilier
+                Til mødestedet for børnefamilier
             </MudText>
         </MudStack>
     </MudSection>
@@ -31,30 +31,16 @@
 
 <MiniDivider Class="mt-9" Color="MiniDividerColor.Red" Center />
 
- <MudContainer MaxWidth="MaxWidth.Medium">
-     <div class="flex-column hero-section">
-         <div class="content-section">
-             <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
-                 Hvad kan jeg bruge Mini Møder til?
-             </MudText>
-             <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-2">
-                 Mini Møder er et online fællesskab for børnefamilier. Her kan du:
-             </MudText>
-             <ul class="custom-list">
-                 <li>Udforske fællesskaber</li>
-                 <li>Arrangere hyggelige legeaftaler</li>
-                 <li>Finde ligesindede</li>
-                 <li>Udforske hjemmeskolingsmuligheder</li>
-                 <li>Opdage private dagplejere i dit område</li>
-                 <li>Skabe din egen gruppe og invitere medlemmer</li>
-                 <li>Organisere eller finde sampasning</li>
-                 <li>Udforske lokale fritidsaktiviteter med andre familier</li>
-                 <li>Deltage i lokale forældregrupper</li>
-             </ul>
-             <div class="d-flex justify-center align-center">
-                 <MudButton Href="/users" Class="mt-5" Variant="Variant.Filled">Find dit næste mini møde nu!</MudButton>
-             </div>
-         </div>
-     </div>
-     <MiniDivider Color="MiniDividerColor.Yellow" Center />
- </MudContainer>
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <div class="flex-column hero-section">
+        <div class="content-section">
+            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
+                Hvad kan jeg bruge Mini Møder til?  
+            </MudText>
+
+            <LandingPageLinkComponent IsMobile/>
+
+        </div>
+    </div>
+    <MiniDivider Color="MiniDividerColor.Red" Center />
+</MudContainer>

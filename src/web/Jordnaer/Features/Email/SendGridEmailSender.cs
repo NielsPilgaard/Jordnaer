@@ -13,7 +13,7 @@ public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSende
 		{
 			Subject = subject,
 			HtmlContent = message,
-			To = new EmailAddress(email)
+			To = [new EmailAddress(email)]
 		};
 
 		await publishEndpoint.Publish(sendEmail);
