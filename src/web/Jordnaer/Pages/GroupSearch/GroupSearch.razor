@@ -1,5 +1,7 @@
 @page "/groups"
 @using System.Collections.Concurrent
+@using Microsoft.AspNetCore.Http.Extensions
+@using Microsoft.AspNetCore.WebUtilities
 
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
@@ -90,6 +92,11 @@
 
     private void LoadFromQueryString()
     {
+	    if (!string.IsNullOrEmpty(new Uri(Navigation.Uri).Query))
+	    {
+		    return;
+	    }
+
         var filter = new GroupSearchFilter
             {
                 Name = Name,

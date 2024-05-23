@@ -96,6 +96,11 @@
 
     private void LoadFromQueryString()
     {
+        if (!string.IsNullOrEmpty(new Uri(Navigation.Uri).Query))
+        {
+            return;
+        }
+
         var filter = new UserSearchFilter
             {
                 Name = Name,
