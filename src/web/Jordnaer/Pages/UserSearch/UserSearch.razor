@@ -77,7 +77,7 @@
         _isSearching = false;
     }
 
-    private static readonly ConcurrentDictionary<string, object?> _queryStrings = [];
+    private static readonly Dictionary<string, object?> _queryStrings = [];
     private void UpdateQueryString()
     {
         _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
