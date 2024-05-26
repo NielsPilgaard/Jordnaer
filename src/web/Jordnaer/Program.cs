@@ -20,6 +20,7 @@ using Jordnaer.Components;
 using Jordnaer.Features.Images;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Jordnaer.Database;
+using Jordnaer.Features.Membership;
 using Microsoft.Net.Http.Headers;
 
 Log.Logger = new LoggerConfiguration()
@@ -72,6 +73,7 @@ builder.AddBlazrRenderStateServerServices();
 builder.AddCategoryServices();
 builder.AddProfileServices();
 builder.AddChatServices();
+builder.AddMembershipServices();
 
 builder.AddMudBlazor();
 
