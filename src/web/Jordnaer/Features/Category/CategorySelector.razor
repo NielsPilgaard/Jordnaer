@@ -7,7 +7,6 @@
                    MultiSelection="true"
                    ValuePresenter="ValuePresenter.Chip"
                    AnchorOrigin="Origin.BottomCenter"
-                   SelectedValues="@CategoriesFromQueryString"
                    SelectedValuesChanged="SelectedCategoriesChanged">
 </MudSelectExtended>
 @code
@@ -27,6 +26,11 @@
     {
         var cachedCategories = await CategoryCache.GetOrCreateCategoriesAsync();
         _categories = cachedCategories.Select(x => x.Name).ToList();
+
+        if (CategoriesFromQueryString is {Length: > 0})
+        {
+            await SelectedCategoriesChanged(CategoriesFromQueryString);
+        }
     }
 
     private async Task SelectedCategoriesChanged(IEnumerable<string> categories)
