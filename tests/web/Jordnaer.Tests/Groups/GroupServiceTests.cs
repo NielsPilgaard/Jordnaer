@@ -106,7 +106,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
+		var result = await _groupService.CreateGroupAsync(group);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -131,7 +131,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
+		var result = await _groupService.CreateGroupAsync(group);
 
 		// Assert
 		result.Value.Should().BeOfType<Error<string>>();
@@ -152,7 +152,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.UpdateGroupAsync(_userProfileId, group);
+		var result = await _groupService.UpdateGroupAsync(group);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
@@ -178,7 +178,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.UpdateGroupAsync(_userProfileId, updatedGroup);
+		var result = await _groupService.UpdateGroupAsync(updatedGroup);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -191,7 +191,7 @@ public class GroupServiceTests : IAsyncLifetime
 		var id = Guid.NewGuid();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(_userProfileId, id);
+		var result = await _groupService.DeleteGroupAsync(id);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
@@ -215,7 +215,7 @@ public class GroupServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
+		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Error>();
@@ -231,7 +231,7 @@ public class GroupServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(NewId.NextGuid().ToString(), group.Id);
+		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Error>();
@@ -246,7 +246,7 @@ public class GroupServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
+		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
