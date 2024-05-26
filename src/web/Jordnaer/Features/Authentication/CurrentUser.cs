@@ -22,4 +22,11 @@ public class CurrentUser
 	/// This is null if the user is not logged in, so only use it in pages that require authentication.
 	/// </summary>
 	public UserProfile? UserProfile { get; internal set; }
+
+	/// <summary>
+	/// Due to this website having multiple host names,
+	/// the CurrentUser can be on a range of different urls.
+	/// The current user's url is saved on Blazor circuit lifetime events.
+	/// </summary>
+	public string Url { get; internal set; } = "https://mini-moeder.dk";
 }
