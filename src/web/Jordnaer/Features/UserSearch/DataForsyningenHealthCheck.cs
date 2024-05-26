@@ -28,11 +28,8 @@ public class DataForsyningenHealthCheck(
 			return Healthy;
 		}
 
-		if (pingResult.Error is not null)
-		{
-			return new HealthCheckResult(HealthStatus.Degraded, pingResult.Error.Message, pingResult.Error);
-		}
-
-		return Healthy;
+		return pingResult.Error is not null
+				   ? new HealthCheckResult(HealthStatus.Degraded, pingResult.Error.Message, pingResult.Error)
+				   : Healthy;
 	}
 }
