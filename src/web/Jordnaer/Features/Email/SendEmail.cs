@@ -1,9 +1,11 @@
+using JetBrains.Annotations;
 using SendGrid.Helpers.Mail;
 
 namespace Jordnaer.Features.Email;
 
 public class SendEmail
 {
+	[LanguageInjection(InjectedLanguage.HTML)]
 	public required string HtmlContent { get; set; }
 	public required string Subject { get; set; }
 	public List<EmailAddress>? To { get; set; }

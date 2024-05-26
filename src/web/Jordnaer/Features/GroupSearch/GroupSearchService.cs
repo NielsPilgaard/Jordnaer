@@ -55,6 +55,7 @@ public class GroupSearchService : IGroupSearchService
 				ProfilePictureUrl = group.ProfilePictureUrl,
 				Name = group.Name,
 				ShortDescription = group.ShortDescription,
+				Description = group.Description,
 				ZipCode = group.ZipCode,
 				City = group.City,
 				Categories = group.Categories.Select(category => category.Name).ToArray(),

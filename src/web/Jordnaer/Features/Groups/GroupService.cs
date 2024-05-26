@@ -15,10 +15,10 @@ public interface IGroupService
 {
 	Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default);
 	Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> CreateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(string userId, Guid id, CancellationToken cancellationToken = default);
-	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(Guid id, CancellationToken cancellationToken = default);
+	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(CancellationToken cancellationToken = default);
 
 	Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default);
 	Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default);
@@ -57,6 +57,7 @@ public class GroupService(
 				Id = x.Id,
 				Name = x.Name,
 				ShortDescription = x.ShortDescription,
+				Description = x.Description,
 				ZipCode = x.ZipCode,
 				City = x.City,
 				ProfilePictureUrl = x.ProfilePictureUrl,
@@ -69,14 +70,14 @@ public class GroupService(
 			? new NotFound()
 			: group;
 	}
-	public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(string userId, CancellationToken cancellationToken = default)
+	public async Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var groups = await context.GroupMemberships
 			.AsNoTracking()
-			.Where(membership => membership.UserProfileId == userId &&
+			.Where(membership => membership.UserProfileId == currentUser.Id &&
 								 membership.MembershipStatus != MembershipStatus.Rejected)
 			.Select(x => new UserGroupAccess
 			{
@@ -85,6 +86,7 @@ public class GroupService(
 					Id = x.Group.Id,
 					Name = x.Group.Name,
 					ShortDescription = x.Group.ShortDescription,
+					Description = x.Group.Description,
 					ZipCode = x.Group.ZipCode,
 					City = x.Group.City,
 					ProfilePictureUrl = x.Group.ProfilePictureUrl,
@@ -147,9 +149,14 @@ public class GroupService(
 		return isGroupMember;
 	}
 
-	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
+
+		if (currentUser.Id is null)
+		{
+			return new Error<string>("Du skal være logget ind for at oprette en gruppe.");
+		}
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		if (await context.Groups.AsNoTracking().AnyAsync(x => x.Name == group.Name, cancellationToken))
@@ -157,11 +164,11 @@ public class GroupService(
 			return new Error<string>($"Gruppenavnet '{group.Name}' er allerede taget.");
 		}
 
-		group.Memberships = new List<GroupMembership>
-		{
-			new ()
+		group.Memberships =
+		[
+			new GroupMembership
 			{
-				UserProfileId = userId,
+				UserProfileId = currentUser.Id,
 				GroupId = group.Id,
 				OwnershipLevel = OwnershipLevel.Owner,
 				MembershipStatus = MembershipStatus.Active,
@@ -170,7 +177,7 @@ public class GroupService(
 								  PermissionLevel.Moderator |
 								  PermissionLevel.Admin
 			}
-		};
+		];
 
 		var selectedCategories = group.Categories.ToArray();
 		group.Categories.Clear();
@@ -193,12 +200,12 @@ public class GroupService(
 		context.Groups.Add(group);
 		await context.SaveChangesAsync(cancellationToken);
 
-		logger.LogInformation("{UserId} created group '{groupName}'", userId, group.Name);
+		logger.LogInformation("{UserId} created group '{groupName}'", currentUser.Id, group.Name);
 
 		return new Success();
 	}
 
-	public async Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(string userId, Group group, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
@@ -218,9 +225,9 @@ public class GroupService(
 			return new NotFound();
 		}
 
-		var membership = await context.GroupMemberships.FirstOrDefaultAsync(x =>
-																				x.UserProfileId == userId &&
-																				x.GroupId == group.Id, cancellationToken);
+		var membership = await context.GroupMemberships
+									  .FirstOrDefaultAsync(x => x.UserProfileId == currentUser.Id &&
+																x.GroupId == group.Id, cancellationToken);
 
 		if (membership?.PermissionLevel < PermissionLevel.Write)
 		{
@@ -234,11 +241,17 @@ public class GroupService(
 		return new Success();
 	}
 
-	public async Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(string userId, Guid id, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(Guid id, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
 		diagnosticContext.Set("group_id", id);
+
+		if (currentUser.Id is null)
+		{
+			logger.LogError("Failed to delete group because the request came from an unauthenticated user.");
+			return new Error();
+		}
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var group = await context.Groups.FindAsync([id], cancellationToken);
@@ -251,7 +264,7 @@ public class GroupService(
 		diagnosticContext.Set("group_name", group.Name);
 
 		var groupOwner = await context.GroupMemberships
-									  .SingleOrDefaultAsync(e => e.UserProfileId == userId &&
+									  .SingleOrDefaultAsync(e => e.UserProfileId == currentUser.Id &&
 																 e.OwnershipLevel == OwnershipLevel.Owner,
 															 cancellationToken);
 
@@ -261,10 +274,10 @@ public class GroupService(
 			return new Error();
 		}
 
-		if (groupOwner.UserProfileId != userId)
+		if (groupOwner.UserProfileId != currentUser.Id)
 		{
 			logger.LogError("Failed to delete group because the request came from someone other than the owner. " +
-							 "The deletion was requested by the user: {@UserId}", userId);
+							 "The deletion was requested by the user: {@UserId}", currentUser.Id);
 			return new Error();
 		}
 

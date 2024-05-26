@@ -6,7 +6,6 @@
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
-@inject CurrentUser CurrentUser 
 
 <MudText Typo="Typo.h3" Class="font-cherry-bomb-one">Opret Gruppe</MudText>
 
@@ -98,7 +97,7 @@
     {
         _isLoading = true;
 
-        var response = await GroupService.CreateGroupAsync(CurrentUser.Id!, _group);
+        var response = await GroupService.CreateGroupAsync(_group);
         response.Switch(
 	        _ =>
 	        {

@@ -9,10 +9,17 @@ using OneOf.Types;
 
 namespace Jordnaer.Features.Membership;
 
+public interface IMembershipService
+{
+	Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
+		Guid groupId,
+		CancellationToken cancellationToken = default);
+}
+
 public class MembershipService(CurrentUser currentUser,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IEmailService emailService,
-	ILogger<MembershipService> logger)
+	ILogger<MembershipService> logger) : IMembershipService
 {
 	public async Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
 		Guid groupId,
@@ -24,9 +31,12 @@ public class MembershipService(CurrentUser currentUser,
 		{
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-			var existingMembership = await context.GroupMemberships.FirstOrDefaultAsync(x => x.GroupId == groupId &&
-											 x.UserProfileId == currentUser.Id,
-										 cancellationToken);
+			var existingMembership = await context
+										   .GroupMemberships
+										   .FirstOrDefaultAsync(x =>
+												x.GroupId == groupId &&
+												x.UserProfileId == currentUser.Id,
+													cancellationToken);
 
 			if (existingMembership is not null)
 			{
@@ -44,6 +54,7 @@ public class MembershipService(CurrentUser currentUser,
 				LastUpdatedUtc = DateTime.UtcNow,
 				OwnershipLevel = OwnershipLevel.Member
 			});
+
 			await context.SaveChangesAsync(cancellationToken);
 
 			await emailService.SendMembershipRequestEmails(groupId, cancellationToken);

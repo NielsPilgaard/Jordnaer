@@ -1,4 +1,4 @@
-@page "/groups/edit/{GroupId:guid}"
+@page "/groups/{GroupId:guid}/edit"
 
 @attribute [Authorize]
 
@@ -120,9 +120,10 @@
     private Task Update()
     {
         _isLoading = true;
+
+        GroupService.UpdateGroupAsync(_group!);
         _isLoading = false;
 
         return Task.CompletedTask;
     }
-
 }
