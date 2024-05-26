@@ -7,12 +7,18 @@
 <MetadataComponent Title="Dine grupper"
                    Description="Oversigt over dine grupper, og dine afventende anmodninger"/>
 
-<MudButton Href="groups/create" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.GroupAdd">Opret gruppe</MudButton>
+<MudButton
+	Href="groups/create"
+	Variant="Variant.Filled"
+	Color="Color.Success"
+	StartIcon="@Icons.Material.Filled.GroupAdd">
+	Opret gruppe
+</MudButton>
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 	@if (_pendingAccess.Length > 0)
 	{
-		<MudText Typo="Typo.h5" Class="font-open-sans-bold">Afventer Svar</MudText>
+		<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-10">Afventer Svar</MudText>
 		<MudDivider Class="mb-5" />
 		<MudGrid Justify="Justify.FlexStart" Spacing="3">
 			@foreach (var group in _pendingAccess)

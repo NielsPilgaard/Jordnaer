@@ -13,6 +13,8 @@
         <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
         return;
     }
+    
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
 
     <EditForm Model="@_group" OnValidSubmit="Update">
         <DataAnnotationsValidator/>
@@ -78,8 +80,8 @@
                    ButtonType="ButtonType.Submit"
                    Variant="Variant.Filled"
                    FullWidth
-                   Color="Color.Primary">
-            Opret
+                   Color="Color.Success">
+            Opdatér
         </MudButton>
     </EditForm>
 </MudLoading>
@@ -93,19 +95,12 @@
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
 
-    private readonly Action<SnackbarOptions> _snackbarOptions = options =>
-    {
-        options.CloseAfterNavigation = true;
-        options.VisibleStateDuration = 3000;
-        options.ShowTransitionDuration = 250;
-    };
-
     protected override async Task OnInitializedAsync()
     {
         var response = await GroupService.GetGroupByIdAsync(GroupId);
         response.Switch(
 	        group => _group = group, 
-	        _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning, _snackbarOptions));
+	        _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning));
 
         _isLoading = false;
 
@@ -117,13 +112,16 @@
         _group!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
     }
 
-    private Task Update()
+    private async Task Update()
     {
         _isLoading = true;
 
-        GroupService.UpdateGroupAsync(_group!);
-        _isLoading = false;
+        var updateResult = await GroupService.UpdateGroupAsync(_group!);
 
-        return Task.CompletedTask;
+        updateResult.Switch(
+	        success => Snackbar.Add("Gruppen blev opdateret.", Severity.Success),
+	        error => Snackbar.Add(error.Value, Severity.Error));
+
+        _isLoading = false;
     }
 }

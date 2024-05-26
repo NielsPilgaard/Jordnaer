@@ -16,7 +16,7 @@ public interface IGroupService
 	Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default);
 	Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(Guid id, CancellationToken cancellationToken = default);
 	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(CancellationToken cancellationToken = default);
 
@@ -205,15 +205,11 @@ public class GroupService(
 		return new Success();
 	}
 
-	public async Task<OneOf<Success, Error<string>, NotFound>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error<string>>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		if (await context.Groups.AsNoTracking().AnyAsync(x => x.Name == group.Name, cancellationToken))
-		{
-			return new Error<string>($"Gruppenavnet '{group.Name}' er allerede taget.");
-		}
 
 		var existingGroup = await context.Groups
 			.AsNoTracking()
@@ -222,7 +218,7 @@ public class GroupService(
 
 		if (existingGroup is null)
 		{
-			return new NotFound();
+			return logger.LogAndReturnErrorResult("Gruppen kunne ikke findes. Prøv igen senere.");
 		}
 
 		var membership = await context.GroupMemberships

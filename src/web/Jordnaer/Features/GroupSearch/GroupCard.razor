@@ -7,24 +7,29 @@
 	    <MudTextField Label="Navn" 
 	                  Adornment="Adornment.Start" 
 	                  AdornmentIcon="@Icons.Material.Filled.AlternateEmail" 
-	                  ReadOnly T="string" 
+	                  ReadOnly 
+	                  T="string" 
 	                  Text="@Group.Name" />
 
 	    <MudTextField Label="Placering" 
 	                  Adornment="Adornment.Start" 
 	                  AdornmentIcon="@Icons.Material.Filled.Place" 
-	                  ReadOnly T="string" 
+	                  ReadOnly 
+	                  T="string" 
 	                  Text="@Group.DisplayLocation()" />
 
 	    <MudTextField Label="Kort beskrivelse" 
 	                  Adornment="Adornment.Start" 
 	                  AdornmentIcon="@Icons.Material.Filled.Description" 
-	                  ReadOnly T="string" Text="@Group.ShortDescription" />
+	                  ReadOnly 
+	                  T="string" 
+	                  Text="@Group.ShortDescription" />
 
 	    <MudTextField Label="Antal medlemmer" 
 	                  Adornment="Adornment.Start" 
 	                  AdornmentIcon="@Icons.Material.Filled.People" 
-	                  ReadOnly T="int" 
+	                  ReadOnly 
+	                  T="int" 
 	                  Text="@Group.MemberCount.ToString()" />
 
 	    <MudText Class="mt-3" Typo="Typo.body1">
