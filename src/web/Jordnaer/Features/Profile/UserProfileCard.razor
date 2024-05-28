@@ -16,7 +16,11 @@
                 </AdornmentEnd>
             </MudTextFieldExtended>
         }
-        <MudText Class="mt-3" Typo="Typo.body1">@Profile.Description</MudText>
+        @*TODO: QA*@
+        @* <MudText Class="mt-3" Typo="Typo.body1">@Profile.Description</MudText> *@
+        <MudPaper Elevation="1" Class="pa-5">
+	        @MarkdownRenderer.SanitizeAndRenderMarkupString(Profile.Description)
+        </MudPaper>
     </MudCardContent>
 </MudCard>
 

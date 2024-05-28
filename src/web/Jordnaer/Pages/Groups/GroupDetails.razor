@@ -52,9 +52,12 @@
 		    <GroupCard Group="_group" />
 	    </MudItem>
 	    <MudItem xs="12">
-		    <MudPaper>
-                @_group.Description
-		    </MudPaper>
+            @if (_group.Description is not null)
+            {
+	            <MudPaper Elevation="1" Class="pa-5">
+                    @MarkdownRenderer.SanitizeAndRenderMarkupString(_group.Description)
+	            </MudPaper>
+            }
 	    </MudItem>
 	    <div>
 		    <MudNavLink Href="@($"/groups/{GroupName}/members")"></MudNavLink>
