@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Database;
@@ -12,6 +13,7 @@ using NSubstitute;
 using OneOf.Types;
 using Serilog;
 using Xunit;
+using Claim = System.Security.Claims.Claim;
 using NotFound = OneOf.Types.NotFound;
 
 namespace Jordnaer.Tests.Groups;
@@ -51,7 +53,13 @@ public class GroupServiceTests : IAsyncLifetime
 		_groupService = new GroupService(_contextFactory,
 			Substitute.For<ILogger<GroupService>>(),
 			Substitute.For<IDiagnosticContext>(),
-			new CurrentUser());
+			new CurrentUser
+			{
+				User = new ClaimsPrincipal(
+					new ClaimsIdentity(
+						[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
+						))
+			});
 	}
 
 	[Fact]
@@ -155,7 +163,7 @@ public class GroupServiceTests : IAsyncLifetime
 		var result = await _groupService.UpdateGroupAsync(group);
 
 		// Assert
-		result.Value.Should().BeOfType<NotFound>();
+		result.Value.Should().BeOfType<Error<string>>();
 	}
 
 	[Fact]
