@@ -4,7 +4,10 @@
                 @ref="@_textEditor"
                 Placeholder="@Placeholder">
         <EditorContent>
-            Indlæser...
+            @if (Text is not null)
+			{
+                @("Indlæser...")
+			}
         </EditorContent>
     </TextEditor>
 </div>
@@ -21,7 +24,7 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || Text is null)
         {
             return;
         }
