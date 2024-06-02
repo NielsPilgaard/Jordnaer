@@ -142,6 +142,7 @@
         _userProfile = userProfile;
 
         _isLoading = false;
+
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
     }
 

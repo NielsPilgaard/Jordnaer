@@ -52,7 +52,7 @@
 		    <GroupCard Group="_group" />
 	    </MudItem>
 	    <MudItem xs="12">
-            @if (_group.Description is not null)
+            @if (!string.IsNullOrEmpty(_group.Description))
             {
 	            <MudPaper Elevation="1" Class="pa-5">
                     @MarkdownRenderer.SanitizeAndRenderMarkupString(_group.Description)

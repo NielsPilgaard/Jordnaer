@@ -65,6 +65,7 @@
                                        MultiSelection="true"
                                        SelectedValues="_group.Categories.Select(e => e.Name)"
                                        ValuePresenter="ValuePresenter.Chip"
+                                       Variant="Variant.Filled"
                                        SelectedValuesChanged="SelectedCategoriesChanged">
                     </MudSelectExtended>
                 </MudItem>
@@ -101,8 +102,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await GroupService.GetGroupByIdAsync(GroupId);
-        response.Switch(
+        var getGroupResponse = await GroupService.GetGroupByIdAsync(GroupId);
+        getGroupResponse.Switch(
             group => _group = group,
             _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning));
 

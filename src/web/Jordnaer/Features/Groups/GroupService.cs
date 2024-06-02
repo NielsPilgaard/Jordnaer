@@ -38,7 +38,8 @@ public class GroupService(
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var group = await context.Groups
 								 .AsNoTracking()
-								 .FirstOrDefaultAsync(group => group.Id == id, cancellationToken: cancellationToken);
+								 .Include(x => x.Categories)
+								 .FirstOrDefaultAsync(group => group.Id == id, cancellationToken);
 
 		return group is null
 			? new NotFound()
@@ -212,7 +213,7 @@ public class GroupService(
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
 		var existingGroup = await context.Groups
-			.AsNoTracking()
+			.AsSingleQuery()
 			.Include(e => e.Categories)
 			.FirstOrDefaultAsync(e => e.Id == group.Id, cancellationToken);
 
@@ -227,11 +228,11 @@ public class GroupService(
 
 		if (membership?.PermissionLevel < PermissionLevel.Write)
 		{
-			return new Error<string>("Du har ikke adgang til at ændre denne gruppe.");
+			return logger.LogAndReturnErrorResult("Du har ikke adgang til at ændre denne gruppe.");
 		}
 
 		await UpdateExistingGroupAsync(existingGroup, group, context, cancellationToken);
-		context.Entry(group).State = EntityState.Modified;
+		context.Entry(existingGroup).State = EntityState.Modified;
 		await context.SaveChangesAsync(cancellationToken);
 
 		return new Success();
@@ -285,28 +286,31 @@ public class GroupService(
 		return new Success();
 	}
 
-	private static async Task UpdateExistingGroupAsync(Group group, Group dto, JordnaerDbContext context, CancellationToken cancellationToken = default)
+	private static async Task UpdateExistingGroupAsync(Group currentGroup,
+		Group updatedGroup,
+		JordnaerDbContext context,
+		CancellationToken cancellationToken = default)
 	{
-		group.Name = dto.Name;
-		group.Address = dto.Address;
-		group.City = dto.City;
-		group.ZipCode = dto.ZipCode;
-		group.ShortDescription = dto.ShortDescription;
-		group.Description = dto.Description;
+		currentGroup.Name = updatedGroup.Name;
+		currentGroup.Address = updatedGroup.Address;
+		currentGroup.City = updatedGroup.City;
+		currentGroup.ZipCode = updatedGroup.ZipCode;
+		currentGroup.ShortDescription = updatedGroup.ShortDescription;
+		currentGroup.Description = updatedGroup.Description;
 
-		group.Categories.Clear();
-		foreach (var categoryDto in dto.Categories)
+		currentGroup.Categories.Clear();
+		foreach (var categoryDto in updatedGroup.Categories)
 		{
 			var category = await context.Categories.FindAsync([categoryDto.Id], cancellationToken);
 			if (category is null)
 			{
-				group.Categories.Add(categoryDto);
+				currentGroup.Categories.Add(categoryDto);
 				context.Entry(categoryDto).State = EntityState.Added;
 			}
 			else
 			{
 				category.LoadValuesFrom(categoryDto);
-				group.Categories.Add(category);
+				currentGroup.Categories.Add(category);
 				context.Entry(category).State = EntityState.Modified;
 			}
 		}

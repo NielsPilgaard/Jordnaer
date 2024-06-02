@@ -1,7 +1,6 @@
 using Jordnaer.Database;
-using Jordnaer.Extensions;
+using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -27,12 +26,12 @@ public interface IProfileService
 	/// </summary>
 	/// <param name="updatedUserProfile">The user profile.</param>
 	/// <param name="cancellationToken"></param>
-	Task<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
+	ValueTask<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
 }
 
 public sealed class ProfileService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	AuthenticationStateProvider authenticationStateProvider) : IProfileService
+	CurrentUser currentUser) : IProfileService
 {
 	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName,
 		CancellationToken cancellationToken = default)
@@ -53,10 +52,9 @@ public sealed class ProfileService(
 				   : new Success<ProfileDto>(profile);
 	}
 
-	public async Task<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
+	public async ValueTask<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default)
 	{
-		var currentUserId = await authenticationStateProvider.GetCurrentUserId();
-		if (currentUserId is null)
+		if (currentUser.Id is null)
 		{
 			return new Error();
 		}
@@ -66,7 +64,7 @@ public sealed class ProfileService(
 											  .AsSingleQuery()
 											  .Include(user => user.Categories)
 											  .Include(user => user.ChildProfiles)
-											  .FirstOrDefaultAsync(user => user.Id == currentUserId,
+											  .FirstOrDefaultAsync(user => user.Id == currentUser.Id,
 																   cancellationToken);
 
 		if (currentUserProfile is null)
