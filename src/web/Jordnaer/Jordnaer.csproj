@@ -44,6 +44,7 @@
     <PackageReference Include="FluentValidation" Version="11.9.1" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.4.0" />
+    <PackageReference Include="WYSIWYGTextEditor" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

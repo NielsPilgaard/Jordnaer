@@ -1,0 +1,59 @@
+<div id="wysiwyg-editor-wrapper" style="margin-bottom: 89px;">
+    <MudText Class="my-2" Typo="Typo.h6">@Label</MudText>
+    <TextEditor Toolbar="_toolbar"
+                @ref="@_textEditor"
+                Placeholder="@Placeholder">
+        <EditorContent>
+            Indlæser...
+        </EditorContent>
+    </TextEditor>
+</div>
+
+@code {
+    [Parameter]
+    public required string Placeholder { get; set; }
+    [Parameter]
+    public required string Label { get; set; }
+
+    [Parameter]
+    public string? Text { get; set; }
+
+    private const int LoadingDelayMillis = 1500;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(LoadingDelayMillis);
+            await _textEditor.LoadHTMLContent(Text ?? string.Empty);
+        });
+    }
+
+    public async Task<string> GetHtmlAsync() => await _textEditor.GetHTML();
+
+    private TextEditor _textEditor = default!;
+    private static readonly Toolbar _toolbar = new()
+    {
+        ShowMathControls = false,
+        ShowCodeBlockControls = false,
+        ShowFontControls = false,
+        ShowAlignmentControls = true,
+        ShowCleanFormattingControls = true,
+        ShowColorControls = true,
+        ShowDirectionControls = true,
+        ShowEmbedVideoControls = true,
+        ShowHeaderControls = true,
+        ShowHypertextLinkControls = true,
+        ShowIndentationControls = true,
+        ShowInsertImageControls = true,
+        ShowListControls = true,
+        ShowQuotationControls = true,
+        ShowSizeControls = true,
+        ShowStyleControls = true
+    };
+}
