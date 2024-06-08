@@ -27,16 +27,23 @@
                       T="string"
                       Text="@Group.ShortDescription" />
 
+        <MudChipField ChipColor="Color.Tertiary"
+                      Class="hide-child-inputs"
+                      Label="Kategorier"
+                      Values="Group.Categories.ToList()"
+                      T="string"
+                      ReadOnly
+                      ChipVariant="Variant.Filled"
+                      Closeable="false"
+                      Clearable="false"
+                      WrapChips />
+
         <MudTextField Label="Antal medlemmer"
                       Adornment="Adornment.Start"
                       AdornmentIcon="@Icons.Material.Filled.People"
                       ReadOnly
                       T="string"
                       Text="@Group.MemberCount.ToString()" />
-
-        <MudText Class="mt-3" Typo="Typo.body1">
-            @Group.ShortDescription
-        </MudText>
 
     </MudCardContent>
 </MudCard>

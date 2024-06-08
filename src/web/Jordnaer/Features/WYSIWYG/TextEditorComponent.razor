@@ -5,9 +5,9 @@
                 Placeholder="@Placeholder">
         <EditorContent>
             @if (Text is not null)
-			{
+            {
                 @("Indlæser...")
-			}
+            }
         </EditorContent>
     </TextEditor>
 </div>
@@ -36,26 +36,36 @@
         });
     }
 
-    public async Task<string> GetHtmlAsync() => await _textEditor.GetHTML();
+    public async Task<string> GetHtmlAsync()
+    {
+        var html = await _textEditor.GetHTML();
+
+        if (html is null or "<p><br></p>")
+        {
+            return string.Empty;
+        }
+
+        return html;
+    }
 
     private TextEditor _textEditor = default!;
     private static readonly Toolbar _toolbar = new()
-    {
-        ShowMathControls = false,
-        ShowCodeBlockControls = false,
-        ShowFontControls = false,
-        ShowAlignmentControls = true,
-        ShowCleanFormattingControls = true,
-        ShowColorControls = true,
-        ShowDirectionControls = true,
-        ShowEmbedVideoControls = true,
-        ShowHeaderControls = true,
-        ShowHypertextLinkControls = true,
-        ShowIndentationControls = true,
-        ShowInsertImageControls = true,
-        ShowListControls = true,
-        ShowQuotationControls = true,
-        ShowSizeControls = true,
-        ShowStyleControls = true
-    };
+        {
+            ShowMathControls = false,
+            ShowCodeBlockControls = false,
+            ShowFontControls = false,
+            ShowAlignmentControls = true,
+            ShowCleanFormattingControls = true,
+            ShowColorControls = true,
+            ShowDirectionControls = true,
+            ShowEmbedVideoControls = true,
+            ShowHeaderControls = true,
+            ShowHypertextLinkControls = true,
+            ShowIndentationControls = true,
+            ShowInsertImageControls = true,
+            ShowListControls = true,
+            ShowQuotationControls = true,
+            ShowSizeControls = true,
+            ShowStyleControls = true
+        };
 }
