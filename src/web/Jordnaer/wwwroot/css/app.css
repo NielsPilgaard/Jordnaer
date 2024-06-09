@@ -94,3 +94,7 @@ h1:focus {
 .mud-input-control .mud-input-control-input-container .mud-input .d-flex .mud-input {
     display: none;
 }
+
+.ql-editor {
+    min-height: 200px !important;
+}
