@@ -73,7 +73,6 @@ internal sealed class UserCircuitHandler(
 
 		var request = httpContextAccessor.HttpContext.Request;
 		var domain = request.Host.Host;
-		currentUser.Url = $"{request.Scheme}://{request.Host}";
 
 		currentUser.CookieContainer = new CookieContainer();
 

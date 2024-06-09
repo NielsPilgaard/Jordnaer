@@ -1,7 +1,7 @@
 using Jordnaer.Database;
-using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
 using MassTransit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using SendGrid.Helpers.Mail;
 
@@ -16,7 +16,7 @@ public interface IEmailService
 public sealed class EmailService(IPublishEndpoint publishEndpoint,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<EmailService> logger,
-	CurrentUser currentUser) : IEmailService
+	NavigationManager navigationManager) : IEmailService
 {
 	public async Task SendEmailFromContactForm(
 		ContactForm contactForm,
@@ -69,7 +69,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 							  "membership request for group {GroupId}. " +
 							  "Sending an email to them.", emails.Count, groupId);
 
-		var groupMembershipUrl = $"{currentUser.Url}/groups/{groupId}/memberships";
+		var groupMembershipUrl = $"{navigationManager.BaseUri}/groups/{groupId}/memberships";
 
 		List<EmailAddress> toEmail = [emails.First()];
 		var email = new SendEmail

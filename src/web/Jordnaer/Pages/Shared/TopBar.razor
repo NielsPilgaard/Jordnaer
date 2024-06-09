@@ -2,20 +2,18 @@
 
 <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
 
-     <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                    Color="Color.Default"
-                    Variant="Variant.Filled"
-                    Edge="Edge.Start"
-                    OnClick="@ToggleDrawer.InvokeAsync" />
+    <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                   Color="Color.Default"
+                   Variant="Variant.Filled"
+                   Edge="Edge.Start"
+                   OnClick="@ToggleDrawer.InvokeAsync" />
 
-     @if (!_currentPageIsFrontPage)
-    {
-        <MudSpacer />
+    <MudSpacer />
 
-        <MudLink Href="/">
-            <MudImage Class="d-flex" Src="/images/mini_logo_small.png" Alt="Logo" />
-        </MudLink>
-    }
+    <MudLink Href="/">
+        <MudImage Class="d-flex" Src="/images/mini_logo_small.png" Alt="Logo" />
+    </MudLink>
+
 
     <MudSpacer />
 
@@ -33,23 +31,4 @@
 {
     [Parameter]
     public EventCallback<bool> ToggleDrawer { get; set; }
-
-    private bool _currentPageIsFrontPage = true;
-
-    protected override void OnInitialized()
-    {
-        _currentPageIsFrontPage = Navigation.Uri == Navigation.BaseUri || Navigation.Uri == $"{Navigation.BaseUri}#_=_";
-
-        Navigation.RegisterLocationChangingHandler(context =>
-        {
-            var currentPageIsFrontPage = context.TargetLocation == Navigation.BaseUri || context.TargetLocation == $"{Navigation.BaseUri}#_=_";
-            if (currentPageIsFrontPage != _currentPageIsFrontPage)
-            {
-                _currentPageIsFrontPage = currentPageIsFrontPage;
-                StateHasChanged();
-            }
-
-            return ValueTask.CompletedTask;
-        });
-    }
 }
