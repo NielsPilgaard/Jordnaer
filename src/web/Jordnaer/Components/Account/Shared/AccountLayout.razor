@@ -1,15 +1,12 @@
 ﻿@inherits LayoutComponentBase
-@layout MainLayout
+@layout SsrLayout
 @inject NavigationManager NavigationManager
 
-@if (HttpContext is null)
-{
-    <MudLoading Overlap/>
-}
-else
-{
-    @Body
-}
+<MudMainContent Class="mb-6">
+	<MudContainer MaxWidth="MaxWidth.Large">
+		@Body
+	</MudContainer>
+</MudMainContent>
 
 @code {
     [CascadingParameter]

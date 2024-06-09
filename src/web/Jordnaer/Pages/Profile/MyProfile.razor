@@ -4,6 +4,7 @@
 @inject IProfileCache ProfileCache
 @inject IProfileService ProfileService
 @inject ISnackbar Snackbar
+
 @attribute [Authorize]
 
 <MetadataComponent Title="Redigér Profil"
@@ -79,14 +80,6 @@
                                        SelectedValues="_userProfile.Categories.Select(e => e.Name)"
                                        ValuePresenter="ValuePresenter.Chip"
                                        SelectedValuesChanged="SelectedCategoriesChanged" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField For="() => _userProfile.Description"
-                                  AutoGrow
-                                  Lines="3"
-                                  @bind-Value="@_userProfile.Description"
-                                  Placeholder="Du kan eksempelvis fortælle om dine interesser, uddannelse, familie, børnesyn, værdier og den slags."
-                                  Label="Beskrivelse" />
                 </MudItem>
 
                 <MudItem xs="12">
