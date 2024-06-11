@@ -1,23 +1,25 @@
 @using Jordnaer.Shared
 @using MassTransit
 @using MudBlazor
+@using OpenTelemetry.Trace
 <MudDynamicTabs @bind-ActivePanelIndex="@_activePanelIndex"
-                AddTab="@AddTabCallback"
+                AddTab="@AddChildCallback"
                 AddIconToolTip="Klik for at oprette et barn"
                 PanelClass="px-4 py-6"
                 Elevation="4"
-                    Rounded
-                CloseTab="RemoveTab"
+                Rounded
+                CloseTab="RemoveChild"
                 CloseTabIcon="@Icons.Material.Filled.DeleteForever"
                 CloseIconToolTip="Klik for at fjerne barnet"
                 CloseIconStyle="color: var(--mud-palette-error)"
                 AddIconStyle="color: var(--mud-palette-success)"
-                    ApplyEffectsToContainer>
+                KeepPanelsAlive
+                ApplyEffectsToContainer>
 
     @foreach (var childProfile in Parent.ChildProfiles)
     {
         <MudTabPanel ID="@childProfile.Id" Text="@childProfile.FirstName">
-            <EditChildProfile ChildProfile="childProfile" />
+            <EditChildProfile ChildProfile="childProfile" @ref="_editChildProfileComponentRef" />
         </MudTabPanel>
     }
 
@@ -25,6 +27,22 @@
 
 @code
 {
+    private List<EditChildProfile> _editChildProfileComponents = [];
+
+    public EditChildProfile _editChildProfileComponentRef
+    {
+	    get => _editChildProfileComponents[_activePanelIndex];
+		set => _editChildProfileComponents.Add(value);
+	}
+
+	public async Task UpdateChildProfileDescriptions()
+	{
+        foreach (var editChildProfileComponent in _editChildProfileComponents)
+		{
+			await editChildProfileComponent.UpdateDescription();
+		}
+	}
+
     [Parameter]
     public required UserProfile Parent { get; set; }
 
@@ -33,14 +51,14 @@
 
     private int _activePanelIndex = 0;
 
-    public async Task AddTab(Guid id)
+    public async Task AddChild(Guid id)
     {
         Parent.ChildProfiles.Add(new ChildProfile
         {
-          Id = id,
-          Gender = Gender.NotSet,
-          FirstName = string.Empty,
-          UserProfileId = Parent.Id
+            Id = id,
+            Gender = Gender.NotSet,
+            FirstName = string.Empty,
+            UserProfileId = Parent.Id
         });
 
         await ParentChanged.InvokeAsync(Parent);
@@ -48,10 +66,23 @@
         _activePanelIndex = Parent.ChildProfiles.Count - 1; // Automatically switch to the new tab.
     }
 
-    private async Task AddTabCallback() => await AddTab(NewId.NextGuid());
+    private async Task AddChildCallback() => await AddChild(NewId.NextGuid());
 
-    private void RemoveTab(MudTabPanel obj)
+    private void RemoveChild(MudTabPanel obj)
     {
-        Parent.ChildProfiles.RemoveAt(Parent.ChildProfiles.FindIndex(e => e.Id == (Guid)obj.ID));
+	    var tab = Parent.ChildProfiles.Find(e => e.Id == (Guid) obj.ID);
+        if (tab is null) 		
+        {
+			return;
+		}
+        Parent.ChildProfiles.Remove(tab);
+
+        var editChildProfileComponent = _editChildProfileComponents.Find(e => e.ChildProfile.Id == (Guid) obj.ID);
+        if (editChildProfileComponent is null)
+        {
+	        return;
+        }
+        _editChildProfileComponents.Remove(editChildProfileComponent);
     }
+
 }

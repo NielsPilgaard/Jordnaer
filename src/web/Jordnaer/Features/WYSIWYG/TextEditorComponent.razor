@@ -3,12 +3,6 @@
     <TextEditor Toolbar="_toolbar"
                 @ref="@_textEditor"
                 Placeholder="@Placeholder">
-        <EditorContent>
-            @if (Text is not null)
-            {
-                @("Indlæser...")
-            }
-        </EditorContent>
     </TextEditor>
 </div>
 
@@ -22,33 +16,8 @@
 
     private const int LoadingDelayMillis = 1500;
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (!firstRender || Text is null)
-        {
-            return;
-        }
-
-        _ = Task.Run(async () =>
-        {
-            await Task.Delay(LoadingDelayMillis);
-            await _textEditor.LoadHTMLContent(Text ?? string.Empty);
-        });
-    }
-
-    public async Task<string> GetHtmlAsync()
-    {
-        var html = await _textEditor.GetHTML();
-
-        if (html is null or "<p><br></p>")
-        {
-            return string.Empty;
-        }
-
-        return html;
-    }
-
     private TextEditor _textEditor = default!;
+
     private static readonly Toolbar _toolbar = new()
         {
             ShowMathControls = false,
@@ -68,4 +37,41 @@
             ShowSizeControls = true,
             ShowStyleControls = true
         };
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrEmpty(Text))
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(LoadingDelayMillis);
+            await _textEditor.LoadHTMLContent(Text);
+        });
+    }
+
+    public async Task<string> GetHtmlAsync()
+    {
+        var text = await _textEditor.GetContent();
+        if (text is @"text=""{\""ops\"":[{\""insert\"":\""\\n\""}]}""")
+        {
+            return string.Empty;
+        }
+
+        string? html;
+        try
+        {
+            html = await _textEditor.GetHTML();
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+
+        return html is null or "<p><br></p>"
+            ? string.Empty
+            : html;
+    }
 }
