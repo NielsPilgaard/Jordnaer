@@ -26,17 +26,29 @@
                       ReadOnly
                       T="string"
                       Text="@Group.ShortDescription" />
-
-        <MudChipField ChipColor="Color.Tertiary"
-                      Class="hide-child-inputs"
-                      Label="Kategorier"
-                      Values="Group.Categories.ToList()"
-                      T="string"
-                      ReadOnly
-                      ChipVariant="Variant.Filled"
-                      Closeable="false"
-                      Clearable="false"
-                      WrapChips />
+                      
+        @if (Group.Categories.Length > 0)
+        {
+	        <MudChipField ChipColor="Color.Tertiary"
+	                      Class="hide-child-inputs"
+	                      Label="Kategorier"
+	                      Values="Group.Categories.ToList()"
+	                      T="string"
+	                      ReadOnly
+	                      ChipVariant="Variant.Filled"
+	                      Closeable="false"
+	                      Clearable="false"
+	                      WrapChips />
+        }
+        else
+        {
+            <MudTextField Label="Kategorier"
+	                      Adornment="Adornment.Start"
+	                      AdornmentIcon="@Icons.Material.Filled.Star"
+	                      ReadOnly
+	                      T="string"
+	                      Text="" />
+        }
 
         <MudTextField Label="Antal medlemmer"
                       Adornment="Adornment.Start"
