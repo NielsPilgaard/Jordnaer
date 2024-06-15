@@ -14,7 +14,7 @@
 
     @if (_group is null && _isLoading is false)
     {
-        <NotFoundComponent Message="@_groupNotFoundMessage"/>
+        <NotFoundComponent Message="@_groupNotFoundMessage" />
         return;
     }
     @if (_group is null)
@@ -26,9 +26,9 @@
                        Description="@($"Beskrivelse af {_group.Name}:\n {_group.ShortDescription}")"
                        Image="@_group.ProfilePictureUrl" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" 
-            Class="mb-5" 
-            Color="Color.Primary" 
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
+            Class="mb-5"
+            Color="Color.Primary"
             OnClick="JsRuntime.GoBackAsync" />
 
     <AuthorizeView>
@@ -48,24 +48,43 @@
     </AuthorizeView>
 
     <MudGrid>
-	    <MudItem xs="12">
-		    <GroupCard Group="_group" />
-	    </MudItem>
-	    <MudItem xs="12">
+        <MudItem xs="12" sm="6">
+            <GroupCard Group="_group" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudPaper Elevation="1">
+                <MudList>
+                    @if (_isModeratorOfGroup)
+                    {
+                        <MudListItem Icon="@Icons.Material.Filled.Edit"
+                                     Href="@($"/groups/{GroupName}/members")">
+                            Medlemmer
+                        </MudListItem>
+                    }
+                    <MudListItem>
+                        <MudText Typo="Typo.h6">Medlemmer</MudText>
+                    </MudListItem>
+                    <MudDivider />
+                    @foreach (var member in _groupMembers)
+                    {
+                        <MudListItem Href="@($"/{member.UserName}")">
+                            <MudAvatar Size="Size.Large" Class="mr-3">
+                                <MudImage Src="@member.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                            </MudAvatar>
+                            <MudText>@member.DisplayName</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12">
             @if (!string.IsNullOrEmpty(_group.Description))
             {
-	            <MudPaper Elevation="1" Class="pa-5">
+                <MudPaper Elevation="1" Class="pa-5">
                     @MarkdownRenderer.SanitizeAndRenderMarkupString(_group.Description)
-	            </MudPaper>
+                </MudPaper>
             }
-	    </MudItem>
-	    <div>
-		    <MudNavLink Href="@($"/groups/{GroupName}/members")"></MudNavLink>
-	    </div>
-	    <div id="member-list">
-
-	    </div>
-        @*TODO: List of members here*@
+        </MudItem>
     </MudGrid>
 </MudLoading>
 
@@ -76,12 +95,14 @@
     private string _groupNotFoundMessage => $"Vi fandt ingen gruppe ved navn {GroupName}, beklager!";
 
     private GroupSlim? _group;
-    private List<UserSlim> _groupAdmins = [];
+    private List<UserSlim> _groupModerators = [];
 
     private bool _isLoading = true;
     private UserProfile? _currentUser;
     private bool _isMemberOfGroup = false;
+    private bool _isModeratorOfGroup => _groupModerators.Select(x => x.Id).Contains(_currentUser?.Id);
     private IEnumerable<UserSlim> _recipients = [];
+    private List<UserSlim> _groupMembers = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,9 +117,9 @@
             groupSlim => _group = groupSlim,
             _ => { });
 
+        _isLoading = false;
         if (_group is null)
         {
-	        _isLoading = false;
             return;
         }
 
@@ -107,31 +128,32 @@
         _currentUser = await ProfileCache.GetProfileAsync();
         if (_currentUser is null)
         {
-	        _isLoading = false;
+            _isLoading = false;
             return;
         }
 
         if (_isMemberOfGroup is false)
         {
-            _groupAdmins = await GroupService
+            _groupModerators = await GroupService
                 .GetGroupMembersByPredicateAsync(x =>
                     x.GroupId == _group.Id &&
                     (x.PermissionLevel.HasFlag(PermissionLevel.Admin) ||
                      x.PermissionLevel.HasFlag(PermissionLevel.Moderator)));
 
-            _recipients = _groupAdmins.Concat([_currentUser.ToUserSlim()]);
+            _recipients = _groupModerators.Concat([_currentUser.ToUserSlim()]);
         }
 
-        _isLoading = false;
+        _groupMembers = await GroupService.GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
+                                                                                x.MembershipStatus == MembershipStatus.Active);
     }
 
     private async Task RequestMembership()
     {
-	    await MembershipService.RequestMembership(_group!.Id, CancellationToken);
+        await MembershipService.RequestMembership(_group!.Id, CancellationToken);
 
-	    Snackbar.Add("Anmodning sendt!", Severity.Success);
+        Snackbar.Add("Anmodning sendt!", Severity.Success);
 
-	    _isMemberOfGroup = true;
+        _isMemberOfGroup = true;
 
         StateHasChanged();
     }

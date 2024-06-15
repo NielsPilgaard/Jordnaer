@@ -17,7 +17,7 @@
         </MudListSubheader>
         @foreach (var chat in Chats)
         {
-            <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
+            <MudListItem OnClick="() => SelectChat(chat)" Dense="true" Class="chat-selector">
 
                 <MudAvatar Size="Size.Large" Class="mr-3">
                     <MudImage Src="@chat.GetChatImage(CurrentUser.Id)" loading="lazy" Alt="Avatar" />

@@ -75,11 +75,11 @@ h1:focus {
     }
 }
 
-.mud-card {
+.card-hover {
     transition: all 0.3s ease;
 }
 
-    .mud-card:hover {
+    .card-hover:hover {
         transform: scale(1.02);
     }
 
