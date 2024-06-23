@@ -274,10 +274,7 @@ public class GroupServiceTests : IAsyncLifetime
 				UserProfileId = userId,
 				OwnershipLevel = OwnershipLevel.Owner,
 				MembershipStatus = MembershipStatus.Active,
-				PermissionLevel = PermissionLevel.Read |
-								  PermissionLevel.Write |
-								  PermissionLevel.Moderator |
-								  PermissionLevel.Admin
+				PermissionLevel = PermissionLevel.Admin
 			}
 		];
 		_context.Groups.Add(group);
