@@ -4,7 +4,7 @@
             <MudText Typo="Typo.h4" Class="">@UserGroupAccess.Group.Name</MudText>
             <MudSpacer />
             @if (UserGroupAccess.OwnershipLevel is OwnershipLevel.Owner ||
-            UserGroupAccess.PermissionLevel.HasFlagFast(PermissionLevel.Admin))
+                 UserGroupAccess.PermissionLevel is PermissionLevel.Admin)
             {
                 <MudIconButton Href="@EditGroupUrl"
                                Title="Redigér gruppe"

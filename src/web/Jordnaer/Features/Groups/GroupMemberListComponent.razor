@@ -1,0 +1,46 @@
+@if (GroupMembers.Count is 0)
+{
+    <MudLoading Loading="true" />
+}
+else
+{
+    <MudList Clickable>
+        <MudListSubheader>
+            @if (IsGroupModerator)
+            {
+                <MudListItem Icon="@Icons.Material.Filled.Edit"
+                             Href="@($"/groups/{GroupName}/members")">
+                    Medlemmer
+                </MudListItem>
+            }
+            else
+            {
+                <MudListItem>
+                    <MudText Typo="Typo.h6">Medlemmer</MudText>
+                </MudListItem>
+            }
+        </MudListSubheader>
+        <MudDivider />
+        @foreach (var member in GroupMembers)
+        {
+            <MudListItem Href="@($"/{member.UserName}")">
+                <MudAvatar Size="Size.Large" Class="mr-3">
+                    <MudImage Src="@member.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                </MudAvatar>
+                <MudText>@member.DisplayName</MudText>
+            </MudListItem>
+        }
+    </MudList>
+}
+@code {
+
+    [Parameter]
+    public string? GroupName { get; set; }
+
+    [Parameter] 
+    public bool IsGroupModerator { get; set; } = false;
+
+    [Parameter]
+    public required List<UserSlim> GroupMembers { get; set; }
+
+}

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using NetEscapades.EnumGenerators;
 
 namespace Jordnaer.Shared;
@@ -5,8 +6,12 @@ namespace Jordnaer.Shared;
 [EnumExtensions]
 public enum OwnershipLevel
 {
-    None = 0,
-    Member = 1,
-    InheritsOwnership = 2,
-    Owner = 3
+	[Display(Name = "Ingen")]
+	None = 0,
+	[Display(Name = "Medlem")]
+	Member = 1,
+	[Display(Name = "Arver Ejerskab")]
+	InheritsOwnership = 2,
+	[Display(Name = "Ejer")]
+	Owner = 3
 }

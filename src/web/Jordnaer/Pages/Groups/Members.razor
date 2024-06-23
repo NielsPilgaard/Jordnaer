@@ -1,0 +1,92 @@
+﻿@page "/groups/{GroupName}/members"
+
+@inject IGroupService GroupService
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MetadataComponent Title="@($"{GroupName} - Medlemmer")"
+                   Description="Her kan gruppe admins godkende nye medlemmer, give medlemmer yderligere adgang og lignende."/>
+
+<MudDataGrid T="GroupMembershipDto"
+             Items="_memberships"
+             ReadOnly="false"
+             EditMode="DataGridEditMode.Form"
+             CommittedItemChanges="@CommittedItemChanges"
+             EditTrigger="DataGridEditTrigger.Manual">
+	<Columns>
+		<PropertyColumn Property="x => x.UserDisplayName" Title="Navn" IsEditable="false" />
+		<PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau">
+			<EditTemplate>
+				<MudSelect @bind-Value="context.Item.OwnershipLevel" 
+				           For="() => context.Item.OwnershipLevel" 
+				           T="OwnershipLevel" 
+				           Margin="@Margin.Dense">
+					@foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
+					{
+                        <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
+							@ownershipLevel.ToStringFast()
+						</MudSelectItem>
+					}
+				</MudSelect>
+			</EditTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau">
+			<EditTemplate>
+                <MudSelect
+                           For="() => context.Item.PermissionLevel"
+                           T="PermissionLevel"
+                           Margin="@Margin.Dense"
+                           Value="context.Item.PermissionLevel">
+                    @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
+					{
+                        <MudSelectItem T="PermissionLevel" Value="permissionLevel">
+							@permissionLevel.ToStringFast()
+						</MudSelectItem>
+					}
+				</MudSelect>
+			</EditTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status">
+			<EditTemplate>
+				<MudSelect @bind-Value="context.Item.MembershipStatus" 
+				           For="() => context.Item.MembershipStatus" 
+				           T="MembershipStatus" 
+				           Margin="@Margin.Dense">
+					@foreach (var membershipStatus in Enum.GetValues<MembershipStatus>())
+					{
+						<MudSelectItem T="MembershipStatus" Value="membershipStatus">
+							@membershipStatus.ToStringFast()
+						</MudSelectItem>
+					}
+				</MudSelect>
+			</EditTemplate>
+		</PropertyColumn>
+        <TemplateColumn Hidden="false">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Large" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+            </CellTemplate>
+        </TemplateColumn>
+	</Columns>
+</MudDataGrid>
+
+@code {
+    private List<GroupMembershipDto> _memberships = [];
+
+	[Parameter]
+	public required string GroupName { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		_memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
+	}
+
+    private async Task CommittedItemChanges(GroupMembershipDto item)
+    {
+	    var updateResult = await GroupService.UpdateMembership(item);
+
+        updateResult.Switch(
+	        success => Snackbar.Add("Medlemskabet blev opdateret.", Severity.Success),
+	        error => Snackbar.Add(error.Value, Severity.Error));
+    }
+}

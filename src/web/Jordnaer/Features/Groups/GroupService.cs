@@ -21,7 +21,9 @@ public interface IGroupService
 	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(CancellationToken cancellationToken = default);
 
 	Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default);
+	Task<List<GroupMembershipDto>> GetGroupMembershipsAsync(string groupName, CancellationToken cancellationToken = default);
 	Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membership, CancellationToken cancellationToken = default);
 }
 
 public class GroupService(
@@ -131,6 +133,27 @@ public class GroupService(
 		return members;
 	}
 
+	public async Task<List<GroupMembershipDto>> GetGroupMembershipsAsync(string groupName, CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var memberships = await context.GroupMemberships
+			.AsNoTracking()
+			.Where(x => x.Group.Name == groupName)
+			.Select(x => new GroupMembershipDto
+			{
+				UserDisplayName = x.UserProfile.DisplayName,
+				UserProfileId = x.UserProfileId,
+				GroupId = x.GroupId,
+				OwnershipLevel = x.OwnershipLevel,
+				PermissionLevel = x.PermissionLevel,
+				MembershipStatus = x.MembershipStatus
+			})
+			.ToListAsync(cancellationToken);
+
+		return memberships;
+	}
+
 	public async Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
@@ -148,6 +171,41 @@ public class GroupService(
 											  cancellationToken);
 
 		return isGroupMember;
+	}
+
+	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var membership = await context.GroupMemberships
+			.FirstOrDefaultAsync(x => x.UserProfileId == membershipDto.UserProfileId &&
+									  x.GroupId == membershipDto.GroupId, cancellationToken);
+
+		if (membership is null)
+		{
+			return logger.LogAndReturnErrorResult("Medlemskabet blev ikke fundet. Kontakt venligst support hvis problemet fortsætter.");
+		}
+
+		membership.OwnershipLevel = membershipDto.OwnershipLevel;
+		membership.PermissionLevel = membershipDto.PermissionLevel;
+		membership.MembershipStatus = membershipDto.MembershipStatus;
+		membership.LastUpdatedUtc = DateTime.UtcNow;
+
+		context.GroupMemberships.Update(membership);
+
+		try
+		{
+			await context.SaveChangesAsync(cancellationToken);
+		}
+		catch (Exception exception)
+		{
+			return logger.LogAndReturnErrorResult(exception,
+				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
+		}
+
+		return new Success();
 	}
 
 	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default)
@@ -173,10 +231,7 @@ public class GroupService(
 				GroupId = group.Id,
 				OwnershipLevel = OwnershipLevel.Owner,
 				MembershipStatus = MembershipStatus.Active,
-				PermissionLevel = PermissionLevel.Read |
-								  PermissionLevel.Write |
-								  PermissionLevel.Moderator |
-								  PermissionLevel.Admin
+				PermissionLevel = PermissionLevel.Admin
 			}
 		];
 
@@ -315,4 +370,14 @@ public class GroupService(
 			}
 		}
 	}
+}
+
+public record GroupMembershipDto
+{
+	public required string UserDisplayName { get; set; }
+	public required string UserProfileId { get; set; }
+	public required Guid GroupId { get; set; }
+	public required OwnershipLevel OwnershipLevel { get; set; }
+	public required PermissionLevel PermissionLevel { get; set; }
+	public required MembershipStatus MembershipStatus { get; set; }
 }

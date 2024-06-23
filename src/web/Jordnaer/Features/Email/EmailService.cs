@@ -49,8 +49,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 										   .AsNoTracking()
 										   .Where(x =>
 													  x.GroupId == groupId &&
-													  (x.PermissionLevel.HasFlag(PermissionLevel.Moderator) ||
-													   x.PermissionLevel.HasFlag(PermissionLevel.Admin)))
+													  x.PermissionLevel.HasFlag(PermissionLevel.Admin))
 										   .Select(x => x.UserProfileId);
 
 		var emails = await context.Users
