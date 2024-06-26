@@ -7,7 +7,7 @@
     width: 100%;
 }
 
-.mud-list-item.chat-selector .mud-typography {
+.mud-list-item .mud-typography {
     display: flex;
     align-items: center;
 }

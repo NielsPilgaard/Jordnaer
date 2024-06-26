@@ -1,8 +1,7 @@
 using Jordnaer.Database;
+using Jordnaer.Features.Search;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.Globalization;
 
 namespace Jordnaer.Features.UserSearch;
 
@@ -12,28 +11,15 @@ public interface IUserSearchService
 	Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default);
 }
 
-public class UserSearchService : IUserSearchService
+public class UserSearchService(
+	IZipCodeService zipCodeService,
+	JordnaerDbContext context)
+	: IUserSearchService
 {
-	private readonly ILogger<UserSearchService> _logger;
-	private readonly JordnaerDbContext _context;
-	private readonly IDataForsyningenClient _dataForsyningenClient;
-	private readonly DataForsyningenOptions _options;
-
-	public UserSearchService(
-		ILogger<UserSearchService> logger,
-		JordnaerDbContext context,
-		IDataForsyningenClient dataForsyningenClient,
-		IOptions<DataForsyningenOptions> options)
-	{
-		_logger = logger;
-		_context = context;
-		_dataForsyningenClient = dataForsyningenClient;
-		_options = options.Value;
-	}
 
 	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default)
 	{
-		var users = ApplyNameFilter(searchString, _context.UserProfiles);
+		var users = ApplyNameFilter(searchString, context.UserProfiles);
 
 		var firstTenUsers = await users
 			.Where(user => user.Id != currentUserId)
@@ -54,7 +40,7 @@ public class UserSearchService : IUserSearchService
 
 	public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default)
 	{
-		var users = _context.UserProfiles
+		var users = context.UserProfiles
 							.Where(user => !string.IsNullOrEmpty(user.UserName))
 							.AsQueryable();
 
@@ -112,70 +98,21 @@ public class UserSearchService : IUserSearchService
 			return (users, false);
 		}
 
-		var searchResponse = await _dataForsyningenClient.GetAddressesWithAutoComplete(
-								 filter.Location,
-								 cancellationToken);
-		if (!searchResponse.IsSuccessStatusCode)
+		var (zipCodesWithinCircle, searchedZipCode) = await zipCodeService.GetZipCodesNearLocationAsync(
+										 filter.Location,
+										 filter.WithinRadiusKilometers.Value,
+										 cancellationToken);
+
+		if (zipCodesWithinCircle.Count is 0 || searchedZipCode is null)
 		{
-			_logger.LogError(searchResponse.Error,
-				"Exception occurred in function {functionName} " +
-				"while calling external API through {externalApiFunction}. " +
-				"{statusCode}: {reasonPhrase}",
-				nameof(ApplyLocationFilterAsync),
-				nameof(IDataForsyningenClient.GetAddressesWithAutoComplete),
-				searchResponse.Error.StatusCode,
-				searchResponse.Error.ReasonPhrase);
 			return (users, false);
 		}
 
-		var addressDetails = searchResponse.Content?.FirstOrDefault().Adresse;
-		if (addressDetails is null)
-		{
-			_logger.LogError("{responseName} was null.", $"{nameof(AddressAutoCompleteResponse)}.{nameof(AddressAutoCompleteResponse.Adresse)}");
-			return (users, false);
-		}
-
-		var searchRadiusMeters = Math.Min(filter.WithinRadiusKilometers ?? 0, _options.MaxSearchRadiusKilometers) * 1000;
-
-		var circle = Circle.FromAddress(addressDetails.Value, searchRadiusMeters);
-
-		var zipCodeSearchResponse = await _dataForsyningenClient.GetZipCodesWithinCircle(
-										circle.ToString(),
-										cancellationToken);
-		if (!zipCodeSearchResponse.IsSuccessStatusCode)
-		{
-			_logger.LogError("Failed to get zip codes within {radius}m of the coordinates x={x}, y={y}", filter.WithinRadiusKilometers, addressDetails.Value.X, addressDetails.Value.Y);
-			return (users, false);
-		}
-
-		var searchedZipCode = GetZipCodeFromLocation(filter.Location);
-
-		_logger.LogDebug("ZipCode that was searched for is: {searchedZipCode}", searchedZipCode);
-
-		var zipCodesWithinCircle = zipCodeSearchResponse.Content!
-			.Select(zipCodeResponse => int.Parse(zipCodeResponse.Nr!))
-			.ToList();
-
-		_logger.LogDebug("Returned zip codes: {zipCodeCount}", zipCodesWithinCircle.Count);
-
-		users = users
-			.Where(user => user.ZipCode != null &&
-						   zipCodesWithinCircle.Contains(user.ZipCode.Value))
-			.OrderBy(user => Math.Abs(user.ZipCode!.Value - searchedZipCode));
+		users = users.Where(user => user.ZipCode != null &&
+									zipCodesWithinCircle.Contains(user.ZipCode.Value))
+					 .OrderBy(user => Math.Abs(user.ZipCode!.Value - searchedZipCode.Value));
 
 		return (users, true);
-	}
-
-	private static int GetZipCodeFromLocation(string location)
-	{
-		var span = location.AsSpan();
-
-		var indexOfLastComma = span.LastIndexOf(',');
-
-		// Start from last comma, move 2 to skip comma and whitespace, then take the next 4 chars
-		var zipCodeSpan = span.Slice(indexOfLastComma + 2, 4);
-
-		return int.Parse(zipCodeSpan);
 	}
 
 	private static IQueryable<UserProfile> ApplyCategoryFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
@@ -233,19 +170,4 @@ public class UserSearchService : IUserSearchService
 
 		return users;
 	}
-}
-
-public readonly record struct Circle(float X, float Y, int RadiusMeters)
-{
-	private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
-
-	/// <summary>
-	/// Required querystring format is "cirkel=11.111,11.111,10000", or "cirkel=x,y,radius"
-	/// </summary>
-	/// <returns></returns>
-	public override string ToString() => $"{X.ToString(FloatNumberFormat)}," +
-										 $"{Y.ToString(FloatNumberFormat)}," +
-										 $"{RadiusMeters}";
-
-	public static Circle FromAddress(Adresse address, int radiusMeters) => new(address.X, address.Y, radiusMeters);
 }

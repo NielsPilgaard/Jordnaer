@@ -7,7 +7,7 @@
     {
         <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
             <MudNavLink Class="card-link" OnClick="async () => await SaveScrollPositionAndNavigateTo(user)">
-                <MudCard Class="pa-3 my-3" Elevation="3">
+                <MudCard Class="pa-3 my-3 card-hover" Elevation="3">
                     <MudCardContent Class="d-flex flex-column align-center">
                         <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" loading="lazy" />
                          <MudTextField Label="Brugernavn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" ReadOnly T="string" Text="@user.UserName" />

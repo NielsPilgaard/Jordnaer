@@ -1,21 +1,52 @@
 <MudNavLink Href="@GroupUrl" Class="card-link">
-	<MudCard Elevation="3" Style="position: relative">
-		<MudIcon Title="Du er ejer af denne gruppe" Icon="@Icons.Material.Filled.Star" Style="position: absolute;top: 16px; right: 16px; font-size: 24px" />
-		<MudCardContent>
-			<MudText Typo="Typo.h5" Align="Align.Left">@UserGroupAccess.Group.Name</MudText>
-			@if (UserGroupAccess.Group.ProfilePictureUrl is not null)
-			{
-				<MudImage ObjectPosition="ObjectPosition.Left" Style="border-radius: 50%" Src="@UserGroupAccess.Group.ProfilePictureUrl" loading="lazy" />
-			}
-			<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@UserGroupAccess.Group.DisplayLocation()" />
-			<MudText Class="mt-3" Typo="Typo.body1">@UserGroupAccess.Group.ShortDescription</MudText>
-		</MudCardContent>
-	</MudCard>
+    <MudCard Elevation="3" Style="position: relative">
+        <MudCardHeader>
+            <MudText Typo="Typo.h4" Class="">@UserGroupAccess.Group.Name</MudText>
+            <MudSpacer />
+            @if (UserGroupAccess.OwnershipLevel is OwnershipLevel.Owner ||
+                 UserGroupAccess.PermissionLevel is PermissionLevel.Admin)
+            {
+                <MudIconButton Href="@EditGroupUrl"
+                               Title="Redigér gruppe"
+                               Icon="@Icons.Material.Filled.Edit" />
+            }
+            @if (UserGroupAccess.OwnershipLevel is OwnershipLevel.Owner)
+            {
+                <MudIcon Title="Du er ejer af denne gruppe"
+                         Icon="@Icons.Material.Filled.Star" />
+            }
+        </MudCardHeader>
+        <MudCardContent>
+
+            <div class="text-center">
+                @if (UserGroupAccess.Group.ProfilePictureUrl is not null)
+                {
+                    <MudImage Src="@UserGroupAccess.Group.ProfilePictureUrl"
+                              loading="lazy" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Groups2" Size="Size.Large" Style="font-size:8rem"/>
+                }
+            </div>
+
+            <MudTextField Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Place"
+                          ReadOnly
+                          T="string"
+                          Text="@UserGroupAccess.Group.DisplayLocation()" />
+
+            <MudText Class="mt-3" Typo="Typo.body1">
+                @UserGroupAccess.Group.ShortDescription
+            </MudText>
+        </MudCardContent>
+    </MudCard>
 </MudNavLink>
 
 @code {
     [Parameter]
     public required UserGroupAccess UserGroupAccess { get; set; }
 
-	private string GroupUrl => $"/groups/{UserGroupAccess.Group.Name}";
+    private string GroupUrl => $"/groups/{UserGroupAccess.Group.Name}";
+    private string EditGroupUrl => $"/groups/{UserGroupAccess.Group.Id}/edit";
 }

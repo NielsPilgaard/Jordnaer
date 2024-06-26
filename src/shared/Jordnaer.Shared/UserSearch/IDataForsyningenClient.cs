@@ -6,7 +6,7 @@ namespace Jordnaer.Shared;
 /// Refit Client used to interact with the Data Forsyningen API
 /// </summary>
 /// <remarks>
-///     <seealso href="https://docs.dataforsyningen.dk/#dawa-danmarks-adressers-web-api"/>
+///     <seealso href="https://dawadocs.dataforsyningen.dk/dok/api"/>
 /// </remarks>
 public interface IDataForsyningenClient
 {
@@ -19,6 +19,30 @@ public interface IDataForsyningenClient
 	[Get("/adresser/autocomplete")]
 	public Task<IApiResponse<IEnumerable<AddressAutoCompleteResponse>>>
 		GetAddressesWithAutoComplete([AliasAs("q")] string? query, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Gets the zip codes that match the <paramref name="query"/>, with autocomplete.
+	/// </summary>
+	/// <param name="query">The query.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns></returns>
+	[Get("/postnumre/autocomplete")]
+	public Task<IApiResponse<IEnumerable<ZipCodeAutoCompleteResponse>>>
+		GetZipCodesWithAutoComplete([AliasAs("q")] string? query, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Gets the zip code that matches the coordinates.
+	/// </summary>
+	/// <param name="xCoordinate"></param>
+	/// <param name="yCoordinate"></param>
+	/// <param name="cancellationToken"></param>
+	/// <returns></returns>
+	[Get("/postnumre/reverse")]
+	public Task<IApiResponse<ZipCodeSearchResponse>>
+		GetZipCodeFromCoordinates(
+			[AliasAs("x")] string xCoordinate,
+			[AliasAs("y")] string yCoordinate,
+			CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Gets the zip codes within the circle.

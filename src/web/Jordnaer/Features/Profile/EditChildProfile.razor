@@ -23,15 +23,30 @@
                        For="@(()=>ChildProfile.DateOfBirth)"
                        AdornmentColor="Color.Primary"
                        Color="Color.Primary"
-                          Rounded
+                       Rounded
                        Placeholder="@DateTime.Now.ToString("d")"
                        Label="Fødselsdato" />
     </MudItem>
     <MudItem xs="12">
-        <MudTextField For="() => ChildProfile.Description" AutoGrow @bind-Value="@ChildProfile.Description" Placeholder="Du kan eksempelvis fortælle om interesser, personlighed, drømme og udfordringer." Label="Beskrivelse" Variant="Variant.Text" InputType="InputType.Text" />
+        <TextEditorComponent Placeholder="Du kan f.eks fortælle om interesser, personlighed, drømme og udfordringer."
+                             Label="Beskrivelse"
+                             Text="@ChildProfile.Description"
+                             @ref="_textEditorComponent" />
     </MudItem>
 </MudGrid>
+
 @code {
     [Parameter]
     public required ChildProfile ChildProfile { get; set; }
+
+    private TextEditorComponent _textEditorComponent = default!;
+
+    public async Task UpdateDescription()
+    {
+        var html = await _textEditorComponent.GetHtmlAsync();
+        if (html != ChildProfile.Description)
+        {
+            ChildProfile.Description = html;
+        }
+    }
 }

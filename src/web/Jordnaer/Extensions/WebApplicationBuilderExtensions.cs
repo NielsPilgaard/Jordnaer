@@ -35,7 +35,8 @@ public static class WebApplicationBuilderExtensions
 					azureServiceBus
 						.MessageTopology
 						.SetEntityNameFormatter(
-							new PrefixEntityNameFormatter(AzureBusFactory.MessageTopology.EntityNameFormatter, "dev-"));
+							new PrefixEntityNameFormatter(
+								AzureBusFactory.CreateMessageTopology().EntityNameFormatter, "dev-"));
 				}
 
 				azureServiceBus.Host(builder.Configuration.GetConnectionString("AzureServiceBus"));

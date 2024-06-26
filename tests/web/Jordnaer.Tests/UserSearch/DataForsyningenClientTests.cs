@@ -28,6 +28,20 @@ public class DataForsyningenClientTests
 	}
 
 	[Fact]
+	public async Task Get_ZipCodes_With_AutoComplete()
+	{
+		// Arrange
+		const string query = "8000"; // ZipCode of Aarhus C
+
+		// Act
+		var response = await _dataForsyningenClient.GetZipCodesWithAutoComplete(query);
+
+		// Assert
+		response.IsSuccessStatusCode.Should().BeTrue();
+		response.Content.Should().NotBeNull().And.HaveCountGreaterThan(0);
+	}
+
+	[Fact]
 	public async Task Get_ZipCodes_Within_Circle()
 	{
 		// Arrange

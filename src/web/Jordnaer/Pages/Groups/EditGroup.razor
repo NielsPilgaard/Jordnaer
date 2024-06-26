@@ -1,4 +1,4 @@
-@page "/groups/edit/{GroupId:guid}"
+@page "/groups/{GroupId:guid}/edit"
 
 @attribute [Authorize]
 
@@ -7,6 +7,9 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
 
+<MetadataComponent Title="Redigér gruppe"
+                   Image="@_group?.ProfilePictureUrl" />
+
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_group is null)
     {
@@ -14,44 +17,46 @@
         return;
     }
 
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
+
     <EditForm Model="@_group" OnValidSubmit="Update">
-        <DataAnnotationsValidator/>
+        <DataAnnotationsValidator />
         <MudPaper Elevation="3" Class="pa-4">
 
-            <GroupProfilePicture @bind-Group="_group"/>
+            <GroupProfilePicture @bind-Group="_group" />
 
             <MudGrid>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.Name"
                                   For="() => _group.Name"
                                   Label="Gruppenavn"
-                                  Variant="Variant.Filled"/>
+                                  Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="8">
                     <MudTextField @bind-Value="_group.ShortDescription"
                                   For="() => _group.ShortDescription"
                                   Label="Kort beskrivelse"
-                                  Variant="Variant.Filled"/>
+                                  Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.Address"
                                   For="() => _group.Address"
                                   Label="Adresse"
-                                  Variant="Variant.Filled"/>
+                                  Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.ZipCode"
                                   For="() => _group.ZipCode"
                                   Label="Postnummer"
                                   name="zipCode"
-                                  Variant="Variant.Filled"/>
+                                  Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.City"
                                   For="() => _group.City"
                                   Label="By"
                                   name="city"
-                                  Variant="Variant.Filled"/>
+                                  Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
@@ -60,15 +65,15 @@
                                        MultiSelection="true"
                                        SelectedValues="_group.Categories.Select(e => e.Name)"
                                        ValuePresenter="ValuePresenter.Chip"
+                                       Variant="Variant.Filled"
                                        SelectedValuesChanged="SelectedCategoriesChanged">
                     </MudSelectExtended>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_group.Description"
-                                  For="() => _group.Description"
-                                  Label="Beskrivelse"
-                                  Lines="10"
-                                  Variant="Variant.Filled"/>
+                    <TextEditorComponent Placeholder="Beskriv din gruppe her..."
+                                         Label="Beskrivelse"
+                                         Text="@_group.Description"
+                                         @ref="_textEditorComponent" />
                 </MudItem>
             </MudGrid>
         </MudPaper>
@@ -78,8 +83,8 @@
                    ButtonType="ButtonType.Submit"
                    Variant="Variant.Filled"
                    FullWidth
-                   Color="Color.Primary">
-            Opret
+                   Color="Color.Success">
+            Opdatér
         </MudButton>
     </EditForm>
 </MudLoading>
@@ -93,19 +98,14 @@
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
 
-    private readonly Action<SnackbarOptions> _snackbarOptions = options =>
-    {
-        options.CloseAfterNavigation = true;
-        options.VisibleStateDuration = 3000;
-        options.ShowTransitionDuration = 250;
-    };
+    private TextEditorComponent _textEditorComponent = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await GroupService.GetGroupByIdAsync(GroupId);
-        response.Switch(
-	        group => _group = group, 
-	        _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning, _snackbarOptions));
+        var getGroupResponse = await GroupService.GetGroupByIdAsync(GroupId);
+        getGroupResponse.Switch(
+            group => _group = group,
+            _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning));
 
         _isLoading = false;
 
@@ -117,12 +117,25 @@
         _group!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
     }
 
-    private Task Update()
+    private async Task Update()
     {
         _isLoading = true;
+
+        if (_group is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        _group.Description = await _textEditorComponent.GetHtmlAsync();
+
+        var updateResult = await GroupService.UpdateGroupAsync(_group);
+
+        updateResult.Switch(
+            success => Snackbar.Add("Gruppen blev opdateret.", Severity.Success),
+            error => Snackbar.Add(error.Value, Severity.Error));
+
         _isLoading = false;
-
-        return Task.CompletedTask;
     }
-
 }

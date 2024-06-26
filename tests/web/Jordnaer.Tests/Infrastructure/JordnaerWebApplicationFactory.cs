@@ -20,6 +20,7 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
 	private readonly AzuriteContainer _azureBlobStorageContainer = new AzuriteBuilder()
 		.WithName($"AzuriteTestcontainer-{Guid.NewGuid()}")
 		.WithInMemoryPersistence()
+		.WithCommand("--skipApiVersionCheck")
 		.Build();
 
 	public async Task InitializeAsync()

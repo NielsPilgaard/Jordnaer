@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Database;
@@ -12,6 +13,7 @@ using NSubstitute;
 using OneOf.Types;
 using Serilog;
 using Xunit;
+using Claim = System.Security.Claims.Claim;
 using NotFound = OneOf.Types.NotFound;
 
 namespace Jordnaer.Tests.Groups;
@@ -51,7 +53,13 @@ public class GroupServiceTests : IAsyncLifetime
 		_groupService = new GroupService(_contextFactory,
 			Substitute.For<ILogger<GroupService>>(),
 			Substitute.For<IDiagnosticContext>(),
-			new CurrentUser());
+			new CurrentUser
+			{
+				User = new ClaimsPrincipal(
+					new ClaimsIdentity(
+						[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
+						))
+			});
 	}
 
 	[Fact]
@@ -106,7 +114,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
+		var result = await _groupService.CreateGroupAsync(group);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -131,7 +139,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.CreateGroupAsync(_userProfileId, group);
+		var result = await _groupService.CreateGroupAsync(group);
 
 		// Assert
 		result.Value.Should().BeOfType<Error<string>>();
@@ -152,10 +160,10 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.UpdateGroupAsync(_userProfileId, group);
+		var result = await _groupService.UpdateGroupAsync(group);
 
 		// Assert
-		result.Value.Should().BeOfType<NotFound>();
+		result.Value.Should().BeOfType<Error<string>>();
 	}
 
 	[Fact]
@@ -178,7 +186,7 @@ public class GroupServiceTests : IAsyncLifetime
 		};
 
 		// Act
-		var result = await _groupService.UpdateGroupAsync(_userProfileId, updatedGroup);
+		var result = await _groupService.UpdateGroupAsync(updatedGroup);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -191,7 +199,7 @@ public class GroupServiceTests : IAsyncLifetime
 		var id = Guid.NewGuid();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(_userProfileId, id);
+		var result = await _groupService.DeleteGroupAsync(id);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
@@ -215,7 +223,7 @@ public class GroupServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
+		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Error>();
@@ -231,7 +239,7 @@ public class GroupServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(NewId.NextGuid().ToString(), group.Id);
+		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Error>();
@@ -246,7 +254,7 @@ public class GroupServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _groupService.DeleteGroupAsync(_userProfileId, group.Id);
+		var result = await _groupService.DeleteGroupAsync(group.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -266,10 +274,7 @@ public class GroupServiceTests : IAsyncLifetime
 				UserProfileId = userId,
 				OwnershipLevel = OwnershipLevel.Owner,
 				MembershipStatus = MembershipStatus.Active,
-				PermissionLevel = PermissionLevel.Read |
-								  PermissionLevel.Write |
-								  PermissionLevel.Moderator |
-								  PermissionLevel.Admin
+				PermissionLevel = PermissionLevel.Admin
 			}
 		];
 		_context.Groups.Add(group);

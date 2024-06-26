@@ -6,11 +6,8 @@ using Jordnaer.Shared;
 using Jordnaer.Tests.Infrastructure;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using Refit;
-using System.Net;
+using Jordnaer.Features.Search;
 using Xunit;
 
 namespace Jordnaer.Tests.UserSearch;
@@ -20,7 +17,7 @@ namespace Jordnaer.Tests.UserSearch;
 public class UserSearchServiceTests : IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
-	private readonly IDataForsyningenClient _dataForsyningenClientMock = Substitute.For<IDataForsyningenClient>();
+	private readonly IZipCodeService _zipCodeServiceMock = Substitute.For<IZipCodeService>();
 	private readonly UserSearchService _sut;
 	private readonly Faker _faker = new();
 
@@ -28,11 +25,7 @@ public class UserSearchServiceTests : IAsyncLifetime
 	{
 		_context = sqlServerContainer.CreateContext();
 
-		_sut = new UserSearchService(
-			Substitute.For<ILogger<UserSearchService>>(),
-			_context,
-			_dataForsyningenClientMock,
-			Options.Create(new DataForsyningenOptions { BaseUrl = string.Empty }));
+		_sut = new UserSearchService(_zipCodeServiceMock, _context);
 	}
 
 	[Fact]
@@ -234,7 +227,7 @@ public class UserSearchServiceTests : IAsyncLifetime
 	{
 		// Arrange
 		const int zipCode = 8000;
-		const string location = "Park Allé 1, 8000 Aarhus";
+		const string location = "8000 Aarhus";
 		var filter = new UserSearchFilter { Location = location, WithinRadiusKilometers = 3 };
 		var users = CreateTestUsers(5);
 
@@ -242,17 +235,8 @@ public class UserSearchServiceTests : IAsyncLifetime
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
-		_dataForsyningenClientMock.GetAddressesWithAutoComplete(location)
-			.Returns(new ApiResponse<IEnumerable<AddressAutoCompleteResponse>>(
-				new HttpResponseMessage(HttpStatusCode.OK),
-				new[] { new AddressAutoCompleteResponse(location, new Adresse { Postnr = zipCode.ToString() }) },
-				new RefitSettings()));
-
-		_dataForsyningenClientMock.GetZipCodesWithinCircle(Arg.Any<string>())
-			.Returns(new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(
-				new HttpResponseMessage(HttpStatusCode.OK),
-				new[] { new ZipCodeSearchResponse { Nr = zipCode.ToString() } },
-				new RefitSettings()));
+		_zipCodeServiceMock.GetZipCodesNearLocationAsync(location, 3)
+			.Returns(([8000], 8000));
 
 		// Act
 		var result = await _sut.GetUsersAsync(filter);

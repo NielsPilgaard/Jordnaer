@@ -71,7 +71,8 @@ internal sealed class UserCircuitHandler(
 			return Task.CompletedTask;
 		}
 
-		var domain = httpContextAccessor.HttpContext.Request.Host.Host;
+		var request = httpContextAccessor.HttpContext.Request;
+		var domain = request.Host.Host;
 
 		currentUser.CookieContainer = new CookieContainer();
 

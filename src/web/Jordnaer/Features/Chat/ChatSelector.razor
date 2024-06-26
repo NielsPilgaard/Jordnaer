@@ -11,13 +11,13 @@
 }
 
 <MudItem Class="chat-selector-window" xs="12" sm="12" md="3" lg="3" xl="3" xxl="3">
-    <MudList Clickable >
+    <MudList Clickable>
         <MudListSubheader>
             <UserAutoComplete CurrentUserId="@CurrentUser.Id" SelectedUserChanged="StartNewChat" />
         </MudListSubheader>
         @foreach (var chat in Chats)
         {
-            <MudListItem OnClick="@(() => SelectChat(chat))" Dense="true" Class="chat-selector">
+            <MudListItem OnClick="() => SelectChat(chat)" Dense="true" Class="chat-selector">
 
                 <MudAvatar Size="Size.Large" Class="mr-3">
                     <MudImage Src="@chat.GetChatImage(CurrentUser.Id)" loading="lazy" Alt="Avatar" />

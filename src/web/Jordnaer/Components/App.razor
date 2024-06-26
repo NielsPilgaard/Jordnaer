@@ -31,17 +31,21 @@
     <link preload="true" href="css/landing-page.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="css/fonts.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="css/app.css" rel="stylesheet" asp-append-version="true" />
-    
-    @*Experiment*@
+
+    @*Fancy stuff to speed up loading*@
     <link rel="preload" href="bootstrap/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" asp-append-version="true">
 
+    @*Fancy stuff to speed up loading*@
     <link rel="preload" href="_content/MudBlazor/MudBlazor.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" asp-append-version="true">
 
     <link preload="true" href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="css/chat.css" rel="stylesheet" asp-append-version="true" />
     <link preload="true" href="Jordnaer.styles.css" rel="stylesheet" asp-append-version="true" />
+
+    <link href="//cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="//cdn.quilljs.com/1.3.6/quill.bubble.css" rel="stylesheet">
 
     <HeadOutlet @rendermode="RenderModeForPage" />
 
@@ -53,8 +57,8 @@
     <Routes @rendermode="RenderModeForPage" />
 
     @*
-        Start and reconnection logic based on: 
-		https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/signalr?view=aspnetcore-7.0#automatically-refresh-the-page-when-server-side-reconnection-fails
+    Start and reconnection logic based on:
+    https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/signalr?view=aspnetcore-7.0#automatically-refresh-the-page-when-server-side-reconnection-fails
     *@
     <div id="reconnect-modal" style="display: none;"></div>
     <script src="_framework/blazor.web.js" autostart="false" asp-append-version="true"></script>
@@ -64,6 +68,10 @@
     <script src="js/utilities.js" asp-append-version="true"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js" asp-append-version="true"></script>
     <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js" asp-append-version="true"></script>
+
+    <script defer src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script defer src="_content/WYSIWYGTextEditor/quill-blot-formatter.min.js"></script>
+    <script defer src="_content/WYSIWYGTextEditor/BlazorQuill.js"></script>
 </body>
 
 </html>
@@ -73,7 +81,9 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account") ||
-                                                       HttpContext.Request.Path == PathString.Empty
+                                                       HttpContext.Request.Path == PathString.Empty ||
+                                                       HttpContext.Request.Path == HttpContext.Request.PathBase ||
+                                                       HttpContext.Request.Path == "/"
         ? null
         : InteractiveServer;
 }

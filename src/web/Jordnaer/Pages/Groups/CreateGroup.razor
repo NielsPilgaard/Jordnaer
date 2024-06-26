@@ -6,7 +6,6 @@
 @inject ICategoryCache CategoryCache
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
-@inject CurrentUser CurrentUser 
 
 <MudText Typo="Typo.h3" Class="font-cherry-bomb-one">Opret Gruppe</MudText>
 
@@ -63,11 +62,10 @@
                     </MudSelectExtended>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_group.Description"
-                                  For="() => _group.Description"
-                                  Label="Beskrivelse"
-                                  Lines="10"
-                                  Variant="Variant.Filled" />
+	                <TextEditorComponent Placeholder="Beskriv din gruppe her..."
+	                                     Label="Beskrivelse"
+	                                     Text="@null"
+	                                     @ref="_textEditorComponent" />
                 </MudItem>
             </MudGrid>
         </MudPaper>
@@ -84,7 +82,14 @@
 </MudLoading>
 
 @code {
-    private readonly Group _group = new() { Id = NewId.NextGuid(), Name = string.Empty, ShortDescription = string.Empty };
+    private TextEditorComponent _textEditorComponent = default!;
+    private readonly Group _group = new()
+    {
+	    Id = NewId.NextGuid(), 
+	    Name = string.Empty, 
+	    ShortDescription = string.Empty
+    };
+
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
 
@@ -98,7 +103,9 @@
     {
         _isLoading = true;
 
-        var response = await GroupService.CreateGroupAsync(CurrentUser.Id!, _group);
+        _group.Description = await _textEditorComponent.GetHtmlAsync();
+
+        var response = await GroupService.CreateGroupAsync(_group);
         response.Switch(
 	        _ =>
 	        {

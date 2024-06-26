@@ -1,46 +1,49 @@
 @page "/"
 @using Microsoft.AspNetCore.OutputCaching
 
-@inject ISnackbar Snackbar
+@inject IBrowserViewportService BrowserViewportService
 
 @attribute [OutputCache(Duration = 300)]
-@attribute [Layout(typeof(LandingPageLayout))]
+@attribute [Layout(typeof(SsrLayout))]
 
 <MetadataComponent Title="Mini Møder"
                    Description="Et online mødested for børnefamilier" />
-                   
-<MudHidden Breakpoint="Breakpoint.SmAndDown">
 
-    <DesktopLandingPage />
-
-</MudHidden>
-
-<MudHidden Breakpoint="Breakpoint.MdAndUp">
-
+@if (_isMobile)
+{
     <MobileLandingPage />
-
-</MudHidden>
+}
+else
+{
+    <DesktopLandingPage />
+}
 
 @code
 {
-	protected override void OnInitialized()
-	{
-		Snackbar.Add("Mini Møder er under opbygning.\n" +
-		             "Du kan godt begynde at bruge hjemmesiden nu, men der mangler stadig nogle ting hist og her \ud83d\ude0a",
-			Severity.Info,
-			options =>
-			{
-				options.CloseAfterNavigation = true;
-				options.VisibleStateDuration = int.MaxValue;
-				options.SnackbarVariant = Variant.Filled;
-                options.ShowCloseIcon = true;
-                options.MaximumOpacity = 85;
-				options.Onclick = snackbar =>
-				{
-					snackbar.Dispose();
-                    Snackbar.Clear();
-					return Task.CompletedTask;
-				};
-			});
-	}
+    [CascadingParameter] public HttpContext? HttpContext { get; set; }
+
+    private bool _isMobile = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetDeviceType();
+    }
+
+    private async Task SetDeviceType()
+    {
+        if (HttpContext is null)
+        {
+	        _isMobile = await BrowserViewportService.GetCurrentBreakpointAsync() <= Breakpoint.Sm;
+            return;
+        }
+
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+        string[] mobileIdentifiers =
+        [
+            "Android", "iPhone", "iPod", "Windows Phone", "BlackBerry", "webOS", "IEMobile", "Opera Mini"
+        ];
+
+        // Check if any of the mobile identifiers are contained in the user agent string
+        _isMobile = mobileIdentifiers.Any(userAgent.Contains);
+    }
 }

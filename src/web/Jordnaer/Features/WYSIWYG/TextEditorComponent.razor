@@ -1,0 +1,77 @@
+<div id="wysiwyg-editor-wrapper" style="margin-bottom: 89px; min-height: 200px;">
+    <MudText Class="my-2" Typo="Typo.h6">@Label</MudText>
+    <TextEditor Toolbar="_toolbar"
+                @ref="@_textEditor"
+                Placeholder="@Placeholder">
+    </TextEditor>
+</div>
+
+@code {
+    [Parameter]
+    public required string Placeholder { get; set; }
+    [Parameter]
+    public required string Label { get; set; }
+    [Parameter]
+    public string? Text { get; set; }
+
+    private const int LoadingDelayMillis = 1500;
+
+    private TextEditor _textEditor = default!;
+
+    private static readonly Toolbar _toolbar = new()
+        {
+            ShowMathControls = false,
+            ShowCodeBlockControls = false,
+            ShowFontControls = false,
+            ShowAlignmentControls = true,
+            ShowCleanFormattingControls = true,
+            ShowColorControls = true,
+            ShowDirectionControls = true,
+            ShowEmbedVideoControls = true,
+            ShowHeaderControls = true,
+            ShowHypertextLinkControls = true,
+            ShowIndentationControls = true,
+            ShowInsertImageControls = true,
+            ShowListControls = true,
+            ShowQuotationControls = true,
+            ShowSizeControls = true,
+            ShowStyleControls = true
+        };
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrEmpty(Text))
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(LoadingDelayMillis);
+            await _textEditor.LoadHTMLContent(Text);
+        });
+    }
+
+    public async Task<string> GetHtmlAsync()
+    {
+        var text = await _textEditor.GetContent();
+        if (text is @"text=""{\""ops\"":[{\""insert\"":\""\\n\""}]}""")
+        {
+            return string.Empty;
+        }
+
+        string? html;
+        try
+        {
+            html = await _textEditor.GetHTML();
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+
+        return html is null or "<p><br></p>"
+            ? string.Empty
+            : html;
+    }
+}

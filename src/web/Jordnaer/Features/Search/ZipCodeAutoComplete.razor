@@ -2,9 +2,9 @@
 
 <MudAutocomplete T="string"
                  ValueChanged="SearchValueChanged"
-                 Placeholder="Søg i nærheden af"
+                 Placeholder="Søg i nærheden af postnummer"
                  Value="Location"
-                 SearchFuncWithCancel="@SearchForAddresses"
+                 SearchFuncWithCancel="@SearchForZipCodes"
                  SelectValueOnTab
                  ShowProgressIndicator
                  OpenIcon="@string.Empty"
@@ -25,9 +25,9 @@
     [Parameter]
     public required Expression<Func<string?>> For { get; set; }
 
-    public async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
+    public async Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
     {
-        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+        var searchResponse = await DataForsyningenClient.GetZipCodesWithAutoComplete(value, cancellationToken);
 
         return searchResponse.IsSuccessStatusCode
           ? searchResponse.Content!.Select(response => response.ToString())

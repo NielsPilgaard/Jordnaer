@@ -1,14 +1,15 @@
 using NetEscapades.EnumGenerators;
+using System.ComponentModel.DataAnnotations;
 
 namespace Jordnaer.Shared;
 
 [EnumExtensions]
-[Flags]
 public enum PermissionLevel
 {
-    None = 1,
-    Read = 2,
-    Write = 4,
-    Moderator = 8,
-    Admin = 16
+	[Display(Name = "Ingen")]
+	None = 0,
+	[Display(Name = "Medlem")]
+	Write = 1,
+	[Display(Name = "Administrator")]
+	Admin = 2
 }

@@ -21,7 +21,7 @@
             <EditForm Model="_contactForm" OnValidSubmit="SubmitForm" Class="mt-5">
                 <MudTextField Label="Dit Navn" @bind-Value="_contactForm.Name" For="() => _contactForm.Name" FullWidth Class="mt-3" name="name" />
                 <MudTextField Label="Din Email" @bind-Value="_contactForm.Email" For="() => _contactForm.Email" Required InputType="InputType.Email" FullWidth Class="mt-3" name="reg_email__" />
-                 <MudTextField Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required FullWidth AutoGrow Class="mt-3" />
+                <MudTextField Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required FullWidth AutoGrow Class="mt-3" />
                 <MudButton FullWidth Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Send" OnClick="SubmitForm" Class="mt-3">Send</MudButton>
             </EditForm>
         </MudPaper>
@@ -35,19 +35,14 @@
     private async Task SubmitForm()
     {
         _isSending = true;
-        var response = await EmailService.SendEmailFromContactForm(_contactForm);
-        if (response)
-        {
-            Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
-                Severity.Success,
-                options => options.VisibleStateDuration = 5000);
+        await EmailService.SendEmailFromContactForm(_contactForm);
 
-            _contactForm = new ContactForm();
-        }
-        else
-        {
-            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Warning);
-        }
+        Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
+            Severity.Success,
+            options => options.VisibleStateDuration = 5000);
+
+        _contactForm = new ContactForm();
+
         _isSending = false;
     }
 }

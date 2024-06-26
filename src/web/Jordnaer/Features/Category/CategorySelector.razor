@@ -1,4 +1,3 @@
-@using MudExtensions.Enums
 @inject ICategoryCache CategoryCache
 
 <MudSelectExtended ItemCollection="_categories"
@@ -12,8 +11,11 @@
 </MudSelectExtended>
 @code
 {
-    private List<string> _categories = new();
+    private List<string> _categories = [];
 
+    [SupplyParameterFromQuery(Name = "categories")]
+    public string[]? CategoriesFromQueryString { get; set; }
+    
     [Parameter]
     public string[]? Categories { get; set; }
 
@@ -23,7 +25,12 @@
     protected override async Task OnInitializedAsync()
     {
         var cachedCategories = await CategoryCache.GetOrCreateCategoriesAsync();
-        _categories = cachedCategories.Select(e => e.Name).ToList();
+        _categories = cachedCategories.Select(x => x.Name).ToList();
+
+        if (CategoriesFromQueryString is {Length: > 0})
+        {
+            await SelectedCategoriesChanged(CategoriesFromQueryString);
+        }
     }
 
     private async Task SelectedCategoriesChanged(IEnumerable<string> categories)

@@ -13,7 +13,7 @@ public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSende
 		{
 			Subject = subject,
 			HtmlContent = message,
-			To = new EmailAddress(email)
+			To = [new EmailAddress(email)]
 		};
 
 		await publishEndpoint.Publish(sendEmail);
@@ -23,15 +23,14 @@ public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSende
 	{
 		const string subject = "Bekræft din konto på Mini Møder";
 		var message = $"""
-					   <p>Hej {user.UserName},</p>
+					   {EmailConstants.Greeting(user.UserName)}
 					   
 					   <p>Tak for at du registrerer dig hos Mini Møder.</p>
 					   <p>Klik venligst på nedenstående link for at bekræfte din konto:</p>
 					   
 					   <a href="{confirmationLink}">Bekræft din konto</a>
 					   
-					   <p>Venlig hilsen,<br>
-					   Mini Møder Teamet</p>
+					   {EmailConstants.Signature}
 					   """;
 
 		await Send(email, subject, message);
@@ -41,7 +40,7 @@ public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSende
 	{
 		const string subject = "Nulstil din adgangskode for Mini Møder";
 		var message = $"""
-		              <p>Hej {user.UserName},</p>
+		              {EmailConstants.Greeting(user.UserName)}
 		              
 		              <p>Vi har modtaget en anmodning om at nulstille din adgangskode.</p>
 		              <p>Klik på linket nedenfor for at indstille en ny adgangskode:</p>
@@ -50,9 +49,7 @@ public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSende
 		              
 		              <p>Hvis du ikke anmodede om at nulstille din adgangskode, bedes du ignorere denne e-mail.</p>
 		              
-		              <p>Venlig hilsen,<br>
-		              Mini Møder Teamet</p>
-		              
+		              {EmailConstants.Signature}
 		              """;
 
 		await Send(email, subject, message);
@@ -62,14 +59,13 @@ public class SendGridEmailSender(IPublishEndpoint publishEndpoint) : IEmailSende
 	{
 		const string subject = "Din kode til at nulstille din adgangskode for Mini Møder";
 		var message = $"""
-		              <p>Hej {user.UserName},</p>
+		              {EmailConstants.Greeting(user.UserName)}
 		              
 		              <p>Din kode til at nulstille adgangskoden er: <strong>{resetCode}</strong></p>
 		              
 		              <p>Indtast denne kode i formularen for at nulstille din adgangskode.</p>
 		              
-		              <p>Venlig hilsen,<br>
-		              Mini Møder Teamet</p>
+		              {EmailConstants.Signature}
 		              """;
 
 		await Send(email, subject, message);

@@ -1,0 +1,138 @@
+@page "/groups/{GroupName}"
+
+@attribute [StreamRendering]
+
+@inherits CancellableComponent
+
+@inject IGroupService GroupService
+@inject IMembershipService MembershipService
+@inject IJSRuntime JsRuntime
+@inject IProfileCache ProfileCache
+@inject ISnackbar Snackbar
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+
+    @if (_group is null && _isLoading is false)
+    {
+        <NotFoundComponent Message="@_groupNotFoundMessage" />
+        return;
+    }
+
+    <MetadataComponent Title="@_group?.Name"
+                       Description="@($"Beskrivelse af {_group?.Name}:\n {_group?.ShortDescription}")"
+                       Image="@_group?.ProfilePictureUrl" />
+
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
+            Class="mb-5"
+            Color="Color.Primary"
+            OnClick="JsRuntime.GoBackAsync" />
+
+    <AuthorizeView>
+        <Authorized>
+            <OpenChat Disabled="_isMemberOfGroup"
+                      Recipients="_recipients"
+                      ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
+
+            <MudButton Disabled="_isMemberOfGroup"
+                       Class="mb-5"
+                       Color="Color.Tertiary"
+                       OnClick="RequestMembership"
+                       EndIcon="@Icons.Material.Filled.GroupAdd">
+                Anmod om Medlemskab
+            </MudButton>
+        </Authorized>
+    </AuthorizeView>
+
+    <MudGrid>
+	    <MudItem xs="12" sm="6">
+            @if (_group is null)
+            {
+	            <MudLoading Loading="true"/>
+            }
+            else
+            {
+	            <GroupCard Group="_group"/>
+            }
+	    </MudItem>
+        <MudItem xs="12" sm="6">
+	        <MudPaper Elevation="3">
+		        <GroupMemberListComponent IsGroupModerator="_isModeratorOfGroup" 
+		                                  GroupMembers="_groupMembers"
+		                                  GroupName="@GroupName"/>
+	        </MudPaper>
+        </MudItem>
+        <MudItem xs="12">
+            @if (!string.IsNullOrEmpty(_group?.Description))
+            {
+                <MudPaper Elevation="1" Class="pa-5">
+                    @MarkdownRenderer.SanitizeAndRenderMarkupString(_group?.Description)
+                </MudPaper>
+            }
+        </MudItem>
+    </MudGrid>
+</MudLoading>
+
+@code {
+    [Parameter]
+    public required string GroupName { get; set; }
+
+    private string _groupNotFoundMessage => $"Vi fandt ingen gruppe ved navn {GroupName}, beklager!";
+
+    private GroupSlim? _group;
+
+    private bool _isLoading = true;
+    private UserProfile? _currentUser;
+    private bool _isMemberOfGroup = false;
+    private bool _isModeratorOfGroup => _admins.Select(x => x.Id).Contains(_currentUser?.Id);
+    private IEnumerable<UserSlim> _recipients = [];
+    private List<UserSlim>? _groupMembers;
+    private List<UserSlim> _admins = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
+        response.Switch(
+            groupSlim => _group = groupSlim,
+            _ => { });
+
+        _isLoading = false;
+        if (_group is null)
+        {
+            return;
+        }
+
+        _currentUser = await ProfileCache.GetProfileAsync();
+        if (_currentUser is null)
+        {
+            _isLoading = false;
+            return;
+        }
+
+        if (_isMemberOfGroup is false)
+        {
+            _admins = await GroupService
+                .GetGroupMembersByPredicateAsync(x =>
+                    x.GroupId == _group.Id &&
+                    x.PermissionLevel.HasFlag(PermissionLevel.Admin));
+
+            _recipients = _admins.Concat([_currentUser.ToUserSlim()]);
+        }
+
+        _groupMembers = await GroupService
+	        .GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
+	                                              x.MembershipStatus == MembershipStatus.Active);
+
+        _isMemberOfGroup = _groupMembers.Any(x => x.Id == _currentUser.Id);
+    }
+
+    private async Task RequestMembership()
+    {
+        await MembershipService.RequestMembership(_group!.Id, CancellationToken);
+
+        Snackbar.Add("Anmodning sendt!", Severity.Success);
+
+        _isMemberOfGroup = true;
+
+        StateHasChanged();
+    }
+}

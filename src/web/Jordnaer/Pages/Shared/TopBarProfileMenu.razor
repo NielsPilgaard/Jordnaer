@@ -2,7 +2,7 @@
 @inject IProfileCache ProfileCache
 @inject ILocalStorageService LocalStorage
 
-@rendermode InteractiveServer
+@implements IDisposable
 
 <MudMenu IconColor="Color.Primary" AnchorOrigin="Origin.BottomCenter">
     <ActivatorContent>
@@ -35,10 +35,8 @@
         {
             _profilePictureUrl = userProfile.ProfilePictureUrl;
         }
-        else
-        {
-	        ProfileCache.ProfileChanged += SetProfilePictureOnUpdate;
-        }
+
+        ProfileCache.ProfileChanged += SetProfilePictureOnUpdate;
 
         _currentUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
         Navigation.LocationChanged += OnLocationChanged;
@@ -48,7 +46,6 @@
     {
         _profilePictureUrl = profile.ProfilePictureUrl;
     }
-
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
@@ -60,5 +57,4 @@
 	    Navigation.LocationChanged -= OnLocationChanged;
 	    ProfileCache.ProfileChanged -= SetProfilePictureOnUpdate;
     }
-
 }

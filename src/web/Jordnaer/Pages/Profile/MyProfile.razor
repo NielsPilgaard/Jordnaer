@@ -1,9 +1,11 @@
 @page "/profile"
-@using OneOf.Types
+@using Blazr.RenderState
+
 @inject ICategoryCache CategoryCache
 @inject IProfileCache ProfileCache
 @inject IProfileService ProfileService
 @inject ISnackbar Snackbar
+@inject IBlazrRenderStateService BlazrRenderStateService
 @attribute [Authorize]
 
 <MetadataComponent Title="Redigér Profil"
@@ -68,77 +70,78 @@
                                    OpenTo="OpenTo.Year"
                                    PickerVariant="PickerVariant.Dialog"
                                    Placeholder="@DateTime.Now.ToString("d")"
-                                      Rounded
-                                    name="bday" />
-                 </MudItem>
-                 <MudItem xs="12">
-                     <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-                                        T="string"
-                                        Label="Interesseret i"
-                                        MultiSelection="true"
-                                        SelectedValues="_userProfile.Categories.Select(e => e.Name)"
-                                        ValuePresenter="ValuePresenter.Chip"
-                                        SelectedValuesChanged="SelectedCategoriesChanged"/>
-                 </MudItem>
-                 <MudItem xs="12">
-                     <MudTextField For="() => _userProfile.Description"
-                                   AutoGrow
-                                   Lines="3"
-                                   @bind-Value="@_userProfile.Description"
-                                   Placeholder="Du kan eksempelvis fortælle om dine interesser, uddanelse, familie, børnesyn, værdier og den slags."
-                                   Label="Beskrivelse" />
-                 </MudItem>
-             </MudGrid>
+                                   Rounded
+                                   name="bday" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+                                       T="string"
+                                       Label="Interesseret i"
+                                       MultiSelection="true"
+                                       SelectedValues="_userProfile.Categories.Select(e => e.Name)"
+                                       ValuePresenter="ValuePresenter.Chip"
+                                       SelectedValuesChanged="SelectedCategoriesChanged" />
+                </MudItem>
 
-         </MudPaper>
+                <MudItem xs="12">
+                    <TextEditorComponent Placeholder="Du kan f.eks fortælle om dine interesser, uddannelse, familie, børnesyn, værdier og den slags."
+                                         Label="Beskrivelse"
+                                         Text="@_userProfile.Description"
+                                         @ref="_textEditorComponent" />
+                </MudItem>
 
+            </MudGrid>
 
-         <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+        </MudPaper>
 
+        <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
 
-         <EditChildProfileTabs @bind-Parent="_userProfile"></EditChildProfileTabs>
+        <EditChildProfileTabs @bind-Parent="_userProfile" @ref="_editChildProfileTabsComponent"></EditChildProfileTabs>
 
-         <MudButton Size="Size.Large"
-                    StartIcon="@Icons.Material.Filled.Save"
-                    Class="my-6"
-                    ButtonType="ButtonType.Submit"
-                    Variant="Variant.Filled"
+        <MudButton Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Class="my-6"
+                   ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
                    FullWidth
-                    Color="Color.Primary">
-             Gem
-         </MudButton>
+                   Color="Color.Primary">
+            Gem
+        </MudButton>
 
-     </EditForm>
+    </EditForm>
 
-     <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8" />
+    <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8" />
 
-     <DeleteUserComponent />
+    <DeleteUserComponent />
 
- </MudLoading>
- @code {
+</MudLoading>
+@code {
     private bool _isLoading = true;
     private UserProfile? _userProfile;
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
 
-    private readonly Action<SnackbarOptions> _snackbarOptions = options =>
-    {
-        options.CloseAfterNavigation = true;
-        options.VisibleStateDuration = 3000;
-        options.ShowTransitionDuration = 250;
-    };
+    private TextEditorComponent _textEditorComponent = default!;
 
     protected override async Task OnInitializedAsync()
     {
+	    if (BlazrRenderStateService.IsPreRender)
+	    {
+		    return;
+	    }
+
         var userProfile = await ProfileCache.GetProfileAsync();
         if (userProfile is null)
         {
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh,
-                Severity.Warning, _snackbarOptions);
+                Severity.Warning);
+            _isLoading = false;
             return;
         }
+
         _userProfile = userProfile;
 
         _isLoading = false;
+
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
     }
 
@@ -148,19 +151,22 @@
 
         if (_userProfile is null)
         {
-	        Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error, _snackbarOptions);
-	        _isLoading = false;
-	        return;
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
+            _isLoading = false;
+            return;
         }
+
+        _userProfile.Description = await _textEditorComponent.GetHtmlAsync();
+        await _editChildProfileTabsComponent.UpdateChildProfileDescriptions();
 
         var updateProfileResult = await ProfileService.UpdateUserProfile(_userProfile);
         updateProfileResult.Switch(
-	        success =>  
-	        {
-		        Snackbar.Add("Din profil er blevet opdateret!", Severity.Success, _snackbarOptions);
+            success =>
+            {
+                Snackbar.Add("Din profil er blevet opdateret!", Severity.Success);
                 ProfileCache.SetProfile(success.Value);
-	        }, 
-	        _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error, _snackbarOptions));
+            },
+            _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error));
 
         _isLoading = false;
     }
@@ -169,4 +175,6 @@
     {
         _userProfile!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
     }
+
+    private EditChildProfileTabs _editChildProfileTabsComponent = default!;
 }
