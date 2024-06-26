@@ -21,6 +21,7 @@ using Jordnaer.Features.Images;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Jordnaer.Database;
 using Jordnaer.Features.Membership;
+using Jordnaer.Features.Search;
 using Microsoft.Net.Http.Headers;
 
 Log.Logger = new LoggerConfiguration()
@@ -65,6 +66,7 @@ builder.AddSignalR();
 
 builder.Services.AddScoped<IImageService, ImageService>();
 
+builder.AddSearchServices();
 builder.AddGroupServices();
 builder.AddGroupSearchServices();
 

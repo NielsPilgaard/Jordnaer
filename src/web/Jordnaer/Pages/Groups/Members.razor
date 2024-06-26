@@ -13,14 +13,14 @@
              ReadOnly="false"
              EditMode="DataGridEditMode.Form"
              CommittedItemChanges="@CommittedItemChanges"
-             EditTrigger="DataGridEditTrigger.Manual">
+             EditTrigger="DataGridEditTrigger.OnRowClick"
+             RowStyle="cursor: pointer;">
 	<Columns>
 		<PropertyColumn Property="x => x.UserDisplayName" Title="Navn" IsEditable="false" />
-		<PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau">
+        <PropertyColumn Property="x => x.OwnershipLevel.ToStringFast()" Title="Ejerskabs Niveau">
 			<EditTemplate>
-				<MudSelect @bind-Value="context.Item.OwnershipLevel" 
-				           For="() => context.Item.OwnershipLevel" 
-				           T="OwnershipLevel" 
+				<MudSelect @bind-Value="context.Item.OwnershipLevel"
+				           T="OwnershipLevel"
 				           Margin="@Margin.Dense">
 					@foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
 					{
@@ -30,14 +30,12 @@
 					}
 				</MudSelect>
 			</EditTemplate>
-		</PropertyColumn>
-		<PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau">
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.PermissionLevel.ToStringFast()" Title="Adgangs Niveau">
 			<EditTemplate>
-                <MudSelect
-                           For="() => context.Item.PermissionLevel"
-                           T="PermissionLevel"
-                           Margin="@Margin.Dense"
-                           Value="context.Item.PermissionLevel">
+				<MudSelect @bind-Value="context.Item.PermissionLevel"
+				           T="PermissionLevel"
+                           Margin="@Margin.Dense">
                     @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
 					{
                         <MudSelectItem T="PermissionLevel" Value="permissionLevel">
@@ -47,10 +45,9 @@
 				</MudSelect>
 			</EditTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status">
+		<PropertyColumn Property="x => x.MembershipStatus.ToStringFast()" Title="Medlemskabs Status">
 			<EditTemplate>
 				<MudSelect @bind-Value="context.Item.MembershipStatus" 
-				           For="() => context.Item.MembershipStatus" 
 				           T="MembershipStatus" 
 				           Margin="@Margin.Dense">
 					@foreach (var membershipStatus in Enum.GetValues<MembershipStatus>())
@@ -62,31 +59,35 @@
 				</MudSelect>
 			</EditTemplate>
 		</PropertyColumn>
-        <TemplateColumn Hidden="false">
-            <CellTemplate>
-                <MudIconButton Size="@Size.Large" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
-            </CellTemplate>
-        </TemplateColumn>
 	</Columns>
 </MudDataGrid>
 
 @code {
-    private List<GroupMembershipDto> _memberships = [];
-
-	[Parameter]
-	public required string GroupName { get; set; }
-
-	protected override async Task OnInitializedAsync()
+	private static readonly Dictionary<MembershipStatus, int> _sortOrder = new()
 	{
-		_memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
-	}
+		{MembershipStatus.PendingApprovalFromGroup, 0},
+		{MembershipStatus.PendingApprovalFromUser, 1},
+		{MembershipStatus.Active, 2},
+		{MembershipStatus.Rejected, 3}
+	};
+
+    private List<GroupMembershipDto> _memberships = [];
+    
+    [Parameter]
+    public required string GroupName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
+        _memberships = _memberships.OrderBy(x => _sortOrder[x.MembershipStatus]).ToList();
+    }
 
     private async Task CommittedItemChanges(GroupMembershipDto item)
     {
-	    var updateResult = await GroupService.UpdateMembership(item);
+        var updateResult = await GroupService.UpdateMembership(item);
 
         updateResult.Switch(
-	        success => Snackbar.Add("Medlemskabet blev opdateret.", Severity.Success),
-	        error => Snackbar.Add(error.Value, Severity.Error));
+            success => Snackbar.Add("Medlemskabet blev opdateret.", Severity.Success),
+            error => Snackbar.Add(error.Value, Severity.Error));
     }
 }

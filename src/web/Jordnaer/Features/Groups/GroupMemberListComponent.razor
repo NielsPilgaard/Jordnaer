@@ -1,6 +1,6 @@
-@if (GroupMembers.Count is 0)
+@if (GroupMembers is null)
 {
-    <MudLoading Loading="true" />
+    <MudLoading Overlap="false" Loading="true" />
 }
 else
 {
@@ -41,6 +41,5 @@ else
     public bool IsGroupModerator { get; set; } = false;
 
     [Parameter]
-    public required List<UserSlim> GroupMembers { get; set; }
-
+    public required List<UserSlim>? GroupMembers { get; set; }
 }

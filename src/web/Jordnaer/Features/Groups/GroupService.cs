@@ -179,13 +179,32 @@ public class GroupService(
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-		var membership = await context.GroupMemberships
-			.FirstOrDefaultAsync(x => x.UserProfileId == membershipDto.UserProfileId &&
-									  x.GroupId == membershipDto.GroupId, cancellationToken);
+		var currentUserIsAdmin = await context.GroupMemberships
+												 .AsNoTracking()
+												 .AnyAsync(x => x.UserProfileId == currentUser.Id &&
+																x.GroupId == membershipDto.GroupId &&
+																x.PermissionLevel == PermissionLevel.Admin,
+														   cancellationToken);
 
+		if (currentUserIsAdmin is false)
+		{
+			return logger.LogAndReturnErrorResult(
+				"Du har ikke rettigheder til at redigere medlemmer for denne gruppe.");
+		}
+
+		var membership = await context.GroupMemberships
+									  .FirstOrDefaultAsync(
+										  x => x.UserProfileId == membershipDto.UserProfileId &&
+											   x.GroupId == membershipDto.GroupId, cancellationToken);
 		if (membership is null)
 		{
-			return logger.LogAndReturnErrorResult("Medlemskabet blev ikke fundet. Kontakt venligst support hvis problemet forts�tter.");
+			return logger.LogAndReturnErrorResult("Medlemskabet blev ikke fundet. Kontakt venligst support hvis problemet fortsætter.");
+		}
+
+		var error = await ValidateMembershipUpdate(membership, membershipDto, context);
+		if (!string.IsNullOrEmpty(error))
+		{
+			return logger.LogAndReturnErrorResult(error);
 		}
 
 		membership.OwnershipLevel = membershipDto.OwnershipLevel;
@@ -202,10 +221,53 @@ public class GroupService(
 		catch (Exception exception)
 		{
 			return logger.LogAndReturnErrorResult(exception,
-				"Det lykkedes ikke at opdatere medlemskabet. Pr�v igen senere.");
+				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
 		}
 
 		return new Success();
+	}
+
+	/// <summary>
+	/// It is assumed that the current user is an admin of the group,
+	/// otherwise they would not be able to get this far.
+	/// </summary>
+	/// <param name="currentMembership"></param>
+	/// <param name="updatedMembership"></param>
+	/// <param name="context"></param>
+	/// <returns></returns>
+	public async Task<string?> ValidateMembershipUpdate(GroupMembership currentMembership,
+		GroupMembershipDto updatedMembership,
+		JordnaerDbContext context)
+	{
+		var updatingOwnMembership = currentUser.Id == currentMembership.UserProfileId;
+		if (updatingOwnMembership && updatedMembership.PermissionLevel != PermissionLevel.Admin)
+		{
+			var adminCount = await context.GroupMemberships
+										  .CountAsync(x => x.GroupId == currentMembership.GroupId &&
+														  x.PermissionLevel == PermissionLevel.Admin);
+			if (adminCount is 1)
+			{
+				return "Der skal være mindst én administrator i gruppen.";
+			}
+		}
+
+		if (updatingOwnMembership && updatedMembership.OwnershipLevel != OwnershipLevel.Owner)
+		{
+			var ownerCount = await context.GroupMemberships
+										  .CountAsync(x => x.GroupId == currentMembership.GroupId &&
+														  x.OwnershipLevel == OwnershipLevel.Owner);
+			if (ownerCount is 1)
+			{
+				return "Der skal være mindst én ejer af gruppen.";
+			}
+		}
+
+		if (updatedMembership.MembershipStatus is not MembershipStatus.Active and not MembershipStatus.Rejected)
+		{
+			return "Medlemskabsstatus kan kun sættes til aktivt eller afvist.";
+		}
+
+		return null;
 	}
 
 	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default)
@@ -214,7 +276,7 @@ public class GroupService(
 
 		if (currentUser.Id is null)
 		{
-			return new Error<string>("Du skal v�re logget ind for at oprette en gruppe.");
+			return new Error<string>("Du skal være logget ind for at oprette en gruppe.");
 		}
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -274,7 +336,7 @@ public class GroupService(
 
 		if (existingGroup is null)
 		{
-			return logger.LogAndReturnErrorResult("Gruppen kunne ikke findes. Pr�v igen senere.");
+			return logger.LogAndReturnErrorResult("Gruppen kunne ikke findes. Prøv igen senere.");
 		}
 
 		var membership = await context.GroupMemberships
@@ -283,7 +345,7 @@ public class GroupService(
 
 		if (membership?.PermissionLevel < PermissionLevel.Write)
 		{
-			return logger.LogAndReturnErrorResult("Du har ikke adgang til at �ndre denne gruppe.");
+			return logger.LogAndReturnErrorResult("Du har ikke adgang til at ændre denne gruppe.");
 		}
 
 		await UpdateExistingGroupAsync(existingGroup, group, context, cancellationToken);

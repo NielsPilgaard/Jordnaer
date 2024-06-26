@@ -85,17 +85,11 @@
     private bool _isMemberOfGroup = false;
     private bool _isModeratorOfGroup => _admins.Select(x => x.Id).Contains(_currentUser?.Id);
     private IEnumerable<UserSlim> _recipients = [];
-    private List<UserSlim> _groupMembers = [];
+    private List<UserSlim>? _groupMembers;
     private List<UserSlim> _admins = [];
 
     protected override async Task OnInitializedAsync()
     {
-        if (GroupName is null)
-        {
-            _isLoading = false;
-            return;
-        }
-
         var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
         response.Switch(
             groupSlim => _group = groupSlim,
