@@ -13,7 +13,7 @@ public class ConfigurationValues
 
 		IConfiguration configuration = configurationBuilder.Build();
 
-		BaseUrl = configuration["Playwright_BaseUrl"] ?? "https://mini-moeder.dk";
+		BaseUrl = (configuration["Playwright_BaseUrl"] ?? "https://localhost:7116").TrimEnd('/');
 		_username = configuration["Playwright_Username"];
 		_password = configuration["Playwright_Password"];
 		Device = configuration["Playwright_Device"];
