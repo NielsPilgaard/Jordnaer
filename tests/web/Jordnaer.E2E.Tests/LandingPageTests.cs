@@ -18,7 +18,7 @@ public class LandingPageTests : BrowserTest
 
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).ClickAsync();
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).First.ClickAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/Account/Login"));
 
@@ -70,13 +70,12 @@ public class LandingPageTests : BrowserTest
 	}
 
 	[Test]
-	public async Task Topbar_Menu_Should_Be_Clickable_And_Have_Links()
+	public async Task Topbar_Menu_Should_Have_Links()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
 
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 
-		await Expect(page.GetByRole(AriaRole.Banner).GetByRole(AriaRole.Button)).ToBeVisibleAsync();
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
 			Name = "Personer"
