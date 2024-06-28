@@ -22,7 +22,7 @@ public class AuthenticatedSidebarTests : BrowserTest
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
 			Name = "VÆR' MED"
-		}).WaitForAsync();
+		}).First.WaitForAsync();
 
 		await page.GetByRole(AriaRole.Banner).GetByRole(AriaRole.Button).ClickAsync();
 
@@ -51,7 +51,7 @@ public class AuthenticatedSidebarTests : BrowserTest
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
 			Name = "VÆR' MED"
-		}).WaitForAsync();
+		}).First.WaitForAsync();
 
 		await page.GetByRole(AriaRole.Banner).GetByRole(AriaRole.Button).ClickAsync();
 
