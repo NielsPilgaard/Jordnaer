@@ -13,5 +13,12 @@ window.utilities = {
         if (!element) return;
 
         element.focus();
+    },
+
+    getGeolocation: function() {
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        return [position.coords.longitude, position.coords.latitude];
     }
 };
