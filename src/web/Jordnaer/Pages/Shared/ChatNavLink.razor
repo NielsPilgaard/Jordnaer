@@ -2,48 +2,34 @@
 @inject NavigationManager Navigation
 @inject CurrentUser CurrentUser
 @inject UnreadMessageSignalRClient UnreadMessageSignalRClient
+@inject ILogger<ChatNavLink> Logger
 
 @implements IAsyncDisposable
 
 @attribute [Authorize]
 
-<MudDivider />
-<Feature Name="@FeatureFlags.Contacts">
-    <MudNavLink Match="NavLinkMatch.All" Href="/contacts" Icon="@Icons.Material.Filled.Contacts">Mine Kontakter</MudNavLink>
-</Feature>
-
-<MudNavLink Match="NavLinkMatch.Prefix" Href="/personal/groups" Icon="@Icons.Material.Filled.Groups">Mine Grupper</MudNavLink>
-
-<MudNavLink Match="NavLinkMatch.Prefix"
-            Href="/chat"
-            Icon="@Icons.Material.Filled.Chat">
-    @if (_unreadMessageCount > 0)
-    {
-        <MudBadge Origin="Origin.CenterRight" BadgeClass="ml-2" Color="Color.Info" Content="@(_unreadMessageCount > 99 ? "99+" : _unreadMessageCount.ToString())">
-            <MudText>Chat</MudText>
+@if (_unreadMessageCount > 0)
+{
+    <a href="/chat">
+        <MudBadge Origin="Origin.TopRight" Class="ml-2" Overlap Color="Color.Info" Content="@_unreadMessageCount">
+            <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Chat" />
         </MudBadge>
-    }
-    else
-    {
-        <MudText>Chat</MudText>
-    }
-</MudNavLink>
-<Feature Name="@FeatureFlags.Events">
-    <MudNavLink Match="NavLinkMatch.Prefix" Href="/events" Icon="@Icons.Material.Filled.EventAvailable">Mine Begivenheder</MudNavLink>
-</Feature>
-<MudDivider />
+    </a>
+}
+else
+{
+    <MudIconButton Href="/chat"
+                   Icon="@Icons.Material.Filled.Chat" />
+}
 
 @code {
     private int _unreadMessageCount = 0;
     private IDisposable? _locationChangedHandler;
     private string _currentUrl = string.Empty;
 
-    [Parameter]
-    public bool IsSideBarOpen { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-	    await GetUnreadMessageCount();
+        await GetUnreadMessageCount();
 
         _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
         {
@@ -60,19 +46,19 @@
 
     private async ValueTask GetUnreadMessageCount()
     {
-	    if (CurrentUser.Id is null)
-	    {
-		    return;
-	    }
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
 
         var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
         if (_unreadMessageCount != unreadMessageCount)
         {
+            Logger.LogInformation("Updating Unread Message Count from {FromCount} to {ToCount}",
+                _unreadMessageCount, unreadMessageCount);
+
             _unreadMessageCount = unreadMessageCount;
-            if (IsSideBarOpen)
-            {
-	            await InvokeAsync(StateHasChanged);
-            }
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -80,19 +66,16 @@
     {
         UnreadMessageSignalRClient.OnChatStarted(async chat =>
         {
-	        if (chat.InitiatorId == CurrentUser.Id)
-	        {
-		        return;
-	        }
+            if (chat.InitiatorId == CurrentUser.Id)
+            {
+                return;
+            }
 
             // If we're not already in the new chat, increment unreadMessageCount
             if (_currentUrl.Contains(chat.Id.ToString()) is false)
             {
                 _unreadMessageCount++;
-                if (IsSideBarOpen)
-                {
-	                await InvokeAsync(StateHasChanged);
-                }
+                await InvokeAsync(StateHasChanged);
             }
         });
 
@@ -105,11 +88,10 @@
 
             if (_currentUrl.Contains(message.ChatId.ToString()) is false)
             {
+                Logger.LogInformation("Incrementing Unread Message Count by one from {FromCount}", _unreadMessageCount);
                 _unreadMessageCount++;
-                if (IsSideBarOpen)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
+                await InvokeAsync(StateHasChanged);
+                StateHasChanged();
             }
         });
 
@@ -121,5 +103,4 @@
         _locationChangedHandler?.Dispose();
         await UnreadMessageSignalRClient.StopAsync();
     }
-
 }
