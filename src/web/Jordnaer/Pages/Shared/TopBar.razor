@@ -1,36 +1,32 @@
-@inject NavigationManager Navigation
-
-@rendermode InteractiveServer
-
 <MudAppBar Fixed="false" Elevation="0" Dense Style="background: var(--mud-palette-background-grey)">
-
-    <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                   Color="Color.Default"
-                   Variant="Variant.Filled"
-                   Edge="Edge.Start"
-                   OnClick="@ToggleDrawer.InvokeAsync" />
-
-    <MudSpacer />
-
-    <MudLink Href="/">
-        <MudImage Class="d-flex" Src="/images/mini_logo_small.png" Alt="Logo" />
-    </MudLink>
-
-
-    <MudSpacer />
+    <MudIconButton Href="/users" Title="Personer" Icon="@Icons.Material.Filled.PersonSearch" />
+    <MudIconButton Href="/groups" Title="Grupper" Icon="@Icons.Material.Filled.Groups" />
 
     <AuthorizeView>
-        <Authorized>
-            <TopBarProfileMenu />
-        </Authorized>
+	    <Authorized>
+		    <ChatNavLink/>
+	    </Authorized>
+    </AuthorizeView>
+    <MudSpacer />
+    <AuthorizeView>
+	    <Authorized>
+		    @* TODO: This doesn't look great as is. Rethink it and add it back? 
+            @if (_profilePictureUrl is not null)
+            {
+                <MudIconButton Title="Redigér Profil" Href="profile">
+		            <MudAvatar Size="Size.Small">
+			            <MudImage Src="@_profilePictureUrl" />
+		            </MudAvatar>
+	            </MudIconButton>
+            }
+            else
+            {
+            } *@
+		    <MudIconButton Title="Redigér Profil" Href="profile" Icon="@Icons.Material.Filled.Person" />
+            <MudIconButton Title="Log af" Href="Account/Logout" Icon="@Icons.Material.Filled.Logout" />
+	    </Authorized>
         <NotAuthorized>
-            <MudIconButton Title="Log ind" Icon="@Icons.Material.Filled.Login" Href="/Account/Login" Variant="Variant.Outlined" Color="Color.Default" />
+            <MudIconButton Title="Log ind" Href="/Account/Login" Icon="@Icons.Material.Filled.Login" Variant="Variant.Outlined" Color="Color.Default" />
         </NotAuthorized>
     </AuthorizeView>
 </MudAppBar>
-
-@code
-{
-    [Parameter]
-    public EventCallback<bool> ToggleDrawer { get; set; }
-}

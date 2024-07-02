@@ -1,8 +1,0 @@
-<TopBar ToggleDrawer="@ToggleDrawer" />
-<SideBar @bind-Open="_isDrawerOpen"  />
-
-@code
-{
-	private bool _isDrawerOpen = false;
-	private void ToggleDrawer() => _isDrawerOpen = !_isDrawerOpen;
-}
