@@ -10,7 +10,7 @@
                Class="flex-1"
                InputClass="absolute mud-height-full overflow-hidden z-20"
                InputStyle="opacity:0;cursor: pointer">
-    <ButtonTemplate>
+    <ActivatorContent>
         <MudImage ObjectPosition="ObjectPosition.Center"
                   Style="border-radius: 10%"
                   loading="lazy"
@@ -18,7 +18,7 @@
                   Class="editable-image"
                   Src="@(Group.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture)"
                   Alt="@(string.IsNullOrEmpty(Group.Name) ? "Profil billede" : $"{Group.Name}'s profil billede'")" />
-    </ButtonTemplate>
+    </ActivatorContent>
 </MudFileUpload>
 
 @code {

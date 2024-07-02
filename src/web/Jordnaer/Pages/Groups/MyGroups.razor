@@ -20,7 +20,7 @@
 	{
 		<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-10">Afventer Svar</MudText>
 		<MudDivider Class="mb-5" />
-		<MudGrid Justify="Justify.FlexStart" Spacing="3">
+		<MudGrid Justify="Justify.FlexStart" Spacing="6">
 			@foreach (var group in _pendingAccess)
 			{
 				<MudItem xs="12" sm="6" md="6" lg="4">
@@ -34,7 +34,7 @@
 	@if (_memberOf.Length > 0)
 	{
         <MudDivider Class="mb-5" />
-		<MudGrid Justify="Justify.FlexStart" Spacing="3">
+		<MudGrid Justify="Justify.FlexStart" Spacing="6">
 			@foreach (var group in _memberOf)
 			{
 				<MudItem xs="12" sm="6" md="6" lg="4">
