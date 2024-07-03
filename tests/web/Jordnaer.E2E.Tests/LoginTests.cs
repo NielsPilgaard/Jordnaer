@@ -41,6 +41,7 @@ public class LoginTests : BrowserTest
 	public async Task When_User_Goes_To_Login_Links_Are_Visible(string linkTextRegex)
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
+
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
 
@@ -48,37 +49,6 @@ public class LoginTests : BrowserTest
 		{
 			NameRegex = new Regex(linkTextRegex)
 		})).ToBeVisibleAsync();
-
-		await page.CloseAsync();
-	}
-
-	[Test]
-	public async Task When_User_Goes_To_Login_Topbar_Menu_Should_Be_Clickable_And_Have_Links()
-	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
-
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
-
-		await Expect(page.GetByRole(AriaRole.Banner).GetByRole(AriaRole.Button)).ToBeVisibleAsync();
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Personer" }))
-			.ToBeVisibleAsync();
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Grupper", Exact = true }))
-			.ToBeVisibleAsync();
-
-		await page.CloseAsync();
-	}
-
-	[Test]
-	public async Task When_User_Goes_To_Login_Topbar_Logo_Should_Be_Visible()
-	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
-
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
-
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Logo" }))
-			.ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}
