@@ -3,8 +3,17 @@
 @using Jordnaer.Models
 @using Jordnaer.Shared
 @using MudBlazor
+
+@attribute [Authorize]
+
 @inject IUserSearchService UserSearchService
 @inject ISnackbar Snackbar
+@inject CurrentUser CurrentUser
+
+@if (CurrentUser.Id is null)
+{
+	return;
+}
 
 <MudAutocomplete T="UserSlim"
                  @ref="_autocomplete"
@@ -21,10 +30,10 @@
                  MinCharacters="2">
 
     <ItemTemplate Context="user">
-        <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector" T="RenderFragment">
+        <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector-autocomplete" T="RenderFragment">
 
             <MudAvatar Size="Size.Large" Class="mr-3">
-                <MudImage Src="@user?.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                <MudImage Src="@user.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
             </MudAvatar>
             <MudText>@user.DisplayName</MudText>
 
@@ -50,9 +59,6 @@
     [Parameter]
     public EventCallback<IEnumerable<UserSlim>> SelectedUserChanged { get; set; }
 
-    [Parameter]
-    public required string CurrentUserId { get; set; }
-
     private MudAutocomplete<UserSlim> _autocomplete = null!;
 
     private async Task<IEnumerable<UserSlim>> SearchForUsers(string searchString, CancellationToken cancellationToken)
@@ -62,7 +68,7 @@
             return Enumerable.Empty<UserSlim>();
         }
 
-        return await UserSearchService.GetUsersByNameAsync(CurrentUserId, searchString, cancellationToken);
+        return await UserSearchService.GetUsersByNameAsync(CurrentUser.Id!, searchString, cancellationToken);
     }
 
     private async Task UserSelected(UserSlim user)
