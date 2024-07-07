@@ -25,7 +25,7 @@
 
             @if ((_activeChat is null && _isMobile) || _isMobile is false)
             {
-                <ChatSelector Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
+                <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
             }
 
             @if (_isMobile is false)

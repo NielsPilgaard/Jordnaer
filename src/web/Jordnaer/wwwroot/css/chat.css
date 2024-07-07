@@ -21,12 +21,15 @@
 .mud-chip-content {
     word-break: break-word;
 }
+
 .chat-chip .mud-avatar {
     display: flex;
 }
+
 .mud-chip.mud-chip-size-large .mud-avatar {
     margin-left: -16px;
 }
+
 .chat-message-window, .chat-selector-window {
     overflow: auto;
     height: 100%;
@@ -43,20 +46,28 @@
 .message-sent-successfully {
     font-size: 14px;
 }
+
 .chat-message-list .mud-input-control {
     flex: none; /* or flex: none; depending on what you want */
 }
+
 .chat-message-list {
     display: flex;
     flex-direction: column;
     min-height: 100%;
 }
+
 #chat-message-input {
     max-height: 300px;
     padding: 8px;
     font-size: 1.25rem;
 }
+
 .mud-icon-button-edge-end {
     margin-right: 0;
     margin-inline-end: 0;
+}
+
+.active-chat {
+    background-color: var(--mud-palette-action-default-hover);
 }
