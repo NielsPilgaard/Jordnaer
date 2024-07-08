@@ -10,16 +10,17 @@
 
 @if (_unreadMessageCount > 0)
 {
-    <a href="/chat">
+    <a href="/chat" title="Chat">
         <MudBadge Origin="Origin.TopRight" Class="ml-2" Overlap Color="Color.Info" Content="@_unreadMessageCount">
-            <MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Chat" />
+            <MudIcon Icon="@Icons.Material.Filled.Chat" />
         </MudBadge>
     </a>
 }
 else
 {
     <MudIconButton Href="/chat"
-                   Icon="@Icons.Material.Filled.Chat" />
+                   Icon="@Icons.Material.Filled.Chat" 
+                   Title="Chat"/>
 }
 
 @code {

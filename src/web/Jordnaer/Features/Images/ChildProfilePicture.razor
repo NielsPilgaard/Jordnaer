@@ -10,14 +10,14 @@
                Class="flex-1"
                InputClass="absolute mud-height-full overflow-hidden z-20"
                InputStyle="opacity:0;cursor: pointer">
-    <ButtonTemplate>
+    <ActivatorContent>
         <MudImage ObjectPosition="ObjectPosition.Center"
                   loading="lazy"
                     Fluid
                   Class="editable-image"
                   Src="@ChildProfile.PictureUrl"
                   Alt="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? "Billede af barn" : $"Billede af {ChildProfile.FirstName}")" />
-    </ButtonTemplate>
+    </ActivatorContent>
 </MudFileUpload>
 
 @code {

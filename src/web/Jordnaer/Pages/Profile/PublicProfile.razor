@@ -55,7 +55,7 @@
                 <MudText Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
             </MudItem>
             <MudItem xs="12" Class="d-flex justify-start">
-                <MudChipSet ReadOnly>
+                <MudChipSet ReadOnly T="MudChip<Category>">
                  @foreach (var category in _profile.Categories)
                     {
                         <MudChip Color="Color.Tertiary">@category</MudChip>

@@ -25,7 +25,7 @@
 
             @if ((_activeChat is null && _isMobile) || _isMobile is false)
             {
-                <ChatSelector Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
+                <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
             }
 
             @if (_isMobile is false)
@@ -49,7 +49,7 @@
                         </MudAppBar>
                     }
 
-                    <MudList Class="chat-message-list" DisablePadding Dense>
+                    <MudList Class="chat-message-list" Padding="false" ReadOnly Dense T="RenderFragment">
                         <MudSpacer />
 
                         <ChatMessageList ActiveChat="_activeChat" />
@@ -77,7 +77,7 @@
                                       Class="mt-3"
                                       Lines="3"
                                       IconSize="Size.Large"
-                                      Style="background: var(--mud-palette-chip-default)" />
+                                      Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
                     </MudList>
                 </MudItem>
             }

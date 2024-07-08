@@ -4,10 +4,10 @@
 
     @if (IsMessageFromSelf(message))
     {
-        <MudListItem Class="message-from-self">
+        <MudListItem Class="message-from-self" T="MudTooltip">
             <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
                 <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                    <MudChip Class="chat-chip" Size="Size.Large">
+                    <MudChip Class="chat-chip" Size="Size.Large" T="MudText">
                         <MudText Typo="Typo.h6">@message.Text</MudText>
                     </MudChip>
                 </MudTooltip>
@@ -16,10 +16,10 @@
     }
     else
     {
-        <MudListItem>
+        <MudListItem T="MudTooltip">
             <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
                 <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                    <MudChip Class="chat-chip" Size="Size.Large">
+                    <MudChip Class="chat-chip" Size="Size.Large" T="MudLink">
                         <AvatarContent>
                             @if (!NextMessageIsFromSameSender(message))
                             {

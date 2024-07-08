@@ -7,17 +7,17 @@
 
 @if (CurrentUser.Id is null)
 {
-	return;
+    return;
 }
 
 <MudItem Class="chat-selector-window" xs="12" sm="12" md="3" lg="3" xl="3" xxl="3">
-    <MudList Clickable>
+    <MudList ReadOnly="false" T="RenderFragment">
         <MudListSubheader>
-            <UserAutoComplete CurrentUserId="@CurrentUser.Id" SelectedUserChanged="StartNewChat" />
+            <UserAutoComplete SelectedUserChanged="StartNewChat" />
         </MudListSubheader>
         @foreach (var chat in Chats)
         {
-            <MudListItem OnClick="() => SelectChat(chat)" Dense="true" Class="chat-selector">
+            <MudListItem OnClick="() => SelectChat(chat)" Dense="true" Class="@GetChatSelectorClass(chat)">
 
                 <MudAvatar Size="Size.Large" Class="mr-3">
                     <MudImage Src="@chat.GetChatImage(CurrentUser.Id)" loading="lazy" Alt="Avatar" />
@@ -39,10 +39,11 @@
     </MudList>
 </MudItem>
 
-@code{
+@code {
     [Parameter]
-    public required List<ChatDto> Chats { get; set; } =[];
-
+    public required ChatDto? ActiveChat { get; set; }
+    [Parameter]
+    public required List<ChatDto> Chats { get; set; } = [];
     [Parameter]
     public required EventCallback<ChatDto> SelectChatCallback { get; set; }
     [Parameter]
@@ -58,5 +59,7 @@
     {
         await SelectChatCallback.InvokeAsync(chat);
     }
+
+    public string GetChatSelectorClass(ChatDto chat) => chat.Id == ActiveChat?.Id ? "active-chat" : string.Empty;
 
 }
