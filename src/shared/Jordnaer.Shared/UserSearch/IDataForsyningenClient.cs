@@ -33,15 +33,15 @@ public interface IDataForsyningenClient
 	/// <summary>
 	/// Gets the zip code that matches the coordinates.
 	/// </summary>
-	/// <param name="xCoordinate"></param>
-	/// <param name="yCoordinate"></param>
+	/// <param name="longitude"></param>
+	/// <param name="latitude"></param>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
 	[Get("/postnumre/reverse")]
 	public Task<IApiResponse<ZipCodeSearchResponse>>
 		GetZipCodeFromCoordinates(
-			[AliasAs("x")] string xCoordinate,
-			[AliasAs("y")] string yCoordinate,
+			[AliasAs("x")] string longitude,
+			[AliasAs("y")] string latitude,
 			CancellationToken cancellationToken = default);
 
 	/// <summary>

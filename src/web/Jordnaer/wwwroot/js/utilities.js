@@ -15,10 +15,11 @@ window.utilities = {
         element.focus();
     },
 
-    getGeolocation: function() {
+    getGeolocation: async function() {
         const position = await new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject);
         });
-        return [position.coords.longitude, position.coords.latitude];
+
+        return position.coords;
     }
 };

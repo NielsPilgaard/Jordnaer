@@ -1,7 +1,9 @@
 @inject IDataForsyningenClient DataForsyningenClient
+@inject IJSRuntime JSRuntime
+@inject ILogger<ZipCodeAutoComplete> Logger
 
 <MudAutocomplete T="string"
-                 ValueChanged="SearchValueChanged"
+                 ValueChanged="LocationValueChanged"
                  Placeholder="Søg i nærheden af postnummer"
                  Value="Location"
                  Label="Område"
@@ -18,13 +20,50 @@
 
 @code
 {
-    [Parameter]
+    [Parameter, EditorRequired]
     public required string Location { get; set; }
-    [Parameter]
+    [Parameter, EditorRequired]
     public EventCallback<string> LocationChanged { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public required Expression<Func<string?>> For { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool RecentlyClearedForm { get; set; } = false;
+
+    private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || RecentlyClearedForm)
+        {
+            return;
+        }
+
+        var userCoordinates = await JSRuntime.GetGeolocation();
+        if (userCoordinates is not null)
+        {
+            var (latitude, longitude) = userCoordinates.Value;
+
+            var response = await DataForsyningenClient.GetZipCodeFromCoordinates(
+                longitude.ToString(FloatNumberFormat),
+                latitude.ToString(FloatNumberFormat));
+
+            if (response.IsSuccessStatusCode)
+            {
+                var location = $"{response.Content.Nr} {response.Content.Navn}";
+                await LocationValueChanged(location);
+            }
+            else
+            {
+                Logger.LogError(response.Error,
+                    "Failed to get zip code from user coordinates. " +
+                    "Uri: {Uri} StatusCode: {StatusCode}",
+                    response.RequestMessage?.RequestUri,
+                    response.StatusCode);
+            }
+        }
+    }
 
     public async Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
     {
@@ -32,10 +71,10 @@
 
         return searchResponse.IsSuccessStatusCode
           ? searchResponse.Content!.Select(response => response.ToString())
-          : Array.Empty<string>();
+          : [];
     }
 
-    private async Task SearchValueChanged(string value)
+    private async Task LocationValueChanged(string value)
     {
         Location = value;
         await LocationChanged.InvokeAsync(Location);

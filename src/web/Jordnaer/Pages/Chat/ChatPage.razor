@@ -256,8 +256,8 @@
         LastMessageWasSentSuccessfullyByCurrentUser = lastMessage.SenderId == _currentUser.Id;
     }
 
-    private async ValueTask HideFooter() => await JsRuntime.InvokeVoidAsync("utilities.hideElement", ".footer");
-    private async ValueTask ScrollToBottom() => await JsRuntime.InvokeVoidAsync("scrollFunctions.scrollToBottomOfElement", ".chat-message-window");
+    private async ValueTask HideFooter() => await JsRuntime.InvokeVoidAsyncWithErrorHandling("utilities.hideElement", ".footer");
+    private async ValueTask ScrollToBottom() => await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.scrollToBottomOfElement", ".chat-message-window");
 
     private void BackToList()
     {
