@@ -40,16 +40,16 @@
         }, async notFound =>
         {
             var parameters = new DialogParameters<SendMessageDialog>
-            {
+                {
             { dialog => dialog.InitiatorId, CurrentUser.Id! },
             { dialog => dialog.Recipients, Recipients },
             { dialog => dialog.ChatName, ChatName }
-            };
+                };
 
             var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
 
             var dialogResult = await dialogReference.Result;
-            if (!dialogResult.Canceled && dialogResult.Data is true)
+            if (dialogResult is { Canceled: false, Data: true })
             {
                 _isMessageSent = true;
             }

@@ -74,7 +74,7 @@
     private async Task UserSelected(UserSlim user)
     {
         await _autocomplete.ToggleMenuAsync();
-        await SelectedUserChanged.InvokeAsync(new[] { user });
+        await SelectedUserChanged.InvokeAsync([user]);
     }
 
     private async Task SelectedValueChanged(UserSlim user)

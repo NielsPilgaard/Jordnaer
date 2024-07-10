@@ -18,7 +18,8 @@
 	                <ZipCodeAutoComplete 
 		                For="() => Filter.Location" 
 		                Location="@Filter.Location" 
-		                LocationChanged="LocationChanged" />
+		                LocationChanged="LocationChanged" 
+		                RecentlyClearedForm="_recentlyClearedForm"/>
                 </MudItem>
                 <MudItem xs="4">
                     <MudNumericField For="() => Filter.WithinRadiusKilometers"
@@ -113,6 +114,8 @@
     [SupplyParameterFromQuery]
     public bool ExpandAdvancedSearch { get; set; } = false;
 
+    private bool _recentlyClearedForm = false;
+
     private async Task ClearFilter()
     {
         Filter = new UserSearchFilter();
@@ -120,6 +123,8 @@
 
         var uriWithQuery = new Uri(Navigation.Uri);
         var uriWithoutQuery = uriWithQuery.GetLeftPart(UriPartial.Path);
+
+        _recentlyClearedForm = true;
 
         Navigation.NavigateTo(uriWithoutQuery);
     }

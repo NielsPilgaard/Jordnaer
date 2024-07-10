@@ -72,7 +72,7 @@
 
     private async Task SaveScrollPositionAndNavigateTo(UserDto user)
     {
-        await JsRuntime.InvokeVoidAsync("scrollFunctions.saveScrollPosition");
+        await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.saveScrollPosition");
         Navigation.NavigateTo($"/{user.UserName}");
     }
 
@@ -80,7 +80,7 @@
     {
         if (firstRender)
         {
-            await JsRuntime.InvokeVoidAsync("scrollFunctions.loadScrollPosition");
+            await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.loadScrollPosition");
         }
     }
 }
