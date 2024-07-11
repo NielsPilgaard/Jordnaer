@@ -1,6 +1,8 @@
 @inject IDataForsyningenClient DataForsyningenClient
 @inject IJSRuntime JSRuntime
 @inject ILogger<ZipCodeAutoComplete> Logger
+@inject ISnackbar Snackbar
+@inject IProfileCache ProfileCache
 
 <MudAutocomplete T="string"
                  ValueChanged="LocationValueChanged"
@@ -32,37 +34,71 @@
     public bool RecentlyClearedForm { get; set; } = false;
 
     private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
+    private bool _locationSetOnInitialized = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender || RecentlyClearedForm)
+        if (RecentlyClearedForm)
         {
             return;
         }
 
+        await SetLocationToUsersZipCode();
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+	    if (!firstRender || RecentlyClearedForm || _locationSetOnInitialized)
+	    {
+		    return;
+	    }
+
+	    await SetLocationFromUsersCoordinates();
+    }
+
+    private async Task SetLocationFromUsersCoordinates()
+    {
         var userCoordinates = await JSRuntime.GetGeolocation();
-        if (userCoordinates is not null)
+        if (userCoordinates is null)
         {
-            var (latitude, longitude) = userCoordinates.Value;
-
-            var response = await DataForsyningenClient.GetZipCodeFromCoordinates(
-                longitude.ToString(FloatNumberFormat),
-                latitude.ToString(FloatNumberFormat));
-
-            if (response.IsSuccessStatusCode)
-            {
-                var location = $"{response.Content.Nr} {response.Content.Navn}";
-                await LocationValueChanged(location);
-            }
-            else
-            {
-                Logger.LogError(response.Error,
-                    "Failed to get zip code from user coordinates. " +
-                    "Uri: {Uri} StatusCode: {StatusCode}",
-                    response.RequestMessage?.RequestUri,
-                    response.StatusCode);
-            }
+            return;
         }
+
+        var (latitude, longitude) = userCoordinates.Value;
+
+        var response = await DataForsyningenClient.GetZipCodeFromCoordinates(
+            longitude.ToString(FloatNumberFormat),
+            latitude.ToString(FloatNumberFormat));
+
+        if (response.IsSuccessStatusCode)
+        {
+            var location = $"{response.Content.Nr} {response.Content.Navn}";
+            await LocationValueChanged(location);
+            Snackbar.Add("Det lykkedes ikke at finde dit postnummer ud fra din nuværende lokation.", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add("Det lykkedes ikke at finde dit postnummer ud fra din nuværende lokation.", Severity.Info);
+            Logger.LogError(response.Error,
+                "Failed to get zip code from user coordinates. " +
+                "Uri: {Uri} StatusCode: {StatusCode}",
+                response.RequestMessage?.RequestUri,
+                response.StatusCode);
+        }
+    }
+
+    private async Task SetLocationToUsersZipCode()
+    {
+        var profile = await ProfileCache.GetProfileAsync();
+        if (profile?.ZipCode is null)
+        {
+            return;
+        }
+
+        var location = $"{profile.ZipCode} {profile.City}";
+        await LocationValueChanged(location);
+
+        _locationSetOnInitialized = true;
     }
 
     public async Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
