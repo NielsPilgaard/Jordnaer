@@ -1,6 +1,6 @@
-<PageTitle>@Title</PageTitle>
+<PageTitle>@_fullTitle</PageTitle>
 <HeadContent>
-    <meta name="og:title" content="@Title" />
+    <meta name="og:title" content="@_fullTitle" />
     <meta name="og:site_name" content="Mini Møder" />
 
     @if (!string.IsNullOrEmpty(Description))
@@ -8,10 +8,14 @@
         <meta name="description" content="@Description" />
         <meta name="og:description" content="@Description" />
     }
-    
+
     @if (!string.IsNullOrEmpty(Image))
     {
-      <meta name="og:image" content="@Image" />
+        <meta name="og:image" content="@Image" />
+    }
+    else
+    {
+        <meta name="og:image" content="images/mini-moeder-logo.png" />
     }
 
     @if (!string.IsNullOrEmpty(Tags))
@@ -21,8 +25,14 @@
 </HeadContent>
 
 @code {
-	[Parameter] 
-    public string Title { get; set; } = "Mini Møder"; 
+    private string _fullTitle => Title is _defaultTitle ? _defaultTitle : $"{Title}{TitleSuffix}";
+    private const string _defaultTitle = "Mini Møder";
+
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public string TitleSuffix { get; set; } = " - Mini Møder";
 
     [Parameter]
     public string? Description { get; set; }
