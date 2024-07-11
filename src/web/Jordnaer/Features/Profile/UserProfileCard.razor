@@ -30,15 +30,12 @@
 
 		@if (Profile.DateOfBirth is not null)
 		{
-			<MudTextFieldExtended Label="Alder" ReadOnly T="string">
-				<AdornmentStart>
-					<MudIcon Color="Color.Default" Icon="@Icons.Material.Filled.Cake" Class="mr-2"/>
-					<MudText Color="Color.Default">@Profile.Age år</MudText>
-				</AdornmentStart>
-				<AdornmentEnd>
-					<MudText Color="Color.Default">@Profile.DateOfBirth.Value.ToString("d")</MudText>
-				</AdornmentEnd>
-			</MudTextFieldExtended>
+			<MudTextField title="@Profile.DateOfBirth.Value.ToString("d")" 
+			              AdornmentIcon="@Icons.Material.Filled.Cake" 
+                          Adornment="Adornment.Start"
+			              Label="Alder" 
+			              ReadOnly T="string" 
+			              Value="@($"{Profile.Age} år")" />
 		}
 
 		@if (Profile.Description is not null)
