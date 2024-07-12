@@ -60,8 +60,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Tests", "tests\web
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Benchmarks", "benchmarks\Jordnaer.Benchmarks\Jordnaer.Benchmarks.csproj", "{3C1DA78A-722B-485E-9D60-CC19ACFDA892}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.bUnit.Tests", "tests\web\Jordnaer.bUnit.Tests\Jordnaer.bUnit.Tests.csproj", "{72EB076F-046C-4FE2-AC23-78C94AB30D52}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,10 +102,6 @@ Global
 		{3C1DA78A-722B-485E-9D60-CC19ACFDA892}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C1DA78A-722B-485E-9D60-CC19ACFDA892}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C1DA78A-722B-485E-9D60-CC19ACFDA892}.Release|Any CPU.Build.0 = Release|Any CPU
-		{72EB076F-046C-4FE2-AC23-78C94AB30D52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{72EB076F-046C-4FE2-AC23-78C94AB30D52}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{72EB076F-046C-4FE2-AC23-78C94AB30D52}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{72EB076F-046C-4FE2-AC23-78C94AB30D52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,7 +121,6 @@ Global
 		{06B65FD2-ABF3-4D58-9655-375C0C57B3C3} = {7326F14D-ADB6-4CB0-9AE4-2717133CED27}
 		{26821232-1D4D-4CA8-AA41-7605C42C373A} = {B4EAF579-8327-4B92-8357-8FF12C21755F}
 		{3C1DA78A-722B-485E-9D60-CC19ACFDA892} = {B7172579-75AE-4D50-9328-3B0D80252384}
-		{72EB076F-046C-4FE2-AC23-78C94AB30D52} = {B4EAF579-8327-4B92-8357-8FF12C21755F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D91EE91A-4939-4C1D-830D-E09B985FBC2C}
