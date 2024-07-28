@@ -35,7 +35,7 @@ public class LoginTests : BrowserTest
 
 	[Test]
 	[TestCase("Glemt")]
-	[TestCase("Registrer")]
+	[TestCase("Opret")]
 	// Æ is not supported, so we use dot as a regex wildcard
 	[TestCase("Gensend emailbekr.ftelse")]
 	public async Task When_User_Goes_To_Login_Links_Are_Visible(string linkTextRegex)
