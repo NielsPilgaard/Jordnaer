@@ -1,3 +1,5 @@
+@inject NavigationManager Navigation
+
 <MudAppBar Fixed="false" Elevation="0" Dense Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")">
     <MudIconButton Href="/users" Title="Personer" Icon="@Icons.Material.Filled.PersonSearch" />
     <MudIconButton Href="/groups" Title="Grupper" Icon="@Icons.Material.Filled.Groups" />
@@ -23,7 +25,7 @@
             {
             } *@
 		    <MudIconButton Title="Redigér Profil" Href="profile" Icon="@Icons.Material.Filled.Person" />
-            <MudIconButton Title="Log ud" Href="Account/Logout" Icon="@Icons.Material.Filled.Logout" />
+		    <MudIconButton Title="Log ud" Href="/Account/Logout" Icon="@Icons.Material.Filled.Logout" />
 	    </Authorized>
         <NotAuthorized>
             <MudIconButton Title="Log ind" Href="/Account/Login" Icon="@Icons.Material.Filled.Login" Variant="Variant.Outlined" Color="Color.Default" />

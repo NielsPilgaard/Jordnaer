@@ -2,6 +2,7 @@
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
+
 @if (_externalLogins.Length == 0)
 {
     <div>
@@ -12,8 +13,8 @@
 }
 else
 {
-    <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
-        <MudStack Justify="Justify.Center" Style="max-width: 400px">
+    <form class="d-flex justify-content-center" action="Account/PerformExternalLogin" method="post">
+        <MudStack Style="width: 500px">
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             @foreach (var provider in _externalLogins)
@@ -26,6 +27,7 @@ else
                                    Style="background-color: #3B5998;
 	                                          color: white;"
                                    ButtonType="ButtonType.Submit"
+                                   FullWidth
                                    name="provider"
                                    value="@provider.Name">
                             Log ind med Facebook
@@ -37,6 +39,7 @@ else
                                    Style="background-color: #dd4b39;
 	                                          color: white;"
                                    ButtonType="ButtonType.Submit"
+                                   FullWidth
                                    name="provider"
                                    value="@provider.Name">
                             Log ind med Google
@@ -47,6 +50,7 @@ else
                                    Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    ButtonType="ButtonType.Submit"
+                                   FullWidth
                                    name="provider"
                                    value="@provider.Name">
                             Log ind med Microsoft
