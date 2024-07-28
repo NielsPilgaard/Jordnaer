@@ -75,7 +75,7 @@ public static class SerilogExtensions
 
 		loggerConfiguration
 			.WriteTo
-			.Conditional(logEvent => logEvent.Level >= LogEventLevel.Warning,
+			.Conditional(logEvent => logEvent.Level >= LogEventLevel.Error,
 						 configuration => configuration.ElmahIo(
 							 new ElmahIoSinkOptions(elmahIoOptions.ApiKey,
 													elmahIoOptions.LogIdGuid)));
