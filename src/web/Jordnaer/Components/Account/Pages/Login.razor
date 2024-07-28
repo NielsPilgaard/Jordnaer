@@ -2,64 +2,53 @@
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<MetadataComponent Title="Log ind"/>
-
-<h1>Log ind</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <StatusMessage Message="@_errorMessage" />
-            <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator />
-                <hr />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com" />
-                    <label for="email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="adgangskode" />
-                    <label for="password" class="form-label">Adgangskode</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Husk mig
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log ind</button>
-                </div>
-                <div>
-                    <p>
-                        <a href="Account/ForgotPassword">Glemt din adgangskode?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Registrer som ny bruger</a>
-                    </p>
-                    <p>
-                        <a href="Account/ResendEmailConfirmation">Gensend emailbekræftelse</a>
-                    </p>
-                </div>
-            </EditForm>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Brug en anden tjeneste til at logge ind.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
-</div>
+<MudContainer MaxWidth="MaxWidth.Small">
+	<MudPaper Elevation="3" Class="pa-4">
+		<EditForm Model="Input" OnValidSubmit="LoginUser" FormName="login">
+			<StatusMessage Message="@_errorMessage"/>
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com" />
+				<label for="email" class="form-label">Email</label>
+				<ValidationMessage For="() => Input.Email" class="text-danger" />
+			</div>
+			<div class="form-floating mb-3">
+				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="adgangskode" />
+				<label for="password" class="form-label">Adgangskode</label>
+				<ValidationMessage For="() => Input.Password" class="text-danger" />
+			</div>
+			<div class="checkbox mb-3">
+				<label class="form-label">
+					<InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
+					Husk mig
+				</label>
+			</div>
+			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info" FullWidth>
+				Log ind
+			</MudButton>
+			<MudDivider DividerType="DividerType.FullWidth" Class="my-3"/>
+			<MudStack>
+				<MudLink Href="/Account/ForgotPassword">Glemt din adgangskode?</MudLink>
+				<MudLink Href="/Account/ResendEmailConfirmation">Gensend emailbekræftelse</MudLink>
+				<MudButton ButtonType="ButtonType.Button" 
+				           Variant="Variant.Filled" 
+				           Color="Color.Success" 
+				           FullWidth
+				           Href="/Account/Register">
+					Opret ny konto
+				</MudButton>
+			</MudStack>
+		</EditForm>
+	</MudPaper>
+    <MudPaper Elevation="3" Class="pa-4 mt-4">
+        <ExternalLoginPicker />
+    </MudPaper>
+</MudContainer>
 
 @code {
     private AlertMessage? _errorMessage;
-    
+
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
@@ -80,8 +69,7 @@
 
     public async Task LoginUser()
     {
-        // TODO: Set lockoutOnFailure to true to prevent brute forcing
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
@@ -91,7 +79,7 @@
         {
             RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
         }
         else if (result.IsLockedOut)
         {
