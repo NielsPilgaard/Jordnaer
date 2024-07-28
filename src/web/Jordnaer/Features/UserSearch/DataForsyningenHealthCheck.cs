@@ -2,6 +2,7 @@ using Jordnaer.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Net;
 using Polly.CircuitBreaker;
+using Polly.RateLimiting;
 using Refit;
 
 namespace Jordnaer.Features.UserSearch;
@@ -25,6 +26,11 @@ public class DataForsyningenHealthCheck(
 		catch (BrokenCircuitException exception)
 		{
 			logger.LogDebug(exception, "Circuit Breaker has been triggered.");
+			return HealthCheckResult.Degraded(exception.Message);
+		}
+		catch (RateLimiterRejectedException exception)
+		{
+			logger.LogDebug(exception, "Internal healthcheck rate limit has been reached.");
 			return HealthCheckResult.Degraded(exception.Message);
 		}
 
