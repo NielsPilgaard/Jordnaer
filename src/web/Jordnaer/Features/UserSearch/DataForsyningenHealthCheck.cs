@@ -1,6 +1,8 @@
 using Jordnaer.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Net;
+using Polly.CircuitBreaker;
+using Refit;
 
 namespace Jordnaer.Features.UserSearch;
 
@@ -15,7 +17,16 @@ public class DataForsyningenHealthCheck(
 		HealthCheckContext context,
 		CancellationToken cancellationToken = default)
 	{
-		var pingResult = await dataForsyningenPingClient.Ping(cancellationToken);
+		IApiResponse<IEnumerable<ZipCodeSearchResponse>> pingResult;
+		try
+		{
+			pingResult = await dataForsyningenPingClient.Ping(cancellationToken);
+		}
+		catch (BrokenCircuitException exception)
+		{
+			logger.LogDebug(exception, "Circuit Breaker has been triggered.");
+			return HealthCheckResult.Degraded(exception.Message);
+		}
 
 		if (pingResult.IsSuccessStatusCode)
 		{
