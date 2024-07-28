@@ -25,12 +25,12 @@ public class DataForsyningenHealthCheck(
 		}
 		catch (BrokenCircuitException exception)
 		{
-			logger.LogDebug(exception, "Circuit Breaker has been triggered.");
+			logger.LogDebug("Circuit Breaker has been triggered.");
 			return HealthCheckResult.Degraded(exception.Message);
 		}
 		catch (RateLimiterRejectedException exception)
 		{
-			logger.LogDebug(exception, "Internal healthcheck rate limit has been reached.");
+			logger.LogDebug("Internal healthcheck rate limit has been reached.");
 			return HealthCheckResult.Degraded(exception.Message);
 		}
 
