@@ -16,7 +16,7 @@
              EditTrigger="DataGridEditTrigger.OnRowClick"
              RowStyle="cursor: pointer;">
 	<Columns>
-		<PropertyColumn Property="x => x.UserDisplayName" Title="Navn" IsEditable="false" />
+		<PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" />
         <PropertyColumn Property="x => x.OwnershipLevel.ToStringFast()" Title="Ejerskabs Niveau">
 			<EditTemplate>
 				<MudSelect @bind-Value="context.Item.OwnershipLevel"

@@ -2,10 +2,9 @@
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
-@inject IdentityRedirectManager RedirectManager
 @inject ILogger<GenerateRecoveryCodes> Logger
 
-<PageTitle>Generer To-faktor-autentificerings (2FA) gendannelseskoder</PageTitle>
+<MetadataComponent Title="Generer To-faktor-autentificerings (2FA) gendannelseskoder"/>
 
 @if (_recoveryCodes is not null)
 {

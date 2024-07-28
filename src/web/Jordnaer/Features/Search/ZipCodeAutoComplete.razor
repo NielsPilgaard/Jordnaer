@@ -74,7 +74,6 @@
         {
             var location = $"{response.Content.Nr} {response.Content.Navn}";
             await LocationValueChanged(location);
-            Snackbar.Add("Det lykkedes ikke at finde dit postnummer ud fra din nuværende lokation.", Severity.Info);
         }
         else
         {

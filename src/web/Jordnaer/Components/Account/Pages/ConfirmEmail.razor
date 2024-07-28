@@ -6,7 +6,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Bekræft email</PageTitle>
+<MetadataComponent Title="Bekræft email" />
 
 <h1>Bekræft email</h1>
 <StatusMessage Message="@_statusMessage" />
@@ -42,11 +42,11 @@
             var result = await UserManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-	            _statusMessage = new AlertMessage("Tak fordi du bekræftede din email.");
+                _statusMessage = new AlertMessage("Tak fordi du bekræftede din email.");
             }
             else
             {
-	            _statusMessage = new AlertMessage("Fejl ved bekræftelse af email.", true);
+                _statusMessage = new AlertMessage("Fejl ved bekræftelse af email.", true);
             }
         }
     }
