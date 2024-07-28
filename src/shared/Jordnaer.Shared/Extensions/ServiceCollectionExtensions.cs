@@ -44,7 +44,6 @@ public static class ServiceCollectionExtensions
 				// This resilience strategy will pause all pings for 5 minutes if the API returns an error.
 				.AddResilienceHandler("ping",
 									  builder => builder.AddCircuitBreaker(pingCircuitBreakerOptions)
-														.AddConcurrencyLimiter(5)
 														.AddTimeout(TimeSpan.FromSeconds(30)));
 
 		return services;
