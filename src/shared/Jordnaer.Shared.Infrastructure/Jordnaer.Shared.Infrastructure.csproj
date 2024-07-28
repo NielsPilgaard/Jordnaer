@@ -10,7 +10,7 @@
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
         <PackageReference Include="Serilog.Sinks.ElmahIo" Version="5.1.43" />
         <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
-        <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.4.0" />
+        <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
         <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.3.0" />
     </ItemGroup>
 </Project>
