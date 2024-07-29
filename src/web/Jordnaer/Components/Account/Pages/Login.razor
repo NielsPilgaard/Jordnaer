@@ -3,6 +3,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject IdentityRedirectManager RedirectManager
+@inject ILocalStorageService LocalStorage
 
 <MudContainer MaxWidth="MaxWidth.Small">
 	<MudPaper Elevation="3" Class="pa-4">
@@ -73,6 +74,7 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)

@@ -16,33 +16,43 @@
 <MetadataComponent Title="Opret en ny konto" />
 <MudContainer MaxWidth="MaxWidth.Small">
 
-	<MudPaper Elevation="3" Class="pa-4" >
-		<StatusMessage Message="@Message" />
-		<EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
-			<DataAnnotationsValidator />
-			<h2 class="font-open-sans-medium" style="@($"color: {JordnaerPalette.RedHeader}")">Opret en ny konto</h2>
-			<hr />
-			<div class="form-floating mb-3">
-				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="navn@eksempel.com" />
-				<label for="email">Email</label>
-				<ValidationMessage For="() => Input.Email" class="text-danger" />
-			</div>
-			<div class="form-floating mb-3">
-				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
-				<label for="password">Kodeord</label>
-				<ValidationMessage For="() => Input.Password" class="text-danger" />
-			</div>
-			<div class="form-floating mb-3">
-				<InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
-				<label for="confirm-password">Bekræft kodeord</label>
-				<ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-			</div>
+    <MudPaper Elevation="3" Class="pa-4">
+        <StatusMessage Message="@Message" />
+        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
+            <DataAnnotationsValidator />
+            <h2 class="font-open-sans-medium" style="@($"color: {JordnaerPalette.RedHeader}")">Opret en ny konto</h2>
+            <hr />
+
+            <div class="form-floating mb-3">
+	            <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="navn@eksempel.com" />
+	            <label for="email">Email</label>
+	            <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+	            <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
+	            <label for="password">Kodeord</label>
+	            <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+	            <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
+	            <label for="confirm-password">Bekræft kodeord</label>
+	            <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Success" FullWidth>Opret</MudButton>
+
+            <div class="d-flex justify-center">
+	            <MudButton Href="/Account/Login" Class="mt-4" ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Info">
+		            Login med eksisterende konto
+	            </MudButton>
+            </div>
         </EditForm>
-	</MudPaper>
-	<MudPaper Elevation="3" Class="pa-4 mt-4">
-		<ExternalLoginPicker />
-	</MudPaper>
+    </MudPaper>
+    <MudPaper Elevation="3" Class="pa-4 mt-4">
+        <ExternalLoginPicker />
+    </MudPaper>
 </MudContainer>
 
 @code {

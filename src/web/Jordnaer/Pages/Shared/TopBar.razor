@@ -5,31 +5,34 @@
     <MudIconButton Href="/groups" title="Grupper" Icon="@Icons.Material.Filled.Groups" />
 
     <AuthorizeView>
-	    <Authorized>
-		    <ChatNavLink/>
-	    </Authorized>
+        <Authorized>
+            <ChatNavLink />
+        </Authorized>
     </AuthorizeView>
     <MudSpacer />
     <AuthorizeView>
-	    <Authorized>
-		    @* TODO: This doesn't look great as is. Rethink it and add it back? 
+        <Authorized>
+            @* TODO: This doesn't look great as is. Rethink it and add it back?
             @if (_profilePictureUrl is not null)
             {
-                <MudIconButton Title="Redigér Profil" Href="profile">
-		            <MudAvatar Size="Size.Small">
-			            <MudImage Src="@_profilePictureUrl" />
-		            </MudAvatar>
-	            </MudIconButton>
+            <MudIconButton Title="Redigér Profil" Href="profile">
+            <MudAvatar Size="Size.Small">
+            <MudImage Src="@_profilePictureUrl" />
+            </MudAvatar>
+            </MudIconButton>
             }
             else
             {
             } *@
-		    <MudIconButton title="Redigér Profil" Href="/profile" Icon="@Icons.Material.Filled.Person" />
-		    <MudIconButton title="Log ud" Href="/Account/Logout" Icon="@Icons.Material.Filled.Logout" />
-	    </Authorized>
-	    <NotAuthorized>
-            @*TODO: This link should change depending on if you've logged in before or not*@
-		    <MudIconButton title="Log ind" Href="/Account/Login" Icon="@Icons.Material.Filled.Login" Variant="Variant.Outlined" Color="Color.Default"/>
-	    </NotAuthorized>
+            <MudIconButton title="Redigér Profil" Href="/profile" Icon="@Icons.Material.Filled.Person" />
+            <MudIconButton title="Log ud" Href="/Account/Logout" Icon="@Icons.Material.Filled.Logout" />
+        </Authorized>
+        <NotAuthorized>
+            <MudIconButton title="Opret ny konto"
+                           Href="/Account/Register"
+                           Icon="@Icons.Material.Filled.Login"
+                           Variant="Variant.Outlined"
+                           Color="Color.Default" />
+        </NotAuthorized>
     </AuthorizeView>
 </MudAppBar>
