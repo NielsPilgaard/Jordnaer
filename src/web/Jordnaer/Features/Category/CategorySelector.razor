@@ -7,6 +7,7 @@
                    MultiSelection="true"
                    ValuePresenter="ValuePresenter.Chip"
                    AnchorOrigin="Origin.BottomCenter"
+                   SelectedValues="Categories"
                    SelectedValuesChanged="SelectedCategoriesChanged">
 </MudSelectExtended>
 @code
@@ -33,9 +34,9 @@
         }
     }
 
-    private async Task SelectedCategoriesChanged(IEnumerable<string> categories)
+    private async Task SelectedCategoriesChanged(IEnumerable<string?>? categories)
     {
-        Categories = categories.ToArray();
+        Categories = categories?.ToArray()!;
         await CategoriesChanged.InvokeAsync(Categories);
     }
 }
