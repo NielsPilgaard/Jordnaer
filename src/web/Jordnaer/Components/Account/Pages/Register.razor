@@ -31,13 +31,13 @@
 
             <div class="form-floating mb-3">
 	            <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
-	            <label for="password">Kodeord</label>
+	            <label for="password">Adgangskode</label>
 	            <ValidationMessage For="() => Input.Password" class="text-danger" />
             </div>
 
             <div class="form-floating mb-3">
 	            <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
-	            <label for="confirm-password">Bekræft kodeord</label>
+	            <label for="confirm-password">Bekræft adgangskode</label>
 	            <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
 
@@ -45,7 +45,7 @@
 
             <div class="d-flex justify-center">
 	            <MudButton Href="/Account/Login" Class="mt-4" ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Info">
-		            Login med eksisterende konto
+		            Log ind med eksisterende konto
 	            </MudButton>
             </div>
         </EditForm>
@@ -104,7 +104,7 @@
         {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+                queryParameters: new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);

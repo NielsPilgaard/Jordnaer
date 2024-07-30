@@ -89,7 +89,7 @@
         if (userDeleted)
         {
             _userDeletionState = UserDeletionState.Completed;
-            Navigation.NavigateTo("user-deleted", true);
+            Navigation.NavigateTo("/Account/Logout?returnUrl=/user-deleted", true);
         }
         else
         {

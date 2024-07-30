@@ -3,6 +3,7 @@
 @using System.Text
 @using Microsoft.AspNetCore.WebUtilities
 
+@inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
@@ -23,6 +24,9 @@
     [SupplyParameterFromQuery]
     private string? Code { get; set; }
 
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (UserId is null || Code is null)
@@ -34,7 +38,7 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            _statusMessage = new AlertMessage("Fejl ved indlæsning af bruger med ID {UserId}", true);
+            _statusMessage = new AlertMessage($"Fejl ved indlæsning af bruger med ID {UserId}", true);
         }
         else
         {
@@ -42,7 +46,11 @@
             var result = await UserManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-                _statusMessage = new AlertMessage("Tak fordi du bekræftede din email.");
+                _statusMessage = new AlertMessage("Tak fordi du bekræftede din email, du bliver nu logget ind.");
+
+                await SignInManager.SignInAsync(user, isPersistent: true);
+                
+                RedirectManager.RedirectTo(ReturnUrl ?? "/profile", forceLoad: true);
             }
             else
             {

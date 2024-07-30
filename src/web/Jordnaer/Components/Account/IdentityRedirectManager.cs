@@ -17,7 +17,7 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 	};
 
 	[DoesNotReturn]
-	public void RedirectTo(string? uri)
+	public void RedirectTo(string? uri, bool forceLoad = false)
 	{
 		uri ??= "";
 
@@ -29,7 +29,7 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 
 		// During static rendering, NavigateTo throws a NavigationException which is handled by the framework as a redirect.
 		// So as long as this is called from a statically rendered Identity component, the InvalidOperationException is never thrown.
-		navigationManager.NavigateTo(uri);
+		navigationManager.NavigateTo(uri, forceLoad);
 		throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
 	}
 
@@ -60,7 +60,7 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 	private string CurrentPath => navigationManager.ToAbsoluteUri(navigationManager.Uri).GetLeftPart(UriPartial.Path);
 
 	[DoesNotReturn]
-	public void RedirectToCurrentPage() => RedirectTo(CurrentPath);
+	public void RedirectToCurrentPage(bool forceLoad = false) => RedirectTo(CurrentPath, forceLoad);
 
 	[DoesNotReturn]
 	public void RedirectToCurrentPageWithStatus(string message, HttpContext context)

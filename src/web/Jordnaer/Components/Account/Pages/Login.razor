@@ -3,43 +3,45 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject IdentityRedirectManager RedirectManager
-@inject ILocalStorageService LocalStorage
 
 <MudContainer MaxWidth="MaxWidth.Small">
 	<MudPaper Elevation="3" Class="pa-4">
 		<EditForm Model="Input" OnValidSubmit="LoginUser" FormName="login">
+
 			<StatusMessage Message="@_errorMessage"/>
+
+			<h2 class="font-open-sans-medium" style="@($"color: {JordnaerPalette.RedHeader}")">Log ind</h2>
+			<hr />
+
 			<div class="form-floating mb-3">
-				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com" />
+				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com"/>
 				<label for="email" class="form-label">Email</label>
-				<ValidationMessage For="() => Input.Email" class="text-danger" />
+				<ValidationMessage For="() => Input.Email" class="text-danger"/>
 			</div>
+
 			<div class="form-floating mb-3">
-				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="adgangskode" />
+				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="adgangskode"/>
 				<label for="password" class="form-label">Adgangskode</label>
-				<ValidationMessage For="() => Input.Password" class="text-danger" />
+				<ValidationMessage For="() => Input.Password" class="text-danger"/>
 			</div>
-			<div class="checkbox mb-3">
-				<label class="form-label">
-					<InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-					Husk mig
-				</label>
-			</div>
+
 			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info" FullWidth>
 				Log ind
 			</MudButton>
+
 			<MudDivider DividerType="DividerType.FullWidth" Class="my-3"/>
 			<MudStack>
 				<MudLink Href="/Account/ForgotPassword">Glemt din adgangskode?</MudLink>
 				<MudLink Href="/Account/ResendEmailConfirmation">Gensend emailbekræftelse</MudLink>
-				<MudButton ButtonType="ButtonType.Button" 
-				           Variant="Variant.Filled" 
-				           Color="Color.Success" 
+				<MudButton ButtonType="ButtonType.Button"
+				           Variant="Variant.Filled"
+				           Color="Color.Success"
 				           FullWidth
 				           Href="/Account/Register">
 					Opret ny konto
 				</MudButton>
 			</MudStack>
+
 		</EditForm>
 	</MudPaper>
     <MudPaper Elevation="3" Class="pa-4 mt-4">
@@ -70,7 +72,10 @@
 
     public async Task LoginUser()
     {
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+        var result = await SignInManager.PasswordSignInAsync(Input.Email,
+	        Input.Password,
+	        isPersistent: true,
+	        lockoutOnFailure: true);
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
@@ -81,7 +86,7 @@
         {
             RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
-                new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = true });
         }
         else if (result.IsLockedOut)
         {
@@ -104,8 +109,5 @@
         [DataType(DataType.Password)]
         [Display(Name = "Adgangskode")]
         public string Password { get; set; } = "";
-
-        [Display(Name = "Husk mig?")]
-        public bool RememberMe { get; set; }
     }
 }

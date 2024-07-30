@@ -14,7 +14,7 @@
 @inject JordnaerDbContext Context
 @inject IMediator Mediator
 
-<MetadataComponent Title="Registrér"/>
+<MetadataComponent Title="Registrér" />
 
 <StatusMessage Message="@_message" />
 <h1>Registrér</h1>
@@ -150,7 +150,7 @@
         var result = await UserManager.CreateAsync(user);
         if (!result.Succeeded)
         {
-	        _message = new AlertMessage(result.Errors.Select(error => error.Description), true);
+            _message = new AlertMessage(result.Errors.Select(error => error.Description), true);
             return;
         }
 
@@ -175,7 +175,7 @@
             // If account confirmation is required, we need to show the link if we don't have a real email sender
             if (UserManager.Options.SignIn.RequireConfirmedAccount)
             {
-                RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+                RedirectManager.RedirectTo("Account/RegisterConfirmation", queryParameters: new() { ["email"] = Input.Email });
             }
 
             await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);

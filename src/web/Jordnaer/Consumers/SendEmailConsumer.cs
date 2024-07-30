@@ -89,7 +89,8 @@ public class SendEmailConsumer(
 		}
 		else
 		{
-			logger.LogInformation("Email sent to {@Recipient}. Subject: {Subject}", message.To, message.Subject);
+			logger.LogInformation("Email sent to {@Recipient}. Subject: {Subject}",
+								  message.To?.Select(x => x.Email), message.Subject);
 		}
 	}
 }

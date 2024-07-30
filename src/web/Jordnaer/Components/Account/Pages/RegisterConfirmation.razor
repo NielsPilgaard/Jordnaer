@@ -1,19 +1,15 @@
 ﻿@page "/Account/RegisterConfirmation"
 
 @inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
 <MetadataComponent Title="Registreringsbekræftelse" />
 
-<h1>Registreringsbekræftelse</h1>
+<h2 class="font-open-sans-light">Registreringsbekræftelse</h2>
 
 <StatusMessage Message="@_statusMessage" />
 
-@*TODO: Opdater denne side, når emailen er bekræftet*@
-<p>Check venligst din email for at bekræfte din konto.</p>
-@*TODO: Allow resending email after 30 seconds in case it never arrives*@
+<p>Check venligst din email for at bekræfte din konto. Du kan lukke denne side.</p>
 
 @code {
 	private AlertMessage? _statusMessage;
@@ -31,7 +27,7 @@
 	{
 		if (Email is null)
 		{
-			RedirectManager.RedirectTo("");
+            RedirectManager.RedirectTo(ReturnUrl ?? "");
 		}
 
 		var user = await UserManager.FindByEmailAsync(Email);
