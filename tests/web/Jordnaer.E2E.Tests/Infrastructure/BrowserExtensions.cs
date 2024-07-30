@@ -8,9 +8,10 @@ public static class BrowserExtensions
 	{
 		var page = await browser.NewPageAsync(playwright, false);
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" })
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret ny konto" })
 				  .ClickAsync();
 
+		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
 		await page.GetByPlaceholder("navn@eksempel.com").ClickAsync();
 		await page.GetByPlaceholder("navn@eksempel.com").FillAsync(TestConfiguration.Values.TestUserName);
 		await page.GetByPlaceholder("adgangskode").FillAsync(TestConfiguration.Values.TestUserPassword);

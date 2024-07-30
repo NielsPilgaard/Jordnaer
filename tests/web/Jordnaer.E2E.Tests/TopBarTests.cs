@@ -14,7 +14,7 @@ public class AuthenticatedTopBarTests : BrowserTest
 	[Test]
 	[TestCase("Personer", ".*/users")]
 	[TestCase("Grupper", ".*/groups")]
-	[TestCase("Log ind", ".*/Account/Login")]
+	[TestCase("Opret ny konto", ".*/Account/Register")]
 	public async Task Links_Should_Be_Visible_In_The_Topbar_And_Redirect_Correctly(string linkName, string redirectUrlRegex)
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(null, false);

@@ -23,7 +23,7 @@ public class LoginTests : BrowserTest
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret ny konto" }).ClickAsync();
 
 		await Expect(page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
 		{
@@ -43,7 +43,7 @@ public class LoginTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
 
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).ClickAsync();
+		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret ny konto" }).ClickAsync();
 
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
