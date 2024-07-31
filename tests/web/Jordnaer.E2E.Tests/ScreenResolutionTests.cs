@@ -41,7 +41,7 @@ public class ScreenResolutionTests : BrowserTest
 			.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
 		var path = $"{Constants.ScreenshotFolder}/{width}x{height}.png";
-		await page.ScreenshotAsync(new PageScreenshotOptions { Path = path });
+		await page.ScreenshotAsync(new PageScreenshotOptions { Path = path, FullPage = true });
 		Console.WriteLine($"Saved image to path '{Path.GetFullPath(path)}'");
 
 		await page.CloseAsync();
