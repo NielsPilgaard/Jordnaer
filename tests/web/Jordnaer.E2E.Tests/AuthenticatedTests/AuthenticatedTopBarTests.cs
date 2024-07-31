@@ -21,11 +21,7 @@ public class TopBarTests : BrowserTest
 		var page = await SetUpFixture.Context.NewPageAsync();
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 
-		var link = page.GetByRole(AriaRole.Link,
-									  new PageGetByRoleOptions
-									  {
-										  Name = linkName
-									  });
+		var link = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = linkName });
 
 		await Expect(link).ToBeVisibleAsync();
 

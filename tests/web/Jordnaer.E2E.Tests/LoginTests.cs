@@ -44,6 +44,7 @@ public class LoginTests : BrowserTest
 
 		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret ny konto" }).ClickAsync();
+		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
 
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{

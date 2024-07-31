@@ -9,7 +9,7 @@ namespace Jordnaer.E2E.Tests;
 [Parallelizable(ParallelScope.All)]
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
-public class AuthenticatedTopBarTests : BrowserTest
+public class TopBarTests : BrowserTest
 {
 	[Test]
 	[TestCase("Personer", ".*/users")]
