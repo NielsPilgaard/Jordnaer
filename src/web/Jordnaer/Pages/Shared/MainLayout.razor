@@ -1,5 +1,7 @@
 @inherits LayoutComponentBase
 
+@inject ISnackbar Snackbar
+
 <MudDialogProvider CloseOnEscapeKey="true"
                    BackdropClick="true"
                    Position="DialogPosition.Center"
@@ -22,3 +24,19 @@
 </MudLayout>
 
 <BlazorErrorFooter />
+
+@code{
+
+    [SupplyParameterFromQuery]
+    public bool? FirstLogin { get; set; }
+
+	protected override void OnInitialized()
+	{
+		if (FirstLogin is true)
+		{
+            Snackbar.Add("Velkommen til Mini Møder! Du er nu logget ind.", Severity.Success, 
+	            options => options.VisibleStateDuration = 3500);
+		}
+	}
+
+}

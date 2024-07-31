@@ -1,11 +1,10 @@
 @page "/profile"
-@using Blazr.RenderState
 
 @inject ICategoryCache CategoryCache
 @inject IProfileCache ProfileCache
 @inject IProfileService ProfileService
 @inject ISnackbar Snackbar
-@inject IBlazrRenderStateService BlazrRenderStateService
+@inject IBlazrRenderStateService RenderStateService
 @attribute [Authorize]
 
 <MetadataComponent Title="Redigér Profil"
@@ -124,7 +123,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-	    if (BlazrRenderStateService.IsPreRender)
+	    if (RenderStateService.IsPreRender)
 	    {
 		    return;
 	    }

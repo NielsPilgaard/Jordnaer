@@ -50,7 +50,9 @@
 
                 await SignInManager.SignInAsync(user, isPersistent: true);
                 
-                RedirectManager.RedirectTo(ReturnUrl ?? "/profile", forceLoad: true);
+                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/profile?firstLogin=true" : $"{ReturnUrl}?firstLogin=true";
+
+                RedirectManager.RedirectTo(returnUrl, forceLoad: true);
             }
             else
             {
