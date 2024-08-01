@@ -32,7 +32,7 @@ public class ChatNotificationService(
 		logger.LogInformation("Sent emails to users notifying them about a newly started chat.");
 	}
 
-	private IEnumerable<SendEmail> CreateEmails(StartChat startChat, Dictionary<string, string?> recipients)
+	internal IEnumerable<SendEmail> CreateEmails(StartChat startChat, Dictionary<string, string?> recipients)
 	{
 		var initiator = startChat.Recipients.First(x => x.Id == startChat.InitiatorId);
 
@@ -53,7 +53,7 @@ public class ChatNotificationService(
 		}
 	}
 
-	private string GetChatLink(Guid chatId)
+	internal string GetChatLink(Guid chatId)
 	{
 		//TODO: Replace address look-up with config
 		var serverAddressFeature = server.Features.Get<IServerAddressesFeature>();
