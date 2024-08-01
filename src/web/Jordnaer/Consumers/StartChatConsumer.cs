@@ -11,12 +11,17 @@ public class StartChatConsumer : IConsumer<StartChat>
 	private readonly JordnaerDbContext _context;
 	private readonly ILogger<StartChatConsumer> _logger;
 	private readonly IHubContext<ChatHub, IChatHub> _chatHub;
+	private readonly ChatNotificationService _chatNotificationService;
 
-	public StartChatConsumer(JordnaerDbContext context, ILogger<StartChatConsumer> logger, IHubContext<ChatHub, IChatHub> chatHub)
+	public StartChatConsumer(JordnaerDbContext context,
+		ILogger<StartChatConsumer> logger,
+		IHubContext<ChatHub, IChatHub> chatHub,
+		ChatNotificationService chatNotificationService)
 	{
 		_context = context;
 		_logger = logger;
 		_chatHub = chatHub;
+		_chatNotificationService = chatNotificationService;
 	}
 
 	public async Task Consume(ConsumeContext<StartChat> consumeContext)
@@ -66,5 +71,7 @@ public class StartChatConsumer : IConsumer<StartChat>
 			_logger.LogError(exception, "Exception occurred while processing {command} command", nameof(StartChat));
 			throw;
 		}
+
+		await _chatNotificationService.NotifyRecipients(chat);
 	}
 }
