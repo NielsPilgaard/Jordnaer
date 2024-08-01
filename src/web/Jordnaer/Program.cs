@@ -92,6 +92,8 @@ builder.AddOpenTelemetry();
 
 var app = builder.Build();
 
+app.UseSecurityHeaders(policies => policies.AddDefaultSecurityHeaders());
+
 if (app.Environment.IsDevelopment())
 {
 	await app.InitializeDatabaseAsync();
