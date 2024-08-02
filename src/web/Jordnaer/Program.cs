@@ -92,7 +92,12 @@ builder.AddOpenTelemetry();
 
 var app = builder.Build();
 
-app.UseSecurityHeaders(policies => policies.AddDefaultSecurityHeaders());
+app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
+										   .AddXssProtectionBlock()
+										   .AddContentTypeOptionsNoSniff()
+										   .AddStrictTransportSecurityMaxAge()
+										   .AddReferrerPolicyStrictOriginWhenCrossOrigin()
+										   .RemoveServerHeader());
 
 if (app.Environment.IsDevelopment())
 {
