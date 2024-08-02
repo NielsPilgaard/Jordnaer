@@ -175,12 +175,17 @@ It.IsAny<CancellationToken>()),
 		{
 			Id = Guid.NewGuid(),
 			InitiatorId = "initiator-id",
-			Recipients = new List<UserSlim>()
+			Recipients = [new UserSlim
+				{
+					Id = "initiator-id",
+					DisplayName = "initiator",
+					ProfilePictureUrl = null,
+					UserName = null
+				}
+			]
 		};
 
-		var users = new List<ApplicationUser>();
-
-		_contextMock.Setup(c => c.Users).ReturnsDbSet(users);
+		_contextMock.Setup(c => c.Users).ReturnsDbSet([]);
 
 		// Act
 		await _service.NotifyRecipients(startChat);

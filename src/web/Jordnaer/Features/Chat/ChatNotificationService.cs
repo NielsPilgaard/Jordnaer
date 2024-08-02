@@ -72,18 +72,14 @@ public class ChatNotificationService(
 	private static string CreateNewChatEmailMessage(string recipientDisplayName,
 		string messageSenderDisplayName,
 		string link) => $"""
+						 {EmailConstants.Greeting(recipientDisplayName)}
+						 
+						 <p>Du har fÃ¥et en ny besked fra <b>{messageSenderDisplayName}</b></p>
 
-						 <p>Hej {recipientDisplayName},</p>
+						 <p>Hvis du vil gÃ¥ direkte til beskeden, kan du klikke pÃ¥ linket nedenfor:</p>
 
-						 <p>Du har fået en ny besked fra {messageSenderDisplayName}</p>
+						 <p><a href="{link}">LÃ¦s besked</a></p>
 
-						 <p>Hvis du vil gå direkte til beskeden, kan du klikke på linket nedenfor:</p>
-
-						 <p><a href="{link}">Læs besked</a></p>
-
-						 <p>Venlig hilsen,</p>
-
-						 <p>Mini Møder teamet</p>
-
+						 {EmailConstants.Signature}
 						 """;
 }
