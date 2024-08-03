@@ -75,7 +75,6 @@ public class ImageServiceTests
 		blobExists.Value.Should().BeFalse();
 	}
 
-	// TODO: This is flaky
 	[Fact]
 	public async Task UploadImage_OverridesExistingBlob_Successfully()
 	{
