@@ -58,8 +58,12 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] 
+    private string? ReturnUrl { get; set; } 
+    
+    private string FirstLoginReturnUrl => string.IsNullOrEmpty(ReturnUrl) 
+	    ? "/first-login" 
+	    : $"/first-login?returnUrl={ReturnUrl}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,13 +84,13 @@
         {
             Logger.LogInformation("User logged in.");
 
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(FirstLoginReturnUrl);
         }
         else if (result.RequiresTwoFactor)
         {
             RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
-                new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl, ["rememberMe"] = true });
+                new Dictionary<string, object?> { ["returnUrl"] = FirstLoginReturnUrl, ["rememberMe"] = true });
         }
         else if (result.IsLockedOut)
         {

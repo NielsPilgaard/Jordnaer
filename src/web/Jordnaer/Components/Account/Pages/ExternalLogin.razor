@@ -56,13 +56,17 @@
     [SupplyParameterFromQuery]
     private string? RemoteError { get; set; }
 
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] 
+    private string? ReturnUrl { get; set; } 
 
     [SupplyParameterFromQuery]
     private string? Action { get; set; }
 
     private string? ProviderDisplayName => _externalLoginInfo?.ProviderDisplayName;
+
+    private string FirstLoginReturnUrl => string.IsNullOrEmpty(ReturnUrl)
+        ? "/first-login"
+        : $"/first-login?returnUrl={ReturnUrl}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,7 +128,7 @@
                 _externalLoginInfo.Principal.Identity?.Name,
                 _externalLoginInfo.LoginProvider);
 
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(FirstLoginReturnUrl);
         }
         else if (result.IsLockedOut)
         {
@@ -179,7 +183,7 @@
             }
 
             await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(FirstLoginReturnUrl);
         }
     }
 
