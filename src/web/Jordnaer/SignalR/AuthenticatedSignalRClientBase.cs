@@ -38,7 +38,7 @@ public abstract class AuthenticatedSignalRClientBase : ISignalRClient
 
 	public async Task StartAsync(CancellationToken cancellationToken = default)
 	{
-		if (!Started && HubConnection is not null)
+		if (!Started && HubConnection?.State is HubConnectionState.Disconnected)
 		{
 			_logger.LogDebug("Starting SignalR Client");
 
