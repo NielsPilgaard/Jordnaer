@@ -1,13 +1,18 @@
 @page "/groups"
-@using System.Collections.Concurrent
-@using Microsoft.AspNetCore.Http.Extensions
-@using Microsoft.AspNetCore.WebUtilities
 
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 
 <MetadataComponent Title="Grupper"
                    Description="Søg efter grupper" />
+
+<MudButton Href="/personal/groups" 
+           Color="Color.Info" 
+           Variant="Variant.Filled" 
+           StartIcon="@Icons.Material.Filled.ArrowLeft"
+           EndIcon="@Icons.Material.Filled.GroupAdd">
+	Gå til mine grupper
+</MudButton>
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 

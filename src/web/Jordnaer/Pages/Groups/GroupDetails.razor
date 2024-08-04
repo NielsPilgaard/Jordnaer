@@ -33,7 +33,7 @@
                       Recipients="_recipients"
                       ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
 
-            <MudButton Disabled="_isMemberOfGroup"
+            <MudButton Disabled="_hasPendingMembershipRequest || _isMemberOfGroup"
                        Class="mb-5"
                        Color="Color.Tertiary"
                        OnClick="RequestMembership"
@@ -44,31 +44,39 @@
     </AuthorizeView>
 
     <MudGrid>
-	    <MudItem xs="12" sm="6">
+        <MudItem xs="12" sm="6">
             @if (_group is null)
             {
-	            <MudLoading Loading="true"/>
+                <MudLoading Loading="true" />
             }
             else
             {
-	            <GroupCard Group="_group"/>
+                <GroupCard Group="_group" />
             }
-	    </MudItem>
+        </MudItem>
         <MudItem xs="12" sm="6">
-	        <MudPaper Elevation="3">
-		        <GroupMemberListComponent IsGroupModerator="_isModeratorOfGroup" 
-		                                  GroupMembers="_groupMembers"
-		                                  GroupName="@GroupName"/>
-	        </MudPaper>
+            <MudPaper Elevation="3">
+                <GroupMemberListComponent IsGroupModerator="_isModeratorOfGroup"
+                                          GroupMembers="_groupMembers"
+                                          GroupName="@GroupName" />
+            </MudPaper>
         </MudItem>
         <MudItem xs="12">
             @if (!string.IsNullOrEmpty(_group?.Description))
             {
-                <MudPaper Elevation="1" Class="pa-5">
+                <MudPaper Elevation="3" Class="pa-5">
                     @MarkdownRenderer.SanitizeAndRenderMarkupString(_group?.Description)
                 </MudPaper>
             }
         </MudItem>
+        @if (_isMemberOfGroup)
+        {
+            <MudItem xs="12">
+                <MudPaper Elevation="3" Class="pa-5">
+                    Her kommer du til at kunne oprette og læse indlæg i gruppen.
+                </MudPaper>
+            </MudItem>
+        }
     </MudGrid>
 </MudLoading>
 
@@ -82,9 +90,10 @@
 
     private bool _isLoading = true;
     private UserProfile? _currentUser;
+    private bool _hasPendingMembershipRequest = false;
     private bool _isMemberOfGroup = false;
     private bool _isModeratorOfGroup => _admins.Select(x => x.Id).Contains(_currentUser?.Id);
-    private IEnumerable<UserSlim> _recipients = [];
+    private List<UserSlim> _recipients = [];
     private List<UserSlim>? _groupMembers;
     private List<UserSlim> _admins = [];
 
@@ -108,21 +117,26 @@
             return;
         }
 
+        _groupMembers = await GroupService
+            .GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
+                                                  x.MembershipStatus == MembershipStatus.Active);
+
+        var currentUsersGroupMembership = await GroupService.GetCurrentUsersGroupMembershipAsync(_group.Id);
+
+        _isMemberOfGroup = currentUsersGroupMembership?.MembershipStatus is MembershipStatus.Active;
+        _hasPendingMembershipRequest = currentUsersGroupMembership?.MembershipStatus 
+	        is MembershipStatus.PendingApprovalFromGroup 
+	        or MembershipStatus.PendingApprovalFromUser;
+        
         if (_isMemberOfGroup is false)
         {
             _admins = await GroupService
                 .GetGroupMembersByPredicateAsync(x =>
                     x.GroupId == _group.Id &&
-                    x.PermissionLevel.HasFlag(PermissionLevel.Admin));
+                    x.PermissionLevel == PermissionLevel.Admin);
 
-            _recipients = _admins.Concat([_currentUser.ToUserSlim()]);
+            _recipients = _admins.Concat([_currentUser.ToUserSlim()]).ToList();
         }
-
-        _groupMembers = await GroupService
-	        .GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
-	                                              x.MembershipStatus == MembershipStatus.Active);
-
-        _isMemberOfGroup = _groupMembers.Any(x => x.Id == _currentUser.Id);
     }
 
     private async Task RequestMembership()
