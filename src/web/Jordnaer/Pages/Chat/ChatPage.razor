@@ -40,7 +40,10 @@
                 <MudItem Class="chat-message-window" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
                     @if (_isMobile)
                     {
-                        <MudAppBar Dense ToolBarClass="justify-space-between" Color="Color.Primary" Elevation="5">
+	                    <MudAppBar Dense 
+	                               ToolBarClass="justify-space-between h-100" 
+	                               Color="Color.Primary" 
+	                               Elevation="5">
                             <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
                                     OnClick="BackToList"
                                     Color="Color.Info"
@@ -103,27 +106,27 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    if (firstRender is false)
-	    {
-		    return;
-	    }
+        if (firstRender is false)
+        {
+            return;
+        }
 
-	    await HideFooter();
+        await HideFooter();
 
-	    await BrowserViewportService.SubscribeAsync(
-		    observerId: _breakpointObserverId,
-		    lambda: async args =>
-		    {
-			    var isMobile = args.Breakpoint <= Breakpoint.Sm;
-			    if (isMobile != _isMobile)
-			    {
-				    _isMobile = isMobile;
-				    await InvokeAsync(StateHasChanged);
-			    }
-		    },
-		    fireImmediately: true);
+        await BrowserViewportService.SubscribeAsync(
+            observerId: _breakpointObserverId,
+            lambda: async args =>
+            {
+                var isMobile = args.Breakpoint <= Breakpoint.Sm;
+                if (isMobile != _isMobile)
+                {
+                    _isMobile = isMobile;
+                    await InvokeAsync(StateHasChanged);
+                }
+            },
+            fireImmediately: true);
 
-	    await ScrollToBottom();
+        await ScrollToBottom();
     }
 
     protected override async Task OnInitializedAsync()
@@ -158,8 +161,8 @@
             var lastChatMessage = chat.Messages.LastOrDefault();
             if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUser.Id)
             {
-	            LastMessageWasSentSuccessfullyByCurrentUser = true;
-	            await InvokeAsync(StateHasChanged);
+                LastMessageWasSentSuccessfullyByCurrentUser = true;
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -206,7 +209,7 @@
 
     public async Task LoadMessages()
     {
-		// TODO: Add MudScrollToTop that shows when user is scrolled up in the chat window
+        // TODO: Add MudScrollToTop that shows when user is scrolled up in the chat window
         if (_activeChat is null)
         {
             return;
@@ -259,10 +262,10 @@
     private async ValueTask HideFooter() => await JsRuntime.InvokeVoidAsyncWithErrorHandling("utilities.hideElement", ".footer");
     private async ValueTask ScrollToBottom() => await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.scrollToBottomOfElement", ".chat-message-window");
 
-    private void BackToList()
+    private async Task BackToList()
     {
         _activeChat = null;
-        Navigation.NavigateTo($"{Navigation.BaseUri}chat");
+        await JsRuntime.GoBackAsync();
     }
 
     private async Task SendMessage()
@@ -273,13 +276,13 @@
         }
 
         var message = new ChatMessageDto
-        {
-            ChatId = _activeChat.Id,
-            Id = NewId.NextGuid(),
-            SentUtc = DateTime.UtcNow,
-            SenderId = _currentUser.Id,
-            Text = _messageInput.Value
-        };
+            {
+                ChatId = _activeChat.Id,
+                Id = NewId.NextGuid(),
+                SentUtc = DateTime.UtcNow,
+                SenderId = _currentUser.Id,
+                Text = _messageInput.Value
+            };
 
         await _messageInput.BlurAsync();
         await _messageInput.Clear();

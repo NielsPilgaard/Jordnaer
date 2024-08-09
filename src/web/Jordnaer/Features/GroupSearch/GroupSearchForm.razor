@@ -13,11 +13,10 @@
             <MudGrid Justify="Justify.SpaceAround" Spacing="6">
 
 	            <MudItem xs="8">
-		            <ZipCodeAutoComplete 
-			            For="() => Filter.Location" 
-			            Location="@Filter.Location" 
-			            LocationChanged="LocationChanged"
-			            RecentlyClearedForm="_recentlyClearedForm" />
+		            <ZipCodeAutoComplete For="() => Filter.Location" 
+		                                 Location="@Filter.Location" 
+		                                 LocationChanged="LocationChanged"
+                                         DisableSmartCompletion="_disableSmartCompletionForZipCode" />
 	            </MudItem>
 	            <MudItem xs="4">
 		            <MudNumericField For="() => Filter.WithinRadiusKilometers"
@@ -69,7 +68,10 @@
     [Parameter]
     public required EventCallback OnValidSubmit { get; set; }
 
+    private static readonly GroupSearchFilter DefaultFilter = new();
+
     private bool _recentlyClearedForm = false;
+    private bool _disableSmartCompletionForZipCode => _recentlyClearedForm || Filter != DefaultFilter;
 
     private async Task ClearFilter()
     {

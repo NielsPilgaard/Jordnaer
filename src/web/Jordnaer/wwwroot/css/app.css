@@ -98,3 +98,8 @@ h1:focus {
 .ql-editor {
     min-height: 200px !important;
 }
+
+div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
+    margin-left: 0 !important;
+    margin-inline-start: 0 !important;
+}

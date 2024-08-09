@@ -1,12 +1,13 @@
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
+@implements IDisposable
 
 <MudGrid Justify="Justify.Center">
     @foreach (var user in SearchResult.Users)
     {
         <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
-            <MudNavLink Class="card-link" OnClick="async () => await SaveScrollPositionAndNavigateTo(user)">
+            <MudNavLink Class="card-link" Href="@($"/{user.UserName}")">
                 <MudCard Class="pa-3 my-3 card-hover" Elevation="3">
                     <MudCardContent Class="d-flex flex-column align-center">
                         <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" loading="lazy" />
@@ -14,7 +15,7 @@
                          <MudTextField Label="Område" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@user.DisplayLocation()" />
                          <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@user.DisplayName" />
 
-                         @if (user.Children.Any())
+                         @if (user.Children.Count > 0)
                         {
                             <MudText Class="my-4" Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
                             <MudChipSet ReadOnly Class="d-flex flex-wrap justify-start flex-grow-1 gap-3" T="MudBadge">
@@ -27,7 +28,7 @@
                             </MudChipSet>
                         }
 
-                        @if (user.Categories.Any())
+                        @if (user.Categories.Count > 0)
                         {
                             <MudDivider Class="my-4" />
 
@@ -69,18 +70,30 @@
     {
         return child.Age is not null ? $"{child.Age} år" : "?";
     }
-
-    private async Task SaveScrollPositionAndNavigateTo(UserDto user)
-    {
-        await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.saveScrollPosition");
-        Navigation.NavigateTo($"/{user.UserName}");
-    }
+    
+    private IDisposable? _locationChangingHandler;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.loadScrollPosition");
-        }
+	    if (firstRender)
+	    {
+		    await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.loadScrollPosition");
+	    }
+    }
+
+    private async ValueTask SaveScrollPosition()
+    {
+	    await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.saveScrollPosition");
+    }
+
+    protected override void OnInitialized()
+    {
+	    _locationChangingHandler = Navigation
+		    .RegisterLocationChangingHandler(async _ => await SaveScrollPosition());
+    }
+
+    public void Dispose()
+    {
+	    _locationChangingHandler?.Dispose();
     }
 }

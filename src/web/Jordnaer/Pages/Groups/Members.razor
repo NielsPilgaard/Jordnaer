@@ -6,7 +6,7 @@
 @attribute [Authorize]
 
 <MetadataComponent Title="@($"{GroupName} - Medlemmer")"
-                   Description="Her kan gruppe admins godkende nye medlemmer, give medlemmer yderligere adgang og lignende."/>
+                   Description="Her kan gruppens administratore godkende nye medlemmer, give medlemmer yderligere adgang og lignende." />
 
 <MudDataGrid T="GroupMembershipDto"
              Items="_memberships"
@@ -15,64 +15,64 @@
              CommittedItemChanges="@CommittedItemChanges"
              EditTrigger="DataGridEditTrigger.OnRowClick"
              RowStyle="cursor: pointer;">
-	<Columns>
-		<PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" />
+    <Columns>
+        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" />
         <PropertyColumn Property="x => x.OwnershipLevel.ToStringFast()" Title="Ejerskabs Niveau">
-			<EditTemplate>
-				<MudSelect @bind-Value="context.Item.OwnershipLevel"
-				           T="OwnershipLevel"
-				           Margin="@Margin.Dense">
-					@foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
-					{
+            <EditTemplate>
+                <MudSelect @bind-Value="context.Item.OwnershipLevel"
+                           T="OwnershipLevel"
+                           Margin="@Margin.Dense">
+                    @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
+                    {
                         <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
-							@ownershipLevel.ToStringFast()
-						</MudSelectItem>
-					}
-				</MudSelect>
-			</EditTemplate>
+                            @ownershipLevel.ToStringFast()
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </EditTemplate>
         </PropertyColumn>
         <PropertyColumn Property="x => x.PermissionLevel.ToStringFast()" Title="Adgangs Niveau">
-			<EditTemplate>
-				<MudSelect @bind-Value="context.Item.PermissionLevel"
-				           T="PermissionLevel"
+            <EditTemplate>
+                <MudSelect @bind-Value="context.Item.PermissionLevel"
+                           T="PermissionLevel"
                            Margin="@Margin.Dense">
                     @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
-					{
+                    {
                         <MudSelectItem T="PermissionLevel" Value="permissionLevel">
-							@permissionLevel.ToStringFast()
-						</MudSelectItem>
-					}
-				</MudSelect>
-			</EditTemplate>
-		</PropertyColumn>
-		<PropertyColumn Property="x => x.MembershipStatus.ToStringFast()" Title="Medlemskabs Status">
-			<EditTemplate>
-				<MudSelect @bind-Value="context.Item.MembershipStatus" 
-				           T="MembershipStatus" 
-				           Margin="@Margin.Dense">
-					@foreach (var membershipStatus in Enum.GetValues<MembershipStatus>())
-					{
-						<MudSelectItem T="MembershipStatus" Value="membershipStatus">
-							@membershipStatus.ToStringFast()
-						</MudSelectItem>
-					}
-				</MudSelect>
-			</EditTemplate>
-		</PropertyColumn>
-	</Columns>
+                            @permissionLevel.ToStringFast()
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.MembershipStatus.ToStringFast()" Title="Medlemskabs Status">
+            <EditTemplate>
+                <MudSelect @bind-Value="context.Item.MembershipStatus"
+                           T="MembershipStatus"
+                           Margin="@Margin.Dense">
+                    @foreach (var membershipStatus in Enum.GetValues<MembershipStatus>())
+                    {
+                        <MudSelectItem T="MembershipStatus" Value="membershipStatus">
+                            @membershipStatus.ToStringFast()
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </EditTemplate>
+        </PropertyColumn>
+    </Columns>
 </MudDataGrid>
 
 @code {
-	private static readonly Dictionary<MembershipStatus, int> _sortOrder = new()
-	{
-		{MembershipStatus.PendingApprovalFromGroup, 0},
-		{MembershipStatus.PendingApprovalFromUser, 1},
-		{MembershipStatus.Active, 2},
-		{MembershipStatus.Rejected, 3}
-	};
+    private static readonly Dictionary<MembershipStatus, int> _sortOrder = new()
+    {
+        {MembershipStatus.PendingApprovalFromGroup, 0},
+        {MembershipStatus.PendingApprovalFromUser, 1},
+        {MembershipStatus.Active, 2},
+        {MembershipStatus.Rejected, 3}
+    };
 
     private List<GroupMembershipDto> _memberships = [];
-    
+
     [Parameter]
     public required string GroupName { get; set; }
 
