@@ -29,17 +29,27 @@
 
     <AuthorizeView>
         <Authorized>
-            <OpenChat Disabled="_isMemberOfGroup"
+            <OpenChat Disabled="_isMember"
                       Recipients="_recipients"
                       ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
 
-            <MudButton Disabled="_hasPendingMembershipRequest || _isMemberOfGroup"
+            <MudButton Disabled="_hasPendingMembershipRequest || _isMember"
                        Class="mb-5"
                        Color="Color.Tertiary"
                        OnClick="RequestMembership"
                        EndIcon="@Icons.Material.Filled.GroupAdd">
                 Anmod om Medlemskab
             </MudButton>
+            @if (_currentUserIsAdmin)
+            {
+                <MudButton Href="@($"/groups/{_group.Id}/edit")"
+                           Class="mb-5"
+                           Color="Color.Warning"
+                           Variant="Variant.Text"
+                           EndIcon="@Icons.Material.Filled.Edit">
+                    Redigér Gruppe
+                </MudButton>
+            }
         </Authorized>
     </AuthorizeView>
 
@@ -56,7 +66,7 @@
         </MudItem>
         <MudItem xs="12" sm="6">
             <MudPaper Elevation="3">
-                <GroupMemberListComponent IsGroupModerator="_isModeratorOfGroup"
+                <GroupMemberListComponent CurrentUserIsAdmin="_currentUserIsAdmin"
                                           GroupMembers="_groupMembers"
                                           GroupName="@GroupName" />
             </MudPaper>
@@ -69,7 +79,7 @@
                 </MudPaper>
             }
         </MudItem>
-        @if (_isMemberOfGroup)
+        @if (_isMember)
         {
             <MudItem xs="12">
                 <MudPaper Elevation="3" Class="pa-5">
@@ -91,14 +101,15 @@
     private bool _isLoading = true;
     private UserProfile? _currentUser;
     private bool _hasPendingMembershipRequest = false;
-    private bool _isMemberOfGroup = false;
-    private bool _isModeratorOfGroup => _admins.Select(x => x.Id).Contains(_currentUser?.Id);
+    private bool _isMember = false;
+    private bool _currentUserIsAdmin => _admins.Select(x => x.Id).Contains(_currentUser?.Id);
     private List<UserSlim> _recipients = [];
     private List<UserSlim>? _groupMembers;
     private List<UserSlim> _admins = [];
 
     protected override async Task OnInitializedAsync()
     {
+        // TODO: Speed up with ContinueWith and Task.WhenAll
         var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
         response.Switch(
             groupSlim => _group = groupSlim,
@@ -123,32 +134,29 @@
 
         var currentUsersGroupMembership = await GroupService.GetCurrentUsersGroupMembershipAsync(_group.Id);
 
-        _isMemberOfGroup = currentUsersGroupMembership?.MembershipStatus is MembershipStatus.Active;
+        _isMember = currentUsersGroupMembership?.MembershipStatus is MembershipStatus.Active;
         _hasPendingMembershipRequest = currentUsersGroupMembership?.MembershipStatus
             is MembershipStatus.PendingApprovalFromGroup
             or MembershipStatus.PendingApprovalFromUser;
 
-        if (_isMemberOfGroup is false)
-        {
-            _admins = await GroupService
-                .GetGroupMembersByPredicateAsync(x =>
-                    x.GroupId == _group.Id &&
-                    x.PermissionLevel == PermissionLevel.Admin);
+        _admins = await GroupService
+            .GetGroupMembersByPredicateAsync(x =>
+                x.GroupId == _group.Id &&
+                x.PermissionLevel == PermissionLevel.Admin);
 
-            _recipients = _admins.Concat([_currentUser.ToUserSlim()]).ToList();
-        }
+        _recipients = _admins.Concat([_currentUser.ToUserSlim()]).ToList();
     }
 
     private async Task RequestMembership()
     {
-        var requestMembershipResponse = await MembershipService.RequestMembership(_group!.Id, CancellationToken);
+        var requestMembershipResponse = await MembershipService.RequestMembership(GroupName, CancellationToken);
         requestMembershipResponse.Switch(
-	        _ =>
-	        {
-		        Snackbar.Add("Anmodning sendt!", Severity.Success);
-		        _hasPendingMembershipRequest = true;
+            _ =>
+            {
+                Snackbar.Add("Anmodning sendt!", Severity.Success);
+                _hasPendingMembershipRequest = true;
                 StateHasChanged();
-	        },
+            },
             existingMembershipError => Snackbar.Add($"Nuværende medlems status: {existingMembershipError.Value}",
                 Severity.Warning),
             error => Snackbar.Add(error.Value, Severity.Warning));

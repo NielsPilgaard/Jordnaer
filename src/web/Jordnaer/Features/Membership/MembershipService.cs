@@ -12,7 +12,7 @@ namespace Jordnaer.Features.Membership;
 public interface IMembershipService
 {
 	Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
-		Guid groupId,
+		string groupName,
 		CancellationToken cancellationToken = default);
 }
 
@@ -22,7 +22,7 @@ public class MembershipService(CurrentUser currentUser,
 	ILogger<MembershipService> logger) : IMembershipService
 {
 	public async Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
-		Guid groupId,
+		string groupName,
 		CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
@@ -31,13 +31,16 @@ public class MembershipService(CurrentUser currentUser,
 		{
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-			var existingMembership = await context
-										   .GroupMemberships
-										   .FirstOrDefaultAsync(x =>
-												x.GroupId == groupId &&
-												x.UserProfileId == currentUser.Id,
-													cancellationToken);
+			var group = await context.Groups
+									 .Where(x => x.Name == groupName)
+									 .Include(x => x.Memberships.Where(membership => membership.UserProfileId == currentUser.Id))
+									 .FirstOrDefaultAsync(cancellationToken);
+			if (group is null)
+			{
+				return new Error<string>($"Gruppen {groupName} kunne ikke findes.");
+			}
 
+			var existingMembership = group.Memberships.FirstOrDefault(x => x.UserProfileId == currentUser.Id);
 			if (existingMembership is not null)
 			{
 				return new Error<MembershipStatus>(existingMembership.MembershipStatus);
@@ -45,7 +48,7 @@ public class MembershipService(CurrentUser currentUser,
 
 			context.GroupMemberships.Add(new GroupMembership
 			{
-				GroupId = groupId,
+				GroupId = group.Id,
 				UserProfileId = currentUser.Id!,
 				MembershipStatus = MembershipStatus.PendingApprovalFromGroup,
 				PermissionLevel = PermissionLevel.Write,
@@ -57,7 +60,7 @@ public class MembershipService(CurrentUser currentUser,
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			await emailService.SendMembershipRequestEmails(groupId, cancellationToken);
+			await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
 
 			return new Success();
 		}

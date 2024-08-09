@@ -10,7 +10,7 @@ namespace Jordnaer.Features.Email;
 public interface IEmailService
 {
 	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
-	Task SendMembershipRequestEmails(Guid groupId, CancellationToken cancellationToken = default);
+	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
 }
 
 public sealed class EmailService(IPublishEndpoint publishEndpoint,
@@ -40,7 +40,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 	}
 
 	public async Task SendMembershipRequestEmails(
-		Guid groupId,
+		string groupName,
 		CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -48,7 +48,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 										   .GroupMemberships
 										   .AsNoTracking()
 										   .Where(x =>
-													  x.GroupId == groupId &&
+													  x.Group.Name == groupName &&
 													  x.PermissionLevel == PermissionLevel.Admin)
 										   .Select(x => x.UserProfileId);
 
@@ -60,15 +60,15 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		if (emails.Count is 0)
 		{
-			logger.LogError("No users found who can approve membership request for group {GroupId}.", groupId);
+			logger.LogError("No users found who can approve membership request for group {GroupName}.", groupName);
 			return;
 		}
 
 		logger.LogInformation("Found {MembersThatCanApproveRequestCount} users who can approve " +
-							  "membership request for group {GroupId}. " +
-							  "Sending an email to them.", emails.Count, groupId);
+							  "membership request for group {GroupName}. " +
+							  "Sending an email to them.", emails.Count, groupName);
 
-		var groupMembershipUrl = $"{navigationManager.BaseUri}/groups/{groupId}/memberships";
+		var groupMembershipUrl = $"{navigationManager.BaseUri}groups/{groupName}/memberships";
 
 		List<EmailAddress> toEmail = [emails.First()];
 		var email = new SendEmail

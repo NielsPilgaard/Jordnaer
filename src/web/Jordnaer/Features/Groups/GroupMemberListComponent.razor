@@ -4,9 +4,9 @@
 }
 else
 {
-    <MudList ReadOnly="false" T="RenderFragment">
+    <MudList ReadOnly="CurrentUserIsAdmin" T="RenderFragment">
         <MudListSubheader>
-            @if (IsGroupModerator)
+            @if (CurrentUserIsAdmin)
             {
                 <MudListItem Icon="@Icons.Material.Filled.Edit"
                              Href="@($"/groups/{GroupName}/members")">
@@ -33,13 +33,12 @@ else
     </MudList>
 }
 @code {
-
-    [Parameter]
+    [Parameter, EditorRequired]
     public string? GroupName { get; set; }
 
-    [Parameter] 
-    public bool IsGroupModerator { get; set; } = false;
+    [Parameter, EditorRequired]
+    public bool CurrentUserIsAdmin { get; set; } = false;
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public required List<UserSlim>? GroupMembers { get; set; }
 }
