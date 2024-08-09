@@ -15,9 +15,9 @@
                          <MudTextField Label="Område" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@user.DisplayLocation()" />
                          <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@user.DisplayName" />
 
-                         @if (user.Children.Count > 0)
+                         @if (user.Children.Count is not 0)
                         {
-                            <MudText Class="my-4" Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+                            <MudText Class="my-4" Typo="Typo.h6">Børn</MudText>
                             <MudChipSet ReadOnly Class="d-flex flex-wrap justify-start flex-grow-1 gap-3" T="MudBadge">
                                  @foreach (var child in user.Children.OrderBy(c => c.DateOfBirth))
                                 {
@@ -28,7 +28,7 @@
                             </MudChipSet>
                         }
 
-                        @if (user.Categories.Count > 0)
+                        @if (user.Categories.Count is not 0)
                         {
                             <MudDivider Class="my-4" />
 

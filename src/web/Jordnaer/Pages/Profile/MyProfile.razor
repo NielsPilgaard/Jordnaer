@@ -5,6 +5,7 @@
 @inject IProfileService ProfileService
 @inject ISnackbar Snackbar
 @inject IBlazrRenderStateService RenderStateService
+
 @attribute [Authorize]
 
 <MetadataComponent Title="Redigér Profil"
@@ -93,7 +94,7 @@
 
         </MudPaper>
 
-        <MudText Class="mt-10 mb-5" Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.ChildCare" />Børn</MudText>
+        <MudText Class="mt-10 mb-5" Typo="Typo.h5">Børn</MudText>
 
         <EditChildProfileTabs @bind-Parent="_userProfile" @ref="_editChildProfileTabsComponent"></EditChildProfileTabs>
 
