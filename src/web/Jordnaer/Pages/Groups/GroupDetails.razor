@@ -40,9 +40,9 @@
                        EndIcon="@Icons.Material.Filled.GroupAdd">
                 Anmod om Medlemskab
             </MudButton>
-            @if (_currentUserIsAdmin)
+            @if (_currentUserIsAdmin && _group is not null)
             {
-                <MudButton Href="@($"/groups/{_group.Id}/edit")"
+                <MudButton Href="@($"/groups/{_group?.Id}/edit")"
                            Class="mb-5"
                            Color="Color.Warning"
                            Variant="Variant.Text"
