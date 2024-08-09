@@ -7,7 +7,8 @@
                    Description="Søg efter grupper" />
 
 <MudButton Href="/personal/groups" 
-           Color="Color.Info" 
+           Color="Color.Info"
+           Class="d-xs-flex justify-content"
            Variant="Variant.Filled" 
            StartIcon="@Icons.Material.Filled.ArrowLeft"
            EndIcon="@Icons.Material.Filled.GroupAdd">
@@ -36,7 +37,8 @@
     <SponsorAd Class="mt-5"
                ImageAlt="Reklame for Moon Creative"
                MobileImagePath="images/ads/mooncreative_mobile.png"
-               DesktopImagePath="images/ads/mooncreative_mobile.png" />
+               DesktopImagePath="images/ads/mooncreative_mobile.png" 
+               Link="https://www.mooncreative.dk/" />
 
     <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
 
@@ -63,9 +65,9 @@
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadFromQueryString();
+        await LoadFromQueryString();
     }
 
     private async Task Search()
@@ -92,12 +94,16 @@
         _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
         var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
-        Navigation.NavigateTo(newUrl);
+        if (Navigation.Uri != newUrl)
+        {
+	        Navigation.NavigateTo(newUrl);
+        }
     }
 
-    private void LoadFromQueryString()
+    private async ValueTask LoadFromQueryString()
     {
-	    if (!string.IsNullOrEmpty(new Uri(Navigation.Uri).Query))
+	    var queryStrings = new Uri(Navigation.Uri).Query;
+        if (string.IsNullOrEmpty(queryStrings))
 	    {
 		    return;
 	    }
@@ -127,6 +133,7 @@
         }
 
         _filter = filter;
+        await Search();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

@@ -1,5 +1,3 @@
-@using Microsoft.AspNetCore.WebUtilities
-@inject ISessionStorageService SessionStorage
 @inject NavigationManager Navigation
 
 <MudContainer MaxWidth="MaxWidth.Small">
@@ -19,7 +17,7 @@
 		                For="() => Filter.Location" 
 		                Location="@Filter.Location" 
 		                LocationChanged="LocationChanged" 
-		                RecentlyClearedForm="_recentlyClearedForm"/>
+		                DisableSmartCompletion="_disableSmartCompletionForZipCode"/>
                 </MudItem>
                 <MudItem xs="4">
                     <MudNumericField For="() => Filter.WithinRadiusKilometers"
@@ -114,10 +112,14 @@
     [SupplyParameterFromQuery]
     public bool ExpandAdvancedSearch { get; set; } = false;
 
+    private static readonly UserSearchFilter DefaultFilter = new();
+
     private bool _recentlyClearedForm = false;
+    private bool _disableSmartCompletionForZipCode => _recentlyClearedForm || Filter != DefaultFilter;
 
     private async Task ClearFilter()
     {
+	    Filter.Categories = [];
         Filter = new UserSearchFilter();
         await FilterChanged.InvokeAsync(Filter);
 
