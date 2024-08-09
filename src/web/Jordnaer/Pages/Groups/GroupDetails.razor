@@ -146,7 +146,7 @@
 	        _ =>
 	        {
 		        Snackbar.Add("Anmodning sendt!", Severity.Success);
-		        _isMemberOfGroup = true;
+		        _hasPendingMembershipRequest = true;
                 StateHasChanged();
 	        },
             existingMembershipError => Snackbar.Add($"Nuværende medlems status: {existingMembershipError.Value}",
