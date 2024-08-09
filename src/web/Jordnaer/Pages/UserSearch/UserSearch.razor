@@ -28,7 +28,8 @@
     <SponsorAd Class="mt-5"
                ImageAlt="Reklame for Moon Creative"
                MobileImagePath="images/ads/mooncreative_mobile.png"
-               DesktopImagePath="images/ads/mooncreative_mobile.png" />
+               DesktopImagePath="images/ads/mooncreative_mobile.png"
+               Link="https://www.mooncreative.dk/" />
 
     <UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
 </MudLoading>
@@ -59,14 +60,15 @@
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadFromQueryString();
+        await LoadFromQueryString();
     }
 
     private async Task Search()
     {
         _isSearching = true;
+
         _searchResult = await UserSearchService.GetUsersAsync(_filter);
 
         UpdateQueryString();
@@ -90,12 +92,16 @@
         _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
         var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
-        Navigation.NavigateTo(newUrl);
+        if (Navigation.Uri != newUrl)
+        {
+            Navigation.NavigateTo(newUrl);
+        }
     }
 
-    private void LoadFromQueryString()
+    private async ValueTask LoadFromQueryString()
     {
-        if (!string.IsNullOrEmpty(new Uri(Navigation.Uri).Query))
+	    var queryStrings = new Uri(Navigation.Uri).Query;
+        if (string.IsNullOrEmpty(queryStrings))
         {
             return;
         }
@@ -132,7 +138,7 @@
         }
 
         _filter = filter;
-        StateHasChanged();
+        await Search();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

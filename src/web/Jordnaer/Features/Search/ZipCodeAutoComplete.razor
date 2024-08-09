@@ -31,14 +31,14 @@
     public required Expression<Func<string?>> For { get; set; }
 
     [Parameter, EditorRequired]
-    public bool RecentlyClearedForm { get; set; } = false;
+    public bool DisableSmartCompletion { get; set; } = false;
 
     private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
     private bool _locationSetOnInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
-        if (RecentlyClearedForm)
+        if (DisableSmartCompletion)
         {
             return;
         }
@@ -48,7 +48,7 @@
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    if (!firstRender || RecentlyClearedForm || _locationSetOnInitialized)
+	    if (!firstRender || DisableSmartCompletion || _locationSetOnInitialized)
 	    {
 		    return;
 	    }

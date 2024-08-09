@@ -1,6 +1,6 @@
 @inject ICategoryCache CategoryCache
 
-<MudSelectExtended ItemCollection="_categories"
+<MudSelectExtended ItemCollection="_allCategories"
                    T="string"
                    Label="Kategorier"
                    Placeholder="Vælg"
@@ -12,31 +12,26 @@
 </MudSelectExtended>
 @code
 {
-    private List<string> _categories = [];
+    private List<string> _allCategories = [];
 
-    [SupplyParameterFromQuery(Name = "categories")]
-    public string[]? CategoriesFromQueryString { get; set; }
-    
     [Parameter]
     public string[]? Categories { get; set; }
 
     [Parameter]
     public EventCallback<string[]?> CategoriesChanged { get; set; }
-
+    
     protected override async Task OnInitializedAsync()
     {
         var cachedCategories = await CategoryCache.GetOrCreateCategoriesAsync();
-        _categories = cachedCategories.Select(x => x.Name).ToList();
-
-        if (CategoriesFromQueryString is {Length: > 0})
-        {
-            await SelectedCategoriesChanged(CategoriesFromQueryString);
-        }
+        _allCategories = cachedCategories.Select(x => x.Name).ToList();
     }
 
     private async Task SelectedCategoriesChanged(IEnumerable<string?>? categories)
     {
-        Categories = categories?.ToArray()!;
-        await CategoriesChanged.InvokeAsync(Categories);
+        Categories = (categories is null 
+		    ? [] 
+		    : categories.Where(x => x != null).ToArray())!;
+
+	    await CategoriesChanged.InvokeAsync(Categories);
     }
 }

@@ -22,7 +22,7 @@ public interface IGroupService
 
 	Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default);
 	Task<List<GroupMembershipDto>> GetGroupMembershipsAsync(string groupName, CancellationToken cancellationToken = default);
-	Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default);
+	Task<GroupMembershipDto?> GetCurrentUsersGroupMembershipAsync(Guid groupId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membership, CancellationToken cancellationToken = default);
 }
 
@@ -154,23 +154,32 @@ public class GroupService(
 		return memberships;
 	}
 
-	public async Task<bool> IsCurrentUserMemberOfGroupAsync(Guid groupId, CancellationToken cancellationToken = default)
+	public async Task<GroupMembershipDto?> GetCurrentUsersGroupMembershipAsync(Guid groupId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
 		if (currentUser.Id is null)
 		{
-			return false;
+			return null;
 		}
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		var isGroupMember = await context.GroupMemberships
+		var groupMembership = await context.GroupMemberships
 								   .AsNoTracking()
-								   .AnyAsync(x => x.UserProfileId == currentUser.Id &&
-												  x.GroupId == groupId,
-											  cancellationToken);
+								   .Where(x => x.UserProfileId == currentUser.Id &&
+											   x.GroupId == groupId)
+								   .Select(x => new GroupMembershipDto
+								   {
+									   UserDisplayName = x.UserProfile.DisplayName,
+									   UserProfileId = x.UserProfileId,
+									   GroupId = x.GroupId,
+									   OwnershipLevel = x.OwnershipLevel,
+									   PermissionLevel = x.PermissionLevel,
+									   MembershipStatus = x.MembershipStatus
+								   })
+								   .SingleOrDefaultAsync(cancellationToken);
 
-		return isGroupMember;
+		return groupMembership;
 	}
 
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
@@ -262,12 +271,11 @@ public class GroupService(
 			}
 		}
 
-		if (updatedMembership.MembershipStatus is not MembershipStatus.Active and not MembershipStatus.Rejected)
-		{
-			return "Medlemskabsstatus kan kun sættes til aktivt eller afvist.";
-		}
-
-		return null;
+		return updatedMembership.MembershipStatus is
+				   not MembershipStatus.Active and
+				   not MembershipStatus.Rejected
+				   ? "Medlemskabsstatus kan kun sættes til aktivt eller afvist."
+				   : null;
 	}
 
 	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default)

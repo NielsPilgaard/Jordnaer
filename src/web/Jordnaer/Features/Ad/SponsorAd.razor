@@ -1,17 +1,19 @@
 @using MudBlazor.Services
 
 <MudContainer MaxWidth="MaxWidth.Small">
-    <div class="image-ad-wrapper">
-        <div class="image-with-label">
-            <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
-                <MudImage Src="@MobileImagePath" Fluid="Fluid" Alt="@ImageAlt" Class="@Class" loading="lazy" />
-            </MudHidden>
-            <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                <MudImage Src="@DesktopImagePath" Fluid="Fluid" Alt="@ImageAlt" Class="@Class" loading="lazy" />
-            </MudHidden>
-            <div class="image-ad-label">Sponsor reklame</div>
+    <MudLink Href="@Link" Target="_blank" Underline="Underline.None">
+        <div class="image-ad-wrapper">
+            <div class="image-with-label">
+                <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
+                    <MudImage Src="@MobileImagePath" Fluid="Fluid" Alt="@ImageAlt" Class="@Class" loading="lazy" />
+                </MudHidden>
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <MudImage Src="@DesktopImagePath" Fluid="Fluid" Alt="@ImageAlt" Class="@Class" loading="lazy" />
+                </MudHidden>
+                <div class="image-ad-label">Sponsor reklame</div>
+            </div>
         </div>
-    </div>
+    </MudLink>
 </MudContainer>
 
 @code
@@ -19,13 +21,16 @@
     [Parameter]
     public string? Class { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
+    public required string Link { get; set; }
+
+    [Parameter, EditorRequired]
     public required string MobileImagePath { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public required string DesktopImagePath { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public required string ImageAlt { get; set; }
 
     [Parameter]

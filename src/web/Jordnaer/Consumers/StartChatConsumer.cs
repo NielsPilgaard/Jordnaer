@@ -3,22 +3,23 @@ using Jordnaer.Features.Chat;
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Consumers;
 
 public class StartChatConsumer : IConsumer<StartChat>
 {
-	private readonly JordnaerDbContext _context;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 	private readonly ILogger<StartChatConsumer> _logger;
 	private readonly IHubContext<ChatHub, IChatHub> _chatHub;
 	private readonly ChatNotificationService _chatNotificationService;
 
-	public StartChatConsumer(JordnaerDbContext context,
+	public StartChatConsumer(IDbContextFactory<JordnaerDbContext> contextFactory,
 		ILogger<StartChatConsumer> logger,
 		IHubContext<ChatHub, IChatHub> chatHub,
 		ChatNotificationService chatNotificationService)
 	{
-		_context = context;
+		_contextFactory = contextFactory;
 		_logger = logger;
 		_chatHub = chatHub;
 		_chatNotificationService = chatNotificationService;
@@ -30,7 +31,9 @@ public class StartChatConsumer : IConsumer<StartChat>
 
 		var chat = consumeContext.Message;
 
-		_context.Chats.Add(new Chat
+		await using var context = await _contextFactory.CreateDbContextAsync(consumeContext.CancellationToken);
+
+		context.Chats.Add(new Chat
 		{
 			LastMessageSentUtc = chat.LastMessageSentUtc,
 			Id = chat.Id,
@@ -41,7 +44,7 @@ public class StartChatConsumer : IConsumer<StartChat>
 
 		foreach (var recipient in chat.Recipients)
 		{
-			_context.UserChats.Add(new UserChat
+			context.UserChats.Add(new UserChat
 			{
 				ChatId = chat.Id,
 				UserProfileId = recipient.Id
@@ -52,7 +55,7 @@ public class StartChatConsumer : IConsumer<StartChat>
 		{
 			foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))
 			{
-				_context.UnreadMessages.Add(new UnreadMessage
+				context.UnreadMessages.Add(new UnreadMessage
 				{
 					RecipientId = recipient.Id,
 					ChatId = chat.Id,
@@ -63,7 +66,7 @@ public class StartChatConsumer : IConsumer<StartChat>
 
 		try
 		{
-			await _context.SaveChangesAsync(consumeContext.CancellationToken);
+			await context.SaveChangesAsync(consumeContext.CancellationToken);
 			await _chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
 		}
 		catch (Exception exception)
