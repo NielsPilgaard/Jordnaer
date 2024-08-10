@@ -8,6 +8,7 @@
 @inject IBrowserViewportService BrowserViewportService
 @inject ChatSignalRClient ChatSignalRClient
 @inject NavigationManager Navigation
+
 @implements IAsyncDisposable
 
 @rendermode @(new InteractiveServerRenderMode(false))
@@ -166,6 +167,8 @@
                 return;
             }
 
+            JordnaerMetrics.ChatStartedReceivedCounter.Add(1);
+
             var chatDto = chat.ToChatDto();
             chatDto.UnreadMessageCount++;
             _chats.Insert(0, chatDto);
@@ -185,8 +188,11 @@
             if (message.SenderId == _currentUser.Id)
             {
                 LastMessageWasSentSuccessfullyByCurrentUser = true;
+                await InvokeAsync(StateHasChanged);
                 return;
             }
+
+            JordnaerMetrics.ChatMessagesReceivedCounter.Add(1);
 
             chat.Messages.Add(message.ToChatMessageDto());
 
