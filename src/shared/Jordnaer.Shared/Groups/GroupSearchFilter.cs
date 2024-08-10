@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Jordnaer.Shared;
 
@@ -19,6 +20,32 @@ public record GroupSearchFilter
 
 	public int PageNumber { get; set; } = 1;
 	public int PageSize { get; set; } = 10;
+
+	[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+	public override int GetHashCode()
+	{
+		unchecked // Allow arithmetic overflow, numbers will just "wrap around"
+		{
+			var hash = 17;
+
+			hash = hash * 23 + (Name?.GetHashCode() ?? 0);
+			hash = hash * 23 + (Categories != null ? Categories.Aggregate(0, (current, category) => current + category.GetHashCode()) : 0);
+			hash = hash * 23 + WithinRadiusKilometers.GetHashCode();
+			hash = hash * 23 + (Location?.GetHashCode() ?? 0);
+
+			return hash;
+		}
+	}
+
+	public virtual bool Equals(UserSearchFilter? other)
+	{
+		return other is not null &&
+			   Name == other.Name &&
+			   ((Categories == null && other.Categories == null) ||
+				(Categories != null && other.Categories != null && Categories.SequenceEqual(other.Categories))) &&
+			   WithinRadiusKilometers == other.WithinRadiusKilometers &&
+			   Location == other.Location;
+	}
 }
 
 file class RadiusRequiredAttribute : ValidationAttribute
@@ -46,7 +73,6 @@ file class LocationRequiredAttribute : ValidationAttribute
 		if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
 		{
 			return ValidationResult.Success!;
-
 		}
 
 		return string.IsNullOrEmpty(userSearchFilter.Location)

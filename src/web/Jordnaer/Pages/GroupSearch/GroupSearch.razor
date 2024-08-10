@@ -3,6 +3,8 @@
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
 
 <MetadataComponent Title="Grupper"
                    Description="Søg efter grupper" />
@@ -77,7 +79,11 @@
 
         _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
 
-        UpdateQueryString();
+        await UpdateQueryString();
+        
+        Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
+	        severity: _searchResult.TotalCount is 0 ? Severity.Info : Severity.Success,
+	        options => options.VisibleStateDuration = 3500);
 
         _hasSearched = true;
 
@@ -88,7 +94,7 @@
     }
 
     private static readonly Dictionary<string, object?> _queryStrings = [];
-    private void UpdateQueryString()
+    private async Task UpdateQueryString()
     {
         _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
         _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
@@ -98,10 +104,8 @@
         _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
         var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
-        if (Navigation.Uri != newUrl)
-        {
-	        Navigation.NavigateTo(newUrl);
-        }
+
+        await JsRuntime.NavigateTo(newUrl);
     }
 
     private async ValueTask LoadFromQueryString()
@@ -138,8 +142,7 @@
 
         _filter = filter;
 
-        if (_filter.Equals(Cache.SearchFilter) &&
-            Cache.SearchResult is not null)
+        if (_filter.Equals(Cache.SearchFilter) && Cache.SearchResult is not null)
         {
             _searchResult = Cache.SearchResult;
 
