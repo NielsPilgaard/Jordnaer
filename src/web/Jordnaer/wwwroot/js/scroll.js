@@ -1,13 +1,11 @@
 window.scrollFunctions = {
-    saveScrollPosition: function () {
+    saveScrollPosition: function (prefix) {
         if (window.scrollY > 0) {
-            sessionStorage.setItem('scrollPosition', window.scrollY);
+            sessionStorage.setItem(`${prefix}:scrollPosition`, window.scrollY);
         }
     },
-    loadScrollPosition: function () {
-        setTimeout(function () {
-            window.scrollTo(0, sessionStorage.getItem('scrollPosition'));
-        }, 500);
+    loadScrollPosition: function (prefix) {
+            window.scrollTo(0, sessionStorage.getItem(`${prefix}:scrollPosition`));
     },
     scrollToBottomOfElement: function (selector) {
         const element = document.querySelector(selector);

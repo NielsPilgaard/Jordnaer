@@ -2,6 +2,7 @@
 
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
+@inject GroupSearchResultCache Cache
 
 <MetadataComponent Title="Grupper"
                    Description="Søg efter grupper" />
@@ -81,6 +82,9 @@
         _hasSearched = true;
 
         _isSearching = false;
+
+        Cache.SearchFilter = _filter;
+        Cache.SearchResult = _searchResult;
     }
 
     private static readonly Dictionary<string, object?> _queryStrings = [];
@@ -133,6 +137,18 @@
         }
 
         _filter = filter;
+
+        if (_filter.Equals(Cache.SearchFilter) &&
+            Cache.SearchResult is not null)
+        {
+            _searchResult = Cache.SearchResult;
+
+            _hasSearched = true;
+            _isSearching = false;
+
+            return;
+        }
+
         await Search();
     }
 

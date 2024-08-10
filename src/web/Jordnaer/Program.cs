@@ -90,6 +90,9 @@ builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Heal
 
 builder.AddOpenTelemetry();
 
+builder.Services.AddScoped<UserSearchResultCache>();
+builder.Services.AddScoped<GroupSearchResultCache>();
+
 var app = builder.Build();
 
 app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()

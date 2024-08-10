@@ -77,13 +77,13 @@
     {
         if (firstRender)
         {
-            await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.loadScrollPosition");
+            await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.loadScrollPosition", nameof(UserSearch));
         }
     }
 
     private async ValueTask SaveScrollPosition()
     {
-        await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.saveScrollPosition");
+        await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.saveScrollPosition", nameof(UserSearch));
     }
 
     protected override void OnInitialized()
