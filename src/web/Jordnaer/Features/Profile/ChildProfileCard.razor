@@ -15,7 +15,14 @@
             </MudTextFieldExtended>
         }
         <MudTextField Label="Køn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" ReadOnly T="string" Text="@Child.Gender.ToStringFast()" />
-        <MudText Typo="Typo.body1" Class="mt-3">@Child.Description</MudText>
+        
+        @if (Child.Description is not null)
+        {
+            <MudText Typo="Typo.body1" Class="mt-3">
+		        @MarkdownRenderer.SanitizeAndRenderMarkupString(Child.Description)
+	        </MudText>
+        }
+
     </MudCardContent>
 </MudCard>
 
