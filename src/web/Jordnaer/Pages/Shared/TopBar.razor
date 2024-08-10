@@ -1,7 +1,8 @@
 @inject NavigationManager Navigation
 
 <MudAppBar Fixed="false" Elevation="0" Dense Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")">
-    <MudIconButton Href="/users" title="Personer" Icon="@Icons.Material.Filled.PersonSearch" />
+	<MudIconButton Href="/" title="Forsiden" Icon="@Icons.Material.Filled.Home" />
+	<MudIconButton Href="/users" title="Personer" Icon="@Icons.Material.Filled.PersonSearch" />
     <MudIconButton Href="/groups" title="Grupper" Icon="@Icons.Material.Filled.Groups" />
 
     <AuthorizeView>
