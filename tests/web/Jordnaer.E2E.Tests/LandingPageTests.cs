@@ -20,7 +20,7 @@ public class LandingPageTests : BrowserTest
 
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).First.ClickAsync();
 
-		await Expect(page).ToHaveURLAsync(new Regex(".*/Account/Login"));
+		await Expect(page).ToHaveURLAsync(new Regex(".*/Account/Register"));
 
 		await page.CloseAsync();
 	}
