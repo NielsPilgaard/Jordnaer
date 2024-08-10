@@ -91,7 +91,8 @@ public static class WebApplicationBuilderExtensions
 											  .AddProcessInstrumentation()
 											  .AddRuntimeInstrumentation()
 											  .AddMeter(InstrumentationOptions.MeterName)
-											  .AddMeter("Polly"))
+											  .AddMeter("Polly")
+											  .AddMeter("Jordnaer"))
 			   .WithTracing(tracing =>
 			   {
 				   if (builder.Environment.IsDevelopment())
@@ -102,7 +103,8 @@ public static class WebApplicationBuilderExtensions
 
 				   tracing.AddAspNetCoreInstrumentation()
 						  .AddHttpClientInstrumentation()
-						  .AddSource(DiagnosticHeaders.DefaultListenerName);
+						  .AddSource(DiagnosticHeaders.DefaultListenerName)
+						  .AddSource("Jordnaer");
 			   });
 
 		// Use the Aspire Dashboard in development

@@ -3,13 +3,13 @@
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorageService
 
-@if (_isLoading) 
+@if (_isLoading)
 {
-	return;
+    return;
 }
 
 <MetadataComponent Title="Ny Bruger"
-                   Description="Denne side vises til nye brugere for at hjælpe dem godt igang."/>
+                   Description="Denne side vises til nye brugere for at hjælpe dem godt igang." />
 
 <MudGrid Justify="Justify.Center">
     @foreach (var (icon, title, body, link, color) in _cardContents)
@@ -17,10 +17,10 @@
         <MudItem xs="12" sm="6" md="4" Class="d-flex justify-center align-center" @onclick="() => Navigation.NavigateTo(link)">
             <MudCard Style="width: 300px" Elevation="3" Class="mt-2">
                 <MudCardHeader>
-	                <MudIcon Icon="@icon" Class="mr-2"/><MudText Typo="Typo.h5" Class="font-open-sans-bold" Style="@($"color: {JordnaerPalette.RedHeader}")">@title</MudText>
+                    <MudIcon Icon="@icon" Class="mr-2" /><MudText Typo="Typo.h5" Class="font-open-sans-bold" Style="@JordnaerPalette.RedHeaderTextStyle">@title</MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Typo="Typo.body1" Style="@($"color: {JordnaerPalette.BlueBody}")">@body</MudText>
+                    <MudText Typo="Typo.body1" Style="@JordnaerPalette.BlueBodyTextStyle">@body</MudText>
                 </MudCardContent>
                 <MudCardActions Style="padding: 16px">
                     <MudIconButton Size="Size.Large"
@@ -35,63 +35,70 @@
 </MudGrid>
 
 @code {
-	[SupplyParameterFromQuery] 
+    [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
 
     private readonly record struct FirstLoginCardContent(string Icon, string Title, string Body, string Link, Color Color);
 
     private static readonly FirstLoginCardContent[] _cardContents =
     [
-	    new FirstLoginCardContent(
-            Icon: Icons.Material.Filled.Person,
-		    Title: "Færdiggør Profil",
-		    Body: "Færdiggør din profil for at hjælpe andre med at lære dig bedre at kende.",
-		    Link: "/profile",
-		    Color: Color.Success),
-
         new FirstLoginCardContent(
-		    Icon: Icons.Material.Filled.PersonSearch,
-		    Title: "Mød nye mennesker",
-		    Body: "Forbind med andre familier for legeaftaler og aktiviteter.",
-		    Link: "/users",
-		    Color: Color.Primary),
+        Icon: Icons.Material.Filled.Person,
+        Title: "Færdiggør Profil",
+        Body: "Færdiggør din profil for at hjælpe andre med at lære dig bedre at kende.",
+        Link: "/profile",
+        Color: Color.Success),
 
-        new FirstLoginCardContent(
-		    Icon: Icons.Material.Filled.Group,
-		    Title: "Find en Gruppe",
-		    Body: "Opdag grupper, der matcher din families interesser.",
-		    Link: "/groups",
-		    Color: Color.Info)
+    new FirstLoginCardContent(
+        Icon: Icons.Material.Filled.PersonSearch,
+        Title: "Mød nye mennesker",
+        Body: "Forbind med andre familier.",
+        Link: "/users",
+        Color: Color.Primary),
 
-	    // TODO: Uncomment when Posts is a thing
-     // new FirstLoginCardContent(
-		   //  Title: "Opslag", 
-		   //  Body: "Tjek de seneste indlæg.", 
-		   //  Link: "/posts", 
-		   //  Color: Color.Tertiary)
+    new FirstLoginCardContent(
+        Icon: Icons.Material.Filled.Group,
+        Title: "Find en Gruppe",
+        Body: "Opdag grupper, der matcher din families interesser.",
+        Link: "/groups",
+        Color: Color.Info),
+
+    new FirstLoginCardContent(
+        Icon: Icons.Material.Filled.GroupAdd,
+        Title: "Opret en Gruppe",
+        Body: "Opret en gruppe, og gør det nemt for nye medlemmer at finde dig.",
+        Link: "/personal/groups",
+        Color: Color.Tertiary)
+
+    // TODO: Uncomment when Posts is a thing
+    // new FirstLoginCardContent(
+    //  Title: "Opslag",
+    //  Body: "Tjek de seneste indlæg.",
+    //  Link: "/posts",
+    //  Color: Color.Tertiary)
     ];
 
     private bool _isLoading = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    if (!firstRender)
-	    {
-		    return;
-	    }
+        if (!firstRender)
+        {
+            return;
+        }
 
         var isNewUser = await LocalStorageService.GetItemAsync<bool?>("IsNewUser");
         if (isNewUser is null or true)
         {
-	        await LocalStorageService.SetItemAsync("IsNewUser", false);
-	        _isLoading = false;
+            await LocalStorageService.SetItemAsync("IsNewUser", false);
+            _isLoading = false;
             StateHasChanged();
         }
         else
         {
-            Navigation.NavigateTo(string.IsNullOrEmpty(ReturnUrl) 
-	            ? "/" 
-	            : ReturnUrl);
+            Navigation.NavigateTo(string.IsNullOrEmpty(ReturnUrl)
+                ? "/"
+                : ReturnUrl);
         }
     }
 }

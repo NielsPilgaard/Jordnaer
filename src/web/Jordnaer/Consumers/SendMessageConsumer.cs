@@ -1,6 +1,7 @@
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Chat;
+using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
@@ -8,26 +9,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Consumers;
 
-public class SendMessageConsumer : IConsumer<SendMessage>
+public class SendMessageConsumer(
+	JordnaerDbContext context,
+	ILogger<SendMessageConsumer> logger,
+	IHubContext<ChatHub, IChatHub> chatHub)
+	: IConsumer<SendMessage>
 {
-	private readonly JordnaerDbContext _context;
-	private readonly ILogger<SendMessageConsumer> _logger;
-	private readonly IHubContext<ChatHub, IChatHub> _chatHub;
-
-	public SendMessageConsumer(JordnaerDbContext context, ILogger<SendMessageConsumer> logger, IHubContext<ChatHub, IChatHub> chatHub)
-	{
-		_context = context;
-		_logger = logger;
-		_chatHub = chatHub;
-	}
-
 	public async Task Consume(ConsumeContext<SendMessage> consumeContext)
 	{
-		_logger.LogDebug("Consuming SendMessage message. ChatId: {ChatId}", consumeContext.Message.ChatId);
+		logger.LogDebug("Consuming SendMessage message. ChatId: {ChatId}", consumeContext.Message.ChatId);
 
 		var chatMessage = consumeContext.Message;
 
-		_context.ChatMessages.Add(
+		context.ChatMessages.Add(
 			new ChatMessage
 			{
 				ChatId = chatMessage.ChatId,
@@ -38,14 +32,14 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 				SentUtc = chatMessage.SentUtc
 			});
 
-		var recipientIds = await _context.UserChats
+		var recipientIds = await context.UserChats
 			.Where(userChat => userChat.ChatId == chatMessage.ChatId)
 			.Select(userChat => userChat.UserProfileId)
 			.ToListAsync(consumeContext.CancellationToken);
 
 		foreach (var recipientId in recipientIds.Where(recipientId => recipientId != chatMessage.SenderId))
 		{
-			_context.UnreadMessages.Add(new UnreadMessage
+			context.UnreadMessages.Add(new UnreadMessage
 			{
 				RecipientId = recipientId,
 				ChatId = chatMessage.ChatId,
@@ -55,11 +49,11 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 
 		try
 		{
-			await _context.SaveChangesAsync(consumeContext.CancellationToken);
+			await context.SaveChangesAsync(consumeContext.CancellationToken);
 
-			await _chatHub.Clients.Users(recipientIds).ReceiveChatMessage(chatMessage);
+			await chatHub.Clients.Users(recipientIds).ReceiveChatMessage(chatMessage);
 
-			await _context.Chats
+			await context.Chats
 				.Where(chat => chat.Id == chatMessage.ChatId)
 				.ExecuteUpdateAsync(call =>
 						call.SetProperty(chat => chat.LastMessageSentUtc, DateTime.UtcNow),
@@ -67,8 +61,10 @@ public class SendMessageConsumer : IConsumer<SendMessage>
 		}
 		catch (Exception exception)
 		{
-			_logger.LogException(exception);
+			logger.LogException(exception);
 			throw;
 		}
+
+		JordnaerMetrics.ChatMessagesSentCounter.Add(1);
 	}
 }

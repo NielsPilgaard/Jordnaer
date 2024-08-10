@@ -1,5 +1,6 @@
 using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
+using Jordnaer.Features.Metrics;
 using MassTransit;
 using Polly;
 using Polly.CircuitBreaker;
@@ -15,7 +16,8 @@ public class SendEmailConsumer(
 	ISendGridClient sendGridClient)
 	: IConsumer<SendEmail>
 {
-	private static readonly ResiliencePipeline<Response> Retry = new ResiliencePipelineBuilder<Response>()
+	private static readonly ResiliencePipeline<Response> Retry =
+		new ResiliencePipelineBuilder<Response>()
 		.AddRetry(new RetryStrategyOptions<Response>
 		{
 			ShouldHandle = new PredicateBuilder<Response>()
@@ -91,6 +93,8 @@ public class SendEmailConsumer(
 		{
 			logger.LogInformation("Email sent to {@Recipient}. Subject: {Subject}",
 								  message.To?.Select(x => x.Email), message.Subject);
+
+			JordnaerMetrics.EmailsSentCounter.Add(1);
 		}
 	}
 }

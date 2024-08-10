@@ -43,11 +43,14 @@ public static class JordnaerPalette
 	/// </summary>
 	public static readonly MudColor BlueBody = "#41556b";
 
+	public static readonly string BlueBodyTextStyle = $"color: {BlueBody}";
+
 	/// <summary>
 	/// Dark Red. Used for small texts, payoffs, quotes
 	/// </summary>
 	public static readonly MudColor RedHeader = "#673417";
 
+	public static readonly string RedHeaderTextStyle = $"color: {RedHeader}";
 	/// <summary>
 	/// Beige. Used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated.
 	/// </summary>
