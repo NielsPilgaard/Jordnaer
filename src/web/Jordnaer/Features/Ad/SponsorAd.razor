@@ -35,4 +35,9 @@
 
     [Parameter]
     public bool Fluid { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        JordnaerMetrics.SponsorAdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+    }
 }

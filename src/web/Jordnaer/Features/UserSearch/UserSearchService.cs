@@ -1,4 +1,5 @@
 using Jordnaer.Database;
+using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Search;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,8 @@ public class UserSearchService(
 
 	public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default)
 	{
+		JordnaerMetrics.UserSearchesCounter.Add(1, MakeTagList(filter));
+
 		var users = context.UserProfiles
 							.Where(user => !string.IsNullOrEmpty(user.UserName))
 							.AsQueryable();
@@ -169,5 +172,15 @@ public class UserSearchService(
 		}
 
 		return users;
+	}
+
+	private static ReadOnlySpan<KeyValuePair<string, object?>> MakeTagList(UserSearchFilter filter)
+	{
+		return new KeyValuePair<string, object?>[]
+		{
+			new(nameof(filter.Location), filter.Location),
+			new(nameof(filter.Categories), string.Join(',', filter.Categories ?? [])),
+			new(nameof(filter.WithinRadiusKilometers), filter.WithinRadiusKilometers)
+		};
 	}
 }

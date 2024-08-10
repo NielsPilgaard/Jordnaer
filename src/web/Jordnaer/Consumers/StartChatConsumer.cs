@@ -1,5 +1,6 @@
 using Jordnaer.Database;
 using Jordnaer.Features.Chat;
+using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
@@ -76,5 +77,7 @@ public class StartChatConsumer : IConsumer<StartChat>
 		}
 
 		await _chatNotificationService.NotifyRecipients(chat);
+
+		JordnaerMetrics.ChatStartedSentCounter.Add(1);
 	}
 }

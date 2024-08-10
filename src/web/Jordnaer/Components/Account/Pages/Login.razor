@@ -82,6 +82,8 @@
 	        lockoutOnFailure: true);
         if (result.Succeeded)
         {
+            JordnaerMetrics.LoginCounter.Add(1);
+
             Logger.LogInformation("User logged in.");
 
             RedirectManager.RedirectTo(FirstLoginReturnUrl);

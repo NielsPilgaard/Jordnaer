@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using System.Security.Claims;
 using System.Text.Json;
+using Jordnaer.Features.Metrics;
 
 namespace Jordnaer.Components.Account;
 
@@ -46,6 +47,9 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 								 [FromForm] string returnUrl) =>
 							 {
 								 await signInManager.SignOutAsync();
+
+								 JordnaerMetrics.LogoutCounter.Add(1);
+
 								 return TypedResults.LocalRedirect(string.IsNullOrEmpty(returnUrl)
 																	   ? "~/"
 																	   : returnUrl);

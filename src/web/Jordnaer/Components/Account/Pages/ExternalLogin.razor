@@ -114,6 +114,8 @@
                 RedirectManager.RedirectToWithStatus("Account/Login", "Fejl - Det lykkedes ikke at finde dit login. Prøv venligst igen.", HttpContext);
             }
 
+            JordnaerMetrics.ExternalLoginCounter.Add(1);
+
             var accessToken = _externalLoginInfo.AuthenticationProperties?.GetTokenValue("access_token");
             if (accessToken is not null)
             {
@@ -146,7 +148,7 @@
     private async Task OnValidSubmitAsync()
     {
         var emailStore = GetEmailStore();
-        var user = CreateUser();
+        var user = new ApplicationUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -182,21 +184,10 @@
                 RedirectManager.RedirectTo("Account/RegisterConfirmation", queryParameters: new() { ["email"] = Input.Email });
             }
 
+            JordnaerMetrics.ExternalLoginCounter.Add(1);
+
             await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
             RedirectManager.RedirectTo(FirstLoginReturnUrl);
-        }
-    }
-
-    private static ApplicationUser CreateUser()
-    {
-        try
-        {
-            return Activator.CreateInstance<ApplicationUser>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor");
         }
     }
 
