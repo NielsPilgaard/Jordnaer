@@ -90,6 +90,7 @@
         var isNewUser = await LocalStorageService.GetItemAsync<bool?>("IsNewUser");
         if (isNewUser is null or true)
         {
+            JordnaerMetrics.FirstLoginCounter.Add(1);
             await LocalStorageService.SetItemAsync("IsNewUser", false);
             _isLoading = false;
             StateHasChanged();

@@ -21,4 +21,13 @@ internal static class JordnaerMetrics
 
 	internal static readonly Counter<int> EmailsSentCounter =
 		Meter.CreateCounter<int>("jordnaer_emails_sent_total");
+
+	internal static readonly Counter<int> LoginCounter =
+		Meter.CreateCounter<int>("jordnaer_auth_login_total");
+	internal static readonly Counter<int> ExternalLoginCounter =
+		Meter.CreateCounter<int>("jordnaer_auth_external_login_total");
+	internal static readonly Counter<int> FirstLoginCounter =
+		Meter.CreateCounter<int>("jordnaer_auth_first_login_total");
+	internal static readonly Counter<int> LogoutCounter =
+		Meter.CreateCounter<int>("jordnaer_auth_logout_total");
 }
