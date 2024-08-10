@@ -26,9 +26,8 @@ public static class ServiceCollectionExtensions
 
 		var pingCircuitBreakerOptions = new HttpCircuitBreakerStrategyOptions
 		{
-			FailureRatio = 0.5,
-			BreakDuration = TimeSpan.FromMinutes(5),
-			MinimumThroughput = 2,
+			FailureRatio = 0.25,
+			BreakDuration = TimeSpan.FromMinutes(1),
 			ShouldHandle = arguments =>
 				new ValueTask<bool>(
 					arguments.Outcome.Exception is not null ||
