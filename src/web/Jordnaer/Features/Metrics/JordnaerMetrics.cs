@@ -20,7 +20,7 @@ internal static class JordnaerMetrics
 		Meter.CreateCounter<int>("jordnaer_chat_chat_started_received_total");
 
 	internal static readonly Counter<int> EmailsSentCounter =
-		Meter.CreateCounter<int>("jordnaer_emails_sent_total");
+		Meter.CreateCounter<int>("jordnaer_email_emails_sent_total");
 
 	internal static readonly Counter<int> LoginCounter =
 		Meter.CreateCounter<int>("jordnaer_auth_login_total");
@@ -30,4 +30,16 @@ internal static class JordnaerMetrics
 		Meter.CreateCounter<int>("jordnaer_auth_first_login_total");
 	internal static readonly Counter<int> LogoutCounter =
 		Meter.CreateCounter<int>("jordnaer_auth_logout_total");
+
+	internal static readonly Counter<int> GroupsCreatedCounter =
+		Meter.CreateCounter<int>("jordnaer_group_groups_created_total");
+
+	internal static readonly Counter<int> GroupSearchesCounter =
+		Meter.CreateCounter<int>("jordnaer_group_group_searches_total");
+
+	internal static readonly Counter<int> UserSearchesCounter =
+		Meter.CreateCounter<int>("jordnaer_user_user_searches_total");
+
+	internal static readonly Counter<int> SponsorAdViewCounter =
+		Meter.CreateCounter<int>("jordnaer_ad_sponsor_views_total");
 }

@@ -7,6 +7,7 @@ using OneOf.Types;
 using Serilog;
 using System.Linq.Expressions;
 using Jordnaer.Features.Authentication;
+using Jordnaer.Features.Metrics;
 using NotFound = OneOf.Types.NotFound;
 
 namespace Jordnaer.Features.Groups;
@@ -280,6 +281,8 @@ public class GroupService(
 
 	public async Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default)
 	{
+		JordnaerMetrics.GroupsCreatedCounter.Add(1);
+
 		logger.LogFunctionBegan();
 
 		if (currentUser.Id is null)

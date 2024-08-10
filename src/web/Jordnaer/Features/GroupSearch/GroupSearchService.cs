@@ -1,4 +1,5 @@
 using Jordnaer.Database;
+using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Search;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +16,11 @@ public class GroupSearchService(
 	IZipCodeService zipCodeService)
 	: IGroupSearchService
 {
-
 	public async Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter,
 		CancellationToken cancellationToken = default)
 	{
+		JordnaerMetrics.GroupSearchesCounter.Add(1, MakeTagList(filter));
+
 		var groups = context.Groups
 			.AsNoTracking()
 			.AsQueryable()
@@ -82,5 +84,15 @@ public class GroupSearchService(
 			.OrderBy(group => Math.Abs(group.ZipCode!.Value - searchedZipCode.Value));
 
 		return (groups, true);
+	}
+
+	private static ReadOnlySpan<KeyValuePair<string, object?>> MakeTagList(GroupSearchFilter filter)
+	{
+		return new KeyValuePair<string, object?>[]
+		{
+			new(nameof(filter.Location), filter.Location),
+			new(nameof(filter.Categories), string.Join(',', filter.Categories ?? [])),
+			new(nameof(filter.WithinRadiusKilometers), filter.WithinRadiusKilometers)
+		};
 	}
 }
