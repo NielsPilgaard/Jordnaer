@@ -23,6 +23,9 @@ using Jordnaer.Database;
 using Jordnaer.Features.Membership;
 using Jordnaer.Features.Search;
 using Microsoft.Net.Http.Headers;
+using Sidio.Sitemap.AspNetCore;
+using Sidio.Sitemap.Blazor;
+using Sidio.Sitemap.Core.Services;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -93,6 +96,10 @@ builder.AddOpenTelemetry();
 builder.Services.AddScoped<UserSearchResultCache>();
 builder.Services.AddScoped<GroupSearchResultCache>();
 
+builder.Services
+	   .AddHttpContextAccessor()
+	   .AddDefaultSitemapServices<HttpContextBaseUrlProvider>();
+
 var app = builder.Build();
 
 app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
@@ -142,6 +149,8 @@ app.MapAdditionalIdentityEndpoints();
 app.MapObservabilityEndpoints();
 
 app.MapHub<ChatHub>("/hubs/chat");
+
+app.UseSitemap();
 
 try
 {

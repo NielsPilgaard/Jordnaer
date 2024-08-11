@@ -4,6 +4,8 @@
 @inject IdentityUserAccessor UserAccessor
 @inject ILogger<GenerateRecoveryCodes> Logger
 
+@attribute [Sitemap]
+
 <MetadataComponent Title="Generer To-faktor-autentificerings (2FA) gendannelseskoder"/>
 
 @if (_recoveryCodes is not null)

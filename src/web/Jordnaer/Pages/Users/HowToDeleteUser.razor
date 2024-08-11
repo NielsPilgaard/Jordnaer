@@ -1,12 +1,13 @@
 @page "/how-do-i/delete-my-user"
-@using Palette = Jordnaer.Features.Theme.JordnaerPalette
+
+@attribute [Sitemap]
 
 <MetadataComponent Title="Hvordan sletter man sin bruger"
                    Description="Denne side forklarer hvordan man sletter sin bruger." />
 
 <MudGrid Justify="Justify.Center" Spacing="6">
   <MudPaper Elevation="3" Class="pa-8 mt-5" Style="text-align: center;">
-    <MudText Typo="Typo.h5" Class="font-cherry-bomb-one" Style="@($"color: {Palette.YellowBackground}")">Slet Bruger</MudText>
+    <MudText Typo="Typo.h5" Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.YellowBackground}")">Slet Bruger</MudText>
         <MudText Typo="Typo.body1" Class="mt-3">
       Hvis du ønsker at slette din bruger permanent, skal du trykke på "Slet Bruger" knappen under Redigér profil.
     </MudText>

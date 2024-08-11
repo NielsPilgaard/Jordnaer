@@ -8,6 +8,8 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<EnableAuthenticator> Logger
 
+@attribute [Sitemap]
+
 <MetadataComponent Title="Konfigurer autentificerings-app"/>
 
 @if (_recoveryCodes is not null)

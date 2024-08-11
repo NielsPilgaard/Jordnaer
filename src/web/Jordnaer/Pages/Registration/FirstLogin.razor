@@ -3,6 +3,9 @@
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorageService
 
+@attribute [Sitemap]
+@attribute [Authorize]
+
 @if (_isLoading)
 {
     return;

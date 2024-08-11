@@ -5,6 +5,7 @@
 @inject IProfileCache ProfileCache
 
 @attribute [StreamRendering]
+@attribute [Sitemap]
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_profile is null && _isLoading is false)

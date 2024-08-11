@@ -4,6 +4,8 @@
 @inject ILogger<Login> Logger
 @inject IdentityRedirectManager RedirectManager
 
+@attribute [Sitemap]
+
 <MudContainer MaxWidth="MaxWidth.Small">
 	<MudPaper Elevation="3" Class="pa-4">
 		<EditForm Model="Input" OnValidSubmit="LoginUser" FormName="login">
