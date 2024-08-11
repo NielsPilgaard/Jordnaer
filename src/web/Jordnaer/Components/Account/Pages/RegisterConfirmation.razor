@@ -3,13 +3,22 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
+@attribute [Sitemap]
+
 <MetadataComponent Title="Registreringsbekræftelse" />
 
-<h2 class="font-open-sans-light">Registreringsbekræftelse</h2>
+@if (!string.IsNullOrEmpty(_statusMessage?.Message))
+{
+	<StatusMessage Message="@_statusMessage" />
+	return;
+}
 
-<StatusMessage Message="@_statusMessage" />
+<MudContainer MaxWidth="MaxWidth.Medium">
+	<h2 class="font-open-sans-light">Registreringsbekræftelse</h2>
 
-<p>Check venligst din email for at bekræfte din konto. Du kan lukke denne side.</p>
+	<MudText Class="my-4">Check venligst din email for at bekræfte din konto. </MudText>
+	<MudAlert Severity="Severity.Info" Class="mt-4">Husk at tjekke uønsket mail mappen.</MudAlert>
+</MudContainer>
 
 @code {
 	private AlertMessage? _statusMessage;
