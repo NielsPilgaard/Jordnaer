@@ -9,15 +9,6 @@
 <MetadataComponent Title="Grupper"
                    Description="Søg efter grupper" />
 
-<MudButton Href="/personal/groups" 
-           Color="Color.Info"
-           Class="d-xs-flex justify-content"
-           Variant="Variant.Filled" 
-           StartIcon="@Icons.Material.Filled.ArrowLeft"
-           EndIcon="@Icons.Material.Filled.GroupAdd">
-	Gå til mine grupper
-</MudButton>
-
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
     <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
@@ -81,9 +72,30 @@
 
         await UpdateQueryString();
         
-        Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
-	        severity: _searchResult.TotalCount is 0 ? Severity.Info : Severity.Success,
-	        options => options.VisibleStateDuration = 3500);
+        if (_searchResult.TotalCount is 0)
+        {
+	        Snackbar.Add(
+		        message: "Ingen grupper matchede søgningen.",
+		        severity: Severity.Info,
+		        options =>
+		        {
+			        options.VisibleStateDuration = 3500;
+			        options.CloseAfterNavigation = true;
+		        },
+		        key: nameof(GroupSearch));
+        }
+        else
+        {
+	        Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
+		        severity: Severity.Success,
+		        options =>
+		        {
+			        options.VisibleStateDuration = 3500;
+			        options.Icon = Icons.Material.Filled.ArrowDownward;
+			        options.CloseAfterNavigation = true;
+		        },
+                key: nameof(GroupSearch));
+        }
 
         _hasSearched = true;
 

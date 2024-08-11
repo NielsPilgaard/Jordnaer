@@ -1,60 +1,71 @@
 @inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
 
 <MudContainer MaxWidth="MaxWidth.Small">
-    <MudPaper Elevation="3" Class="pa-10 mt-5">
-        <p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
-            Find Grupper nær dig
-	    </p>
 
-        <MudDivider Class="mb-5 mt-1" />
+	<MudButton Href="/personal/groups"
+	           Color="Color.Info"
+	           Class="d-xs-flex justify-content"
+	           Variant="Variant.Filled"
+	           StartIcon="@Icons.Material.Filled.ArrowLeft"
+	           EndIcon="@Icons.Material.Filled.GroupAdd">
+		Gå til mine grupper
+	</MudButton>
 
-        <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
+	<MudPaper Elevation="3" Class="pa-10 mt-5">
+		<p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
+			Find Grupper nær dig
+		</p>
 
-            <MudGrid Justify="Justify.SpaceAround" Spacing="6">
+		<MudDivider Class="mb-5 mt-1"/>
 
-	            <MudItem xs="8">
-		            <ZipCodeAutoComplete For="() => Filter.Location" 
-		                                 Location="@Filter.Location" 
-		                                 LocationChanged="LocationChanged"
-                                         DisableSmartCompletion="_disableSmartCompletionForZipCode" />
-	            </MudItem>
-	            <MudItem xs="4">
-		            <MudNumericField For="() => Filter.WithinRadiusKilometers"
-		                             @bind-Value="Filter.WithinRadiusKilometers"
-		                             Label="km"
-		                             Placeholder="Radius">
-		            </MudNumericField>
-	            </MudItem>
+		<EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
 
-                <MudItem xs="12">
-                    <CategorySelector @bind-Categories="Filter.Categories" />
-                </MudItem>
-                
-                <MudItem xs="12">
-	                <MudTextField @bind-Value="Filter.Name" Placeholder="Gruppenavn" Label="Søg på navn" Clearable/>
-                </MudItem>
+			<MudGrid Justify="Justify.SpaceAround" Spacing="6">
 
-                <MudItem xs="12" sm="11" md="10" lg="9" xl="8"  Class="mt-8">
+				<MudItem xs="8">
+					<ZipCodeAutoComplete For="() => Filter.Location"
+					                     Location="@Filter.Location"
+					                     LocationChanged="LocationChanged"
+					                     DisableSmartCompletion="_disableSmartCompletionForZipCode"/>
+				</MudItem>
+				<MudItem xs="4">
+					<MudNumericField For="() => Filter.WithinRadiusKilometers"
+					                 @bind-Value="Filter.WithinRadiusKilometers"
+					                 Label="km"
+					                 Placeholder="Radius">
+					</MudNumericField>
+				</MudItem>
 
-	                <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
-		                <MudButton FullWidth
-		                           Variant="Variant.Filled"
-		                           Color="Color.Success"
-		                           ButtonType="ButtonType.Submit">
-			                <MudIcon Icon="@Icons.Material.Filled.Search" />
-		                </MudButton>
-		                <MudButton OnClick="ClearFilter"
-		                           Color="Color.Transparent"
-		                           Variant="Variant.Filled"
-		                           ButtonType="ButtonType.Reset">
-			                <MudIcon Icon="@Icons.Material.Filled.Clear" />
-		                </MudButton>
-	                </MudButtonGroup>
+				<MudItem xs="12">
+					<CategorySelector @bind-Categories="Filter.Categories"/>
+				</MudItem>
 
-                </MudItem>
-            </MudGrid>
-        </EditForm>
-    </MudPaper>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Filter.Name" Placeholder="Gruppenavn" Label="Søg på navn" Clearable/>
+				</MudItem>
+
+				<MudItem xs="12" sm="11" md="10" lg="9" xl="8" Class="mt-8">
+
+					<MudButtonGroup OverrideStyles="false" Style="width: 100%;">
+						<MudButton FullWidth
+						           Variant="Variant.Filled"
+						           Color="Color.Success"
+						           ButtonType="ButtonType.Submit">
+							<MudIcon Icon="@Icons.Material.Filled.Search"/>
+						</MudButton>
+						<MudButton OnClick="ClearFilter"
+						           Color="Color.Transparent"
+						           Variant="Variant.Filled"
+						           ButtonType="ButtonType.Reset">
+							<MudIcon Icon="@Icons.Material.Filled.Clear"/>
+						</MudButton>
+					</MudButtonGroup>
+
+				</MudItem>
+			</MudGrid>
+		</EditForm>
+	</MudPaper>
 </MudContainer>
 
 @code
@@ -83,7 +94,7 @@
 
         _recentlyClearedForm = true;
 
-        Navigation.NavigateTo(uriWithoutQuery);
+        await JsRuntime.NavigateTo(uriWithoutQuery);
     }
 
     private void LocationChanged(string location)

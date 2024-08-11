@@ -74,9 +74,30 @@
 
         _searchResult = await UserSearchService.GetUsersAsync(_filter);
 
-        Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
-            severity: _searchResult.TotalCount is 0 ? Severity.Info : Severity.Success,
-            options => options.VisibleStateDuration = 3500);
+        if (_searchResult.TotalCount is 0)
+        {
+            Snackbar.Add(
+	            message: "Ingen brugere matchede søgningen.",
+	            severity: Severity.Info,
+	            options =>
+	            {
+		            options.VisibleStateDuration = 3500;
+		            options.CloseAfterNavigation = true;
+	            },
+                key: nameof(UserSearch));
+        }
+        else
+        {
+	        Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
+		        severity: Severity.Success,
+		        options =>
+		        {
+			        options.VisibleStateDuration = 3500;
+			        options.Icon = Icons.Material.Filled.ArrowDownward;
+			        options.CloseAfterNavigation = true;
+		        },
+		        key: nameof(UserSearch));
+        }
 
         await UpdateQueryString();
 
