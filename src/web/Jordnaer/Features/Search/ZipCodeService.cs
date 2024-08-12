@@ -22,7 +22,7 @@ public class ZipCodeService(IDataForsyningenClient dataForsyningenClient, IOptio
 
 		var searchResponse = await dataForsyningenClient.GetZipCodesWithAutoComplete(
 								 location, cancellationToken);
-		if (!searchResponse.IsSuccessStatusCode)
+		if (!searchResponse.IsSuccessStatusCode || searchResponse.Content is null)
 		{
 			logger.LogError(searchResponse.Error,
 							"Exception occurred in function {functionName} " +
@@ -30,8 +30,8 @@ public class ZipCodeService(IDataForsyningenClient dataForsyningenClient, IOptio
 							"{statusCode}: {reasonPhrase}",
 							nameof(GetZipCodesNearLocationAsync),
 							nameof(IDataForsyningenClient.GetZipCodesWithAutoComplete),
-							searchResponse.Error.StatusCode,
-							searchResponse.Error.ReasonPhrase);
+							searchResponse.StatusCode,
+							searchResponse.ReasonPhrase);
 			return ([], searchedZipCode);
 		}
 
