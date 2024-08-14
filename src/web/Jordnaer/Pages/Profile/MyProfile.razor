@@ -17,7 +17,18 @@
         return;
     }
 
-    <MudButton Disabled="@(_userProfile.UserName is null)" Href="@($"/{_userProfile.UserName}")" Color="Color.Primary" StartIcon="@Icons.Material.Filled.KeyboardArrowLeft" EndIcon="@Icons.Material.Filled.Person">@(_userProfile.UserName is null ? "Sæt et brugernavn for at gøre din profil offentlig" : "Gå til offentlig profil")</MudButton>
+    <MudButton Disabled="@(_userProfile.UserName is null)"
+               Href="@($"/{_userProfile.UserName}")"
+               Size="Size.Large"
+               Class="mb-3"
+               Color="Color.Info"
+               Variant="Variant.Outlined"
+               StartIcon="@Icons.Material.Filled.KeyboardArrowLeft"
+               EndIcon="@Icons.Material.Filled.Person">
+        @(_userProfile.UserName is null
+            ? "Sæt et brugernavn for at gøre din profil offentlig"
+            : "Se hvordan andre ser din profil")
+    </MudButton>
 
     <EditForm Model="@_userProfile" OnValidSubmit="UpdateUserProfile">
 
@@ -124,10 +135,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-	    if (RenderStateService.IsPreRender)
-	    {
-		    return;
-	    }
+        if (RenderStateService.IsPreRender)
+        {
+            return;
+        }
 
         var userProfile = await ProfileCache.GetProfileAsync();
         if (userProfile is null)

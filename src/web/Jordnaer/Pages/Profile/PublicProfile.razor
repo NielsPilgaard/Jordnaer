@@ -22,11 +22,25 @@
                        Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
                        Image="@_profile?.ProfilePictureUrl" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
+    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Info" OnClick="JsRuntime.GoBackAsync" />
+    
+    
 
     @if (_currentUserId != _profile?.Id)
     {
         <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" />
+    }
+    else
+    {
+	    <MudButton Href="/profile"
+	               Class="mb-5 ml-3"
+	               Color="Color.Info"
+                   Size="Size.Large"
+	               Variant="Variant.Outlined"
+	               StartIcon="@Icons.Material.Filled.Edit"
+	               EndIcon="@Icons.Material.Filled.Person">
+		    Redigér Profil
+	    </MudButton>
     }
 
     <MudGrid>
