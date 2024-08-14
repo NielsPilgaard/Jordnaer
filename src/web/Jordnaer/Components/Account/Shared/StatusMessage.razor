@@ -13,17 +13,17 @@
     public AlertMessage? Message { get; set; }
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext? HttpContext { get; set; }
 
     private string? DisplayMessage => Message?.Message ?? _messageFromCookie;
 
     protected override void OnInitialized()
     {
-        _messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
+        _messageFromCookie = HttpContext?.Request.Cookies[IdentityRedirectManager.StatusCookieName];
 
         if (_messageFromCookie is not null)
         {
-            HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+            HttpContext?.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
         }
     }
 }
