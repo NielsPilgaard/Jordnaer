@@ -3,8 +3,6 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
-@attribute [Sitemap]
-
 <MetadataComponent Title="Registreringsbekræftelse" />
 
 @if (!string.IsNullOrEmpty(_statusMessage?.Message))
