@@ -7,7 +7,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<MudText Typo="Typo.h3" Class="font-cherry-bomb-one">Opret Gruppe</MudText>
+<MudText Typo="Typo.h3" Class="font-cherry-bomb-one mb-5">Opret Gruppe</MudText>
 
 <MetadataComponent Title="Opret gruppe"
                    Description="Her kan du oprette din gruppe." />
@@ -22,7 +22,7 @@
                     <MudTextField @bind-Value="_group.Name"
                                   For="() => _group.Name"
                                   Label="Gruppenavn"
-                                  Variant="Variant.Filled"/>
+                                  Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="8">
                     <MudTextField @bind-Value="_group.ShortDescription"
@@ -62,10 +62,10 @@
                     </MudSelectExtended>
                 </MudItem>
                 <MudItem xs="12">
-	                <TextEditorComponent Placeholder="Beskriv din gruppe her..."
-	                                     Label="Beskrivelse"
-	                                     Text="@null"
-	                                     @ref="_textEditorComponent" />
+                    <TextEditorComponent Placeholder="Beskriv din gruppe her..."
+                                         Label="Beskrivelse"
+                                         Text="@null"
+                                         @ref="_textEditorComponent" />
                 </MudItem>
             </MudGrid>
         </MudPaper>
@@ -84,11 +84,11 @@
 @code {
     private TextEditorComponent _textEditorComponent = default!;
     private readonly Group _group = new()
-    {
-	    Id = NewId.NextGuid(), 
-	    Name = string.Empty, 
-	    ShortDescription = string.Empty
-    };
+        {
+            Id = NewId.NextGuid(),
+            Name = string.Empty,
+            ShortDescription = string.Empty
+        };
 
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
@@ -107,13 +107,13 @@
 
         var response = await GroupService.CreateGroupAsync(_group);
         response.Switch(
-	        _ =>
-	        {
-		        Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-		        Navigation.NavigateTo($"/groups/{_group.Name}");
-	        }, 
-	        badRequest => Snackbar.Add(badRequest.Value, Severity.Warning));
-        
+            _ =>
+            {
+                Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
+                Navigation.NavigateTo($"/groups/{_group.Name}");
+            },
+            badRequest => Snackbar.Add(badRequest.Value, Severity.Warning));
+
 
         _isLoading = false;
     }
