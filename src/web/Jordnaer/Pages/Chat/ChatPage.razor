@@ -18,7 +18,7 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <MudPaper Elevation="2">
 
-        <MudGrid Style="height: 80svh">
+        <MudGrid Style="height: 80svh" Spacing="1">
 
             @if ((_activeChat is null && _isMobile) || _isMobile is false)
             {
@@ -27,17 +27,15 @@
 
             @if (_isMobile is false)
             {
-                <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0">
-                    <MudDivider Vertical Style="width:3px" />
+                <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
+                    <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem/>
                 </MudItem>
             }
 
-            @if (_activeChat is not null)
-            {
-                <ChatMessageList @bind-ActiveChat="_activeChat"
-                                 IsMobile="_isMobile"
-                                 LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
-            }
+            <ChatMessageList @bind-ActiveChat="_activeChat"
+                             IsMobile="_isMobile"
+                             LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
+            
         </MudGrid>
     </MudPaper>
 </MudLoading>

@@ -9,13 +9,17 @@
 
 @attribute [Authorize]
 
-@if (ActiveChat is null)
-{
-    <MudText>Der er ingen chat valgt</MudText>
-    return;
-}
+<MudItem Class="@MudItemClass" Style="@MudItemStyle" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
 
-<MudItem Class="chat-message-window" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
+    @if (ActiveChat is null)
+    {
+	    <MudStack Row>
+		    <MudIcon Icon="@Icons.Material.Filled.ArrowCircleLeft" Color="Color.Info" />
+		    <MudText>Vælg én at skrive med</MudText>
+	    </MudStack>
+        return;
+    }
+
     @if (IsMobile)
     {
         <MudAppBar Dense
@@ -98,6 +102,7 @@
                       Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
     </MudList>
 </MudItem>
+
 @code
 {
     [Parameter, EditorRequired]
@@ -116,6 +121,14 @@
     private bool _isActiveChatPublished => ActiveChat?.Messages.Count is not 0;
 
     private bool IsMessageFromSelf(ChatMessageDto message) => message.SenderId == CurrentUser.Id;
+
+    private string MudItemClass => ActiveChat is null
+        ? "chat-message-window d-flex align-center justify-center"
+        : "chat-message-window";
+
+    private string MudItemStyle => ActiveChat is null
+        ? "padding: 0"
+        : "";
 
     private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
     => ActiveChat?
@@ -149,7 +162,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    await ScrollToBottom();
+        await ScrollToBottom();
     }
 
     private void MarkMessageIfSuccessfullySentByCurrentUser()
