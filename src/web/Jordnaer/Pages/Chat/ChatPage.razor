@@ -4,17 +4,13 @@
 @inject IChatService ChatService
 @inject IChatMessageCache ChatMessageCache
 @inject IProfileCache ProfileCache
-@inject IJSRuntime JsRuntime
 @inject IBrowserViewportService BrowserViewportService
 @inject ChatSignalRClient ChatSignalRClient
 @inject NavigationManager Navigation
 
 @implements IAsyncDisposable
 
-@rendermode @(new InteractiveServerRenderMode(false))
-
 @attribute [Authorize]
-
 
 <MetadataComponent Title="Chat"
                    Description="Her kan du skrive med andre" />
@@ -38,52 +34,9 @@
 
             @if (_activeChat is not null)
             {
-                <MudItem Class="chat-message-window" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
-                    @if (_isMobile)
-                    {
-	                    <MudAppBar Dense 
-	                               ToolBarClass="justify-space-between h-100" 
-	                               Color="Color.Primary" 
-	                               Elevation="5">
-                            <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
-                                    OnClick="BackToList"
-                                    Color="Color.Info"
-                                    Size="Size.Small" />
-                            <MudText Typo="Typo.h5">@_activeChat.GetDisplayName(_currentUser.Id)</MudText>
-                        </MudAppBar>
-                    }
-
-                    <MudList Class="chat-message-list" Padding="false" ReadOnly Dense T="RenderFragment">
-                        <MudSpacer />
-
-                        <ChatMessageList ActiveChat="_activeChat" />
-
-                        @if (LastMessageWasSentSuccessfullyByCurrentUser)
-                        {
-                            <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
-                                <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
-                                         Class="message-sent-successfully" />
-                            </div>
-                        }
-
-                        <MudTextField id="chat-message-input"
-                                      @ref="_messageInput"
-                                      T="string"
-                                      FullWidth
-                                      Immediate
-                                      Clearable
-                                      AutoFocus
-                                      Adornment="Adornment.End"
-                                      OnKeyDown="SendMessageOnEnter"
-                                      AdornmentIcon="@Icons.Material.Filled.Send"
-                                      AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Primary)"
-                                      OnAdornmentClick="SendMessage"
-                                      Class="mt-3"
-                                      Lines="3"
-                                      IconSize="Size.Large"
-                                      Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
-                    </MudList>
-                </MudItem>
+                <ChatMessageList @bind-ActiveChat="_activeChat"
+                                 IsMobile="_isMobile"
+                                 LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
             }
         </MudGrid>
     </MudPaper>
@@ -97,8 +50,6 @@
     private List<ChatDto> _chats = [];
     private ChatDto? _activeChat;
 
-    private MudTextField<string> _messageInput = new();
-    private bool _isActiveChatPublished = true;
     private bool _isLoading = true;
     private bool _isMobile = true;
     private readonly Guid _breakpointObserverId = Guid.NewGuid();
@@ -125,7 +76,6 @@
             },
             fireImmediately: true);
 
-        await ScrollToBottom();
     }
 
     protected override async Task OnInitializedAsync()
@@ -213,29 +163,24 @@
 
     public async Task LoadMessages()
     {
-        // TODO: Add MudScrollToTop that shows when user is scrolled up in the chat window
         if (_activeChat is null)
         {
             return;
         }
 
         _activeChat.Messages = await ChatMessageCache.GetChatMessagesAsync(_currentUser.Id, _activeChat.Id);
-        StateHasChanged();
-        await ScrollToBottom();
     }
 
     private async Task SelectChat(ChatDto chat)
     {
         _activeChat = chat;
-        if (_isActiveChatPublished)
-        {
-            await LoadMessages();
 
-            if (chat.HasUnreadMessages)
-            {
-                await ChatService.MarkMessagesAsReadAsync(_currentUser.Id, _activeChat.Id);
-                chat.UnreadMessageCount = 0;
-            }
+        await LoadMessages();
+
+        if (chat.HasUnreadMessages)
+        {
+            await ChatService.MarkMessagesAsReadAsync(_currentUser.Id, _activeChat.Id);
+            chat.UnreadMessageCount = 0;
         }
 
         MarkMessageIfSuccessfullySentByCurrentUser();
@@ -263,58 +208,6 @@
         LastMessageWasSentSuccessfullyByCurrentUser = lastMessage.SenderId == _currentUser.Id;
     }
 
-    private async ValueTask ScrollToBottom() => await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.scrollToBottomOfElement", ".chat-message-window");
-
-    private async Task BackToList()
-    {
-        _activeChat = null;
-        await JsRuntime.GoBackAsync();
-    }
-
-    private async Task SendMessage()
-    {
-        if (_activeChat is null || string.IsNullOrWhiteSpace(_messageInput.Value))
-        {
-            return;
-        }
-
-        var message = new ChatMessageDto
-            {
-                ChatId = _activeChat.Id,
-                Id = NewId.NextGuid(),
-                SentUtc = DateTime.UtcNow,
-                SenderId = _currentUser.Id,
-                Text = _messageInput.Value
-            };
-
-        await _messageInput.BlurAsync();
-        await _messageInput.Clear();
-
-        _activeChat.Messages.Add(message);
-
-        if (_isActiveChatPublished)
-        {
-            await ChatService.SendMessageAsync(message);
-        }
-        else
-        {
-            await ChatService.StartChatAsync(_activeChat.ToStartChatCommand(_currentUser.Id));
-            _isActiveChatPublished = true;
-        }
-
-        await _messageInput.FocusAsync();
-        StateHasChanged();
-        await ScrollToBottom();
-    }
-
-    private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
-    {
-        if (keyboardEventArgs is { Key: "Enter", ShiftKey: false })
-        {
-            await SendMessage();
-        }
-    }
-
     private async Task StartNewChat(IEnumerable<UserSlim> users)
     {
         var userList = users.ToList();
@@ -326,7 +219,6 @@
             if (existingChat is not null)
             {
                 await SelectChat(existingChat);
-                await ScrollToBottom();
                 return;
             }
         }
@@ -351,8 +243,6 @@
         }
 
         _chats.Insert(0, newChat);
-
-        _isActiveChatPublished = false;
 
         await SelectChat(newChat);
     }
