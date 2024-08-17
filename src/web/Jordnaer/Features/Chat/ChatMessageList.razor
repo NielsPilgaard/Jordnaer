@@ -1,6 +1,6 @@
 @inject CurrentUser CurrentUser
 
-<Virtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
+<MudVirtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
 
     @if (IsMessageFromSelf(message))
     {
@@ -38,7 +38,7 @@
             </MudTooltip>
         </MudListItem>
     }
-</Virtualize>
+</MudVirtualize>
 
 @code
 {
