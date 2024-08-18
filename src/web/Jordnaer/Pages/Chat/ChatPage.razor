@@ -7,6 +7,7 @@
 @inject IBrowserViewportService BrowserViewportService
 @inject ChatSignalRClient ChatSignalRClient
 @inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
 
 @implements IAsyncDisposable
 
@@ -61,7 +62,15 @@
             return;
         }
 
-        await BrowserViewportService.SubscribeAsync(
+        List<Task> tasks = [];
+
+        if (_isMobile)
+        {
+	        var hideElementTask = JsRuntime.HideElement(".footer");
+	        tasks.Add(hideElementTask);
+        }
+
+        var subscribeToViewportChangesTask =  BrowserViewportService.SubscribeAsync(
             observerId: _breakpointObserverId,
             lambda: async args =>
             {
@@ -73,7 +82,9 @@
                 }
             },
             fireImmediately: true);
+            tasks.Add(subscribeToViewportChangesTask);
 
+        await Task.WhenAll(tasks);
     }
 
     protected override async Task OnInitializedAsync()
@@ -97,7 +108,7 @@
         }
 
         await StartSignalR();
-
+        
         _isLoading = false;
     }
 
