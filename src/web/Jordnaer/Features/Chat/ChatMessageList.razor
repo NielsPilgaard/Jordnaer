@@ -11,29 +11,30 @@
 
 <MudItem Class="@MudItemClass" Style="@MudItemStyle" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
 
-    @if (ActiveChat is null && IsMobile is false)
+    @switch (ActiveChat)
     {
-	    <MudStack Row Style="margin-left: -24px;">
-		    <MudIcon Icon="@Icons.Material.Filled.ArrowCircleLeft" Size="Size.Large" Color="Color.Info" />
-		    <MudText Typo="Typo.h5">Vælg én at skrive med</MudText>
-	    </MudStack>
-        return;
+        case null when IsMobile:
+            return;
+        case null when IsMobile is false:
+            <MudStack Row Style="margin-left: -24px;">
+                <MudIcon Icon="@Icons.Material.Filled.ArrowCircleLeft" Size="Size.Large" Color="Color.Info" />
+                <MudText Typo="Typo.h5">Vælg én at skrive med</MudText>
+            </MudStack>
+            return;
+        case not null when IsMobile:
+            <MudAppBar Dense
+                       ToolBarClass="justify-space-between h-100"
+                       Color="Color.Primary"
+                       Elevation="5">
+                <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
+                        OnClick="BackToList"
+                        Color="Color.Info"
+                        Size="Size.Small" />
+                <MudText Typo="Typo.h5">@ActiveChat.GetDisplayName(CurrentUser.Id!)</MudText>
+            </MudAppBar>
+            break;
     }
 
-    @if (IsMobile)
-    {
-        <MudAppBar Dense
-                   ToolBarClass="justify-space-between h-100"
-                   Color="Color.Primary"
-                   Elevation="5">
-            <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
-                    OnClick="BackToList"
-                    Color="Color.Info"
-                    Size="Size.Small" />
-            <MudText Typo="Typo.h5">@ActiveChat.GetDisplayName(CurrentUser.Id!)</MudText>
-        </MudAppBar>
-    }
-    
     @*The elements below cannot be readonly/disabled, as it disabled the tooltips *@
     <MudList Class="chat-message-list" Padding="false" Dense T="RenderFragment">
         <MudSpacer />
@@ -163,7 +164,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    await JsRuntime.ScrollToBottomOfElement(".chat-message-window");
+        await JsRuntime.ScrollToBottomOfElement(".chat-message-window");
     }
 
     private void MarkMessageIfSuccessfullySentByCurrentUser()
