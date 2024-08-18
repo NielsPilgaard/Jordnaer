@@ -62,15 +62,7 @@
             return;
         }
 
-        List<Task> tasks = [];
-
-        if (_isMobile)
-        {
-	        var hideElementTask = JsRuntime.HideElement(".footer");
-	        tasks.Add(hideElementTask);
-        }
-
-        var subscribeToViewportChangesTask =  BrowserViewportService.SubscribeAsync(
+        await BrowserViewportService.SubscribeAsync(
             observerId: _breakpointObserverId,
             lambda: async args =>
             {
@@ -82,9 +74,11 @@
                 }
             },
             fireImmediately: true);
-            tasks.Add(subscribeToViewportChangesTask);
 
-        await Task.WhenAll(tasks);
+        if (_isMobile)
+        {
+	        await JsRuntime.HideElement(".footer");
+        }
     }
 
     protected override async Task OnInitializedAsync()
