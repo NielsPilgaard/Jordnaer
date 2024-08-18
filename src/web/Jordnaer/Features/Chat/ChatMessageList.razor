@@ -33,8 +33,9 @@
             <MudText Typo="Typo.h5">@ActiveChat.GetDisplayName(CurrentUser.Id!)</MudText>
         </MudAppBar>
     }
-
-    <MudList Class="chat-message-list" Padding="false" ReadOnly Dense T="RenderFragment">
+    
+    @*The elements below cannot be readonly/disabled, as it disabled the tooltips *@
+    <MudList Class="chat-message-list" Padding="false" Dense T="RenderFragment">
         <MudSpacer />
         <MudVirtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
 
@@ -96,8 +97,8 @@
                       AdornmentIcon="@Icons.Material.Filled.Send"
                       AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Primary)"
                       OnAdornmentClick="SendMessage"
-                      Class="mt-3"
-                      Lines="3"
+                      Class="mt-3 p-1"
+                      Lines="2"
                       IconSize="Size.Large"
                       Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
     </MudList>
@@ -162,7 +163,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await ScrollToBottom();
+	    await JsRuntime.ScrollToBottomOfElement(".chat-message-window");
     }
 
     private void MarkMessageIfSuccessfullySentByCurrentUser()
@@ -181,8 +182,6 @@
 
         LastMessageWasSentSuccessfullyByCurrentUser = lastMessage.SenderId == CurrentUser.Id;
     }
-
-    private async ValueTask ScrollToBottom() => await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.scrollToBottomOfElement", ".chat-message-window");
 
     private async Task BackToList()
     {
@@ -222,7 +221,7 @@
         }
 
         await _messageInput.FocusAsync();
-        await ScrollToBottom();
+        await JsRuntime.ScrollToBottomOfElement(".chat-message-window");
     }
 
     // TODO: Add MudScrollToTop that shows when user is scrolled up in the chat window

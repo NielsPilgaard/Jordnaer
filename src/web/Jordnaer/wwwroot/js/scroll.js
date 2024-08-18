@@ -21,8 +21,17 @@ window.scrollFunctions = {
     scrollToBottomOfElement: function (selector) {
         const element = document.querySelector(selector);
 
-        if (!element) return;
+        if (!element) {
+            return;
+        }
 
-        element.scrollTop = element.scrollHeight;
+        // Ensure the element is fully rendered before scrolling
+        setTimeout(function () {
+            element.scrollTo({
+                top: element.scrollHeight,
+                left: 0,
+                behavior: 'instant' //  'auto', 'instant' or 'smooth' (default is 'auto')
+            });
+        }, 50); // Adjust the delay as needed
     }
 };
