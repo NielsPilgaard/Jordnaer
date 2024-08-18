@@ -11,7 +11,7 @@
 
 <MudItem Class="@MudItemClass" Style="@MudItemStyle" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
 
-    @if (ActiveChat is null)
+    @if (ActiveChat is null && IsMobile is false)
     {
 	    <MudStack Row Style="margin-left: -24px;">
 		    <MudIcon Icon="@Icons.Material.Filled.ArrowCircleLeft" Size="Size.Large" Color="Color.Info" />
