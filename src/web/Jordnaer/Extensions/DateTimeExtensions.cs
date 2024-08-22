@@ -4,7 +4,7 @@ public static class DateTimeExtensions
 {
 	public static string DisplayExactTime(this DateTime date) =>
 		// Example of this format: 1/9 2017 kl. 07:45
-		$"afsendt {date.ToLocalTime():d/M yyyy kl. HH:mm}";
+		$"{date.ToLocalTime():d/M yyyy kl. HH:mm}";
 
 	public static string DisplayTimePassed(this DateTime date)
 	{
@@ -42,7 +42,7 @@ public static class DateTimeExtensions
 				return $"sendt for {Math.Floor(timeSpan.TotalDays)} dage siden";
 		}
 
-		int weeks = (int)Math.Floor(timeSpan.TotalDays / 7);
+		var weeks = (int)Math.Floor(timeSpan.TotalDays / 7);
 
 		if (weeks is 1)
 		{

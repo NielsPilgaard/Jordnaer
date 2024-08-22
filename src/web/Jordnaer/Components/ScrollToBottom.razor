@@ -1,0 +1,8 @@
+﻿@inherits MudComponentBase
+ 
+<span class="@Classname"
+      style="@Style"
+      @attributes="@UserAttributes"
+      @onclick="EventUtil.AsNonRenderingEventHandler<MouseEventArgs>(OnButtonClick)">
+	@ChildContent
+</span>

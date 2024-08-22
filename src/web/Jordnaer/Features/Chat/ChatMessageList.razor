@@ -1,3 +1,4 @@
+@using MudExtensions.Services
 @inject CurrentUser CurrentUser
 
 @inject IChatService ChatService
@@ -6,15 +7,19 @@
 @inject IJSRuntime JsRuntime
 @inject ChatSignalRClient ChatSignalRClient
 @inject NavigationManager Navigation
+@inject IScrollManager ScrollManager
 
 @attribute [Authorize]
+
+@if (ActiveChat is null && IsMobile)
+{
+    return;
+}
 
 <MudItem Class="@MudItemClass" Style="@MudItemStyle" xs="12" sm="12" md="8" lg="8" xl="8" xxl="8">
 
     @switch (ActiveChat)
     {
-        case null when IsMobile:
-            return;
         case null when IsMobile is false:
             <MudStack Row Style="margin-left: -24px;">
                 <MudIcon Icon="@Icons.Material.Filled.ArrowCircleLeft" Size="Size.Large" Color="Color.Info" />
@@ -35,47 +40,44 @@
             break;
     }
 
-    @*The elements below cannot be readonly/disabled, as it disabled the tooltips *@
+    @*The elements below cannot be readonly/disabled, as it disables the tooltips *@
     <MudList Class="chat-message-list" Padding="false" Dense T="RenderFragment">
         <MudSpacer />
         <MudVirtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
+            <MudListItem T="MudTooltip" Class="@(MudListItemClass(message))">
 
-            @if (IsMessageFromSelf(message))
-            {
-                <MudListItem Class="message-from-self" T="MudTooltip">
-                    <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
-                        <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                            <MudChip Class="chat-chip" Size="Size.Large" T="MudText">
-                                <MudText Typo="Typo.h6">@message.Text</MudText>
-                            </MudChip>
-                        </MudTooltip>
-                    </MudTooltip>
-                </MudListItem>
-            }
-            else
-            {
-                <MudListItem T="MudTooltip">
-                    <MudTooltip Placement="Placement.Top" ShowOnClick ShowOnHover="false" ShowOnFocus="false" Arrow Text="@message.SentUtc.DisplayExactTime()">
-                        <MudTooltip ShowOnHover Arrow Text="@message.SentUtc.DisplayTimePassed()">
-                            <MudChip Class="chat-chip" Size="Size.Large" T="MudLink">
-                                <AvatarContent>
-                                    @if (!NextMessageIsFromSameSender(message))
-                                    {
-                                        <MudLink Href="@GetRecipientsUserName(message)">
-                                            <MudAvatar>
-                                                <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar" />
-                                            </MudAvatar>
-                                        </MudLink>
-                                    }
-                                </AvatarContent>
-                                <ChildContent>
-                                    <MudText Typo="Typo.h6">@message.Text</MudText>
-                                </ChildContent>
-                            </MudChip>
-                        </MudTooltip>
-                    </MudTooltip>
-                </MudListItem>
-            }
+	            <MudTooltip Placement="@(IsMessageFromSelf(message) ? Placement.Left : Placement.Right)"
+	                        Arrow
+	                        Text="@(CreateTooltip(message))">
+
+		            @if (IsMessageFromSelf(message))
+		            {
+			            <MudChip Class="chat-chip" Size="Size.Large" T="MudText">
+				            <MudText Typo="Typo.h6">@message.Text</MudText>
+			            </MudChip>
+		            }
+		            else
+		            {
+			            <MudChip Class="chat-chip" Size="Size.Large">
+				            <AvatarContent>
+					            @if (!NextMessageIsFromSameSender(message))
+					            {
+						            <MudLink Href="@GetRecipientsUserName(message)">
+							            <MudAvatar>
+								            <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar"/>
+							            </MudAvatar>
+						            </MudLink>
+					            }
+				            </AvatarContent>
+				            <ChildContent>
+					            <MudText Typo="Typo.h6">@message.Text</MudText>
+				            </ChildContent>
+			            </MudChip>
+		            }
+
+	            </MudTooltip>
+            </MudListItem>
+
         </MudVirtualize>
 
         @if (LastMessageWasSentSuccessfullyByCurrentUser)
@@ -102,11 +104,18 @@
                       Lines="2"
                       IconSize="Size.Large"
                       Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
+
     </MudList>
+
+    <ScrollToBottom Selector="@ChatMessageWindowClass">
+        <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
+    </ScrollToBottom>
 </MudItem>
 
 @code
 {
+    private const string ChatMessageWindowClass = ".chat-message-window";
+
     [Parameter, EditorRequired]
     public required ChatDto? ActiveChat { get; set; }
 
@@ -132,15 +141,17 @@
         ? "padding: 0"
         : "";
 
+    private string MudListItemClass(ChatMessageDto message) => IsMessageFromSelf(message)
+            ? "message-from-self"
+            : "";
+
     private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
-    => ActiveChat?
-        .Recipients
-        .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
+    => ActiveChat?.Recipients
+	       .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
        ?? ProfileConstants.Default_Profile_Picture;
 
     private string? GetRecipientsUserName(ChatMessageDto message)
-        => ActiveChat?
-            .Recipients
+        => ActiveChat?.Recipients
             .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.UserName;
 
     private bool NextMessageIsFromSameSender(ChatMessageDto message)
@@ -164,7 +175,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JsRuntime.ScrollToBottomOfElement(".chat-message-window");
+        await ScrollManager.ScrollToBottomAsync(ChatMessageWindowClass);
     }
 
     private void MarkMessageIfSuccessfullySentByCurrentUser()
@@ -222,10 +233,8 @@
         }
 
         await _messageInput.FocusAsync();
-        await JsRuntime.ScrollToBottomOfElement(".chat-message-window");
+        await ScrollManager.ScrollToBottomAsync(ChatMessageWindowClass);
     }
-
-    // TODO: Add MudScrollToTop that shows when user is scrolled up in the chat window
 
     private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
     {
@@ -234,4 +243,7 @@
             await SendMessage();
         }
     }
+
+    private string CreateTooltip(ChatMessageDto message)
+        => $"{message.SentUtc.DisplayTimePassed()} ({message.SentUtc.DisplayExactTime()})";
 }
