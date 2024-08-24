@@ -34,10 +34,10 @@
                                 <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
                             </div>
                             <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1" T="MudChip<string>">
-                                @foreach (var category in user.Categories)
-                                {
-                                    <MudChip Color="Color.Tertiary">@category</MudChip>
-                                }
+	                            @foreach (var category in user.Categories)
+	                            {
+		                            <MudChip Color="Color.Tertiary">@category</MudChip>
+	                            }
                             </MudChipSet>
                         }
                     </MudCardContent>

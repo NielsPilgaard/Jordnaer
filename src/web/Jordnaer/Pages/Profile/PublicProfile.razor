@@ -41,17 +41,19 @@
 	    </MudButton>
     }
 
-    <MudGrid>
+    <MudGrid Justify="Justify.FlexStart">
         <MudItem xs="12">
             <UserProfileCard Profile="_profile" UserName="@UserName" />
         </MudItem>
 
         @if (_profile!.ChildProfiles.Count > 0)
         {
-            <MudDivider Class="my-5" />
-            <MudText Typo="Typo.h5" Class="d-sm-none mt-3">
-               Børn
-            </MudText>
+	        <MudItem xs="12" Class="text-center">
+		        <MiniDivider Color="MiniDividerColor.Red" Class="my-5"/>
+		        <MudText Typo="Typo.h3" Class="d-sm-none mt-3">
+			        Børn
+		        </MudText>
+	        </MudItem>
 
             foreach (var child in _profile.ChildProfiles)
             {
@@ -59,22 +61,6 @@
                     <ChildProfileCard Child="child" />
                 </MudItem>
             }
-        }
-
-        @if (_profile.Categories.Any())
-        {
-            <MudDivider Class="my-5" />
-            <MudItem xs="12">
-                <MudText Typo="Typo.h5"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
-            </MudItem>
-            <MudItem xs="12" Class="d-flex justify-start">
-                <MudChipSet ReadOnly T="MudChip<Category>">
-                 @foreach (var category in _profile.Categories)
-                    {
-                        <MudChip Color="Color.Tertiary">@category</MudChip>
-                    }
-                </MudChipSet>
-            </MudItem>
         }
     </MudGrid>
 </MudLoading>

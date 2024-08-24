@@ -37,6 +37,29 @@
 			              ReadOnly T="string" 
 			              Value="@($"{Profile.Age} år")" />
 		}
+        
+		@if (Profile.Categories.Count > 0)
+		{
+			<MudChipField ChipColor="Color.Tertiary"
+			              Label="Kategorier"
+			              Values="Profile.Categories.Select(x => x.Name).ToList()"
+			              T="string"
+			              ReadOnly
+			              ChipVariant="Variant.Filled"
+			              Closeable="false"
+			              Clearable="false"
+			              Class="ms-0"
+			              WrapChips />
+		}
+		else
+		{
+			<MudTextField Label="Kategorier"
+			              Adornment="Adornment.Start"
+			              AdornmentIcon="@Icons.Material.Filled.Star"
+			              ReadOnly
+			              T="string"
+			              Text="" />
+		}
 
 		@if (Profile.Description is not null)
 		{
