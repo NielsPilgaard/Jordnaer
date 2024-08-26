@@ -51,6 +51,7 @@ public static class JordnaerPalette
 	public static readonly MudColor RedHeader = "#673417";
 
 	public static readonly string RedHeaderTextStyle = $"color: {RedHeader}";
+
 	/// <summary>
 	/// Beige. Used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated.
 	/// </summary>
