@@ -9,6 +9,7 @@ public class ContactForm
 	[EmailAddress(ErrorMessage = "Email skal være gyldig.")]
 	public string Email { get; set; } = null!;
 
-	[Required(ErrorMessage = "Besked må ikke være blank.")]
+	[Required(ErrorMessage = "Beskeden må ikke være blank.")]
+	[MinLength(1, ErrorMessage = "Beskeden må ikke være blank")]
 	public string Message { get; set; } = null!;
 }
