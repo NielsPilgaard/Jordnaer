@@ -107,8 +107,8 @@
 
     </MudList>
 
-    <ScrollToBottom Selector="@ChatMessageWindowClass">
-        <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
+    <ScrollToBottom Selector="@ChatMessageWindowClass" OnClick="async () => await _messageInput.FocusAsync()">
+        <MudFab Size="Size.Large" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
     </ScrollToBottom>
 </MudItem>
 
