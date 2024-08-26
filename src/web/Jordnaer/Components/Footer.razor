@@ -1,4 +1,4 @@
-<footer class="footer mud-elevation-5 d-flex flex-row justify-center">
+<footer class="footer mud-elevation-5 d-flex flex-row justify-center @Class">
     <div class="d-flex py-3">
         <div class="px-sm-10 px-md-12 px-lg-14">
             <MudNavLink Href="/about">Om</MudNavLink>
@@ -12,3 +12,10 @@
         </div>
     </div>
 </footer>
+
+@code {
+
+	[Parameter]
+    public string? Class { get; set; }
+
+}
