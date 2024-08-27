@@ -11,11 +11,13 @@ public static class JordnaerTheme
 		{
 			Body1 = new Body1
 			{
-				FontFamily = ["Open Sans Light", "Arial", "sans-serif"]
+				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
+				FontSize = "1.25rem"
 			},
 			Body2 = new Body2
 			{
-				FontFamily = ["Open Sans Light", "Arial", "sans-serif"]
+				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
+				FontSize = "1.1rem"
 			},
 			Default = new Default
 			{
@@ -55,10 +57,14 @@ public static class JordnaerPalette
 	/// <summary>
 	/// Beige. Used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated.
 	/// </summary>
-	public static readonly MudColor BeigeBackground = "#dbd2c1"; // Changed from "#cfc1a6" to "#dbd2c1"
+	public static readonly MudColor BeigeBackground = "#cfc1a699"; // 99 added to apply 60% opacity
+
+	public static readonly string BeigeBackgroundStyle = $"background-color: {BeigeBackground}";
 
 	/// <summary>
 	/// Pale Blue. Rarely used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated.
 	/// </summary>
-	public static readonly MudColor PaleBlueBackground = "#a9c0cf";
+	public static readonly MudColor PaleBlueBackground = "#a9c0cf66"; // 66 added to apply 40% opacity
+
+	public static readonly string PaleBlueBackgroundStyle = $"background-color: {PaleBlueBackground}";
 }

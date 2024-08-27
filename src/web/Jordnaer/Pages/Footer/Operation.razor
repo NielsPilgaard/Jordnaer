@@ -4,34 +4,40 @@
                    Description="Hvordan Mini Møder drives, udvikles og vedligeholdes." />
 
 <MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Elevation="3" Class="pa-10 mt-5">
-        <MudText Typo="Typo.h3" Align="Align.Center">Drift</MudText>
-        <MudDivider Class="mt-1 mb-5" />
+	<MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.PaleBlueBackgroundStyle">
 
-        <MudStack Row>
-            <MudStack>
-                <MudText Class="mt-1">Mini Møder er lavet af mig, Niels 🖐 med støtte og input fra min kone Josefine.</MudText>
-                <MudText Class="mt-1">Jeg bygger Mini Møder i min fritid, oftest om aftenen når mine to unger er puttet.</MudText>
-                <MudText Class="mt-1">Jeg står for udvikling, drift og vedligeholdelse af hele molevitten.</MudText>
-            </MudStack>
-            <MudImage Class="d-none d-sm-flex" Src="https://jordnaer.blob.core.windows.net/userprofile-pictures/d8132467-293e-4510-a1e0-ee7aad6aad73" />
-        </MudStack>
+		<h1 class="font-open-sans-bold text-center" style="@JordnaerPalette.RedHeaderTextStyle">
+			Drift
+		</h1>
+
+		<MudDivider Class="mt-1 mb-5"/>
+
+		<MudStack Row>
+			<MudStack>
+				<MudText Class="mt-1">Mini Møder er lavet af mig, Niels 🖐 med støtte og input fra min kone Josefine.</MudText>
+				<MudText Class="mt-1">Jeg bygger Mini Møder i min fritid, oftest om aftenen når mine to unger er puttet.</MudText>
+				<MudText Class="mt-1">Jeg står for udvikling, drift og vedligeholdelse af hele molevitten.</MudText>
+			</MudStack>
+			<MudImage Class="d-none d-sm-flex" Style="border-radius: 15px" Src="https://jordnaer.blob.core.windows.net/userprofile-pictures/d8132467-293e-4510-a1e0-ee7aad6aad73"/>
+		</MudStack>
 
 
 
-        <MudText Class="mt-5">Det er desværre ikke helt gratis at drive Mini Møder - Hvis du vil støtte op om Mini Møder tager vi imod donationer og sponsoraftaler med kyshånd 😄</MudText>
+		<MudText Class="mt-5">Det er desværre ikke helt gratis at drive Mini Møder - Hvis du vil støtte op om Mini Møder tager vi imod donationer og sponsoraftaler med kyshånd 😄</MudText>
 
-        <MudText Class="mt-5">Du kan komme i kontakt med os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.</MudText>
+		<MudText Class="mt-5">Du kan komme i kontakt med os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.</MudText>
 
-        <MudText Class="mt-15">
-            Af juridiske årsager ejer jeg Mini Møder gennem min enkeltmandsvirksomhed:<br />
-            <MudLink Target="_blank" rel="noreferrer"
-                     Href="https://www.proff.dk/firma/pilgaard-development/ryomg%C3%A5rd/dataprogramvare-og-udvikling/0OK451I009O">
-                Pilgaard Development<br />
-                Nordlyvej 20, Ryomgård 8550<br />
-                +4529917126
-            </MudLink>.
-        </MudText>
+		<MiniDivider Color="MiniDividerColor.Yellow" Center Class="my-8"/>
 
-    </MudPaper>
+		<MudText>
+			Af juridiske årsager ejer jeg Mini Møder gennem min enkeltmandsvirksomhed:<br/>
+			<MudLink Target="_blank" rel="noreferrer"
+			         Href="https://www.proff.dk/firma/pilgaard-development/ryomg%C3%A5rd/dataprogramvare-og-udvikling/0OK451I009O">
+				Pilgaard Development<br/>
+				Nordlyvej 20, Ryomgård 8550<br/>
+				+4529917126
+			</MudLink>.
+		</MudText>
+
+	</MudPaper>
 </MudContainer>

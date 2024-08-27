@@ -4,32 +4,42 @@
                    Description="Mini Møder's sponsorer" />
 
 <MudContainer MaxWidth="MaxWidth.Large">
-    <MudPaper Elevation="3" Class="pa-10 mt-5">
-        <MudText Typo="Typo.h3" Class="mb-5 text-center">Vore Sponsorer</MudText>
-        <MudDivider Class="mt-1 mb-5" />
+	<MudPaper Elevation="3" Class="pa-10 mt-5 text-center" Style="@JordnaerPalette.PaleBlueBackgroundStyle">
 
-        <MudGrid Justify="Justify.SpaceEvenly">
-          @foreach (var sponsor in _sponsors)
-          {
-              <SponsorCard Sponsor="sponsor" />
-          }
-        </MudGrid>
+		<h1 class="font-open-sans-medium" style="@JordnaerPalette.RedHeaderTextStyle">
+			Vore Sponsorer
+		</h1>
 
-        <MudDivider Class="my-10" />
-        <MudText Typo="Typo.h4" Class="mt-5 mb-3 text-center">Bliv Sponsor</MudText>
-        <MudText Typo="Typo.body1">
-          At være en sponsor af Mini Møder giver en unik mulighed for at støtte et
-          lokalt initiativ og samtidig opnå synlighed for dit brand.
-          Hvis du er interesseret i at høre mere om mulighederne for at blive en sponsor,
-          er du meget velkommen til at kontakte os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.
+		<MudDivider Class="mt-1 mb-5"/>
+
+		<MudGrid Justify="Justify.SpaceEvenly">
+			@foreach (var sponsor in _sponsors)
+			{
+				<SponsorCard Sponsor="sponsor"/>
+			}
+		</MudGrid>
+
+		<MiniDivider Color="MiniDividerColor.Green" Class="my-10"/>
+
+		<h2 class="font-open-sans-light text-center mt-5 mb-3" style="@JordnaerPalette.RedHeaderTextStyle">
+			Bliv Sponsor
+		</h2>
+
+		<MudText Typo="Typo.body1">
+			At være en sponsor af Mini Møder giver en unik mulighed for at støtte et
+			lokalt initiativ og samtidig opnå synlighed for dit brand.
         </MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">
+			Hvis du er interesseret i at høre mere om mulighederne for at blive en sponsor,
+			er du meget velkommen til at kontakte os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.
+		</MudText>
 
-    </MudPaper>
+	</MudPaper>
 </MudContainer>
 
 @code {
 
-    private readonly List<Sponsor> _sponsors =
+    private static readonly List<Sponsor> _sponsors =
     [
 	    new Sponsor
 	    {

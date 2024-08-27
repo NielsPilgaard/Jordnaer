@@ -7,24 +7,53 @@
 
 <MudLoading @bind-Loading="_isSending" Darken Overlap>
     <MudContainer MaxWidth="MaxWidth.Small">
-        <MudPaper Elevation="3" Class="pa-10 mt-5">
-            <MudText Typo="Typo.h3">Kontakt os</MudText>
-            <MudDivider Class="mt-1 mb-5" />
+        <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.PaleBlueBackgroundStyle">
 
-            <MudText Typo="Typo.body1">
-                Har du spørgsmål, kommentarer eller forslag? Vi vil meget gerne høre fra dig!
-            </MudText>
-            <MudText Typo="Typo.body1" Class="mt-3">
-                Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
-            </MudText>
+		    <h1 class="font-open-sans-medium" style="@JordnaerPalette.RedHeaderTextStyle">Kontakt os</h1>
 
-            <EditForm Model="_contactForm" OnValidSubmit="SubmitForm" Class="mt-5">
-                <MudTextField Label="Dit Navn" @bind-Value="_contactForm.Name" For="() => _contactForm.Name" FullWidth Class="mt-3" name="name" />
-                <MudTextField Label="Din Email" @bind-Value="_contactForm.Email" For="() => _contactForm.Email" Required InputType="InputType.Email" FullWidth Class="mt-3" name="reg_email__" />
-                <MudTextField Label="Din Besked" @bind-Value="_contactForm.Message" For="() => _contactForm.Message" Required FullWidth AutoGrow Class="mt-3" />
-                <MudButton FullWidth Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Send" OnClick="SubmitForm" Class="mt-3">Send</MudButton>
-            </EditForm>
-        </MudPaper>
+		    <MudDivider Class="mt-1 mb-5"/>
+
+		    <MudText Typo="Typo.body1">
+			    Har du spørgsmål, kommentarer eller forslag? Så skriv endelig!
+		    </MudText>
+		    <MudText Typo="Typo.body1" Class="my-3">
+			    Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
+		    </MudText>
+
+		    <EditForm Model="_contactForm" OnValidSubmit="SubmitForm">
+			    <DataAnnotationsValidator/>
+
+			    <MudTextField AutoFocus
+			                  Label="Navn"
+			                  @bind-Value="_contactForm.Name"
+			                  For="() => _contactForm.Name"
+			                  FullWidth
+			                  Class="my-3"
+			                  name="name"/>
+
+			    <MudTextField Label="Email"
+			                  @bind-Value="_contactForm.Email"
+			                  For="() => _contactForm.Email"
+			                  FullWidth
+			                  Class="my-3"
+			                  name="reg_email__"/>
+
+			    <MudTextField Label="Besked"
+			                  @bind-Value="_contactForm.Message"
+			                  For="() => _contactForm.Message"
+			                  FullWidth
+			                  AutoGrow
+			                  Class="my-3"/>
+
+			    <MudButton FullWidth Color="Color.Success"
+			               Variant="Variant.Filled"
+			               StartIcon="@Icons.Material.Filled.Send"
+			               Class="mt-3"
+			               ButtonType="ButtonType.Submit">
+				    Send
+			    </MudButton>
+		    </EditForm>
+	    </MudPaper>
     </MudContainer>
 </MudLoading>
 
