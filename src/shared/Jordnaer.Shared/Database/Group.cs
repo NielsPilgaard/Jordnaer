@@ -34,9 +34,9 @@ public class Group
 	[MaxLength(4000, ErrorMessage = "Gruppens beskrivelse må højest være 4000 karakterer lang.")]
 	public string? Description { get; set; }
 
-	public List<UserProfile> Members { get; set; } = new();
-	public List<GroupMembership> Memberships { get; set; } = new();
-	public List<Category> Categories { get; set; } = new();
+	public List<UserProfile> Members { get; set; } = [];
+	public List<GroupMembership> Memberships { get; set; } = [];
+	public List<Category> Categories { get; set; } = [];
 
 	public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 }
