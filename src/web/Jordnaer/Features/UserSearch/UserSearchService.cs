@@ -58,6 +58,7 @@ public class UserSearchService(
 		}
 
 		// TODO: This uses a ton of memory, Dapper? (60+mb)
+		// TODO: Try-catch and error in return type
 		var usersToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedUsers = await users
 			.Skip(usersToSkip)

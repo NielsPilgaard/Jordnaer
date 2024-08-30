@@ -34,6 +34,7 @@ public class GroupSearchService(
 			groups = groups.OrderBy(user => user.CreatedUtc);
 		}
 
+		// TODO: Try-catch and error in return type
 		var groupsToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedGroups = await groups
 			.Skip(groupsToSkip)
