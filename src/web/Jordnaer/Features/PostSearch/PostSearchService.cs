@@ -1,22 +1,26 @@
 ﻿using Jordnaer.Database;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Search;
+using Jordnaer.Models;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
+using OneOf.Types;
 
 namespace Jordnaer.Features.PostSearch;
 
 public interface IPostSearchService
 {
-	Task<PostSearchResult> GetPostsAsync(PostSearchFilter filter,
+	Task<OneOf<PostSearchResult, Error<string>>> GetPostsAsync(PostSearchFilter filter,
 		CancellationToken cancellationToken = default);
 }
 
 public class PostSearchService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	IZipCodeService zipCodeService) : IPostSearchService
+	IZipCodeService zipCodeService,
+	ILogger<PostSearchService> logger) : IPostSearchService
 {
-	public async Task<PostSearchResult> GetPostsAsync(PostSearchFilter filter,
+	public async Task<OneOf<PostSearchResult, Error<string>>> GetPostsAsync(PostSearchFilter filter,
 		CancellationToken cancellationToken = default)
 	{
 		JordnaerMetrics.PostSearchesCounter.Add(1, MakeTagList(filter));
@@ -35,19 +39,29 @@ public class PostSearchService(
 							  ? 0
 							  : (filter.PageNumber - 1) * filter.PageSize;
 
-		var posts = await query.OrderByDescending(x => x.CreatedUtc)
-							   .Skip(postsToSkip)
-							   .Take(filter.PageSize)
-							   .Select(x => x.ToPostDto())
-							   .ToListAsync(cancellationToken);
-
-		var totalCount = await query.CountAsync(cancellationToken);
-
-		return new PostSearchResult
+		try
 		{
-			Posts = posts,
-			TotalCount = totalCount
-		};
+			var posts = await query.OrderByDescending(x => x.CreatedUtc)
+								   .Skip(postsToSkip)
+								   .Take(filter.PageSize)
+								   .Select(x => x.ToPostDto())
+								   .ToListAsync(cancellationToken);
+
+			var totalCount = await query.CountAsync(cancellationToken);
+
+			return new PostSearchResult
+			{
+				Posts = posts,
+				TotalCount = totalCount
+			};
+		}
+		catch (Exception exception)
+		{
+			logger.LogError(exception, "Exception occurred during post search. " +
+									   "Query: {Query}", query.ToQueryString());
+		}
+
+		return new Error<string>(ErrorMessages.Something_Went_Wrong_Try_Again);
 	}
 
 	internal async Task<IQueryable<Post>> ApplyLocationFilterAsync(
