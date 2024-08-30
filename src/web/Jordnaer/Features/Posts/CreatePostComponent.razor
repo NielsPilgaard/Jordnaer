@@ -1,0 +1,41 @@
+﻿@inject CurrentUser CurrentUser
+@inject IPostService PostService
+@inject IPostSearchService PostSearchService
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-4">
+	<MudText Typo="Typo.h4">Del et opslag</MudText>
+	<MudTextField @bind-Value="newPostContent" Placeholder="Hvad har du på tankerne?" Lines="4" FullWidth />
+	<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreatePost">Send</MudButton>
+</MudPaper>
+@code {
+	private string? newPostContent;
+
+	private async Task CreatePost()
+	{
+		if (!string.IsNullOrWhiteSpace(newPostContent))
+		{
+			var post = new Post
+			{
+				Id = Guid.NewGuid(),
+				Text = newPostContent,
+				CreatedUtc = DateTime.UtcNow,
+				UserProfileId = CurrentUser.Id,
+				// Add other necessary properties here
+			};
+
+			var result = await PostService.CreatePostAsync(post);
+
+			result.Switch(
+				success =>
+				{
+					Snackbar.Add("Opslaget blev oprettet.", Severity.Success);
+					newPostContent = string.Empty;
+				},
+				error => Snackbar.Add(error.Value, Severity.Error)
+			);
+		}
+	}
+}

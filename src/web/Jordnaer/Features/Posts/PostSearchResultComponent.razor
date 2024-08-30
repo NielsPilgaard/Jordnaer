@@ -1,0 +1,36 @@
+﻿@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
+
+
+<MudGrid Justify="Justify.Center">
+    @foreach (var post in SearchResult.Posts)
+    {
+        <MudItem xs="12">
+            <MudCard Class="pa-3 my-3" Elevation="3">
+                <MudCardContent>
+                    <MudText Typo="Typo.body1">@post.Text</MudText>
+                    <MudText Typo="Typo.caption">@post.CreatedUtc.ToLocalTime().ToString("g")</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
+<MudPagination Class="mt-5 d-flex justify-center"
+               BoundaryCount="0"
+               MiddleCount="3"
+               UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})"
+               SelectedChanged="@SelectedPageChanged"
+               Variant="Variant.Filled"
+               Count="@(SearchResult.TotalCount / Filter.PageSize)"
+               Selected="Filter.PageNumber" />
+
+@code {
+    [Parameter, EditorRequired]
+    public required PostSearchFilter Filter { get; set; }
+
+    [Parameter, EditorRequired]
+    public required PostSearchResult SearchResult { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> SelectedPageChanged { get; set; }
+}
