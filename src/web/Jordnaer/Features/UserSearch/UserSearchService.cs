@@ -25,7 +25,7 @@ public class UserSearchService(
 		var firstTenUsers = await users
 			.Where(user => user.Id != currentUserId)
 			.OrderBy(user => searchString.StartsWith(searchString))
-			.Take(11)
+			.Take(11) // We take 11 to see if there are more than 10 users (to show a "more" button)
 			.Select(user => new UserSlim
 			{
 				ProfilePictureUrl = user.ProfilePictureUrl,
@@ -91,7 +91,7 @@ public class UserSearchService(
 		return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
 	}
 
-	private async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilterAsync(
+	internal async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilterAsync(
 		UserSearchFilter filter,
 		IQueryable<UserProfile> users,
 		CancellationToken cancellationToken = default)
@@ -111,6 +111,7 @@ public class UserSearchService(
 			return (users, false);
 		}
 
+		// TODO: This ordering should be done after the "client" has received it, to enable caching
 		users = users.Where(user => user.ZipCode != null &&
 									zipCodesWithinCircle.Contains(user.ZipCode.Value))
 					 .OrderBy(user => Math.Abs(user.ZipCode!.Value - searchedZipCode.Value));
@@ -118,7 +119,7 @@ public class UserSearchService(
 		return (users, true);
 	}
 
-	private static IQueryable<UserProfile> ApplyCategoryFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
+	internal static IQueryable<UserProfile> ApplyCategoryFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
 	{
 		if (filter.Categories is not null && filter.Categories.Length > 0)
 		{
@@ -129,7 +130,7 @@ public class UserSearchService(
 		return users;
 	}
 
-	private static IQueryable<UserProfile> ApplyNameFilter(string? filter, IQueryable<UserProfile> users)
+	internal static IQueryable<UserProfile> ApplyNameFilter(string? filter, IQueryable<UserProfile> users)
 	{
 		if (!string.IsNullOrWhiteSpace(filter))
 		{
@@ -140,7 +141,7 @@ public class UserSearchService(
 		return users;
 	}
 
-	private static IQueryable<UserProfile> ApplyChildFilters(UserSearchFilter filter, IQueryable<UserProfile> users)
+	internal static IQueryable<UserProfile> ApplyChildFilters(UserSearchFilter filter, IQueryable<UserProfile> users)
 	{
 		if (filter.ChildGender is not null)
 		{

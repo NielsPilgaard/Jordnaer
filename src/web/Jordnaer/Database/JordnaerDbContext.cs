@@ -11,7 +11,7 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Category> Categories { get; set; } = default!;
 	public DbSet<UserProfileCategory> UserProfileCategories { get; set; } = default!;
 	public DbSet<UserContact> UserContacts { get; set; } = default!;
-	public DbSet<Shared.Chat> Chats { get; set; } = default!;
+	public DbSet<Chat> Chats { get; set; } = default!;
 	public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
 	public DbSet<UnreadMessage> UnreadMessages { get; set; } = default;
 	public DbSet<UserChat> UserChats { get; set; } = default!;
@@ -20,8 +20,28 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<GroupMembership> GroupMemberships { get; set; } = default!;
 	public DbSet<GroupCategory> GroupCategories { get; set; } = default!;
 
+	public DbSet<Post> Posts { get; set; } = default!;
+	public DbSet<GroupPost> GroupPosts { get; set; } = default!;
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
+		modelBuilder.Entity<Post>()
+					.HasOne(e => e.UserProfile)
+					.WithMany();
+
+		modelBuilder.Entity<Post>()
+					.HasMany(e => e.Categories)
+					.WithMany()
+					.UsingEntity<PostCategory>();
+
+		modelBuilder.Entity<GroupPost>()
+					.HasOne(e => e.UserProfile)
+					.WithMany();
+
+		modelBuilder.Entity<GroupPost>()
+					.HasOne(e => e.Group)
+					.WithMany();
+
 		modelBuilder.Entity<Group>()
 			.HasMany(e => e.Members)
 			.WithMany(e => e.Groups)
