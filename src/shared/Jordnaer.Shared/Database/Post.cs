@@ -11,15 +11,15 @@ public class Post
 
 	[StringLength(1000, ErrorMessage = "Opslag må højest være 1000 karakterer lang.")]
 	[Required(AllowEmptyStrings = false, ErrorMessage = "Opslag skal have mindst 1 karakter.")]
-	public required string Text { get; init; }
+	public required string Text { get; set; }
 
-	public DateTimeOffset CreatedUtc { get; init; } = DateTimeOffset.UtcNow;
+	public DateTimeOffset CreatedUtc { get; set; } = DateTimeOffset.UtcNow;
 
 	public int? ZipCode { get; set; }
 	public string? City { get; set; }
 
 	[ForeignKey(nameof(UserProfile))]
-	public required string UserProfileId { get; init; } = null!;
+	public required string UserProfileId { get; set; } = null!;
 
 	public UserProfile UserProfile { get; init; } = null!;
 
