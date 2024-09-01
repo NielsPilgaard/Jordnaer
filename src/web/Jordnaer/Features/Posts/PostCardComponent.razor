@@ -1,0 +1,22 @@
+<MudCard Class="pa-3 my-3" Elevation="3">
+	<MudCardContent>
+		<MudText Typo="Typo.body1">@Post.Text</MudText>
+		<MudText Typo="Typo.caption">@Post.CreatedUtc.ToLocalTime().ToString("g")</MudText>
+		@if (Post.ZipCode is not null && !string.IsNullOrEmpty(Post.City))
+		{
+			<MudText Typo="Typo.caption">@Post.ZipCode, @Post.City</MudText>
+		}
+		<MudLink Underline="Underline.Hover" 
+		         title="Gå til @Post.Author.DisplayName's profil" 
+		         Href="@($"/{Post.Author.UserName}")">
+			@Post.Author.DisplayName
+		</MudLink>
+	</MudCardContent>
+</MudCard>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public required PostDto Post { get; set; }
+
+}

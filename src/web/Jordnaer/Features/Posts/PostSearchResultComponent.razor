@@ -1,4 +1,4 @@
-﻿@inject IJSRuntime JsRuntime
+@inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
 
@@ -6,12 +6,7 @@
     @foreach (var post in SearchResult.Posts)
     {
         <MudItem xs="12">
-            <MudCard Class="pa-3 my-3" Elevation="3">
-                <MudCardContent>
-                    <MudText Typo="Typo.body1">@post.Text</MudText>
-                    <MudText Typo="Typo.caption">@post.CreatedUtc.ToLocalTime().ToString("g")</MudText>
-                </MudCardContent>
-            </MudCard>
+	        <PostCardComponent Post="post"/>
         </MudItem>
     }
 </MudGrid>
