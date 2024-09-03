@@ -6,15 +6,16 @@
 		{
 			<MudText Typo="Typo.caption">@Post.ZipCode, @Post.City</MudText>
 		}
-		<MudLink Underline="Underline.Hover" 
-		         title="Gå til @Post.Author.DisplayName's profil" 
-		         Href="@($"/{Post.Author.UserName}")">
+		<MudLink Underline="Underline.Hover"
+                 title="@_title"
+                 Href="@($"/{Post.Author.UserName}")">
 			@Post.Author.DisplayName
 		</MudLink>
 	</MudCardContent>
 </MudCard>
 
 @code {
+	private string _title => $"Gå til {Post.Author.UserName}'s profil";
 
     [Parameter, EditorRequired]
     public required PostDto Post { get; set; }

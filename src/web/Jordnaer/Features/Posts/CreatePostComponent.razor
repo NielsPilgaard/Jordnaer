@@ -28,7 +28,7 @@
 			                   SelectedValuesChanged="SelectedCategoriesChanged">
 			</MudSelectExtended>
 			<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreatePost">Slå op</MudButton>
-            <MudCheckBox T="bool" Label="Vis område" title="Gem postnummer og by som en del af opslaget" @bind-Checked="_includeAreaInPost" />
+                <MudCheckBox Label="Vis område" title="Gem postnummer og by som en del af opslaget" @bind-Value="_includeAreaInPost" />
 		</Authorized>
 	</AuthorizeView>
 	</MudPaper>
