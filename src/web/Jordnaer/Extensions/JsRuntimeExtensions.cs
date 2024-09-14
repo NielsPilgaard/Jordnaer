@@ -17,6 +17,11 @@ public static class JsRuntimeExtensions
 		=> await jsRuntime.InvokeVoidAsyncWithErrorHandling(
 													"utilities.hideElement",
 													selector);
+
+	public static async Task<bool> ShowElement(this IJSRuntime jsRuntime, string selector)
+		=> await jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			   "utilities.showElement",
+			   selector);
 	public static async ValueTask<GeoLocation?> GetGeolocation(this IJSRuntime jsRuntime)
 	{
 		var (success, geoLocation) = await jsRuntime.InvokeAsyncWithErrorHandling<GeoLocation>("utilities.getGeolocation");
