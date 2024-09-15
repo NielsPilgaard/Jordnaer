@@ -1,0 +1,22 @@
+@if (Center)
+{
+    <div class="d-flex justify-center align-center">
+        <MudImage Src="@_src" Alt="Bier" Class="@Class" Style="@Style" Width="_width" />
+    </div>
+}
+else
+{
+    <MudImage Src="@_src" Alt="Bier" Class="@Class" Style="@Style" Width="_width" />
+}
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+    [Parameter]
+    public string? Style { get; set; }
+    [Parameter]
+    public bool Center { get; set; } = false;
+
+    private int _width = 150;
+    private static readonly string _src = "/images/bier.png";
+}
