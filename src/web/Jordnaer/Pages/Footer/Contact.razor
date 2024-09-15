@@ -2,14 +2,16 @@
 @inject IEmailService EmailService
 @inject ISnackbar Snackbar
 
+@inherits ScrollToTopComponentBase
+
 <MetadataComponent Title="Kontakt"
                    Description="Kontakt Mini Møder her" />
 
 <MudLoading @bind-Loading="_isSending" Darken Overlap>
     <MudContainer MaxWidth="MaxWidth.Small">
-        <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.PaleBlueBackgroundStyle">
+        <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.YellowBackground.ToBackgroundColor()">
 
-		    <h1 class="font-open-sans-medium" style="@JordnaerPalette.RedHeaderTextStyle">Kontakt os</h1>
+            <h1 class="font-cherry-bomb-one" style="@JordnaerPalette.BlueBody.ToTextColor()">Kontakt os</h1>
 
 		    <MudDivider Class="mt-1 mb-5"/>
 
@@ -45,7 +47,7 @@
 			                  AutoGrow
 			                  Class="my-3"/>
 
-			    <MudButton FullWidth Color="Color.Success"
+			    <MudButton FullWidth Color="Color.Info"
 			               Variant="Variant.Filled"
 			               StartIcon="@Icons.Material.Filled.Send"
 			               Class="mt-3"

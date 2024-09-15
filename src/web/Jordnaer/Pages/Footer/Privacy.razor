@@ -1,12 +1,14 @@
 @page "/privacy"
 
+@inherits ScrollToTopComponentBase
+
 <MetadataComponent Title="Privatlivspolitik"
                    Description="Privatlivspolitik for Mini Møder" />
 
 <MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.PaleBlueBackgroundStyle">
+    <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.YellowBackground.ToBackgroundColor()">
 
-        <h1 class="font-open-sans-medium mb-5" style="@JordnaerPalette.RedHeaderTextStyle">
+        <h1 class="font-cherry-bomb-one mb-5" style="@JordnaerPalette.BlueBody.ToTextColor()">
             Privatlivspolitik
         </h1>
 
