@@ -11,13 +11,14 @@ using SendGrid.Helpers.Mail;
 namespace Jordnaer.Features.Chat;
 
 public class ChatNotificationService(
-	JordnaerDbContext context,
+	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<StartChatConsumer> logger,
 	IPublishEndpoint publishEndpoint,
 	IServer server)
 {
 	public async Task NotifyRecipients(StartChat startChat, CancellationToken cancellationToken = default)
 	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var recipientIds = startChat.Recipients.Select(recipient => recipient.Id);
 		var recipients = await context.Users
 									  .AsNoTracking()

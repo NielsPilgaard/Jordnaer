@@ -8,7 +8,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Moq.EntityFrameworkCore;
 using NSubstitute;
@@ -19,23 +19,27 @@ namespace Jordnaer.Tests.Chat;
 [Trait("Category", "UnitTest")]
 public class ChatNotificationServiceTests
 {
+	private readonly Mock<IDbContextFactory<JordnaerDbContext>> _contextFactoryMock;
 	private readonly Mock<JordnaerDbContext> _contextMock;
-	private readonly Mock<ILogger<StartChatConsumer>> _loggerMock;
 	private readonly Mock<IPublishEndpoint> _publishEndpointMock;
 	private readonly IServer _serverMock;
 	private readonly ChatNotificationService _service;
 
 	public ChatNotificationServiceTests()
 	{
-		_contextMock = new Mock<JordnaerDbContext>(
+		_contextFactoryMock = new Mock<IDbContextFactory<JordnaerDbContext>>(
 			new DbContextOptionsBuilder<JordnaerDbContext>().Options);
-		_loggerMock = new Mock<ILogger<StartChatConsumer>>();
+		_contextMock = new Mock<JordnaerDbContext>();
+		_contextFactoryMock
+			.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync(_contextMock.Object);
+
 		_publishEndpointMock = new Mock<IPublishEndpoint>();
 		_serverMock = Substitute.For<IServer>();
 
 		_service = new ChatNotificationService(
-			_contextMock.Object,
-			_loggerMock.Object,
+			_contextFactoryMock.Object,
+			new NullLogger<StartChatConsumer>(),
 			_publishEndpointMock.Object,
 			_serverMock
 		);

@@ -14,12 +14,13 @@ public interface IUserSearchService
 
 public class UserSearchService(
 	IZipCodeService zipCodeService,
-	JordnaerDbContext context)
+	IDbContextFactory<JordnaerDbContext> contextFactory)
 	: IUserSearchService
 {
 
 	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default)
 	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var users = ApplyNameFilter(searchString, context.UserProfiles);
 
 		var firstTenUsers = await users
@@ -42,6 +43,8 @@ public class UserSearchService(
 	public async Task<UserSearchResult> GetUsersAsync(UserSearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		JordnaerMetrics.UserSearchesCounter.Add(1, MakeTagList(filter));
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
 		var users = context.UserProfiles
 							.Where(user => !string.IsNullOrEmpty(user.UserName))
