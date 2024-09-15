@@ -20,10 +20,10 @@
         <MudItem xs="12" sm="6" md="4" Class="d-flex justify-center align-center" @onclick="() => Navigation.NavigateTo(link)">
             <MudCard Style="width: 300px" Elevation="3" Class="mt-2">
                 <MudCardHeader>
-                    <MudIcon Icon="@icon" Class="mr-2" /><MudText Typo="Typo.h5" Class="font-open-sans-bold" Style="@JordnaerPalette.RedHeaderTextStyle">@title</MudText>
+                    <MudIcon Icon="@icon" Class="mr-2" /><MudText Typo="Typo.h5" Class="font-open-sans-bold" Style="@JordnaerPalette.RedHeader.ToTextColor()">@title</MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Typo="Typo.body1" Style="@JordnaerPalette.BlueBodyTextStyle">@body</MudText>
+                    <MudText Typo="Typo.body1" Style="@JordnaerPalette.BlueBody.ToTextColor()">@body</MudText>
                 </MudCardContent>
                 <MudCardActions Style="padding: 16px">
                     <MudIconButton Size="Size.Large"

@@ -5,7 +5,7 @@
     </MudSection>
 
     <MudSection Row="1" ColSpan="2" Column="4" Class="hero-section-top">
-        <MudToolBar Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 24px; overflow: hidden")">
+        <MudToolBar Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 24px; overflow: hidden")">
 	        <Feature Name="@FeatureFlags.Posts">
 		        <MudNavLink Href="/posts" Class="d-md-none d-lg-flex">OPSLAG</MudNavLink>
 	        </Feature>
@@ -14,13 +14,13 @@
         </MudToolBar>
     </MudSection>
 
-    <MudSection Row="2" Column="1" ColSpan="5" Style="@($"background: {JordnaerPalette.BeigeBackground}")" />
+    <MudSection Row="2" Column="1" ColSpan="5" Style="@JordnaerPalette.BeigeBackground.ToBackgroundColor()" />
 
     <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section-top">
         <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
             <MudImage id="landing-page-center-image" fetchpriority="high" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
-            <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.GreenBackground}; font-size: 48px")">Velkommen</MudText>
-            <MudText Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 24px")">Til mødestedet for børnefamilier</MudText>
+            <MudText Class="font-cherry-bomb-one" Style="@($"{JordnaerPalette.GreenBackground.ToTextColor()}; font-size: 48px")">Velkommen</MudText>
+            <MudText Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 24px")">Til mødestedet for børnefamilier</MudText>
         </MudStack>
     </MudSection>
 
@@ -30,7 +30,7 @@
     <div class="flex-row-reverse hero-section" style="height: 600px;">
         <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash_small.webp" Class="ml-10" Style="max-width: 50%" />
         <div class="content-section">
-            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3 mt-15" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
+            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3 mt-15" Style="@($"{JordnaerPalette.YellowBackground.ToTextColor()}; font-size: 36px")">
                 Hvad kan jeg bruge Mini Møder til?
             </MudText>
 
