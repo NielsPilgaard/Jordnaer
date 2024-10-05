@@ -2,7 +2,7 @@ using Jordnaer.Features.Search;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 
-namespace Jordnaer.Features.GroupSearch;
+namespace Jordnaer.Features.UserSearch;
 
 internal static class QueryableUserProfileExtensions
 {
