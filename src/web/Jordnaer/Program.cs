@@ -36,8 +36,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
 	   .AddInteractiveServerComponents();
 
-builder.AddAzureAppConfiguration();
-
 builder.AddAuthentication();
 
 builder.Services.AddAuthorization();
