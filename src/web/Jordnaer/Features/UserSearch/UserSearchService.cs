@@ -1,4 +1,5 @@
 using Jordnaer.Database;
+using Jordnaer.Features.GroupSearch;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Search;
 using Jordnaer.Shared;
@@ -17,16 +18,15 @@ public class UserSearchService(
 	IDbContextFactory<JordnaerDbContext> contextFactory)
 	: IUserSearchService
 {
-
 	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		var users = ApplyNameFilter(searchString, context.UserProfiles);
+		var users = context.UserProfiles.ApplyNameFilter(searchString);
 
 		var firstTenUsers = await users
 			.Where(user => user.Id != currentUserId)
 			.OrderBy(user => searchString.StartsWith(searchString))
-			.Take(11)
+			.Take(11) // We take 11 to let the frontend know we might have more than it searched for
 			.Select(user => new UserSlim
 			{
 				ProfilePictureUrl = user.ProfilePictureUrl,
@@ -50,10 +50,10 @@ public class UserSearchService(
 							.Where(user => !string.IsNullOrEmpty(user.UserName))
 							.AsQueryable();
 
-		users = ApplyChildFilters(filter, users);
-		users = ApplyNameFilter(filter.Name, users);
-		users = ApplyCategoryFilter(filter, users);
-		(users, var isOrdered) = await ApplyLocationFilterAsync(filter, users, cancellationToken);
+		users = users.ApplyChildFilters(filter);
+		users = users.ApplyNameFilter(filter.Name);
+		users = users.ApplyCategoryFilter(filter);
+		(users, var isOrdered) = await users.ApplyLocationFilterAsync(filter, zipCodeService, cancellationToken);
 
 		if (!isOrdered)
 		{
@@ -92,89 +92,6 @@ public class UserSearchService(
 		var totalCount = await users.AsNoTracking().CountAsync(cancellationToken);
 
 		return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
-	}
-
-	private async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilterAsync(
-		UserSearchFilter filter,
-		IQueryable<UserProfile> users,
-		CancellationToken cancellationToken = default)
-	{
-		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
-		{
-			return (users, false);
-		}
-
-		var (zipCodesWithinCircle, searchedZipCode) = await zipCodeService.GetZipCodesNearLocationAsync(
-										 filter.Location,
-										 filter.WithinRadiusKilometers.Value,
-										 cancellationToken);
-
-		if (zipCodesWithinCircle.Count is 0 || searchedZipCode is null)
-		{
-			return (users, false);
-		}
-
-		users = users.Where(user => user.ZipCode != null &&
-									zipCodesWithinCircle.Contains(user.ZipCode.Value))
-					 .OrderBy(user => Math.Abs(user.ZipCode!.Value - searchedZipCode.Value));
-
-		return (users, true);
-	}
-
-	private static IQueryable<UserProfile> ApplyCategoryFilter(UserSearchFilter filter, IQueryable<UserProfile> users)
-	{
-		if (filter.Categories is not null && filter.Categories.Length > 0)
-		{
-			users = users.Where(user =>
-				user.Categories.Any(category => filter.Categories.Contains(category.Name)));
-		}
-
-		return users;
-	}
-
-	private static IQueryable<UserProfile> ApplyNameFilter(string? filter, IQueryable<UserProfile> users)
-	{
-		if (!string.IsNullOrWhiteSpace(filter))
-		{
-			users = users.Where(user => !string.IsNullOrEmpty(user.SearchableName) &&
-										EF.Functions.Like(user.SearchableName, $"%{filter}%"));
-		}
-
-		return users;
-	}
-
-	private static IQueryable<UserProfile> ApplyChildFilters(UserSearchFilter filter, IQueryable<UserProfile> users)
-	{
-		if (filter.ChildGender is not null)
-		{
-			users = users.Where(user =>
-				user.ChildProfiles.Any(child => child.Gender == filter.ChildGender));
-		}
-
-		if (filter is { MinimumChildAge: not null, MaximumChildAge: not null } &&
-			filter.MinimumChildAge == filter.MaximumChildAge)
-		{
-			users = users.Where(user =>
-				user.ChildProfiles.Any(child => child.Age != null &&
-												child.Age == filter.MinimumChildAge));
-			return users;
-		}
-
-		if (filter.MinimumChildAge is not null)
-		{
-			users = users.Where(user =>
-				user.ChildProfiles.Any(child => child.Age != null &&
-												child.Age >= filter.MinimumChildAge));
-		}
-
-		if (filter.MaximumChildAge is not null)
-		{
-			users = users.Where(user =>
-				user.ChildProfiles.Any(child => child.Age != null &&
-												child.Age <= filter.MaximumChildAge));
-		}
-
-		return users;
 	}
 
 	private static ReadOnlySpan<KeyValuePair<string, object?>> MakeTagList(UserSearchFilter filter)

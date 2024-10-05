@@ -25,6 +25,7 @@ public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : 
 		_connectionString = Container.GetConnectionString();
 
 		await using var context = CreateContext();
+
 		await context.Database.EnsureCreatedAsync();
 	}
 
