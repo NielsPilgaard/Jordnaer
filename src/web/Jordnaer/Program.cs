@@ -22,6 +22,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Jordnaer.Database;
 using Jordnaer.Features.Membership;
 using Jordnaer.Features.Search;
+using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
 using Sidio.Sitemap.AspNetCore;
 using Sidio.Sitemap.Blazor;
@@ -35,6 +36,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
 	   .AddInteractiveServerComponents();
+
+builder.Services.AddFeatureManagement();
 
 builder.AddAuthentication();
 
