@@ -19,7 +19,6 @@ namespace Jordnaer.Tests.Chat;
 [Trait("Category", "UnitTest")]
 public class ChatNotificationServiceTests
 {
-	private readonly Mock<IDbContextFactory<JordnaerDbContext>> _contextFactoryMock;
 	private readonly Mock<JordnaerDbContext> _contextMock;
 	private readonly Mock<IPublishEndpoint> _publishEndpointMock;
 	private readonly IServer _serverMock;
@@ -27,10 +26,11 @@ public class ChatNotificationServiceTests
 
 	public ChatNotificationServiceTests()
 	{
-		_contextFactoryMock = new Mock<IDbContextFactory<JordnaerDbContext>>(
+		_contextMock = new Mock<JordnaerDbContext>(
 			new DbContextOptionsBuilder<JordnaerDbContext>().Options);
-		_contextMock = new Mock<JordnaerDbContext>();
-		_contextFactoryMock
+		
+		var contextFactoryMock = new Mock<IDbContextFactory<JordnaerDbContext>>();
+		contextFactoryMock
 			.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(_contextMock.Object);
 
@@ -38,7 +38,7 @@ public class ChatNotificationServiceTests
 		_serverMock = Substitute.For<IServer>();
 
 		_service = new ChatNotificationService(
-			_contextFactoryMock.Object,
+			contextFactoryMock.Object,
 			new NullLogger<StartChatConsumer>(),
 			_publishEndpointMock.Object,
 			_serverMock
@@ -105,8 +105,7 @@ public class ChatNotificationServiceTests
 
 		// Assert
 		_publishEndpointMock
-			.Verify(p => p.Publish(It.IsAny<SendEmail>(),
-It.IsAny<CancellationToken>()),
+			.Verify(p => p.Publish(It.IsAny<SendEmail>(), It.IsAny<CancellationToken>()),
 					Times.Exactly(users.Count - 1)); // chat participants excluding the initiator
 	}
 
@@ -121,19 +120,19 @@ It.IsAny<CancellationToken>()),
 			Recipients =
 			[
 				new UserSlim
-								{
-									Id = "initiator-id",
-									DisplayName = "Initiator",
-									ProfilePictureUrl = null,
-									UserName = null
-								},
-								new UserSlim
-								{
-									Id = "recipient-id",
-									DisplayName = "Recipient",
-									ProfilePictureUrl = null,
-									UserName = null
-								}
+				{
+					Id = "initiator-id",
+					DisplayName = "Initiator",
+					ProfilePictureUrl = null,
+					UserName = null
+				},
+				new UserSlim
+				{
+					Id = "recipient-id",
+					DisplayName = "Recipient",
+					ProfilePictureUrl = null,
+					UserName = null
+				}
 			]
 		};
 

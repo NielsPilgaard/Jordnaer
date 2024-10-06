@@ -11,8 +11,6 @@ try
 {
 	var builder = WebApplication.CreateBuilder(args);
 
-	builder.AddAzureAppConfiguration();
-
 	builder.AddSerilog();
 
 	builder.AddDatabase();
