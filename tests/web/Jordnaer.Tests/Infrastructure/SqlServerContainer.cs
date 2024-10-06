@@ -7,6 +7,7 @@ namespace Jordnaer.Tests.Infrastructure;
 public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : DbContext
 {
 	public readonly MsSqlContainer Container = new MsSqlBuilder()
+		.WithImage("mcr.microsoft.com/mssql/server:2022-latest")
 		.WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
 		.Build();
 
