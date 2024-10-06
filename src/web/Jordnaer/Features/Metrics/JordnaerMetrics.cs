@@ -40,6 +40,11 @@ internal static class JordnaerMetrics
 	internal static readonly Counter<int> UserSearchesCounter =
 		Meter.CreateCounter<int>("jordnaer_user_user_searches_total");
 
+	internal static readonly Counter<int> PostSearchesCounter =
+		Meter.CreateCounter<int>("jordnaer_post_post_searches_total");
+	internal static readonly Counter<int> PostsCreatedCounter =
+		Meter.CreateCounter<int>("jordnaer_post_posts_created_total");
+
 	internal static readonly Counter<int> SponsorAdViewCounter =
 		Meter.CreateCounter<int>("jordnaer_ad_sponsor_views_total");
 }
