@@ -5,7 +5,7 @@
 
 <!-- Links -->
 <div class="hero-section-top">
-    <MudToolBar Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 20px;")">
+    <MudToolBar Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 20px;")">
         <Feature Name="@FeatureFlags.Posts">
             <MudNavLink Href="/posts" Class="d-none d-sm-flex">OPSLAG</MudNavLink>
         </Feature>
@@ -15,14 +15,14 @@
 </div>
 
 <MudPage Row="2" Column="1" Height="440px">
-    <MudSection Row="2" Column="1" Style="@($"background: {JordnaerPalette.BeigeBackground}")" />
+    <MudSection Row="2" Column="1" Style="@JordnaerPalette.BeigeBackground.ToBackgroundColor()" />
     <MudSection Row="1" RowSpan="2" Column="1">
         <MudStack Class="mb-6" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
             <MudImage id="landing-page-center-image" fetchpriority="high" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
-            <MudText Class="font-cherry-bomb-one" Style="@($"color: {JordnaerPalette.GreenBackground}; font-size: 32px")">
+            <MudText Class="font-cherry-bomb-one" Style="@($"{JordnaerPalette.GreenBackground.ToTextColor()}; font-size: 32px")">
                 Velkommen
             </MudText>
-            <MudText Style="@($"color: {JordnaerPalette.RedHeader}; font-size: 18px; text-align: center")">
+            <MudText Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 18px; text-align: center")">
                 Til mødestedet for børnefamilier
             </MudText>
         </MudStack>
@@ -34,11 +34,11 @@
 <MudContainer MaxWidth="MaxWidth.Medium">
     <div class="flex-column hero-section">
         <div class="content-section">
-            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3" Style="@($"color: {JordnaerPalette.YellowBackground}; font-size: 36px")">
-                Hvad kan jeg bruge Mini Møder til?  
+            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3" Style="@($"{JordnaerPalette.YellowBackground.ToTextColor()}; font-size: 36px")">
+                Hvad kan jeg bruge Mini Møder til?
             </MudText>
 
-            <LandingPageLinkComponent IsMobile/>
+            <LandingPageLinkComponent IsMobile />
 
         </div>
     </div>

@@ -11,7 +11,7 @@ public interface IProfileImageService
 	Task<string> SetGroupProfilePictureAsync(SetGroupProfilePicture dto);
 }
 
-public class ProfileImageService(JordnaerDbContext context, IImageService imageService) : IProfileImageService
+public class ProfileImageService(IDbContextFactory<JordnaerDbContext> contextFactory, IImageService imageService) : IProfileImageService
 {
 	public const string ChildProfilePicturesContainerName = "childprofile-pictures";
 	public const string UserProfilePicturesContainerName = "userprofile-pictures";
@@ -50,14 +50,18 @@ public class ProfileImageService(JordnaerDbContext context, IImageService imageS
 		return uri;
 	}
 
-	private async Task UpdateChildProfilePictureAsync(SetChildProfilePicture dto, string uri)
+	private async Task UpdateChildProfilePictureAsync(
+		SetChildProfilePicture dto,
+		string uri,
+		CancellationToken cancellationToken = default)
 	{
-		var currentChildProfile = await context.ChildProfiles.FindAsync(dto.ChildProfile.Id);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var currentChildProfile = await context.ChildProfiles.FindAsync([dto.ChildProfile.Id], cancellationToken);
 		if (currentChildProfile is null)
 		{
 			dto.ChildProfile.PictureUrl = uri;
 			context.ChildProfiles.Add(dto.ChildProfile);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 			return;
 		}
 
@@ -67,18 +71,22 @@ public class ProfileImageService(JordnaerDbContext context, IImageService imageS
 			currentChildProfile.PictureUrl = uri;
 			context.Entry(currentChildProfile).State = EntityState.Modified;
 
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 		}
 	}
 
-	private async Task UpdateUserProfilePictureAsync(SetUserProfilePicture dto, string uri)
+	private async Task UpdateUserProfilePictureAsync(
+		SetUserProfilePicture dto,
+		string uri,
+		CancellationToken cancellationToken = default)
 	{
-		var currentUserProfile = await context.UserProfiles.FindAsync(dto.UserProfile.Id);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var currentUserProfile = await context.UserProfiles.FindAsync([dto.UserProfile.Id], cancellationToken);
 		if (currentUserProfile is null)
 		{
 			dto.UserProfile.ProfilePictureUrl = uri;
 			context.UserProfiles.Add(dto.UserProfile);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 			return;
 		}
 
@@ -88,17 +96,21 @@ public class ProfileImageService(JordnaerDbContext context, IImageService imageS
 			currentUserProfile.ProfilePictureUrl = uri;
 			context.Entry(currentUserProfile).State = EntityState.Modified;
 
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 		}
 	}
-	private async Task UpdateGroupProfilePictureAsync(SetGroupProfilePicture dto, string uri)
+	private async Task UpdateGroupProfilePictureAsync(
+		SetGroupProfilePicture dto,
+		string uri,
+		CancellationToken cancellationToken = default)
 	{
-		var currentGroup = await context.Groups.FindAsync(dto.Group.Id);
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var currentGroup = await context.Groups.FindAsync([dto.Group.Id], cancellationToken);
 		if (currentGroup is null)
 		{
 			dto.Group.ProfilePictureUrl = uri;
 			context.Groups.Add(dto.Group);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 			return;
 		}
 
@@ -108,7 +120,7 @@ public class ProfileImageService(JordnaerDbContext context, IImageService imageS
 			currentGroup.ProfilePictureUrl = uri;
 			context.Entry(currentGroup).State = EntityState.Modified;
 
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(cancellationToken);
 		}
 	}
 }

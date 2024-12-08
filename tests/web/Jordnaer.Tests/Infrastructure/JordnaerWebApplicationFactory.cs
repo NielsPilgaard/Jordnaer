@@ -14,8 +14,9 @@ namespace Jordnaer.Tests.Infrastructure;
 public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
 	private readonly MsSqlContainer _msSqlContainer = new MsSqlBuilder()
-		.WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
-		.Build();
+													  .WithImage("mcr.microsoft.com/mssql/server:2022-latest") // We set a specific image to circumvent this bug: https://github.com/testcontainers/testcontainers-dotnet/issues/1271
+													  .WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
+													  .Build();
 
 	private readonly AzuriteContainer _azureBlobStorageContainer = new AzuriteBuilder()
 		.WithName($"AzuriteTestcontainer-{Guid.NewGuid()}")

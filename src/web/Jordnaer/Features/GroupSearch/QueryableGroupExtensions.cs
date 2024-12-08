@@ -2,7 +2,7 @@ using Jordnaer.Shared;
 
 namespace Jordnaer.Features.GroupSearch;
 
-internal static class GroupSearchServiceExtensions
+internal static class QueryableGroupExtensions
 {
 	internal static IQueryable<Group> ApplyNameFilter(this IQueryable<Group> groups, string? name)
 	{

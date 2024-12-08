@@ -4,7 +4,14 @@ window.utilities = {
 
         if (!element) return;
 
-        element.style.setProperty("display", "none", "important")
+        element.style.setProperty("display", "none", "important");
+    },
+    showElement: function (selector) {
+        const element = document.querySelector(selector);
+
+        if (!element) return;
+
+        element.style.removeProperty("display");
     },
 
     focusElement: function (selector) {

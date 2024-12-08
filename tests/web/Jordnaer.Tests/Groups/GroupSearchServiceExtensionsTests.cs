@@ -6,7 +6,7 @@ using Xunit;
 namespace Jordnaer.Tests.Groups;
 
 [Trait("Category", "UnitTest")]
-public class GroupSearchServiceExtensionsTests
+public class QueryableGroupExtensionsTests
 {
 	[Fact]
 	public void ApplyNameFilter_WithNullName_ReturnsOriginalGroups()

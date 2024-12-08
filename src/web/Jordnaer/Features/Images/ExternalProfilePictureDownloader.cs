@@ -1,10 +1,11 @@
 using Jordnaer.Database;
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Features.Images;
 
 public class ExternalProfilePictureDownloader(
-	JordnaerDbContext context,
+	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<ExternalProfilePictureDownloader> logger,
 	IEnumerable<IExternalProviderPictureDownloader> providerPictureDownloader)
 	: INotificationHandler<AccessTokenAcquired>
@@ -19,6 +20,7 @@ public class ExternalProfilePictureDownloader(
 			return;
 		}
 
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var user = await context.UserProfiles.FindAsync([notification.UserId], cancellationToken);
 		if (user is null)
 		{

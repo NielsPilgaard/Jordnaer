@@ -8,24 +8,27 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Jordnaer.Features.Search;
+using Moq;
 using Xunit;
 
 namespace Jordnaer.Tests.UserSearch;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(SqlServerContainerCollection))]
-public class UserSearchServiceTests : IAsyncLifetime
+public class UserSearchServiceTests 
 {
-	private readonly JordnaerDbContext _context;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();	
 	private readonly IZipCodeService _zipCodeServiceMock = Substitute.For<IZipCodeService>();
 	private readonly UserSearchService _sut;
 	private readonly Faker _faker = new();
+	private readonly JordnaerDbContext _context;
 
 	public UserSearchServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
 		_context = sqlServerContainer.CreateContext();
+		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(_context);
 
-		_sut = new UserSearchService(_zipCodeServiceMock, _context);
+		_sut = new UserSearchService(_zipCodeServiceMock, _contextFactory);
 	}
 
 	[Fact]
@@ -35,10 +38,10 @@ public class UserSearchServiceTests : IAsyncLifetime
 		var filter = new UserSearchFilter();
 
 		// Act
+		await _context.UserProfiles.ExecuteDeleteAsync();
 		var result = await _sut.GetUsersAsync(filter);
 
 		// Assert
-		result.Should().BeOfType<UserSearchResult>();
 		result.TotalCount.Should().Be(0);
 		result.Users.Should().BeEquivalentTo(new List<UserDto>());
 	}
@@ -91,6 +94,7 @@ public class UserSearchServiceTests : IAsyncLifetime
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
 		users[0].LastName = lastName;
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -159,6 +163,7 @@ public class UserSearchServiceTests : IAsyncLifetime
 			Gender = filter.ChildGender.Value,
 			FirstName = _faker.Name.FirstName()
 		});
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -182,6 +187,7 @@ public class UserSearchServiceTests : IAsyncLifetime
 			DateOfBirth = DateTime.UtcNow.AddYears(-filter.MinimumChildAge.Value),
 			FirstName = _faker.Name.FirstName()
 		});
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -261,8 +267,4 @@ public class UserSearchServiceTests : IAsyncLifetime
 
 		return users;
 	}
-
-	public Task InitializeAsync() => Task.CompletedTask;
-
-	public async Task DisposeAsync() => await _context.UserProfiles.ExecuteDeleteAsync();
 }

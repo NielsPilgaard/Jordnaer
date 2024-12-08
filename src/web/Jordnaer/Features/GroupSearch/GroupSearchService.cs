@@ -12,7 +12,7 @@ public interface IGroupSearchService
 }
 
 public class GroupSearchService(
-	JordnaerDbContext context,
+	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IZipCodeService zipCodeService)
 	: IGroupSearchService
 {
@@ -21,6 +21,7 @@ public class GroupSearchService(
 	{
 		JordnaerMetrics.GroupSearchesCounter.Add(1, MakeTagList(filter));
 
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var groups = context.Groups
 			.AsNoTracking()
 			.AsQueryable()

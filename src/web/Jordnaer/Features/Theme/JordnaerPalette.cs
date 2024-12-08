@@ -33,7 +33,7 @@ public static class JordnaerPalette
 	/// <summary>
 	/// Yellow-orange. Used as background for texts and headers
 	/// </summary>
-	public static readonly MudColor YellowBackground = "#dbab45";
+	public static readonly MudColor YellowBackground = "#fcca3f";
 
 	/// <summary>
 	/// Green. Used as background for texts and headers
@@ -45,26 +45,18 @@ public static class JordnaerPalette
 	/// </summary>
 	public static readonly MudColor BlueBody = "#41556b";
 
-	public static readonly string BlueBodyTextStyle = $"color: {BlueBody}";
-
 	/// <summary>
 	/// Dark Red. Used for small texts, payoffs, quotes
 	/// </summary>
 	public static readonly MudColor RedHeader = "#673417";
-
-	public static readonly string RedHeaderTextStyle = $"color: {RedHeader}";
 
 	/// <summary>
 	/// Beige. Used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated.
 	/// </summary>
 	public static readonly MudColor BeigeBackground = "#cfc1a699"; // 99 added to apply 60% opacity
 
-	public static readonly string BeigeBackgroundStyle = $"background-color: {BeigeBackground}";
-
 	/// <summary>
 	/// Pale Blue. Rarely used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated.
 	/// </summary>
 	public static readonly MudColor PaleBlueBackground = "#a9c0cf66"; // 66 added to apply 40% opacity
-
-	public static readonly string PaleBlueBackgroundStyle = $"background-color: {PaleBlueBackground}";
 }

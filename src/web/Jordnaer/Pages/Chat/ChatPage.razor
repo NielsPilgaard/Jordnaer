@@ -281,5 +281,6 @@
     {
         await BrowserViewportService.UnsubscribeAsync(_breakpointObserverId);
         await ChatSignalRClient.StopAsync();
+        await JsRuntime.ShowElement(".footer");
     }
 }
