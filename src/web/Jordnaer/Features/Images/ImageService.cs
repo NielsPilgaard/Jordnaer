@@ -98,7 +98,6 @@ public class ImageService(
 
 	public async Task<Stream?> GetImageStreamFromUrlAsync(string url, CancellationToken cancellationToken = default)
 	{
-
 		var client = httpClientFactory.CreateClient(HttpClients.Default);
 		var response = await client.GetAsync(url, cancellationToken);
 
@@ -111,17 +110,21 @@ public class ImageService(
 		return await response.Content.ReadAsStreamAsync(cancellationToken);
 	}
 
+	[Obsolete("Should probably not be used in this form, it worsens the image quality." +
+			  "We should enforce a 1x1 pixel ratio instead, so we can scale up and down.")]
 	public async Task<Stream> ResizeImageAsync(Stream imageAsStream, CancellationToken cancellationToken = default)
 	{
-		// 0 maintains aspect ratio
-		const int width = 0;
-		const int height = 200;
-
 		using var image = await Image.LoadAsync(imageAsStream, cancellationToken);
 
-		var outputStream = new MemoryStream();
+		if (image.Height > 800)
+		{
+			// 0 maintains aspect ratio
+			const int width = 0;
+			const int height = 200;
+			image.Mutate(img => img.Resize(width, height));
+		}
 
-		image.Mutate(img => img.Resize(width, height));
+		var outputStream = new MemoryStream();
 
 		await image.SaveAsync(outputStream, new WebpEncoder(), cancellationToken);
 
