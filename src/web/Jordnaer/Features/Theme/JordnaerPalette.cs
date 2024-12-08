@@ -33,7 +33,7 @@ public static class JordnaerPalette
 	/// <summary>
 	/// Yellow-orange. Used as background for texts and headers
 	/// </summary>
-	public static readonly MudColor YellowBackground = "#dbab45";
+	public static readonly MudColor YellowBackground = "#fcca3f";
 
 	/// <summary>
 	/// Green. Used as background for texts and headers
