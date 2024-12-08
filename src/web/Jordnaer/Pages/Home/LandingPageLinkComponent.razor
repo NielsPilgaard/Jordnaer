@@ -7,7 +7,7 @@
 </ul>
 
 <div class="d-flex justify-center align-center">
-    <MudButton Href="/Account/Register" Class="mt-5" Variant="Variant.Filled" Color="Color.Success">Vær' med!</MudButton>
+    <MudButton Href="/Account/Register" Class="mt-5" Variant="Variant.Filled" Color="Color.Success" Size="Size.Large">Vær' med!</MudButton>
 </div>
 
 @code {
@@ -15,6 +15,6 @@
     public bool IsMobile { get; set; }
 
 	private string _buttonClass => IsMobile ? "mb-5 mx-2" : "mb-5 mx-10";
-    private Variant _variant = Variant.Filled;
-    private Color _color = Color.Default;
+    private Variant _variant = Variant.Outlined;
+    private Color _color = Color.Tertiary;
 }
