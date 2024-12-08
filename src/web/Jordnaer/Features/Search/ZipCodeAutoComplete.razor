@@ -35,16 +35,6 @@
 
     private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
     private bool _locationSetOnInitialized = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (DisableSmartCompletion)
-        {
-            return;
-        }
-
-        await SetLocationToUsersZipCode();
-    }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -84,20 +74,6 @@
                 response.RequestMessage?.RequestUri,
                 response.StatusCode);
         }
-    }
-
-    private async Task SetLocationToUsersZipCode()
-    {
-        var profile = await ProfileCache.GetProfileAsync();
-        if (profile?.ZipCode is null)
-        {
-            return;
-        }
-
-        var location = $"{profile.ZipCode} {profile.City}";
-        await LocationValueChanged(location);
-
-        _locationSetOnInitialized = true;
     }
 
     public async Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
