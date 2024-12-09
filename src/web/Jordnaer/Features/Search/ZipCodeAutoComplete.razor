@@ -60,7 +60,7 @@
             longitude.ToString(FloatNumberFormat),
             latitude.ToString(FloatNumberFormat));
 
-        if (response.IsSuccessStatusCode)
+        if (response.IsSuccessful)
         {
             var location = $"{response.Content.Nr} {response.Content.Navn}";
             await LocationValueChanged(location);
@@ -80,7 +80,7 @@
     {
         var searchResponse = await DataForsyningenClient.GetZipCodesWithAutoComplete(value, cancellationToken);
 
-        return searchResponse.IsSuccessStatusCode
+        return searchResponse.IsSuccessful
           ? searchResponse.Content!.Select(response => response.ToString())
           : [];
     }

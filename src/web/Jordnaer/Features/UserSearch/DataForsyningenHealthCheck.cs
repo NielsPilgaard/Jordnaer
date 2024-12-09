@@ -34,7 +34,7 @@ public class DataForsyningenHealthCheck(
 			return HealthCheckResult.Degraded(exception.Message);
 		}
 
-		if (pingResult.IsSuccessStatusCode)
+		if (pingResult.IsSuccessful)
 		{
 			return Healthy;
 		}
