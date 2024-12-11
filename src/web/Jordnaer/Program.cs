@@ -124,15 +124,8 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-	OnPrepareResponse = ctx =>
-	{
-		const int durationInSeconds = 60 * 60 * 24 * 365; // 1 year
-		ctx.Context.Response.Headers[HeaderNames.CacheControl] =
-			"public,max-age=" + durationInSeconds;
-	}
-});
+app.MapStaticAssets();
+
 app.UseRouting();
 
 app.UseSerilog();
