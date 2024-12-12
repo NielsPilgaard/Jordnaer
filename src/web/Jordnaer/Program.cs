@@ -101,6 +101,8 @@ builder.Services
 	   .AddHttpContextAccessor()
 	   .AddDefaultSitemapServices<HttpContextBaseUrlProvider>();
 
+builder.Services.AddRazorPages();
+
 var app = builder.Build();
 
 app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
@@ -133,6 +135,8 @@ app.UseSerilog();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+
+app.MapRazorPages();
 
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();

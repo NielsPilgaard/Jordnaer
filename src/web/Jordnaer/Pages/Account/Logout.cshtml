@@ -1,0 +1,27 @@
+﻿@page
+
+@model Jordnaer.Components.Account.Pages.LogoutModel
+
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+<form method="post">
+	@Html.AntiForgeryToken()
+	<input type="hidden" name="returnUrl" value="@Model.ReturnUrl"/>
+	<button type="submit" class="nav-link">
+		<span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span>
+	</button>
+</form>
+
+<div class="container">
+	<div class="alert alert-info text-center" role="alert">
+		Du er nu logget ud.
+	</div>
+</div>
+
+<script>
+    window.onload = () => {
+        document.forms[0].submit();
+    }
+</script>
