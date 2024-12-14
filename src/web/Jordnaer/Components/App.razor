@@ -21,28 +21,28 @@
 
     <meta name="og:title" content="Mini Møder" />
     <meta name="og:description" content="Et online mødested for børnefamilier" />
-    <meta name="og:image" content="images/minimoeder_logo_payoff_ogimage.png" />
+    <meta name="og:image" content="@Assets["images/minimoeder_logo_payoff_ogimage.png"]" />
     <meta name="og:locale" content="da_DK" />
 
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
     <meta name="facebook-domain-verification" content="ispr6bue0cvuoatohe859eubl32ujh" />
 
-    <link preload="true" href="css/landing-page.css" rel="stylesheet" asp-append-version="true" />
-    <link preload="true" href="css/fonts.css" rel="stylesheet" asp-append-version="true" />
-    <link preload="true" href="css/app.css" rel="stylesheet" asp-append-version="true" />
+    <link preload="true" href="@Assets["css/landing-page.css"]" rel="stylesheet" />
+    <link preload="true" href="@Assets["css/fonts.css"]" rel="stylesheet" />
+    <link preload="true" href="@Assets["css/app.css"]" rel="stylesheet" />
 
     @*Fancy stuff to speed up loading*@
-    <link rel="preload" href="bootstrap/bootstrap.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" asp-append-version="true">
-    <link rel="preload" href="_content/MudBlazor/MudBlazor.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" asp-append-version="true">
+    <link rel="preload" href="@Assets["bootstrap/bootstrap.min.css"]" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="@Assets["bootstrap/bootstrap.min.css"]">
+    <link rel="preload" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]">
 
     @*Fancy CSS speed hacks https://pagespeedchecklist.com/asynchronous-css*@
-    <link rel="stylesheet" href="//cdn.quilljs.com/1.3.6/quill.snow.css" media="print" onload="this.onload=null;this.removeAttribute('media');" asp-append-version="true">
-    <link rel="stylesheet" href="//cdn.quilljs.com/1.3.6/quill.bubble.css" media="print" onload="this.onload=null;this.removeAttribute('media');" asp-append-version="true">
-    <link rel="stylesheet" href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" media="print" onload="this.onload=null;this.removeAttribute('media');">
-    <link rel="stylesheet" href="css/chat.css" media="print" onload="this.onload=null;this.removeAttribute('media');" asp-append-version="true">
-    <link rel="stylesheet" href="Jordnaer.styles.css" media="print" onload="this.onload=null;this.removeAttribute('media');" asp-append-version="true">
+    <link rel="stylesheet" href="@Assets["https://cdn.quilljs.com/1.3.6/quill.snow.css"]" media="print" onload="this.onload=null;this.removeAttribute('media');">
+    <link rel="stylesheet" href="@Assets["https://cdn.quilljs.com/1.3.6/quill.bubble.css"]" media="print" onload="this.onload=null;this.removeAttribute('media');">
+    <link rel="stylesheet" href="@Assets["_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css"]" media="print" onload="this.onload=null;this.removeAttribute('media');">
+    <link rel="stylesheet" href="@Assets["css/chat.css"]" media="print" onload="this.onload=null;this.removeAttribute('media');">
+    <link rel="stylesheet" href="@Assets["Jordnaer.styles.css"]" media="print" onload="this.onload=null;this.removeAttribute('media');">
 
     <HeadOutlet @rendermode="RenderModeForPage" />
 
@@ -58,17 +58,17 @@
     https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/signalr?view=aspnetcore-7.0#automatically-refresh-the-page-when-server-side-reconnection-fails
     *@
     <div id="reconnect-modal" style="display: none;"></div>
-    <script src="_framework/blazor.web.js" autostart="false" asp-append-version="true"></script>
-    <script src="js/boot.js" asp-append-version="true"></script>
+    <script src="@Assets["_framework/blazor.web.js"]" autostart="false"></script>
+    <script src="@Assets["js/boot.js"]"></script>
 
-    <script src="_content/MudBlazor/MudBlazor.min.js" asp-append-version="true"></script>
-    <script async src="js/scroll.js" asp-append-version="true"></script>
-    <script async src="js/utilities.js" asp-append-version="true"></script>
-    <script async src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js" asp-append-version="true"></script>
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+    <script async src="@Assets["js/scroll.js"]"></script>
+    <script async src="@Assets["js/utilities.js"]"></script>
+    <script async src="@Assets["_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"]"></script>
 
-    <script async src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script async src="_content/WYSIWYGTextEditor/quill-blot-formatter.min.js"></script>
-    <script async src="_content/WYSIWYGTextEditor/BlazorQuill.js"></script>
+    <script async src="@Assets["https://cdn.quilljs.com/1.3.6/quill.js"]"></script>
+    <script async src="@Assets["_content/WYSIWYGTextEditor/quill-blot-formatter.min.js"]"></script>
+    <script async src="@Assets["_content/WYSIWYGTextEditor/BlazorQuill.js"]"></script>
 </body>
 
 </html>
