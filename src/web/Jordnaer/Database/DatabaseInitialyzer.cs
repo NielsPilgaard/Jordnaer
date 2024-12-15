@@ -81,7 +81,6 @@ public static class SeedDatabase
 		{
 			new() {Name = "Legeaftale"},
 			new() {Name = "Hjemmeskole"},
-			new() {Name = "Legegruppe"},
 			new() {Name = "Privat Dagpleje"},
 			new() {Name = "Forældregruppe"},
 			new() {Name = "Sportsaktiviteter"},
