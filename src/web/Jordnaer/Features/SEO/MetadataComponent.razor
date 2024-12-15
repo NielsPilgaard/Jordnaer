@@ -17,6 +17,11 @@
     {
         <meta name="og:image" content="images/mini-moeder-logo.png" />
     }
+    
+    @if (!string.IsNullOrEmpty(Type))
+    {
+        <meta name="og:type" content="@Type" />
+    }
 
     @if (!string.IsNullOrEmpty(Tags))
     {
@@ -39,6 +44,9 @@
 
     [Parameter]
     public string? Image { get; set; }
+
+    [Parameter]
+    public string? Type { get; set; }
 
     [Parameter]
     public string? Tags { get; set; } // Comma separated list

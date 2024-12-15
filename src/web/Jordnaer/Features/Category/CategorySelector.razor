@@ -1,15 +1,19 @@
 @inject ICategoryCache CategoryCache
 
-<MudSelectExtended ItemCollection="_allCategories"
-                   T="string"
-                   Label="Kategorier"
-                   Placeholder="Vælg"
-                   MultiSelection="true"
-                   ValuePresenter="ValuePresenter.Chip"
-                   AnchorOrigin="Origin.BottomCenter"
-                   SelectedValues="Categories"
-                   SelectedValuesChanged="SelectedCategoriesChanged">
-</MudSelectExtended>
+<MudChipSet T="string" 
+            Style="display: flex; flex-wrap: wrap; justify-content: center;"
+            SelectionMode="SelectionMode.MultiSelection"
+            SelectedValues="Categories"
+            CheckMark
+            Color="Color.Tertiary"
+            SelectedColor="Color.Success"
+            SelectedValuesChanged="SelectedCategoriesChanged"
+            Variant="Variant.Outlined">
+	@foreach (var category in _allCategories)
+	{
+		<MudChip Text="@category" Value="@category" />
+	}
+</MudChipSet>
 @code
 {
     private List<string> _allCategories = [];

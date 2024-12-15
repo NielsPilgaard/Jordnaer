@@ -35,16 +35,6 @@
 
     private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
     private bool _locationSetOnInitialized = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (DisableSmartCompletion)
-        {
-            return;
-        }
-
-        await SetLocationToUsersZipCode();
-    }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -70,7 +60,7 @@
             longitude.ToString(FloatNumberFormat),
             latitude.ToString(FloatNumberFormat));
 
-        if (response.IsSuccessStatusCode)
+        if (response.IsSuccessful)
         {
             var location = $"{response.Content.Nr} {response.Content.Navn}";
             await LocationValueChanged(location);
@@ -86,25 +76,11 @@
         }
     }
 
-    private async Task SetLocationToUsersZipCode()
-    {
-        var profile = await ProfileCache.GetProfileAsync();
-        if (profile?.ZipCode is null)
-        {
-            return;
-        }
-
-        var location = $"{profile.ZipCode} {profile.City}";
-        await LocationValueChanged(location);
-
-        _locationSetOnInitialized = true;
-    }
-
     public async Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
     {
         var searchResponse = await DataForsyningenClient.GetZipCodesWithAutoComplete(value, cancellationToken);
 
-        return searchResponse.IsSuccessStatusCode
+        return searchResponse.IsSuccessful
           ? searchResponse.Content!.Select(response => response.ToString())
           : [];
     }

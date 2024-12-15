@@ -105,6 +105,8 @@ builder.Services
 	   .AddHttpContextAccessor()
 	   .AddDefaultSitemapServices<HttpContextBaseUrlProvider>();
 
+builder.Services.AddRazorPages();
+
 var app = builder.Build();
 
 app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
@@ -128,15 +130,8 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-	OnPrepareResponse = ctx =>
-	{
-		const int durationInSeconds = 60 * 60 * 24 * 365; // 1 year
-		ctx.Context.Response.Headers[HeaderNames.CacheControl] =
-			"public,max-age=" + durationInSeconds;
-	}
-});
+app.MapStaticAssets();
+
 app.UseRouting();
 
 app.UseSerilog();
@@ -144,6 +139,8 @@ app.UseSerilog();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+
+app.MapRazorPages();
 
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();

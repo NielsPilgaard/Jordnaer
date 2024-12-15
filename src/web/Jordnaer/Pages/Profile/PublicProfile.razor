@@ -22,47 +22,50 @@
                        Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
                        Image="@_profile?.ProfilePictureUrl" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Info" OnClick="JsRuntime.GoBackAsync" />
+    <MudContainer MaxWidth="MaxWidth.Medium">
 
-    @if (_currentUserId != _profile?.Id)
-    {
-        <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" />
-    }
-    else
-    {
-	    <MudButton Href="/profile"
-	               Class="mb-5 ml-3"
-	               Color="Color.Info"
-                   Size="Size.Large"
-	               Variant="Variant.Outlined"
-	               StartIcon="@Icons.Material.Filled.Edit"
-	               EndIcon="@Icons.Material.Filled.Person">
-		    Redigér Profil
-	    </MudButton>
-    }
+        <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Info" OnClick="JsRuntime.GoBackAsync" />
 
-    <MudGrid Justify="Justify.FlexStart">
-        <MudItem xs="12">
-            <UserProfileCard Profile="_profile" UserName="@UserName" />
-        </MudItem>
-
-        @if (_profile!.ChildProfiles.Count > 0)
+        @if (_currentUserId != _profile?.Id)
         {
-	        <MudItem xs="12" Class="text-center">
-		        <MiniDivider Color="MiniDividerColor.Red" Class="my-5"/>
-		        <MudText Typo="Typo.h3" Class="d-sm-none mt-3">
-			        Børn
-		        </MudText>
-	        </MudItem>
-
-            foreach (var child in _profile.ChildProfiles)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="3">
-                    <ChildProfileCard Child="child" />
-                </MudItem>
-            }
+            <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" />
         }
-    </MudGrid>
+        else
+        {
+            <MudButton Href="/profile"
+                       Class="mb-5 ml-3"
+                       Color="Color.Info"
+                       Size="Size.Large"
+                       Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       EndIcon="@Icons.Material.Filled.Person">
+                Redigér Profil
+            </MudButton>
+        }
+
+        <MudGrid Justify="Justify.FlexStart">
+            <MudItem xs="12">
+                <UserProfileCard Profile="_profile" UserName="@UserName" />
+            </MudItem>
+
+            @if (_profile!.ChildProfiles.Count > 0)
+            {
+                <MudItem xs="12" Class="text-center">
+                    <MiniDivider Color="MiniDividerColor.Red" Class="my-5" />
+                    <MudText Typo="Typo.h3" Class="d-sm-none mt-3">
+                        Børn
+                    </MudText>
+                </MudItem>
+
+                foreach (var child in _profile.ChildProfiles)
+                {
+                    <MudItem xs="12" sm="6" md="6" lg="6">
+                        <ChildProfileCard Child="child" />
+                    </MudItem>
+                }
+            }
+        </MudGrid>
+    </MudContainer>
 </MudLoading>
 
 @code {

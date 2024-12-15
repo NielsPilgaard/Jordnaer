@@ -8,9 +8,10 @@
 <MudButton Disabled="Disabled"
            EndIcon="@(_isMessageSent ? Icons.Material.Filled.Check : Icons.Material.Filled.Message)"
            OnClick="OpenOrStartChat"
-           Color="@(_isMessageSent ? Color.Success : Color.Primary)"
+           Color="@(_isMessageSent ? Color.Tertiary : Color.Success)"
            Size="Size.Large"
-           Class="mb-5">
+           Variant="Disabled ? Variant.Outlined : Variant.Filled"
+           Class="mb-5 ml-3">
     @(_isMessageSent ? "Besked sendt" : "Send Besked")
 </MudButton>
 

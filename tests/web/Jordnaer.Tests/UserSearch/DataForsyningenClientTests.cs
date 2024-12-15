@@ -23,7 +23,7 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenClient.GetAddressesWithAutoComplete(query);
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.HaveCountGreaterThan(0);
 	}
 
@@ -37,7 +37,7 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenClient.GetZipCodesWithAutoComplete(query);
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.HaveCountGreaterThan(0);
 	}
 
@@ -51,7 +51,7 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenClient.GetZipCodesWithinCircle(circle);
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.HaveCountGreaterThan(0);
 	}
 
@@ -62,7 +62,7 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenPingClient.Ping();
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.HaveCount(1);
 	}
 }

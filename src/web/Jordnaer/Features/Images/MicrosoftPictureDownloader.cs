@@ -37,14 +37,11 @@ public sealed class MicrosoftPictureDownloader(
 
 		await using var imageAsStream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-		var resizedImage = await imageService.ResizeImageAsync(imageAsStream, cancellationToken);
-
-		var imageUrl = await imageService.UploadImageAsync(accessTokenAcquired.UserId,
-														   ProfileImageService.UserProfilePicturesContainerName,
-														   resizedImage,
-														   cancellationToken);
-
-		await resizedImage.DisposeAsync();
+		var imageUrl = await imageService.UploadImageAsync(
+						   accessTokenAcquired.UserId,
+						   ProfileImageService.UserProfilePicturesContainerName,
+						   imageAsStream,
+						   cancellationToken);
 
 		return imageUrl;
 	}

@@ -22,7 +22,7 @@ public class ZipCodeService(IDataForsyningenClient dataForsyningenClient, IOptio
 
 		var searchResponse = await dataForsyningenClient.GetZipCodesWithAutoComplete(
 								 location, cancellationToken);
-		if (!searchResponse.IsSuccessStatusCode || searchResponse.Content is null)
+		if (!searchResponse.IsSuccessful || searchResponse.Content is null)
 		{
 			logger.LogError(searchResponse.Error,
 							"Exception occurred in function {functionName} " +
@@ -48,7 +48,7 @@ public class ZipCodeService(IDataForsyningenClient dataForsyningenClient, IOptio
 		var circle = Circle.FromZipCode(zipCode.Value, searchRadiusMeters);
 
 		var zipCodeSearchResponse = await dataForsyningenClient.GetZipCodesWithinCircle(circle.ToString(), cancellationToken);
-		if (!zipCodeSearchResponse.IsSuccessStatusCode)
+		if (!zipCodeSearchResponse.IsSuccessful)
 		{
 			logger.LogError("Failed to get zip codes within {radius}m of the coordinates x={x}, y={y}", withinRadiusKilometers, zipCode.Value.Visueltcenter_x, zipCode.Value.Visueltcenter_y);
 			return ([], searchedZipCode);

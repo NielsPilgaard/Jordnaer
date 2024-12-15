@@ -55,15 +55,11 @@ public sealed class FacebookPictureDownloader(
 			return ProfileConstants.Default_Profile_Picture;
 		}
 
-		var resizedImage = await imageService.ResizeImageAsync(imageStream, cancellationToken);
-
-		var imageUrl =
-			await imageService.UploadImageAsync(accessTokenAcquired.UserId,
-												ProfileImageService.UserProfilePicturesContainerName,
-												resizedImage,
-												cancellationToken);
-
-		await resizedImage.DisposeAsync();
+		var imageUrl = await imageService.UploadImageAsync(
+						   accessTokenAcquired.UserId,
+						   ProfileImageService.UserProfilePicturesContainerName,
+						   imageStream,
+						   cancellationToken);
 
 		return imageUrl;
 	}
