@@ -18,7 +18,7 @@
                         @if (user.Children.Count is not 0)
                         {
                             <MudText Class="my-4" Typo="Typo.h6">Børn</MudText>
-                            <MudChipSet ReadOnly Class="d-flex flex-wrap justify-start flex-grow-1 gap-3" T="MudBadge">
+                            <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-3" T="MudBadge">
                                 @foreach (var child in user.Children.OrderBy(c => c.DateOfBirth))
                                 {
                                     <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="GetAgeString(child)">
