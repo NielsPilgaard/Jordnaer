@@ -21,6 +21,8 @@ using Jordnaer.Features.Images;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Jordnaer.Database;
 using Jordnaer.Features.Membership;
+using Jordnaer.Features.Posts;
+using Jordnaer.Features.PostSearch;
 using Jordnaer.Features.Search;
 using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
@@ -80,6 +82,8 @@ builder.AddCategoryServices();
 builder.AddProfileServices();
 builder.AddChatServices();
 builder.AddMembershipServices();
+builder.AddPostService();
+builder.AddPostSearchService();
 
 builder.AddMudBlazor();
 
