@@ -160,12 +160,8 @@ public static class WebApplicationBuilderExtensions
 	{
 		var connectionString = GetConnectionString(builder.Configuration);
 
-		builder.Services
-			   .AddDbContextFactory<JordnaerDbContext>(
-				   optionsBuilder =>
-					   optionsBuilder.UseSqlServer(connectionString,
-												   contextOptionsBuilder =>
-													   contextOptionsBuilder.UseAzureSqlDefaults()),
+		builder.Services.AddDbContextFactory<JordnaerDbContext>(
+				   optionsBuilder => optionsBuilder.UseAzureSql(connectionString),
 				   ServiceLifetime.Scoped);
 
 		builder.Services.AddHealthChecks().AddSqlServer(connectionString);
