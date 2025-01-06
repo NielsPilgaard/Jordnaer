@@ -18,7 +18,6 @@ public static class SerilogExtensions
 	{
 		if (!builder.Environment.IsDevelopment())
 		{
-
 			builder.Services
 				   .AddOptions<GrafanaLokiOptions>()
 				   .BindConfiguration(GrafanaLokiOptions.SectionName)

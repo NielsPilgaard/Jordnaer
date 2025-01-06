@@ -9,6 +9,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
 
+@using System.Diagnostics
 @implements IAsyncDisposable
 
 @attribute [Authorize]
@@ -203,6 +204,8 @@
 
     private async Task SelectChat(ChatDto chat)
     {
+        Debug.Assert(chat is not null);
+
         _activeChat = chat;
 
         await LoadMessages();
