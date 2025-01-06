@@ -129,7 +129,6 @@
     public bool LastMessageWasSentSuccessfullyByCurrentUser { get; set; }
 
     private MudTextField<string> _messageInput = new();
-    private bool _isActiveChatPublished => ActiveChat?.Messages.Count is not 0;
 
     private bool IsMessageFromSelf(ChatMessageDto message) => message.SenderId == CurrentUser.Id;
 
@@ -210,26 +209,26 @@
         }
 
         var message = new ChatMessageDto
-            {
-                ChatId = ActiveChat.Id,
-                Id = NewId.NextGuid(),
-                SentUtc = DateTime.UtcNow,
-                SenderId = CurrentUser.Id!,
-                Text = _messageInput.Value
-            };
+        {
+            ChatId = ActiveChat.Id,
+            Id = NewId.NextGuid(),
+            SentUtc = DateTime.UtcNow,
+            SenderId = CurrentUser.Id!,
+            Text = _messageInput.Value
+        };
 
         await _messageInput.BlurAsync();
         await _messageInput.Clear();
 
         ActiveChat.Messages.Add(message);
 
-        if (_isActiveChatPublished)
+        if (ActiveChat.Messages.Count is 1) // If we have 1 message, we just started the chat
         {
-            await ChatService.SendMessageAsync(message);
+            await ChatService.StartChatAsync(ActiveChat.ToStartChatCommand(CurrentUser.Id!));
         }
         else
         {
-            await ChatService.StartChatAsync(ActiveChat.ToStartChatCommand(CurrentUser.Id!));
+            await ChatService.SendMessageAsync(message);
         }
 
         await _messageInput.FocusAsync();

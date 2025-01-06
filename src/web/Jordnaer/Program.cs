@@ -1,7 +1,6 @@
 using Azure.Storage.Blobs;
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
-using Blazr.RenderState.Server;
 using Jordnaer.Components.Account;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Category;
@@ -75,8 +74,6 @@ builder.Services.AddScoped<IImageService, ImageService>();
 builder.AddSearchServices();
 builder.AddGroupServices();
 builder.AddGroupSearchServices();
-
-builder.AddBlazrRenderStateServerServices();
 
 builder.AddCategoryServices();
 builder.AddProfileServices();

@@ -70,14 +70,14 @@
 
     private void RemoveChild(MudTabPanel obj)
     {
-	    var tab = Parent.ChildProfiles.Find(e => e.Id == (Guid) obj.ID);
+	    var tab = Parent.ChildProfiles.Find(e => e.Id == (Guid?) obj.ID);
         if (tab is null) 		
         {
 			return;
 		}
         Parent.ChildProfiles.Remove(tab);
 
-        var editChildProfileComponent = _editChildProfileComponents.Find(e => e.ChildProfile.Id == (Guid) obj.ID);
+        var editChildProfileComponent = _editChildProfileComponents.Find(e => e.ChildProfile.Id == (Guid?) obj.ID);
         if (editChildProfileComponent is null)
         {
 	        return;

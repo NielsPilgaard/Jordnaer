@@ -4,7 +4,6 @@
 @inject IProfileCache ProfileCache
 @inject IProfileService ProfileService
 @inject ISnackbar Snackbar
-@inject IBlazrRenderStateService RenderStateService
 
 @attribute [Authorize]
 
@@ -135,7 +134,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (RenderStateService.IsPreRender)
+        if (!RendererInfo.IsInteractive)
         {
             return;
         }

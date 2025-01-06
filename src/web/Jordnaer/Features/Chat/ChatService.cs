@@ -92,10 +92,25 @@ public class ChatService(
 		return unreadMessageCount;
 	}
 
+	private const string NotFound = "Chat does not exist, unable to get messages for it.";
+
 	public async Task<OneOf<List<ChatMessageDto>, Error<string>>> GetChatMessagesAsync(string userId, Guid chatId, int skip, int take, CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		if (!await IsCurrentUserPartOfChat(userId, chatId, context, cancellationToken))
+
+		var chat = await context.Chats
+								.AsNoTracking()
+								.AsSingleQuery()
+								.Include(chat => chat.Recipients)
+								.FirstOrDefaultAsync(x => x.Id == chatId, cancellationToken);
+		if (chat is null)
+		{
+			logger.LogDebug(NotFound);
+			return new Error<string>(NotFound);
+		}
+
+		// Check if any of the recipients are the user we're fetching messages for
+		if (chat.Recipients.All(x => x.Id != userId))
 		{
 			logger.LogWarning(
 				"Tried to get chat messages for chat {ChatId} and UserId {UserId}, but that user is not part of that chat. Access denied.", chatId, userId);
@@ -181,16 +196,5 @@ public class ChatService(
 		return existingChat is null
 				   ? new NotFound()
 				   : existingChat.Id;
-	}
-
-	private static async Task<bool> IsCurrentUserPartOfChat(string userId, Guid chatId, JordnaerDbContext context, CancellationToken cancellationToken = default)
-	{
-		var chat = await context
-						 .Chats
-						 .AsNoTracking()
-						 .FirstOrDefaultAsync(chat => chat.Id == chatId &&
-													  chat.Recipients.Any(recipient => recipient.Id == userId), cancellationToken);
-
-		return chat != null;
 	}
 }
