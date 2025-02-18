@@ -20,7 +20,7 @@
     </DialogActions>
 </MudDialog>
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public required string InitiatorId { get; set; }
     [Parameter] public required List<UserSlim> Recipients { get; set; }
     [Parameter] public string? ChatName { get; set; }

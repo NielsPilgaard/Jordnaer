@@ -3,6 +3,6 @@
 <span class="@Classname"
       style="@Style"
       @attributes="@UserAttributes"
-      @onclick="EventUtil.AsNonRenderingEventHandler<MouseEventArgs>(OnButtonClick)">
+      @onclick="this.AsNonRenderingEventHandler<MouseEventArgs>(OnButtonClick)">
 	@ChildContent
 </span>
