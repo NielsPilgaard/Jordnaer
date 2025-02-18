@@ -124,8 +124,11 @@ public partial class ScrollToBottom : IDisposable
 	/// </summary>
 	private async Task OnButtonClick(MouseEventArgs args)
 	{
-		await ScrollManager.ScrollToBottomAsync(_scrollListener?.Selector, ScrollBehavior);
-		await OnClick.InvokeAsync(args);
+		if (_scrollListener?.Selector is not null)
+		{
+			await ScrollManager.ScrollToBottomAsync(_scrollListener.Selector, ScrollBehavior);
+			await OnClick.InvokeAsync(args);
+		}
 	}
 
 	/// <summary>

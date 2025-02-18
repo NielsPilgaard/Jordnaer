@@ -9,17 +9,17 @@ public static class JordnaerTheme
 	{
 		Typography = new Typography
 		{
-			Body1 = new Body1
+			Body1 = new Body1Typography
 			{
 				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
 				FontSize = "1.25rem"
 			},
-			Body2 = new Body2
+			Body2 = new Body2Typography
 			{
 				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
 				FontSize = "1.1rem"
 			},
-			Default = new Default
+			Default = new DefaultTypography
 			{
 				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
 				FontSize = "1rem"
