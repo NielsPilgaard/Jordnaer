@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		.github\workflows\container_apps_chat_cd.yml = .github\workflows\container_apps_chat_cd.yml
-		.github\workflows\container_apps_chat_ci.yml = .github\workflows\container_apps_chat_ci.yml
 		Directory.Build.props = Directory.Build.props
 		.github\workflows\github-release.yml = .github\workflows\github-release.yml
 		.github\workflows\lighthouse.yml = .github\workflows\lighthouse.yml
@@ -36,14 +34,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{B4EAF579-8327-4B92-8357-8FF12C21755F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "container_apps", "container_apps", "{64BD34CA-4E7C-4496-825C-844F1B121959}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "container_apps", "container_apps", "{6BE03F12-3430-4DBC-B669-EE6A4E81D519}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Chat", "src\container_apps\Jordnaer.Chat\Jordnaer.Chat.csproj", "{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Chat.Tests", "tests\container_apps\Jordnaer.Chat.Tests\Jordnaer.Chat.Tests.csproj", "{0104E957-D6C4-4FD3-8926-68D0EC9FC658}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{659DB215-49CE-4C57-8823-56AFAE2DED72}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Shared.Infrastructure", "src\shared\Jordnaer.Shared.Infrastructure\Jordnaer.Shared.Infrastructure.csproj", "{73928908-776A-4AE3-98A7-AAB82A9A9C19}"
@@ -51,8 +41,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Shared", "src\shared\Jordnaer.Shared\Jordnaer.Shared.csproj", "{41CAB9C0-E554-4F17-8C8D-AD50EF22B70B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.E2E.Tests", "tests\web\Jordnaer.E2E.Tests\Jordnaer.E2E.Tests.csproj", "{D17408FE-1231-4CEC-8C7F-773915B70242}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer.Load.Tests", "tests\web\Jordnaer.Load.Tests\Jordnaer.Load.Tests.csproj", "{3F6E02C2-D7D6-43C4-9FEA-0E76FCA3F656}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jordnaer", "src\web\Jordnaer\Jordnaer.csproj", "{06B65FD2-ABF3-4D58-9655-375C0C57B3C3}"
 EndProject
@@ -66,14 +54,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0104E957-D6C4-4FD3-8926-68D0EC9FC658}.Release|Any CPU.Build.0 = Release|Any CPU
 		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73928908-776A-4AE3-98A7-AAB82A9A9C19}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -86,10 +66,6 @@ Global
 		{D17408FE-1231-4CEC-8C7F-773915B70242}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D17408FE-1231-4CEC-8C7F-773915B70242}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D17408FE-1231-4CEC-8C7F-773915B70242}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F6E02C2-D7D6-43C4-9FEA-0E76FCA3F656}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F6E02C2-D7D6-43C4-9FEA-0E76FCA3F656}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F6E02C2-D7D6-43C4-9FEA-0E76FCA3F656}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F6E02C2-D7D6-43C4-9FEA-0E76FCA3F656}.Release|Any CPU.Build.0 = Release|Any CPU
 		{06B65FD2-ABF3-4D58-9655-375C0C57B3C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{06B65FD2-ABF3-4D58-9655-375C0C57B3C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06B65FD2-ABF3-4D58-9655-375C0C57B3C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -109,15 +85,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7326F14D-ADB6-4CB0-9AE4-2717133CED27} = {04718F38-85FB-4998-B2FF-AA5B8999BA5D}
 		{B4EAF579-8327-4B92-8357-8FF12C21755F} = {3F3B23F8-EA95-44B5-B907-5E772A2660E2}
-		{64BD34CA-4E7C-4496-825C-844F1B121959} = {3F3B23F8-EA95-44B5-B907-5E772A2660E2}
-		{6BE03F12-3430-4DBC-B669-EE6A4E81D519} = {04718F38-85FB-4998-B2FF-AA5B8999BA5D}
-		{8CEF7C08-9C8D-45F2-BEF6-88BDE6F966BF} = {6BE03F12-3430-4DBC-B669-EE6A4E81D519}
-		{0104E957-D6C4-4FD3-8926-68D0EC9FC658} = {64BD34CA-4E7C-4496-825C-844F1B121959}
 		{659DB215-49CE-4C57-8823-56AFAE2DED72} = {04718F38-85FB-4998-B2FF-AA5B8999BA5D}
 		{73928908-776A-4AE3-98A7-AAB82A9A9C19} = {659DB215-49CE-4C57-8823-56AFAE2DED72}
 		{41CAB9C0-E554-4F17-8C8D-AD50EF22B70B} = {659DB215-49CE-4C57-8823-56AFAE2DED72}
 		{D17408FE-1231-4CEC-8C7F-773915B70242} = {B4EAF579-8327-4B92-8357-8FF12C21755F}
-		{3F6E02C2-D7D6-43C4-9FEA-0E76FCA3F656} = {B4EAF579-8327-4B92-8357-8FF12C21755F}
 		{06B65FD2-ABF3-4D58-9655-375C0C57B3C3} = {7326F14D-ADB6-4CB0-9AE4-2717133CED27}
 		{26821232-1D4D-4CA8-AA41-7605C42C373A} = {B4EAF579-8327-4B92-8357-8FF12C21755F}
 		{3C1DA78A-722B-485E-9D60-CC19ACFDA892} = {B7172579-75AE-4D50-9328-3B0D80252384}
