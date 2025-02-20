@@ -8,16 +8,15 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Jordnaer.Features.Search;
-using Moq;
 using Xunit;
 
 namespace Jordnaer.Tests.UserSearch;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(SqlServerContainerCollection))]
-public class UserSearchServiceTests 
+public class UserSearchServiceTests
 {
-	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();	
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
 	private readonly IZipCodeService _zipCodeServiceMock = Substitute.For<IZipCodeService>();
 	private readonly UserSearchService _sut;
 	private readonly Faker _faker = new();

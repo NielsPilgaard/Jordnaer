@@ -1,5 +1,4 @@
 using Jordnaer.Database;
-using Jordnaer.Features.GroupSearch;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Search;
 using Jordnaer.Shared;
