@@ -9,8 +9,6 @@ END;
 GO
 
 BEGIN TRANSACTION;
-GO
-
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
     WHERE [MigrationId] = N'20231112182745_Initial'
@@ -24,7 +22,6 @@ BEGIN
         CONSTRAINT [PK_AspNetRoles] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -50,7 +47,6 @@ BEGIN
         CONSTRAINT [PK_AspNetUsers] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -65,7 +61,6 @@ BEGIN
         CONSTRAINT [PK_Categories] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -80,7 +75,6 @@ BEGIN
         CONSTRAINT [PK_Chats] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -100,7 +94,6 @@ BEGIN
         CONSTRAINT [PK_Groups] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -115,7 +108,6 @@ BEGIN
         CONSTRAINT [PK_UnreadMessages] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -140,7 +132,6 @@ BEGIN
         CONSTRAINT [PK_UserProfiles] PRIMARY KEY ([Id])
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -156,7 +147,6 @@ BEGIN
         CONSTRAINT [FK_AspNetRoleClaims_AspNetRoles_RoleId] FOREIGN KEY ([RoleId]) REFERENCES [AspNetRoles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -172,7 +162,6 @@ BEGIN
         CONSTRAINT [FK_AspNetUserClaims_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -188,7 +177,6 @@ BEGIN
         CONSTRAINT [FK_AspNetUserLogins_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -203,7 +191,6 @@ BEGIN
         CONSTRAINT [FK_AspNetUserRoles_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -219,7 +206,6 @@ BEGIN
         CONSTRAINT [FK_AspNetUserTokens_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -234,7 +220,6 @@ BEGIN
         CONSTRAINT [FK_GroupCategories_Groups_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [Groups] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -253,7 +238,6 @@ BEGIN
         CONSTRAINT [FK_ChatMessages_UserProfiles_SenderId] FOREIGN KEY ([SenderId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -275,7 +259,6 @@ BEGIN
         CONSTRAINT [FK_ChildProfiles_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -296,7 +279,6 @@ BEGIN
         CONSTRAINT [FK_GroupMemberships_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -311,7 +293,6 @@ BEGIN
         CONSTRAINT [FK_UserChats_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -326,7 +307,6 @@ BEGIN
         CONSTRAINT [FK_UserContacts_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -341,7 +321,6 @@ BEGIN
         CONSTRAINT [FK_UserProfileCategories_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
     );
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -350,7 +329,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -359,7 +337,6 @@ IF NOT EXISTS (
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL');
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -368,7 +345,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -377,7 +353,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -386,7 +361,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -395,7 +369,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -404,7 +377,6 @@ IF NOT EXISTS (
 BEGIN
     EXEC(N'CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL');
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -413,7 +385,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_ChatMessages_ChatId] ON [ChatMessages] ([ChatId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -422,7 +393,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_ChatMessages_SenderId] ON [ChatMessages] ([SenderId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -431,7 +401,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_ChatMessages_SentUtc] ON [ChatMessages] ([SentUtc] DESC);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -440,7 +409,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_Chats_LastMessageSentUtc] ON [Chats] ([LastMessageSentUtc] DESC);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -449,7 +417,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_ChildProfiles_DateOfBirth] ON [ChildProfiles] ([DateOfBirth]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -458,7 +425,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_ChildProfiles_Gender] ON [ChildProfiles] ([Gender]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -467,7 +433,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_ChildProfiles_UserProfileId] ON [ChildProfiles] ([UserProfileId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -476,7 +441,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_GroupCategories_GroupId] ON [GroupCategories] ([GroupId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -485,7 +449,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_GroupMemberships_UserProfileId] ON [GroupMemberships] ([UserProfileId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -494,7 +457,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_Groups_Name] ON [Groups] ([Name]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -503,7 +465,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_UserChats_UserProfileId] ON [UserChats] ([UserProfileId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -512,7 +473,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_UserContacts_UserProfileId] ON [UserContacts] ([UserProfileId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -521,7 +481,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_UserProfileCategories_UserProfileId] ON [UserProfileCategories] ([UserProfileId]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -530,7 +489,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_UserProfiles_SearchableName] ON [UserProfiles] ([SearchableName]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -539,7 +497,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_UserProfiles_UserName] ON [UserProfiles] ([UserName]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -548,7 +505,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE INDEX [IX_UserProfiles_ZipCode] ON [UserProfiles] ([ZipCode]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -556,15 +512,8 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20231112182745_Initial', N'8.0.2');
+    VALUES (N'20231112182745_Initial', N'9.0.2');
 END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -573,7 +522,6 @@ IF NOT EXISTS (
 BEGIN
     DROP INDEX [IX_Groups_Name] ON [Groups];
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -582,7 +530,6 @@ IF NOT EXISTS (
 BEGIN
     CREATE UNIQUE INDEX [IX_Groups_Name] ON [Groups] ([Name]);
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -590,15 +537,8 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'8.0.2');
+    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'9.0.2');
 END;
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -607,7 +547,6 @@ IF NOT EXISTS (
 BEGIN
     ALTER TABLE [AspNetUsers] ADD [Cookie] nvarchar(max) NULL;
 END;
-GO
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
@@ -615,9 +554,98 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20240219081648_Add_ApplicationUser_Cookie', N'8.0.2');
+    VALUES (N'20240219081648_Add_ApplicationUser_Cookie', N'9.0.2');
 END;
-GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE TABLE [GroupPosts] (
+        [Id] uniqueidentifier NOT NULL,
+        [Text] nvarchar(1000) NOT NULL,
+        [CreatedUtc] datetimeoffset NOT NULL,
+        [ZipCode] int NULL,
+        [UserProfileId] nvarchar(450) NOT NULL,
+        [GroupId] uniqueidentifier NOT NULL,
+        CONSTRAINT [PK_GroupPosts] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_GroupPosts_Groups_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [Groups] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_GroupPosts_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE TABLE [Posts] (
+        [Id] uniqueidentifier NOT NULL,
+        [Text] nvarchar(1000) NOT NULL,
+        [CreatedUtc] datetimeoffset NOT NULL,
+        [ZipCode] int NULL,
+        [City] nvarchar(max) NULL,
+        [UserProfileId] nvarchar(450) NOT NULL,
+        CONSTRAINT [PK_Posts] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_Posts_UserProfiles_UserProfileId] FOREIGN KEY ([UserProfileId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE TABLE [PostCategory] (
+        [PostId] uniqueidentifier NOT NULL,
+        [CategoryId] int NOT NULL,
+        CONSTRAINT [PK_PostCategory] PRIMARY KEY ([CategoryId], [PostId]),
+        CONSTRAINT [FK_PostCategory_Categories_CategoryId] FOREIGN KEY ([CategoryId]) REFERENCES [Categories] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_PostCategory_Posts_PostId] FOREIGN KEY ([PostId]) REFERENCES [Posts] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE INDEX [IX_GroupPosts_GroupId] ON [GroupPosts] ([GroupId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE INDEX [IX_GroupPosts_UserProfileId] ON [GroupPosts] ([UserProfileId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE INDEX [IX_PostCategory_PostId] ON [PostCategory] ([PostId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    CREATE INDEX [IX_Posts_UserProfileId] ON [Posts] ([UserProfileId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220204935_Add_Posts_And_GroupPosts'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20250220204935_Add_Posts_And_GroupPosts', N'9.0.2');
+END;
 
 COMMIT;
 GO
