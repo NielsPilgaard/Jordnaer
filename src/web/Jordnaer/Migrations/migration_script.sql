@@ -647,6 +647,23 @@ BEGIN
     VALUES (N'20250220204935_Add_Posts_And_GroupPosts', N'9.0.2');
 END;
 
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220210616_Add_ZipCodeIndex_On_Post'
+)
+BEGIN
+    CREATE INDEX [IX_Posts_ZipCode] ON [Posts] ([ZipCode]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20250220210616_Add_ZipCodeIndex_On_Post'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20250220210616_Add_ZipCodeIndex_On_Post', N'9.0.2');
+END;
+
 COMMIT;
 GO
 

@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
+[Index(nameof(ZipCode))]
 public class Post
 {
 	[Key]
@@ -16,6 +18,7 @@ public class Post
 	public DateTimeOffset CreatedUtc { get; set; } = DateTimeOffset.UtcNow;
 
 	public int? ZipCode { get; set; }
+
 	public string? City { get; set; }
 
 	[ForeignKey(nameof(UserProfile))]
