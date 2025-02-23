@@ -24,8 +24,8 @@ public static class WebApplicationBuilderExtensions
 
 			if (builder.Environment.IsDevelopment())
 			{
-				x.SetEndpointNameFormatter(endpointNameFormatter:
-										   new DefaultEndpointNameFormatter(prefix: "dev-"));
+				//x.SetEndpointNameFormatter(endpointNameFormatter:
+				//						   new DefaultEndpointNameFormatter(prefix: "dev-"));
 			}
 
 			x.UsingInMemory((context, busConfigurator) =>
