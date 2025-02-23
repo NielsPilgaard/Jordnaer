@@ -41,7 +41,8 @@ public class PostSearchService(
 
 		try
 		{
-			var posts = await query.OrderByDescending(x => x.CreatedUtc)
+			var posts = await query.Include(x => x.UserProfile)
+								   .OrderByDescending(x => x.CreatedUtc)
 								   .Skip(postsToSkip)
 								   .Take(filter.PageSize)
 								   .Select(x => x.ToPostDto())
