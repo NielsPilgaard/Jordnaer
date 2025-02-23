@@ -3,8 +3,7 @@ using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Images;
 using MassTransit;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SendGrid.Helpers.Mail;
@@ -23,7 +22,7 @@ public class DeleteUserService(
 	UserManager<ApplicationUser> userManager,
 	ILogger<DeleteUserService> logger,
 	IPublishEndpoint publishEndpoint,
-	IServer server,
+	NavigationManager navigationManager,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IDiagnosticContext diagnosticContext,
 	IImageService imageService)
@@ -45,9 +44,8 @@ public class DeleteUserService(
 			return false;
 		}
 
-		var serverAddressFeature = server.Features.Get<IServerAddressesFeature>();
-		var serverAddress = serverAddressFeature?.Addresses.FirstOrDefault();
-		if (serverAddress is null)
+		var baseUri = navigationManager.BaseUri.TrimEnd('/');
+		if (string.IsNullOrEmpty(baseUri))
 		{
 			logger.LogError("No addresses found in the IServerAddressFeature. A Delete User Url cannot be created.");
 			return false;
@@ -57,7 +55,7 @@ public class DeleteUserService(
 
 		var token = await userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
-		var deletionLink = $"{serverAddress}/delete-user/{token}";
+		var deletionLink = $"{baseUri}/delete-user/{token}";
 
 		var message = CreateDeleteUserEmailMessage(deletionLink);
 
