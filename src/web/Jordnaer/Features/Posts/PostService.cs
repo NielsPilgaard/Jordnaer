@@ -41,13 +41,29 @@ public class PostService(IDbContextFactory<JordnaerDbContext> contextFactory) : 
 
 		if (await context.Posts
 						 .AsNoTracking()
-						 .AnyAsync(x => x.Id == post.Id &&
-										x.UserProfileId == post.UserProfileId,
+						 .AnyAsync(x => x.Id == post.Id,
 								   cancellationToken))
 		{
 			return new Error<string>("Opslaget eksisterer allerede.");
 		}
 
+		//var categories = post.Categories.ToArray();
+		//post.Categories.Clear();
+		//foreach (var categoryDto in updatedUserProfile.Categories)
+		//{
+		//	var category = await context.Categories.FindAsync([categoryDto.Id], cancellationToken);
+		//	if (category is null)
+		//	{
+		//		currentUserProfile.Categories.Add(categoryDto);
+		//		context.Entry(categoryDto).State = EntityState.Added;
+		//	}
+		//	else
+		//	{
+		//		category.LoadValuesFrom(categoryDto);
+		//		currentUserProfile.Categories.Add(category);
+		//		context.Entry(category).State = EntityState.Modified;
+		//	}
+		//}
 		context.Posts.Add(post);
 
 		await context.SaveChangesAsync(cancellationToken);
