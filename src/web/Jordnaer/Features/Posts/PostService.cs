@@ -36,23 +36,9 @@ public class PostService(IDbContextFactory<JordnaerDbContext> contextFactory)
 			return new Error<string>("Opslaget eksisterer allerede.");
 		}
 
-		//var categories = post.Categories.ToArray();
-		//post.Categories.Clear();
-		//foreach (var categoryDto in updatedUserProfile.Categories)
-		//{
-		//	var category = await context.Categories.FindAsync([categoryDto.Id], cancellationToken);
-		//	if (category is null)
-		//	{
-		//		currentUserProfile.Categories.Add(categoryDto);
-		//		context.Entry(categoryDto).State = EntityState.Added;
-		//	}
-		//	else
-		//	{
-		//		category.LoadValuesFrom(categoryDto);
-		//		currentUserProfile.Categories.Add(category);
-		//		context.Entry(category).State = EntityState.Modified;
-		//	}
-		//}
+		// Mark Categories as Modified, so they're not re-added to the Categories table
+		post.Categories.ForEach(x => context.Entry(x).State = EntityState.Modified);
+
 		context.Posts.Add(post);
 
 		await context.SaveChangesAsync(cancellationToken);
