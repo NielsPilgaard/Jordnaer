@@ -78,7 +78,7 @@ builder.AddProfileServices();
 builder.AddChatServices();
 builder.AddMembershipServices();
 builder.AddPostFeature();
-builder.AddPostSearchService();
+builder.AddPostSearchFeature();
 
 builder.AddMudBlazor();
 

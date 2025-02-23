@@ -9,16 +9,10 @@ using OneOf.Types;
 
 namespace Jordnaer.Features.PostSearch;
 
-public interface IPostSearchService
-{
-	Task<OneOf<PostSearchResult, Error<string>>> GetPostsAsync(PostSearchFilter filter,
-		CancellationToken cancellationToken = default);
-}
-
 public class PostSearchService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IZipCodeService zipCodeService,
-	ILogger<PostSearchService> logger) : IPostSearchService
+	ILogger<PostSearchService> logger)
 {
 	public async Task<OneOf<PostSearchResult, Error<string>>> GetPostsAsync(PostSearchFilter filter,
 		CancellationToken cancellationToken = default)
@@ -42,6 +36,7 @@ public class PostSearchService(
 		try
 		{
 			var posts = await query.Include(x => x.UserProfile)
+								   .Include(x => x.Categories)
 								   .OrderByDescending(x => x.CreatedUtc)
 								   .Skip(postsToSkip)
 								   .Take(filter.PageSize)
