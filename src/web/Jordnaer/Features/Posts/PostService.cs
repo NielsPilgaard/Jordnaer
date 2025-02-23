@@ -6,18 +6,7 @@ using OneOf.Types;
 
 namespace Jordnaer.Features.Posts;
 
-public interface IPostService
-{
-	Task<OneOf<PostDto, NotFound>> GetPostAsync(Guid postId,
-		CancellationToken cancellationToken = default);
-
-	Task<OneOf<Success, Error<string>>> CreatePostAsync(Post post,
-		CancellationToken cancellationToken = default);
-
-	Task<OneOf<Success, Error<string>>> DeletePostAsync(Guid postId,
-		CancellationToken cancellationToken = default);
-}
-public class PostService(IDbContextFactory<JordnaerDbContext> contextFactory) : IPostService
+public class PostService(IDbContextFactory<JordnaerDbContext> contextFactory)
 {
 	public async Task<OneOf<PostDto, NotFound>> GetPostAsync(Guid postId,
 		CancellationToken cancellationToken = default)

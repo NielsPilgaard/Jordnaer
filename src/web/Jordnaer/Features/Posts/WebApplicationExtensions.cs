@@ -2,9 +2,9 @@
 
 public static class WebApplicationExtensions
 {
-	public static WebApplicationBuilder AddPostService(this WebApplicationBuilder builder)
+	public static WebApplicationBuilder AddPostFeature(this WebApplicationBuilder builder)
 	{
-		builder.Services.AddScoped<IPostService, PostService>();
+		builder.Services.AddScoped<PostService>();
 
 		return builder;
 	}
