@@ -11,12 +11,19 @@ using Serilog;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Images;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Xunit;
 using Jordnaer.Tests.Infrastructure;
+using Microsoft.AspNetCore.Components;
 
 namespace Jordnaer.Tests.User;
+
+internal class NavigationManagerMock : NavigationManager
+{
+	public NavigationManagerMock()
+	{
+		Initialize("https://localhost:7116/", "https://localhost:7116/");
+	}
+}
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(SqlServerContainerCollection))]
@@ -25,8 +32,7 @@ public class DeleteUserServiceTests : IAsyncLifetime
 	private readonly UserManager<ApplicationUser> _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 	private readonly ILogger<DeleteUserService> _logger = Substitute.For<ILogger<DeleteUserService>>();
 	private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
-	private readonly IServer _server = Substitute.For<IServer>();
-	private readonly IServerAddressesFeature _serverAddressesFeature = Substitute.For<IServerAddressesFeature>();
+	private readonly NavigationManager _server = new NavigationManagerMock();
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
 	private readonly IDiagnosticContext _diagnosticContext = Substitute.For<IDiagnosticContext>();
 	private readonly DeleteUserService _deleteUserService;
@@ -51,9 +57,6 @@ public class DeleteUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		_userManager.GenerateUserTokenAsync(user, DeleteUserService.TokenProvider, DeleteUserService.TokenPurpose).Returns("token");
-
-		_server.Features.Get<IServerAddressesFeature>().ReturnsForAnyArgs(_serverAddressesFeature);
-		_serverAddressesFeature.Addresses.ReturnsForAnyArgs(["https://localhost:7116"]);
 
 		_publishEndpoint.Publish(Arg.Any<SendEmail>()).Returns(Task.CompletedTask);
 
