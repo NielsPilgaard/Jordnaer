@@ -1,6 +1,6 @@
 <MudCard Class="pa-3 my-3" Elevation="3">
 	<MudCardContent>
-		<MudText Typo="Typo.body1">@Post.Text</MudText>
+		<MudText Typo="Typo.body1">@Post.Text @string.Join(',', Post.Categories)</MudText>
 		<MudText Typo="Typo.caption">@Post.CreatedUtc.ToLocalTime().ToString("g")</MudText>
 		@if (Post.ZipCode is not null && !string.IsNullOrEmpty(Post.City))
 		{
