@@ -44,7 +44,8 @@ public class DeleteUserService(
 			return false;
 		}
 
-		if (string.IsNullOrEmpty(navigationManager.BaseUri))
+		var baseUri = navigationManager.BaseUri.TrimEnd('/');
+		if (string.IsNullOrEmpty(baseUri))
 		{
 			logger.LogError("No addresses found in the IServerAddressFeature. A Delete User Url cannot be created.");
 			return false;
@@ -54,7 +55,7 @@ public class DeleteUserService(
 
 		var token = await userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
-		var deletionLink = $"{navigationManager.BaseUri}/delete-user/{token}";
+		var deletionLink = $"{baseUri}/delete-user/{token}";
 
 		var message = CreateDeleteUserEmailMessage(deletionLink);
 
