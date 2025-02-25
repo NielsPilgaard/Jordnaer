@@ -88,11 +88,16 @@ public class PostSearchService(
 
 	internal static IQueryable<Post> ApplyCategoryFilter(PostSearchFilter filter, IQueryable<Post> posts)
 	{
-		if (filter.Categories is not null && filter.Categories.Length > 0)
+		if (filter.Categories is null || filter.Categories.Length is 0)
 		{
-			posts = posts.Where(
-				user => user.Categories.Any(category => filter.Categories.Contains(category.Name)));
+			return posts;
 		}
+
+		// This ToList prevents a LINQ translation issue on Ubuntu
+		var categories = filter.Categories.ToList();
+
+		posts = posts.Where(
+			user => user.Categories.Any(category => categories.Contains(category.Name)));
 
 		return posts;
 	}
