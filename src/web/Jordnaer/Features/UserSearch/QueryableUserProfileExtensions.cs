@@ -42,6 +42,7 @@ internal static class QueryableUserProfileExtensions
 			return users;
 		}
 
+		// This ToList prevents a LINQ translation issue on Ubuntu
 		var categories = filter.Categories.ToList();
 
 		users = users.Where(user =>
