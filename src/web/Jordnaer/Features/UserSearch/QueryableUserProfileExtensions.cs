@@ -37,11 +37,16 @@ internal static class QueryableUserProfileExtensions
 	internal static IQueryable<UserProfile> ApplyCategoryFilter(this IQueryable<UserProfile> users,
 		UserSearchFilter filter)
 	{
-		if (filter.Categories is not null && filter.Categories.Length > 0)
+		if (filter.Categories is null || filter.Categories.Length is 0)
 		{
-			users = users.Where(user =>
-				user.Categories.Any(category => filter.Categories.Contains(category.Name)));
+			return users;
 		}
+
+		// This ToList prevents a LINQ translation issue on Ubuntu
+		var categories = filter.Categories.ToList();
+
+		users = users.Where(user =>
+								user.Categories.Any(category => categories.Contains(category.Name)));
 
 		return users;
 	}
@@ -57,7 +62,7 @@ internal static class QueryableUserProfileExtensions
 		return users;
 	}
 
-	internal static IQueryable<UserProfile> ApplyChildFilters(this IQueryable<UserProfile> users,UserSearchFilter filter)
+	internal static IQueryable<UserProfile> ApplyChildFilters(this IQueryable<UserProfile> users, UserSearchFilter filter)
 	{
 		if (filter.ChildGender is not null)
 		{
