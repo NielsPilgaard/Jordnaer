@@ -16,10 +16,15 @@ internal static class QueryableGroupExtensions
 
 	internal static IQueryable<Group> ApplyCategoryFilter(this IQueryable<Group> groups, string[]? categories)
 	{
-		if (categories is not null && categories.Length > 0)
+		if (categories is null || categories.Length is 0)
 		{
-			groups = groups.Where(group => group.Categories.Any(category => categories.Contains(category.Name)));
+			return groups;
 		}
+
+		// This ToList prevents a LINQ translation issue on Ubuntu
+		var categoriesList = categories.ToList();
+
+		groups = groups.Where(group => group.Categories.Any(category => categoriesList.Contains(category.Name)));
 
 		return groups;
 	}
