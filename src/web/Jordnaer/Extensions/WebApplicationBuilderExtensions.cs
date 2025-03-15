@@ -22,27 +22,9 @@ public static class WebApplicationBuilderExtensions
 		{
 			x.AddConsumersFromNamespaceContaining<Program>();
 
-			if (builder.Environment.IsDevelopment())
-			{
-				//x.SetEndpointNameFormatter(endpointNameFormatter:
-				//						   new DefaultEndpointNameFormatter(prefix: "dev-"));
-			}
-
 			x.UsingInMemory((context, busConfigurator) =>
 			{
-				if (builder.Environment.IsDevelopment())
-				{
-					//busConfigurator
-					//	.MessageTopology
-					//	.SetEntityNameFormatter(
-					//		new PrefixEntityNameFormatter(
-					//			AzureBusFactory.CreateMessageTopology().EntityNameFormatter, "dev-"));
-				}
-
-				//azureServiceBus.Host(builder.Configuration.GetConnectionString("AzureServiceBus"));
-
 				busConfigurator.UseInMemoryOutbox(context);
-
 				busConfigurator.ConfigureEndpoints(context);
 			});
 		});
