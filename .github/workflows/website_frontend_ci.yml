@@ -1,4 +1,4 @@
-name: Run Playwright Website Tests & Swap Slots if successful
+name: Run Playwright Website Tests after deploy
 
 on:
   workflow_run:
@@ -34,7 +34,6 @@ jobs:
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
           --filter Category!=SkipInCi
         env:
-          ConnectionStrings__AppConfig: ${{ secrets.AZURE_APP_CONFIGURATION_CONNECTION_STRING }}
           Playwright_BaseUrl: "https://jordnaer-staging.azurewebsites.net/"
           Playwright_Username: ${{ secrets.Playwright_Username }}
           Playwright_Password: ${{ secrets.Playwright_Password }}
@@ -46,18 +45,19 @@ jobs:
           name: screenshots
           path: "${{ env.WORKING_DIRECTORY }}/bin/Debug/screenshots"
 
-  swap-deployment:
-    needs: playwright
-    runs-on: ubuntu-latest
-    concurrency:
-      group: Jordnaer-swap
-      cancel-in-progress: false
-    steps:
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.MINIMOEDER_AZURE_CREDENTIALS }}
+  # We've switched to a cheaper plan, so no need (or ability) to swap slots
+  # swap-deployment:
+  #   needs: playwright
+  #   runs-on: ubuntu-latest
+  #   concurrency:
+  #     group: Jordnaer-swap
+  #     cancel-in-progress: false
+  #   steps:
+  #     - name: Login to Azure
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.MINIMOEDER_AZURE_CREDENTIALS }}
 
-      - name: Swap Slots
-        run: >
-          az webapp deployment slot swap --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --slot staging --target-slot production
+  #     - name: Swap Slots
+  #       run: >
+  #         az webapp deployment slot swap --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --slot staging --target-slot production
