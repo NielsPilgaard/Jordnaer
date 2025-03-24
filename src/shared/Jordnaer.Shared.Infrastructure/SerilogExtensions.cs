@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +8,7 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Sinks.ElmahIo;
 using Serilog.Sinks.Grafana.Loki;
+using System.ComponentModel.DataAnnotations;
 
 namespace Jordnaer.Shared.Infrastructure;
 
@@ -59,7 +59,7 @@ public static class SerilogExtensions
 				>= 500 when exception is not null => LogEventLevel.Error,
 				_ when exception is not null => LogEventLevel.Error,
 				>= 400 => LogEventLevel.Warning,
-				_ => app.Environment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Debug
+				_ => LogEventLevel.Information
 			});
 
 	/// <summary>
@@ -84,17 +84,21 @@ public static class SerilogExtensions
 		IServiceProvider provider)
 	{
 		var grafanaLokiOptions = provider.GetRequiredService<IOptions<GrafanaLokiOptions>>().Value;
+
 		var configuration = provider.GetRequiredService<IConfiguration>();
-		var labels =
-			new LokiLabel[] {
+
+		var environment = configuration["ENVIRONMENT"] ??
+						  configuration["ASPNETCORE_ENVIRONMENT"] ??
+						  configuration["DOTNET_ENVIRONMENT"] ??
+						  "Not Configured";
+
+		var labels = new LokiLabel[] {
 				new()
 				{
 					Key = "environment",
-					Value = configuration["ENVIRONMENT"] ??
-							configuration["ASPNETCORE_ENVIRONMENT"] ??
-							configuration["DOTNET_ENVIRONMENT"] ??
-							"Not Configured"
-				}
+					Value = environment
+				},
+				new() { Key="service_name", Value = "Jordnaer" }
 			};
 
 		loggerConfiguration.WriteTo.GrafanaLoki(
@@ -114,10 +118,10 @@ public sealed class ElmahIoOptions
 {
 	public const string SectionName = "ElmahIo";
 
-	[Required(ErrorMessage = "Påkrævet.")]
+	[Required]
 	public required string ApiKey { get; set; }
 
-	[Required(ErrorMessage = "Påkrævet.")]
+	[Required]
 	public required string LogId { get; set; }
 
 	public Guid LogIdGuid => new(LogId);
@@ -127,14 +131,13 @@ public sealed class GrafanaLokiOptions
 {
 	public const string SectionName = "GrafanaLoki";
 
-	[Required(ErrorMessage = "Påkrævet.")]
 	[Url]
 	public string Uri { get; set; } = null!;
 
-	[Required(ErrorMessage = "Påkrævet.")]
+	[Required]
 	public string Login { get; set; } = null!;
 
-	[Required(ErrorMessage = "Påkrævet.")]
+	[Required]
 	public string Password { get; set; } = null!;
 
 	public int QueueLimit { get; set; } = 500;
