@@ -16,13 +16,13 @@
 			<hr />
 
 			<div class="form-floating mb-3">
-				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com"/>
+				<InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="navn@eksempel.com" id="email"/>
 				<label for="email" class="form-label">Email</label>
 				<ValidationMessage For="() => Input.Email" class="text-danger"/>
 			</div>
 
 			<div class="form-floating mb-3">
-				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="adgangskode"/>
+				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="adgangskode" id="password"/>
 				<label for="password" class="form-label">Adgangskode</label>
 				<ValidationMessage For="() => Input.Password" class="text-danger"/>
 			</div>
@@ -69,6 +69,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+	    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+	    // This has been null in prod, but we cannot safely mark the field as nullable
+	    if (HttpContext is null)
+        {
+            _errorMessage = new AlertMessage("Der er sket en fejl. Vent et øjeblik og genindlæs siden.", true);
+		    return;
+	    }
+
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
             // Clear the existing external cookie to ensure a clean login process
@@ -78,6 +86,13 @@
 
     public async Task LoginUser()
     {
+	    if (string.IsNullOrEmpty(Input.Email) || string.IsNullOrEmpty(Input.Password))
+	    {
+		    _errorMessage = new AlertMessage("Der er sket en fejl. Vent et øjeblik og genindlæs siden.", true);
+
+		    return;
+	    }
+
         var result = await SignInManager.PasswordSignInAsync(Input.Email,
 	        Input.Password,
 	        isPersistent: true,
@@ -109,13 +124,13 @@
 
     private sealed class InputModel
     {
-        [Required(ErrorMessage = "Email er påkrævet.")]
-        [EmailAddress(ErrorMessage = "Email skal være gyldig.")]
-        public string Email { get; set; } = "";
+	    [Required(ErrorMessage = "Påkrævet.", AllowEmptyStrings = false)]
+	    [EmailAddress(ErrorMessage = "Email skal være gyldig.")]
+	    public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Påkrævet.")]
+        [Required(ErrorMessage = "Påkrævet.", AllowEmptyStrings = false)]
         [DataType(DataType.Password)]
         [Display(Name = "Adgangskode")]
-        public string Password { get; set; } = "";
+        public string Password { get; set; } = string.Empty;
     }
 }
