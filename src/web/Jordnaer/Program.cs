@@ -1,7 +1,9 @@
 using Azure.Storage.Blobs;
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
+using Jordnaer.Components;
 using Jordnaer.Components.Account;
+using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Category;
 using Jordnaer.Features.Chat;
@@ -9,7 +11,10 @@ using Jordnaer.Features.DeleteUser;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Groups;
 using Jordnaer.Features.GroupSearch;
+using Jordnaer.Features.Images;
+using Jordnaer.Features.Membership;
 using Jordnaer.Features.Profile;
+using Jordnaer.Features.Search;
 using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
 using Serilog;
@@ -23,9 +28,14 @@ using Jordnaer.Features.Posts;
 using Jordnaer.Features.PostSearch;
 using Jordnaer.Features.Search;
 using Microsoft.FeatureManagement;
+using Jordnaer.Shared.Infrastructure;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.FeatureManagement;
+using Serilog;
 using Sidio.Sitemap.AspNetCore;
 using Sidio.Sitemap.Blazor;
 using Sidio.Sitemap.Core.Services;
+using System.Text.Json.Serialization;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -158,8 +168,6 @@ catch (Exception exception)
 }
 finally
 {
-	// Wait 0.5 seconds before closing and flushing, to gather the last few logs.
-	await Task.Delay(TimeSpan.FromMilliseconds(500));
 	await Log.CloseAndFlushAsync();
 }
 

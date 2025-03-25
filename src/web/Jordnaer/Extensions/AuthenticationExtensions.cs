@@ -36,6 +36,16 @@ public static class AuthenticationExtensions
 			   .AddIdentityCore<ApplicationUser>(options =>
 			   {
 				   options.SignIn.RequireConfirmedAccount = true;
+
+				   // Non-default
+				   options.Password.RequiredLength = 8;
+				   options.Password.RequireNonAlphanumeric = false;
+
+				   // Same as defaults, set in case the defaults change
+				   options.Password.RequireDigit = true;
+				   options.Password.RequireLowercase = true;
+				   options.Password.RequireUppercase = true;
+
 				   options.User.RequireUniqueEmail = true;
 			   })
 			   .AddEntityFrameworkStores<JordnaerDbContext>()
@@ -47,7 +57,8 @@ public static class AuthenticationExtensions
 
 	private static AuthenticationBuilder AddGoogleAuthentication(
 		this AuthenticationBuilder builder,
-		ConfigurationManager configuration, bool isDevelopment)
+		ConfigurationManager configuration,
+		bool isDevelopment)
 	{
 		const string provider = "Google";
 

@@ -33,9 +33,7 @@ jobs:
         run: >
           dotnet test "${{ env.TESTS_DIRECTORY }}" 
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
-          --filter Category!=ManualTest
-        env:
-          ConnectionStrings:AzureServiceBus: ${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}
+          --filter Category!=SkipInCi
 
       - name: Publish
         run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
@@ -46,7 +44,6 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
-          slot-name: staging
 
       - name: Create Deployment on elmah.io
         uses: elmahio/github-create-deployment-action@v1

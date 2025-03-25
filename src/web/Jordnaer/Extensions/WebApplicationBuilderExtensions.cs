@@ -1,4 +1,5 @@
 using Grafana.OpenTelemetry;
+using HealthChecks.OpenTelemetry.Instrumentation;
 using Jordnaer.Database;
 using MassTransit;
 using MassTransit.Logging;
@@ -69,6 +70,7 @@ public static class WebApplicationBuilderExtensions
 		var openTelemetryBuilder = builder.Services
 			   .AddOpenTelemetry()
 			   .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation()
+											  .AddHealthChecksInstrumentation(options => options.IncludeHealthCheckMetadata = true)
 											  .AddHttpClientInstrumentation()
 											  .AddProcessInstrumentation()
 											  .AddRuntimeInstrumentation()
@@ -86,6 +88,7 @@ public static class WebApplicationBuilderExtensions
 				   tracing.AddAspNetCoreInstrumentation()
 						  .AddHttpClientInstrumentation()
 						  .AddSource(DiagnosticHeaders.DefaultListenerName)
+						  .AddSource("Polly")
 						  .AddSource("Jordnaer");
 			   });
 
