@@ -29,6 +29,4 @@ jobs:
         run: >
           dotnet test "${{ env.WORKING_DIRECTORY }}" 
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
-          --filter Category!=ManualTest
-        env:
-          ConnectionStrings:AzureServiceBus: ${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}
+          --filter Category!=SkipInCi
