@@ -36,6 +36,11 @@ public class PostService(IDbContextFactory<JordnaerDbContext> contextFactory)
 			return new Error<string>("Opslaget eksisterer allerede.");
 		}
 
+		if (string.IsNullOrWhiteSpace(post.Text))
+		{
+			return new Error<string>("Opslaget skal indeholde tekst.");
+		}
+
 		// Mark Categories as Modified, so they're not re-added to the Categories table
 		post.Categories.ForEach(x => context.Entry(x).State = EntityState.Modified);
 

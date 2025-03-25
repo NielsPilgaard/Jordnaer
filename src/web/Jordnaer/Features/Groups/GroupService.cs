@@ -1,38 +1,22 @@
 using Jordnaer.Database;
 using Jordnaer.Extensions;
+using Jordnaer.Features.Authentication;
+using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using Serilog;
 using System.Linq.Expressions;
-using Jordnaer.Features.Authentication;
-using Jordnaer.Features.Metrics;
 using NotFound = OneOf.Types.NotFound;
 
 namespace Jordnaer.Features.Groups;
-
-public interface IGroupService
-{
-	Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default);
-	Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> CreateGroupAsync(Group group, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> UpdateGroupAsync(Group group, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error, NotFound>> DeleteGroupAsync(Guid id, CancellationToken cancellationToken = default);
-	Task<List<UserGroupAccess>> GetSlimGroupsForUserAsync(CancellationToken cancellationToken = default);
-
-	Task<List<UserSlim>> GetGroupMembersByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default);
-	Task<List<GroupMembershipDto>> GetGroupMembershipsAsync(string groupName, CancellationToken cancellationToken = default);
-	Task<GroupMembershipDto?> GetCurrentUsersGroupMembershipAsync(Guid groupId, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membership, CancellationToken cancellationToken = default);
-}
 
 public class GroupService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
 	CurrentUser currentUser)
-	: IGroupService
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{

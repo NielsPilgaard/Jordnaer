@@ -2,6 +2,7 @@
 
 @inject PostSearchService PostSearchService
 @inject ISnackbar Snackbar
+@inject ILogger<Posts> Logger
 
 @attribute [Sitemap]
 
@@ -51,20 +52,29 @@
     private async Task Search()
     {
         _isSearching = true;
+        try
+        {
+            var result = await PostSearchService.GetPostsAsync(_filter);
 
-        var result = await PostSearchService.GetPostsAsync(_filter);
-
-        result.Switch(
-            success =>
-            {
-                _searchResult = success;
-                Snackbar.Add($"{_searchResult.TotalCount} opslag fundet.", Severity.Success);
-            },
-            error => Snackbar.Add(error.Value, Severity.Error)
-        );
-
-        _hasSearched = true;
-        _isSearching = false;
+            result.Switch(
+                success =>
+                {
+                    _searchResult = success;
+                    Snackbar.Add($"{_searchResult.TotalCount} opslag fundet.", Severity.Success);
+                },
+                error => Snackbar.Add(error.Value, Severity.Error)
+            );
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Error occurred during post search");
+            Snackbar.Add("Der opstod en fejl under søgningen.", Severity.Error);
+        }
+        finally
+        {
+            _hasSearched = true;
+            _isSearching = false;
+        }
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

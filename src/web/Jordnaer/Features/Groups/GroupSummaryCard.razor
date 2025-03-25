@@ -1,7 +1,7 @@
 <MudNavLink Href="@GroupUrl" Class="card-link">
     <MudCard Elevation="3" Style="position: relative">
         <MudCardHeader>
-            <MudText Typo="Typo.h4" Class="">@UserGroupAccess.Group.Name</MudText>
+            <MudText Typo="Typo.h4" Class="">@UserGroupAccess.Group.Name.Sanitize()</MudText>
             <MudSpacer />
             @if (UserGroupAccess.OwnershipLevel is OwnershipLevel.Owner ||
                  UserGroupAccess.PermissionLevel is PermissionLevel.Admin)
@@ -37,7 +37,7 @@
                           Text="@UserGroupAccess.Group.DisplayLocation()" />
 
             <MudText Class="mt-3" Typo="Typo.body1">
-                @UserGroupAccess.Group.ShortDescription
+                @UserGroupAccess.Group.ShortDescription.Sanitize()
             </MudText>
         </MudCardContent>
     </MudCard>

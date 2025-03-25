@@ -94,6 +94,15 @@
         );
     }
 
-    private void SelectedCategoriesChanged(IEnumerable<string> categories) 
-	    => _post.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    {
+	    if (selectedCategories is null)
+	    {
+            _post.Categories.Clear();
+            return;
+	    }
+
+	    _post.Categories = _categories.Where(possibleCategory => selectedCategories.Contains(possibleCategory.Name)).ToList();
+    }
+
 }

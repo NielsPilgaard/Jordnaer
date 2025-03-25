@@ -9,7 +9,7 @@ else
             @if (CurrentUserIsAdmin)
             {
                 <MudListItem Icon="@Icons.Material.Filled.Edit"
-                             Href="@($"/groups/{GroupName}/members")">
+                             Href="@($"/groups/{GroupName}/members".Sanitize())">
                     Medlemmer
                 </MudListItem>
             }
@@ -23,11 +23,11 @@ else
         <MudDivider />
         @foreach (var member in GroupMembers)
         {
-            <MudListItem Href="@($"/{member.UserName}")">
+            <MudListItem Href="@($"/{member.UserName.Sanitize()}")">
                 <MudAvatar Size="Size.Large" Class="mr-3">
                     <MudImage Src="@member.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
                 </MudAvatar>
-                <MudText>@member.DisplayName</MudText>
+                <MudText>@member.DisplayName.Sanitize()</MudText>
             </MudListItem>
         }
     </MudList>
