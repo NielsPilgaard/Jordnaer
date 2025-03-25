@@ -1,0 +1,23 @@
+<MudCard Class="pa-3 my-3" Elevation="3">
+	<MudCardContent>
+		<MudText Typo="Typo.body1">@Post.Text.SanitizeAndRenderMarkupString() @string.Join(',', Post.Categories)</MudText>
+		<MudText Typo="Typo.caption">@Post.CreatedUtc.ToLocalTime().ToString("g")</MudText>
+		@if (Post.ZipCode is not null && !string.IsNullOrEmpty(Post.City))
+		{
+            <MudText Typo="Typo.caption">@Post.ZipCode, @Post.City.Sanitize()</MudText>
+		}
+		<MudLink Underline="Underline.Hover"
+                 title="@_title"
+                 Href="@($"/{Post.Author.UserName}")">
+            @Post.Author.DisplayName.SanitizeAndRenderMarkupString()
+		</MudLink>
+	</MudCardContent>
+</MudCard>
+
+@code {
+    private string _title => $"Gå til {Post.Author.UserName.Sanitize()}'s profil";
+
+    [Parameter, EditorRequired]
+    public required PostDto Post { get; set; }
+
+}

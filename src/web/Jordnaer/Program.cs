@@ -13,11 +13,12 @@ using Jordnaer.Features.Groups;
 using Jordnaer.Features.GroupSearch;
 using Jordnaer.Features.Images;
 using Jordnaer.Features.Membership;
+using Jordnaer.Features.Posts;
+using Jordnaer.Features.PostSearch;
 using Jordnaer.Features.Profile;
 using Jordnaer.Features.Search;
 using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
-using Jordnaer.Shared.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.FeatureManagement;
 using Serilog;
@@ -76,6 +77,8 @@ builder.AddCategoryServices();
 builder.AddProfileServices();
 builder.AddChatServices();
 builder.AddMembershipServices();
+builder.AddPostFeature();
+builder.AddPostSearchFeature();
 
 builder.AddMudBlazor();
 

@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
@@ -10,7 +6,7 @@ using Serilog.Sinks.ElmahIo;
 using Serilog.Sinks.Grafana.Loki;
 using System.ComponentModel.DataAnnotations;
 
-namespace Jordnaer.Shared.Infrastructure;
+namespace Jordnaer.Extensions;
 
 public static class SerilogExtensions
 {
