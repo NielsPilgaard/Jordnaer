@@ -9,7 +9,7 @@
         <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.ElmahIo" Version="5.2.51" />
-        <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
-        <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="4.0.0" />
+        <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.1" />
+        <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="4.2.1" />
     </ItemGroup>
 </Project>
