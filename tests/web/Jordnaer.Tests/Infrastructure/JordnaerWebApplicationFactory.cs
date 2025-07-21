@@ -43,6 +43,8 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
 
 		builder.UseSetting("ConnectionStrings:AzureBlobStorage", _azureBlobStorageContainer.GetConnectionString());
 
+		builder.UseSetting("ConnectionStrings:AzureEmailService", "endpoint=https://jordnaer.europe.communication.azure.com/;accesskey=GHrGMddff66e6oVOgjxEytm5B5fwwpJCwRJ223ACUL425AAffdvvvcc32lI");
+
 		builder.ConfigureTestServices(services => services.RemoveAll<IHostedService>());
 
 		builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());

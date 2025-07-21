@@ -1,5 +1,4 @@
 using JetBrains.Annotations;
-using SendGrid.Helpers.Mail;
 
 namespace Jordnaer.Features.Email;
 
@@ -7,18 +6,28 @@ public class SendEmail
 {
 	[LanguageInjection(InjectedLanguage.HTML)]
 	public required string HtmlContent { get; set; }
+
 	public required string Subject { get; set; }
-	public List<EmailAddress>? To { get; set; }
-	public List<EmailAddress>? Bcc { get; set; }
-	public EmailAddress? ReplyTo { get; set; }
+
+	public List<EmailRecipient>? To { get; set; }
+
+	public List<EmailRecipient>? Bcc { get; set; }
+
+	public EmailRecipient? ReplyTo { get; set; }
 
 	/// <summary>
 	/// If you omit this value, the email will be sent from the default email address <see cref="EmailConstants.ContactEmail"/>.
 	/// </summary>
-	public EmailAddress? From { get; set; }
+	public EmailRecipient? From { get; set; }
 
 	/// <summary>
-	/// Action used to configure tracking settings for the email. By default, all tracking is off.
+	/// Indicates whether user engagement tracking should be disabled for this request.
+	/// Azure Communication Services has limited tracking options compared to SendGrid.
 	/// </summary>
-	public TrackingSettings? TrackingSettings { get; set; }
+	public bool DisableUserEngagementTracking { get; set; } = true;
+
+	/// <summary>
+	/// Gets all recipients (To and Bcc) concatenated for GDPR-compliant logging.
+	/// </summary>
+	public string GetAllRecipients() => EmailRecipient.ConcatRecipients(To, Bcc);
 }
