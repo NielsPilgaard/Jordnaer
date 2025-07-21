@@ -1,25 +1,23 @@
-using System.Net;
+using Azure;
+using Azure.Communication.Email;
 using Jordnaer.Consumers;
 using Jordnaer.Features.Email;
 using MassTransit;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using SendGrid;
-using SendGrid.Helpers.Mail;
 using Xunit;
-using Response = SendGrid.Response;
 
 namespace Jordnaer.Tests.Consumers;
 
 [Trait("Category", "UnitTests")]
 public class SendEmailConsumerTests
 {
-	private readonly ISendGridClient _mockSendGridClient;
+	private readonly EmailClient _mockSendGridClient;
 	private readonly SendEmailConsumer _consumer;
 
 	public SendEmailConsumerTests()
 	{
-		_mockSendGridClient = Substitute.For<ISendGridClient>();
+		_mockSendGridClient = Substitute.For<EmailClient>();
 		_consumer = new SendEmailConsumer(new NullLogger<SendMessageConsumer>(), _mockSendGridClient);
 	}
 
@@ -29,22 +27,25 @@ public class SendEmailConsumerTests
 		// Arrange
 		var sendEmail = new SendEmail
 		{
-			From = new EmailAddress("test@test.com"),
+			From = new EmailRecipient { Email = "test@test.com" },
 			Subject = "Test Subject",
 			HtmlContent = "Test Content",
-			To = [new EmailAddress("recipient@test.com")]
+			To = [new EmailRecipient { Email = "recipient@test.com" }]
 		};
 
 		var consumeContext = Substitute.For<ConsumeContext<SendEmail>>();
 		consumeContext.Message.Returns(sendEmail);
 
-		_mockSendGridClient.SendEmailAsync(Arg.Any<SendGridMessage>(), Arg.Any<CancellationToken>())
-						   .Returns(new Response(HttpStatusCode.Accepted, null, null));
+		_mockSendGridClient.SendAsync(WaitUntil.Completed, Arg.Any<EmailMessage>(), Arg.Any<CancellationToken>())
+						   .Returns(new EmailSendOperation("test", _mockSendGridClient));
 
 		// Act
 		await _consumer.Consume(consumeContext);
 
 		// Assert
-		await _mockSendGridClient.Received(1).SendEmailAsync(Arg.Any<SendGridMessage>(), Arg.Any<CancellationToken>());
+		await _mockSendGridClient.Received(1).SendAsync(WaitUntil.Completed, Arg.Is<EmailMessage>(x => x.SenderAddress == sendEmail.From.Email &&
+																x.Content.Html == sendEmail.HtmlContent &&
+																x.Content.Subject == sendEmail.Subject &&
+																x.Recipients.To.Select(r => r.Address).Contains(sendEmail.To.First().Email)), Arg.Any<CancellationToken>());
 	}
 }
