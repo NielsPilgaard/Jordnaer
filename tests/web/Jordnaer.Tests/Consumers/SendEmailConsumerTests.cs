@@ -12,13 +12,13 @@ namespace Jordnaer.Tests.Consumers;
 [Trait("Category", "UnitTests")]
 public class SendEmailConsumerTests
 {
-	private readonly EmailClient _mockSendGridClient;
+	private readonly EmailClient _mockEmailClient;
 	private readonly SendEmailConsumer _consumer;
 
 	public SendEmailConsumerTests()
 	{
-		_mockSendGridClient = Substitute.For<EmailClient>();
-		_consumer = new SendEmailConsumer(new NullLogger<SendMessageConsumer>(), _mockSendGridClient);
+		_mockEmailClient = Substitute.For<EmailClient>();
+		_consumer = new SendEmailConsumer(new NullLogger<SendMessageConsumer>(), _mockEmailClient);
 	}
 
 	[Fact]
@@ -36,14 +36,14 @@ public class SendEmailConsumerTests
 		var consumeContext = Substitute.For<ConsumeContext<SendEmail>>();
 		consumeContext.Message.Returns(sendEmail);
 
-		_mockSendGridClient.SendAsync(WaitUntil.Completed, Arg.Any<EmailMessage>(), Arg.Any<CancellationToken>())
-						   .Returns(new EmailSendOperation("test", _mockSendGridClient));
+		_mockEmailClient.SendAsync(WaitUntil.Completed, Arg.Any<EmailMessage>(), Arg.Any<CancellationToken>())
+						   .Returns(new EmailSendOperation("test", _mockEmailClient));
 
 		// Act
 		await _consumer.Consume(consumeContext);
 
 		// Assert
-		await _mockSendGridClient.Received(1).SendAsync(WaitUntil.Completed, Arg.Is<EmailMessage>(x => x.SenderAddress == sendEmail.From.Email &&
+		await _mockEmailClient.Received(1).SendAsync(WaitUntil.Completed, Arg.Is<EmailMessage>(x => x.SenderAddress == sendEmail.From.Email &&
 																x.Content.Html == sendEmail.HtmlContent &&
 																x.Content.Subject == sendEmail.Subject &&
 																x.Recipients.To.Select(r => r.Address).Contains(sendEmail.To.First().Email)), Arg.Any<CancellationToken>());
