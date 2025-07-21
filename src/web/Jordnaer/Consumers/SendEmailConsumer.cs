@@ -11,7 +11,7 @@ using Polly.Retry;
 namespace Jordnaer.Consumers;
 
 public class SendEmailConsumer(
-	ILogger<SendMessageConsumer> logger,
+	ILogger<SendEmailConsumer> logger,
 	EmailClient emailClient)
 	: IConsumer<SendEmail>
 {
