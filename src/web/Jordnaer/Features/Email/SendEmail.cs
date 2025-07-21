@@ -29,8 +29,5 @@ public class SendEmail
 	/// <summary>
 	/// Gets all recipients (To and Bcc) concatenated for GDPR-compliant logging.
 	/// </summary>
-	public string GetAllRecipients()
-	{
-		return EmailRecipient.ConcatRecipients(To, Bcc);
-	}
+	public string GetAllRecipients() => EmailRecipient.ConcatRecipients(To, Bcc);
 }

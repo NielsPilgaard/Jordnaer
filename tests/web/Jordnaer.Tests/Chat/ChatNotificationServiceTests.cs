@@ -28,7 +28,7 @@ public class ChatNotificationServiceTests
 	{
 		_contextMock = new Mock<JordnaerDbContext>(
 			new DbContextOptionsBuilder<JordnaerDbContext>().Options);
-		
+
 		var contextFactoryMock = new Mock<IDbContextFactory<JordnaerDbContext>>();
 		contextFactoryMock
 			.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
@@ -136,7 +136,7 @@ public class ChatNotificationServiceTests
 			]
 		};
 
-		var recipients = new Dictionary<string, string?>
+		var recipients = new Dictionary<string, string>
 						{
 							{ "initiator-id", "initiator@example.com" },
 							{ "recipient-id", "recipient@example.com" }
@@ -211,7 +211,7 @@ public class ChatNotificationServiceTests
 			Recipients = []
 		};
 
-		var recipients = new Dictionary<string, string?>();
+		var recipients = new Dictionary<string, string>();
 
 		// Act
 		var createEmailsAction = () => _service.CreateEmails(startChat, recipients).ToList();
