@@ -18,7 +18,7 @@ public class SendEmailConsumerTests
 	public SendEmailConsumerTests()
 	{
 		_mockEmailClient = Substitute.For<EmailClient>();
-		_consumer = new SendEmailConsumer(new NullLogger<SendMessageConsumer>(), _mockEmailClient);
+		_consumer = new SendEmailConsumer(new NullLogger<SendEmailConsumer>(), _mockEmailClient);
 	}
 
 	[Fact]
