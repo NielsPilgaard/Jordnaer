@@ -3,7 +3,6 @@ using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using SendGrid.Helpers.Mail;
 
 namespace Jordnaer.Features.Email;
 
@@ -22,7 +21,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		ContactForm contactForm,
 		CancellationToken cancellationToken = default)
 	{
-		var replyTo = new EmailAddress(contactForm.Email, contactForm.Name);
+		var replyTo = new EmailRecipient { Email = contactForm.Email, DisplayName = contactForm.Name };
 
 		var subject = contactForm.Name is null
 						  ? "Kontaktformular"
@@ -55,7 +54,11 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		var emails = await context.Users
 							.AsNoTracking()
 							.Where(user => membersThatCanApproveRequest.Any(userId => userId == user.Id))
-							.Select(user => new EmailAddress(user.Email, user.UserName))
+							.Select(user => new EmailRecipient
+							{
+								Email = user.Email!,
+								DisplayName = user.UserName
+							})
 							.ToListAsync(cancellationToken);
 
 		if (emails.Count is 0)
@@ -68,9 +71,8 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 							  "membership request for group {GroupName}. " +
 							  "Sending an email to them.", emails.Count, groupName);
 
-		var groupMembershipUrl = $"{navigationManager.BaseUri}groups/{groupName}/memberships";
+		var groupMembershipUrl = $"{navigationManager.BaseUri}groups/{groupName}/members";
 
-		List<EmailAddress> toEmail = [emails.First()];
 		var email = new SendEmail
 		{
 			Subject = "Ny medlemskabsanmodning",
@@ -81,10 +83,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 						  {EmailConstants.Signature}
 						  """,
-			Bcc = emails.Except(toEmail).ToList(),
-			// No need to expose all emails to the moderators and admins of the group,
-			// but we must have one "To" to send an email.
-			To = toEmail
+			Bcc = emails.ToList()
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);

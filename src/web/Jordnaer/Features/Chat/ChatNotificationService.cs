@@ -6,7 +6,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
-using SendGrid.Helpers.Mail;
 
 namespace Jordnaer.Features.Chat;
 
@@ -22,9 +21,8 @@ public class ChatNotificationService(
 		var recipientIds = startChat.Recipients.Select(recipient => recipient.Id);
 		var recipients = await context.Users
 									  .AsNoTracking()
-									  .Where(x => recipientIds.Contains(x.Id))
-									  .Select(x => new { x.Email, x.Id })
-									  .ToDictionaryAsync(x => x.Id, x => x.Email, cancellationToken);
+									  .Where(x => recipientIds.Contains(x.Id) && !string.IsNullOrEmpty(x.Email))
+									  .ToDictionaryAsync(x => x.Id, x => x.Email!, cancellationToken);
 
 		var emailsToSend = CreateEmails(startChat, recipients);
 
@@ -33,7 +31,7 @@ public class ChatNotificationService(
 		logger.LogInformation("Sent emails to users notifying them about a newly started chat.");
 	}
 
-	internal IEnumerable<SendEmail> CreateEmails(StartChat startChat, Dictionary<string, string?> recipients)
+	internal IEnumerable<SendEmail> CreateEmails(StartChat startChat, Dictionary<string, string> recipients)
 	{
 		var initiator = startChat.Recipients.First(x => x.Id == startChat.InitiatorId);
 
@@ -43,7 +41,11 @@ public class ChatNotificationService(
 
 			var email = recipients[recipientId];
 
-			var recipientsEmailAddress = new EmailAddress(email, user.DisplayName);
+			var recipientsEmailAddress = new EmailRecipient
+			{
+				Email = email,
+				DisplayName = user.DisplayName
+			};
 
 			yield return new SendEmail
 			{
