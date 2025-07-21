@@ -11,7 +11,11 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddScoped<IEmailSender<ApplicationUser>, EmailSender>();
 		builder.Services.AddScoped<IEmailService, EmailService>();
 
-		var connectionString = builder.Configuration.GetConnectionString("AzureEmailService")!;
+        var connectionString = builder.Configuration.GetConnectionString("AzureEmailService");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("AzureEmailService connection string is not configured");
+        }
 
 		var emailClient = new EmailClient(connectionString);
 		builder.Services.AddScoped(_ => emailClient);
