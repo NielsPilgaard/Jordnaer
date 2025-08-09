@@ -6,7 +6,6 @@ using MassTransit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SendGrid.Helpers.Mail;
 using Serilog;
 
 namespace Jordnaer.Features.DeleteUser;
@@ -51,7 +50,7 @@ public class DeleteUserService(
 			return false;
 		}
 
-		var to = new EmailAddress(user.Email);
+		var to = new EmailRecipient { Email = user.Email! };
 
 		var token = await userManager.GenerateUserTokenAsync(user, TokenProvider, TokenPurpose);
 
