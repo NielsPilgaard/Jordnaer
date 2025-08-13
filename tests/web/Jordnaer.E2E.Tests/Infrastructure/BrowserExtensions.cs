@@ -4,6 +4,8 @@ namespace Jordnaer.E2E.Tests.Infrastructure;
 
 public static class BrowserExtensions
 {
+	private static readonly PageGetByPlaceholderOptions GetByPlaceholderOptions = new PageGetByPlaceholderOptions
+	{ Exact = true };
 	public static async Task Login(this IBrowser browser, IPlaywright playwright)
 	{
 		var page = await browser.NewPageAsync(playwright, false);
@@ -12,9 +14,9 @@ public static class BrowserExtensions
 				  .ClickAsync();
 
 		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
-		await page.GetByPlaceholder("navn@eksempel.com").ClickAsync();
-		await page.GetByPlaceholder("navn@eksempel.com").FillAsync(TestConfiguration.Values.TestUserName);
-		await page.GetByPlaceholder("adgangskode").FillAsync(TestConfiguration.Values.TestUserPassword);
+		await page.GetByPlaceholder("Email", GetByPlaceholderOptions).ClickAsync();
+		await page.GetByPlaceholder("Email", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserName);
+		await page.GetByPlaceholder("Adgangskode", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserPassword);
 
 		await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Log ind", Exact = true })
 				  .ClickAsync();
