@@ -14,8 +14,8 @@ public static class BrowserExtensions
 				  .ClickAsync();
 
 		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
-		await page.GetByPlaceholder("Email", GetByPlaceholderOptions).ClickAsync();
-		await page.GetByPlaceholder("Email", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserName);
+		await page.GetByPlaceholder("navn@eksempel.com", GetByPlaceholderOptions).ClickAsync();
+		await page.GetByPlaceholder("navn@eksempel.com", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserName);
 		await page.GetByPlaceholder("Adgangskode", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserPassword);
 
 		await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Log ind", Exact = true })
