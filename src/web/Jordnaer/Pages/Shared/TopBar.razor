@@ -6,7 +6,7 @@
 	<MudIconButton Href="/groups" title="Grupper" Icon="@Icons.Material.Filled.Groups" />
 
 	<Feature Name="@FeatureFlags.Posts">
-		<MudIconButton Href="/posts" title="Opslag" Icon="@Icons.Material.Filled.Article" />
+		<MudIconButton Href="/posts" title="Opslag" Icon="@Icons.Material.Filled.Feed" />
 	</Feature>
 
 	<AuthorizeView>
@@ -17,7 +17,7 @@
 
 	<MudSpacer />
 
-    <AuthorizeView>
+    <AuthorizeView> 
         <Authorized>
             @* TODO: This doesn't look great as is. Rethink it and add it back?
             @if (_profilePictureUrl is not null)
@@ -32,7 +32,6 @@
             {
             } *@
             <MudIconButton title="Redigér Profil" Href="/profile" Icon="@Icons.Material.Filled.Person" />
-            <MudIconButton title="Log ud" Href="/Account/Logout" Icon="@Icons.Material.Filled.Logout" />
         </Authorized>
         <NotAuthorized>
             <MudIconButton title="Opret ny konto"
