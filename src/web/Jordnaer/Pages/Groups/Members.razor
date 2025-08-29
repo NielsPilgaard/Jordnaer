@@ -9,50 +9,72 @@
 <MetadataComponent Title="@($"{GroupName} - Medlemmer")"
                    Description="Her kan gruppens administratore godkende nye medlemmer, give medlemmer yderligere adgang og lignende." />
 
+<MudText Typo="Typo.h4" Class="mb-4">Medlems oversigt for gruppen '@GroupName'</MudText>
+
+<MudDivider Class="mb-5" />
+
 <MudDataGrid T="GroupMembershipDto"
              Items="_memberships"
              ReadOnly="false"
              EditMode="DataGridEditMode.Cell"
-             EditTrigger="DataGridEditTrigger.OnRowClick">
+             EditTrigger="DataGridEditTrigger.OnRowClick"
+             Bordered="true"
+             Loading="_isLoading">
     <Columns>
-        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" />
-        <PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau">
+        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" HeaderStyle="@HeaderStyles" />
+        <PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau" HeaderStyle="@HeaderStyles">
             <EditTemplate>
-                <MudSelect T="OwnershipLevel"
-                           Value="context.Item.OwnershipLevel"
-                           ValueChanged="@(async (OwnershipLevel newValue) => { context.Item.OwnershipLevel = newValue; await SaveCellChangesAsync(context); })"
-                           Margin="@Margin.Dense">
-                    @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
-                    {
-                        <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
-                            @ownershipLevel.ToDisplayName()
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau">
-            <EditTemplate>
-                <MudSelect T="PermissionLevel"
-                           Value="context.Item.PermissionLevel"
-                           ValueChanged="@(async (PermissionLevel newValue) => { context.Item.PermissionLevel = newValue; await SaveCellChangesAsync(context); })"
-                           Margin="@Margin.Dense">
-                    @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
-                    {
-                        <MudSelectItem T="PermissionLevel" Value="permissionLevel">
-                            @permissionLevel.ToDisplayName()
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status" CellClass="d-flex align-center">
-	        <EditTemplate>
-                @if(context.Item.UserProfileId == CurrentUser.Id)
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is OwnershipLevel.Owner)
                 {
-	                <MudText Typo="Typo.body2" Style="height: 32px;">
-		                <span class="text-success">Medlem</span>
-	                </MudText>
+                    <MudText Typo="Typo.body2">@context.Item.OwnershipLevel.ToDisplayName()</MudText>
+                }
+                else
+                {
+                    <MudSelect T="OwnershipLevel"
+                               Value="context.Item.OwnershipLevel"
+                               ValueChanged="@(async (OwnershipLevel newValue) => { context.Item.OwnershipLevel = newValue; await SaveCellChangesAsync(context); })"
+                               Margin="@Margin.Dense">
+                        @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
+                        {
+                            <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
+                                @ownershipLevel.ToDisplayName()
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau" HeaderStyle="@HeaderStyles">
+            <EditTemplate>
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is OwnershipLevel.Owner)
+                {
+                    <MudText Typo="Typo.body2">
+                        @context.Item.PermissionLevel.ToDisplayName()
+                    </MudText>
+                }
+                else
+                {
+                    <MudSelect T="PermissionLevel"
+                               Value="context.Item.PermissionLevel"
+                               ValueChanged="@(async (PermissionLevel newValue) => { context.Item.PermissionLevel = newValue; await SaveCellChangesAsync(context); })"
+                               Margin="@Margin.Dense">
+                        @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
+                        {
+                            <MudSelectItem T="PermissionLevel" Value="permissionLevel">
+                                @permissionLevel.ToDisplayName()
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status" HeaderStyle="@HeaderStyles">
+            <EditTemplate>
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is OwnershipLevel.Owner)
+                {
+                    <MudText Typo="Typo.body2">
+                        @context.Item.MembershipStatus.ToDisplayName()
+                    </MudText>
                 }
                 else
                 {
@@ -76,6 +98,13 @@
                                 break;
                         }
                     </MudText>
+                }
+            </EditTemplate>
+        </PropertyColumn>
+        <TemplateColumn Title="Handlinger" HeaderStyle="@HeaderStyles">
+            <EditTemplate>
+                @if (context.Item.UserProfileId != CurrentUser.Id && context.Item.OwnershipLevel is not OwnershipLevel.Owner)
+                {
                     @switch (context.Item.MembershipStatus)
                     {
                         case MembershipStatus.Active:
@@ -106,13 +135,12 @@
                             break;
                     }
                 }
-	        </EditTemplate>
-        </PropertyColumn>
+            </EditTemplate>
+        </TemplateColumn>
     </Columns>
 </MudDataGrid>
 
 @code {
-    //TODO: Do not accept throwing the owner out of the group, 
     private static readonly Dictionary<MembershipStatus, int> SortOrder = new()
     {
         {MembershipStatus.PendingApprovalFromGroup, 0},
@@ -122,6 +150,8 @@
     };
 
     private List<GroupMembershipDto> _memberships = [];
+    private bool _isLoading = true;
+    private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
 
     [Parameter]
     public required string GroupName { get; set; }
@@ -130,6 +160,7 @@
     {
         _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
         _memberships = _memberships.OrderBy(x => SortOrder[x.MembershipStatus]).ToList();
+        _isLoading = false;
     }
 
     private async Task ChangeMembershipStatusAsync(GroupMembershipDto membership, MembershipStatus newStatus)
