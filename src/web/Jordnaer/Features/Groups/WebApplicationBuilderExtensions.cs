@@ -4,7 +4,7 @@ public static class WebApplicationBuilderExtensions
 {
 	public static WebApplicationBuilder AddGroupServices(this WebApplicationBuilder builder)
 	{
-		builder.Services.AddScoped<IGroupService, GroupService>();
+		builder.Services.AddScoped<GroupService>();
 
 		return builder;
 	}

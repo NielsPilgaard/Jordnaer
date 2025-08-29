@@ -9,7 +9,7 @@ public static class MarkdownRenderer
 	private static readonly Lazy<HtmlSanitizer> _sanitizer = new(() => new HtmlSanitizer());
 	internal static readonly HtmlSanitizer Sanitizer = _sanitizer.Value;
 
-	private static readonly MarkupString EmptyMarkupString = new(string.Empty);
+	internal static readonly MarkupString EmptyMarkupString = new(string.Empty);
 
 	public static string Sanitize(string markdown) => Sanitizer.Sanitize(markdown);
 

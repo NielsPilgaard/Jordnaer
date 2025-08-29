@@ -10,3 +10,11 @@ DROP TABLE UserProfileCategories
 DROP TABLE UserProfiles
 DROP TABLE Categories
 DROP TABLE AspNetRoles
+DROP TABLE ChatMessages
+DROP TABLE Chats
+DROP TABLE GroupMemberships
+DROP TABLE Groups
+DROP TABLE UnreadMessages
+DROP TABLE UserChats
+DROP TABLE UserContacts
+DROP TABLE UserProfiles

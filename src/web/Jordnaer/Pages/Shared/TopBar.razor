@@ -3,15 +3,21 @@
 <MudAppBar Fixed="false" Elevation="0" Dense Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")">
 	<MudIconButton Href="/" title="Forsiden" Icon="@Icons.Material.Filled.Home" />
 	<MudIconButton Href="/users" title="Personer" Icon="@Icons.Material.Filled.PersonSearch" />
-    <MudIconButton Href="/groups" title="Grupper" Icon="@Icons.Material.Filled.Groups" />
+	<MudIconButton Href="/groups" title="Grupper" Icon="@Icons.Material.Filled.Groups" />
 
-    <AuthorizeView>
-        <Authorized>
-            <ChatNavLink />
-        </Authorized>
-    </AuthorizeView>
-    <MudSpacer />
-    <AuthorizeView>
+	<Feature Name="@FeatureFlags.Posts">
+		<MudIconButton Href="/posts" title="Opslag" Icon="@Icons.Material.Filled.Feed" />
+	</Feature>
+
+	<AuthorizeView>
+		<Authorized>
+			<ChatNavLink />
+		</Authorized>
+	</AuthorizeView>
+
+	<MudSpacer />
+
+    <AuthorizeView> 
         <Authorized>
             @* TODO: This doesn't look great as is. Rethink it and add it back?
             @if (_profilePictureUrl is not null)
@@ -26,7 +32,6 @@
             {
             } *@
             <MudIconButton title="Redigér Profil" Href="/profile" Icon="@Icons.Material.Filled.Person" />
-            <MudIconButton title="Log ud" Href="/Account/Logout" Icon="@Icons.Material.Filled.Logout" />
         </Authorized>
         <NotAuthorized>
             <MudIconButton title="Opret ny konto"

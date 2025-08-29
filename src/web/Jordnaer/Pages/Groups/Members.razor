@@ -1,69 +1,147 @@
 ﻿@page "/groups/{GroupName}/members"
 
-@inject IGroupService GroupService
+@inject GroupService GroupService
 @inject ISnackbar Snackbar
+@inject CurrentUser CurrentUser
 
 @attribute [Authorize]
 
 <MetadataComponent Title="@($"{GroupName} - Medlemmer")"
                    Description="Her kan gruppens administratore godkende nye medlemmer, give medlemmer yderligere adgang og lignende." />
 
+<MudText Typo="Typo.h4" Class="mb-4">Medlems oversigt for gruppen '@GroupName'</MudText>
+
+<MudDivider Class="mb-5" />
+
 <MudDataGrid T="GroupMembershipDto"
              Items="_memberships"
              ReadOnly="false"
-             EditMode="DataGridEditMode.Form"
-             CommittedItemChanges="@CommittedItemChanges"
+             EditMode="DataGridEditMode.Cell"
              EditTrigger="DataGridEditTrigger.OnRowClick"
-             RowStyle="cursor: pointer;">
+             Bordered="true"
+             Loading="_isLoading">
     <Columns>
-        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" />
-        <PropertyColumn Property="x => x.OwnershipLevel.ToStringFast()" Title="Ejerskabs Niveau">
+        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" HeaderStyle="@HeaderStyles" />
+        <PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau" HeaderStyle="@HeaderStyles">
             <EditTemplate>
-                <MudSelect @bind-Value="context.Item.OwnershipLevel"
-                           T="OwnershipLevel"
-                           Margin="@Margin.Dense">
-                    @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
-                    {
-                        <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
-                            @ownershipLevel.ToStringFast()
-                        </MudSelectItem>
-                    }
-                </MudSelect>
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is OwnershipLevel.Owner)
+                {
+                    <MudText Typo="Typo.body2">@context.Item.OwnershipLevel.ToDisplayName()</MudText>
+                }
+                else
+                {
+                    <MudSelect T="OwnershipLevel"
+                               Value="context.Item.OwnershipLevel"
+                               ValueChanged="async ownershipLevel => await UpdateOwnershipLevel(context, ownershipLevel)"
+                               Margin="@Margin.Dense">
+                        @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
+                        {
+                            <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
+                                @ownershipLevel.ToDisplayName()
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
             </EditTemplate>
         </PropertyColumn>
-        <PropertyColumn Property="x => x.PermissionLevel.ToStringFast()" Title="Adgangs Niveau">
+        <PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau" HeaderStyle="@HeaderStyles">
             <EditTemplate>
-                <MudSelect @bind-Value="context.Item.PermissionLevel"
-                           T="PermissionLevel"
-                           Margin="@Margin.Dense">
-                    @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
-                    {
-                        <MudSelectItem T="PermissionLevel" Value="permissionLevel">
-                            @permissionLevel.ToStringFast()
-                        </MudSelectItem>
-                    }
-                </MudSelect>
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is OwnershipLevel.Owner)
+                {
+                    <MudText Typo="Typo.body2">
+                        @context.Item.PermissionLevel.ToDisplayName()
+                    </MudText>
+                }
+                else
+                {
+                    <MudSelect T="PermissionLevel"
+                               Value="context.Item.PermissionLevel"
+                               ValueChanged="async permissionLevel => await UpdatePermissionLevel(context, permissionLevel)"
+                               Margin="@Margin.Dense">
+                        @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
+                        {
+                            <MudSelectItem T="PermissionLevel" Value="permissionLevel">
+                                @permissionLevel.ToDisplayName()
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
             </EditTemplate>
         </PropertyColumn>
-        <PropertyColumn Property="x => x.MembershipStatus.ToStringFast()" Title="Medlemskabs Status">
+        <PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status" HeaderStyle="@HeaderStyles">
             <EditTemplate>
-                <MudSelect @bind-Value="context.Item.MembershipStatus"
-                           T="MembershipStatus"
-                           Margin="@Margin.Dense">
-                    @foreach (var membershipStatus in Enum.GetValues<MembershipStatus>())
-                    {
-                        <MudSelectItem T="MembershipStatus" Value="membershipStatus">
-                            @membershipStatus.ToStringFast()
-                        </MudSelectItem>
-                    }
-                </MudSelect>
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is OwnershipLevel.Owner)
+                {
+                    <MudText Typo="Typo.body2">
+                        @context.Item.MembershipStatus.ToDisplayName()
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2">
+                        @switch (context.Item.MembershipStatus)
+                        {
+                            case MembershipStatus.Active:
+                                <span class="text-success">Medlem</span>
+                                break;
+                            case MembershipStatus.PendingApprovalFromUser:
+                                <span class="text-warning">Afventer godkendelse</span>
+                                break;
+                            case MembershipStatus.PendingApprovalFromGroup:
+                                <span class="text-info">Afventer gruppens godkendelse</span>
+                                break;
+                            case MembershipStatus.Rejected:
+                                <span class="text-danger">Ikke medlem</span>
+                                break;
+                            default:
+                                <span>Ukendt status</span>
+                                break;
+                        }
+                    </MudText>
+                }
             </EditTemplate>
         </PropertyColumn>
+        <TemplateColumn Title="Handlinger" HeaderStyle="@HeaderStyles">
+            <EditTemplate>
+                @if (context.Item.UserProfileId != CurrentUser.Id && context.Item.OwnershipLevel is not OwnershipLevel.Owner)
+                {
+                    @switch (context.Item.MembershipStatus)
+                    {
+                        case MembershipStatus.Active:
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
+                                       OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Rejected))">
+                                <MudIcon Icon="@Icons.Material.Filled.Clear" /> Fjern medlem
+                            </MudButton>
+                            break;
+                        case MembershipStatus.PendingApprovalFromUser:
+                            break;
+                        case MembershipStatus.PendingApprovalFromGroup:
+                            <MudButton Color="Color.Success" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
+                                       OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Active))">
+                                <MudIcon Icon="@Icons.Material.Filled.Check" /> Godkend anmodning
+                            </MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
+                                       OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Rejected))">
+                                <MudIcon Icon="@Icons.Material.Filled.Clear" /> Afvis anmodning
+                            </MudButton>
+                            break;
+                        case MembershipStatus.Rejected:
+                            <MudButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
+                                       OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Active))">
+                                <MudIcon Icon="@Icons.Material.Filled.Check" /> Tilføj medlem
+                            </MudButton>
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            </EditTemplate>
+        </TemplateColumn>
     </Columns>
 </MudDataGrid>
 
 @code {
-    private static readonly Dictionary<MembershipStatus, int> _sortOrder = new()
+    private static readonly Dictionary<MembershipStatus, int> SortOrder = new()
     {
         {MembershipStatus.PendingApprovalFromGroup, 0},
         {MembershipStatus.PendingApprovalFromUser, 1},
@@ -72,22 +150,94 @@
     };
 
     private List<GroupMembershipDto> _memberships = [];
+    private bool _isLoading = true;
+    private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
 
     [Parameter]
     public required string GroupName { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
-        _memberships = _memberships.OrderBy(x => _sortOrder[x.MembershipStatus]).ToList();
+	    try
+	    {
+		    _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
+		    _memberships = _memberships
+			    .OrderBy(x => SortOrder.TryGetValue(x.MembershipStatus, out var rank) ? rank : int.MaxValue)
+			    .ToList();
+	    }
+	    catch (Exception)
+	    {
+		    Snackbar.Add("Kunne ikke hente medlemmer. Prøv igen.", Severity.Error);
+	    }
+	    finally
+	    {
+		    _isLoading = false;
+	    }
     }
 
-    private async Task CommittedItemChanges(GroupMembershipDto item)
+    private async Task ChangeMembershipStatusAsync(GroupMembershipDto membership, MembershipStatus newStatus)
     {
-        var updateResult = await GroupService.UpdateMembership(item);
+        var previous = membership.MembershipStatus;
+        if (membership.OwnershipLevel is OwnershipLevel.Owner && newStatus is MembershipStatus.Rejected)
+        {
+            Snackbar.Add("Du kan ikke fjerne gruppeejeren.", Severity.Warning);
+            return;
+        }
 
-        updateResult.Switch(
-            success => Snackbar.Add("Medlemskabet blev opdateret.", Severity.Success),
-            error => Snackbar.Add(error.Value, Severity.Error));
+        membership.MembershipStatus = newStatus;
+        var success = await SaveChangesAsync(membership);
+        if (!success)
+        {
+            membership.MembershipStatus = previous;
+        }
+    }
+
+    private async Task<bool> SaveChangesAsync(GroupMembershipDto item)
+    {
+        try
+        {
+            var updateResult = await GroupService.UpdateMembership(item);
+            var updateSuccessful = false;
+            updateResult.Switch(
+                success => { 
+	                Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success); 
+	                updateSuccessful = true;
+                },
+                error => Snackbar.Add(error.Value, Severity.Error));
+            return updateSuccessful;
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der skete en fejl under opdatering. Prøv igen.", Severity.Error);
+            return false;
+        }
+    }
+    
+    private async Task UpdateOwnershipLevel(CellContext<GroupMembershipDto> context, OwnershipLevel newValue)
+    {
+	    var oldValue = context.Item.OwnershipLevel;
+
+        context.Item.OwnershipLevel = newValue;
+
+        var updateSucceeded = await SaveChangesAsync(context.Item);
+
+	    if (!updateSucceeded)
+	    {
+            context.Item.OwnershipLevel = oldValue;
+	    }
+    }
+
+    private async Task UpdatePermissionLevel(CellContext<GroupMembershipDto> context, PermissionLevel newValue)
+    {
+        var oldValue = context.Item.PermissionLevel;
+
+        context.Item.PermissionLevel = newValue;
+
+        var updateSucceeded = await SaveChangesAsync(context.Item);
+
+        if (!updateSucceeded)
+        {
+	        context.Item.PermissionLevel = oldValue;
+        }
     }
 }

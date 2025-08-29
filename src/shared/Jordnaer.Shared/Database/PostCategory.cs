@@ -1,8 +1,8 @@
 namespace Jordnaer.Shared;
 
-public class GroupCategory
+public class PostCategory
 {
-	public required Guid GroupId { get; set; }
+	public required Guid PostId { get; set; }
 
 	public required int CategoryId { get; set; }
 }

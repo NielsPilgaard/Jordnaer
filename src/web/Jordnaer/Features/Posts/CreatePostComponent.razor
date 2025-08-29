@@ -1,0 +1,108 @@
+﻿@inject IProfileCache ProfileCache
+@inject ICategoryCache CategoryCache
+@inject PostService PostService
+@inject ISnackbar Snackbar
+
+@attribute [StreamRendering]
+
+<MudLoading @bind-Loading="_isLoading" Overlap Darken>
+	<MudPaper Class="pa-4">
+
+	<AuthorizeView>
+		<NotAuthorized>
+			<MudAlert Icon="@Icons.Material.Filled.Lock">Du skal være logget ind for at lave et opslag.</MudAlert>
+            <MudButton Href="/Account/Login" Variant="Variant.Filled" Color="Color.Success">Log ind</MudButton>
+		</NotAuthorized>
+		<Authorized>
+
+			<MudText Typo="Typo.h4">Del et opslag</MudText>
+			<MudTextField @bind-Value="_postText" Placeholder="Hvad har du på tankerne?" Lines="4" FullWidth />
+
+			<MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
+			                   T="string"
+			                   Label="Kategorier"
+			                   MultiSelection="true"
+			                   SelectedValues="_post.Categories.Select(e => e.Name)"
+			                   ValuePresenter="ValuePresenter.Chip"
+			                   Variant="Variant.Filled"
+			                   SelectedValuesChanged="SelectedCategoriesChanged">
+			</MudSelectExtended>
+			<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreatePost">Slå op</MudButton>
+                <MudCheckBox Label="Vis område" title="Gem postnummer og by som en del af opslaget" @bind-Value="_includeAreaInPost" />
+		</Authorized>
+	</AuthorizeView>
+	</MudPaper>
+
+</MudLoading>
+
+@code {
+    public bool _includeAreaInPost { get; set; } = true;
+
+    private string? _postText;
+
+    private readonly Post _post = new Post
+    {
+        Id = NewId.NextGuid(),
+        Text = string.Empty,
+        UserProfileId = string.Empty
+    };
+    
+    private IEnumerable<Category> _categories = [];
+    private bool _isLoading = true;
+    private UserProfile? _userProfile;
+
+    protected override async Task OnInitializedAsync()
+    {
+	    _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+	    _isLoading = false;
+
+	    _userProfile = await ProfileCache.GetProfileAsync();
+    }
+
+    private async Task CreatePost()
+    {
+        if (string.IsNullOrEmpty(_postText))
+        {
+            return;
+        }
+
+        if (_userProfile is null)
+        {
+            Snackbar.Add("Du skal være logget ind for at lave et opslag.", Severity.Info);
+            return;
+        }
+
+        _post.Text = _postText;
+        _post.CreatedUtc = DateTimeOffset.UtcNow;
+        _post.UserProfileId = _userProfile.Id;
+
+        if (_includeAreaInPost)
+        {
+	        _post.ZipCode = _userProfile.ZipCode;
+	        _post.City = _userProfile.City;
+        }
+
+        var result = await PostService.CreatePostAsync(_post);
+
+        result.Switch(
+            _ =>
+            {
+                Snackbar.Add("Opslaget blev oprettet.", Severity.Success);
+                _postText = string.Empty;
+            },
+            error => Snackbar.Add(error.Value, Severity.Error)
+        );
+    }
+
+    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    {
+	    if (selectedCategories is null)
+	    {
+            _post.Categories.Clear();
+            return;
+	    }
+
+	    _post.Categories = _categories.Where(possibleCategory => selectedCategories.Contains(possibleCategory.Name)).ToList();
+    }
+
+}

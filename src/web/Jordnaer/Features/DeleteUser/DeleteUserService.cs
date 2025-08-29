@@ -46,7 +46,7 @@ public class DeleteUserService(
 		var baseUri = navigationManager.BaseUri.TrimEnd('/');
 		if (string.IsNullOrEmpty(baseUri))
 		{
-			logger.LogError("No addresses found in the IServerAddressFeature. A Delete User Url cannot be created.");
+			logger.LogError("No BaseUri found through the NavigationManager. A Delete User Url cannot be created.");
 			return false;
 		}
 

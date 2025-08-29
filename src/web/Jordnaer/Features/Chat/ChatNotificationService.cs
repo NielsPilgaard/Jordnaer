@@ -13,7 +13,7 @@ public class ChatNotificationService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<StartChatConsumer> logger,
 	IPublishEndpoint publishEndpoint,
-	IServer server)
+	IServer server) // TODO: Swap with NavigationManager
 {
 	public async Task NotifyRecipients(StartChat startChat, CancellationToken cancellationToken = default)
 	{
