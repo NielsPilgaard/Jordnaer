@@ -32,7 +32,7 @@
                 {
                     <MudSelect T="OwnershipLevel"
                                Value="context.Item.OwnershipLevel"
-                               ValueChanged="@(async (OwnershipLevel newValue) => { context.Item.OwnershipLevel = newValue; await SaveCellChangesAsync(context); })"
+                               ValueChanged="async ownershipLevel => await UpdateOwnershipLevel(context, ownershipLevel)"
                                Margin="@Margin.Dense">
                         @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
                         {
@@ -56,7 +56,7 @@
                 {
                     <MudSelect T="PermissionLevel"
                                Value="context.Item.PermissionLevel"
-                               ValueChanged="@(async (PermissionLevel newValue) => { context.Item.PermissionLevel = newValue; await SaveCellChangesAsync(context); })"
+                               ValueChanged="async permissionLevel => await UpdatePermissionLevel(context, permissionLevel)"
                                Margin="@Margin.Dense">
                         @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
                         {
@@ -179,7 +179,6 @@
             membership.MembershipStatus = previous;
         }
     }
-    private async Task<bool> SaveCellChangesAsync(CellContext<GroupMembershipDto> context) => await SaveChangesAsync(context.Item);
 
     private async Task<bool> SaveChangesAsync(GroupMembershipDto item)
     {
@@ -188,7 +187,10 @@
             var updateResult = await GroupService.UpdateMembership(item);
             var updateSuccessful = false;
             updateResult.Switch(
-                success => { Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success); updateSuccessful = true; },
+                success => { 
+	                Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success); 
+	                updateSuccessful = true;
+                },
                 error => Snackbar.Add(error.Value, Severity.Error));
             return updateSuccessful;
         }
@@ -196,6 +198,34 @@
         {
             Snackbar.Add("Der skete en fejl under opdatering. Prøv igen.", Severity.Error);
             return false;
+        }
+    }
+    
+    private async Task UpdateOwnershipLevel(CellContext<GroupMembershipDto> context, OwnershipLevel newValue)
+    {
+	    var oldValue = context.Item.OwnershipLevel;
+
+        context.Item.OwnershipLevel = newValue;
+
+        var updateSucceeded = await SaveChangesAsync(context.Item);
+
+	    if (!updateSucceeded)
+	    {
+            context.Item.OwnershipLevel = oldValue;
+	    }
+    }
+
+    private async Task UpdatePermissionLevel(CellContext<GroupMembershipDto> context, PermissionLevel newValue)
+    {
+        var oldValue = context.Item.PermissionLevel;
+
+        context.Item.PermissionLevel = newValue;
+
+        var updateSucceeded = await SaveChangesAsync(context.Item);
+
+        if (!updateSucceeded)
+        {
+	        context.Item.PermissionLevel = oldValue;
         }
     }
 }
