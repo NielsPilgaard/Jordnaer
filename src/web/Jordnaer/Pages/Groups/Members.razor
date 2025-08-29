@@ -165,22 +165,37 @@
 
     private async Task ChangeMembershipStatusAsync(GroupMembershipDto membership, MembershipStatus newStatus)
     {
+        var previous = membership.MembershipStatus;
+        if (membership.OwnershipLevel is OwnershipLevel.Owner && newStatus is MembershipStatus.Rejected)
+        {
+            Snackbar.Add("Du kan ikke fjerne gruppeejeren.", Severity.Warning);
+            return;
+        }
+
         membership.MembershipStatus = newStatus;
-
-        await SaveChangesAsync(membership);
+        var success = await SaveChangesAsync(membership);
+        if (!success)
+        {
+            membership.MembershipStatus = previous;
+        }
     }
+    private async Task<bool> SaveCellChangesAsync(CellContext<GroupMembershipDto> context) => await SaveChangesAsync(context.Item);
 
-    private async Task SaveCellChangesAsync(CellContext<GroupMembershipDto> context)
+    private async Task<bool> SaveChangesAsync(GroupMembershipDto item)
     {
-        await SaveChangesAsync(context.Item);
-    }
-
-    private async Task SaveChangesAsync(GroupMembershipDto item)
-    {
-        var updateResult = await GroupService.UpdateMembership(item);
-
-        updateResult.Switch(
-            success => Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success),
-            error => Snackbar.Add(error.Value, Severity.Error));
+        try
+        {
+            var updateResult = await GroupService.UpdateMembership(item);
+            var updateSuccessful = false;
+            updateResult.Switch(
+                success => { Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success); updateSuccessful = true; },
+                error => Snackbar.Add(error.Value, Severity.Error));
+            return updateSuccessful;
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der skete en fejl under opdatering. Prøv igen.", Severity.Error);
+            return false;
+        }
     }
 }
