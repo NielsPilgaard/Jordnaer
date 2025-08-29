@@ -158,9 +158,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
-        _memberships = _memberships.OrderBy(x => SortOrder[x.MembershipStatus]).ToList();
-        _isLoading = false;
+	    try
+	    {
+		    _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
+		    _memberships = _memberships
+			    .OrderBy(x => SortOrder.TryGetValue(x.MembershipStatus, out var rank) ? rank : int.MaxValue)
+			    .ToList();
+	    }
+	    catch (Exception)
+	    {
+		    Snackbar.Add("Kunne ikke hente medlemmer. Prøv igen.", Severity.Error);
+	    }
+	    finally
+	    {
+		    _isLoading = false;
+	    }
     }
 
     private async Task ChangeMembershipStatusAsync(GroupMembershipDto membership, MembershipStatus newStatus)
