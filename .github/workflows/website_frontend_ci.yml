@@ -15,7 +15,7 @@ env:
 jobs:
   playwright:
     # Only run this if the workflow that triggered it was successful
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright/dotnet:v${{ env.PLAYWRIGHT_VERSION }}-jammy
