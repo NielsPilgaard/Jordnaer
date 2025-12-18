@@ -28,4 +28,15 @@ public static class StringExtensions
 		var sanitizedValue = MarkdownRenderer.Sanitize(value);
 		return sanitizedValue;
 	}
+
+	public static MarkupString SanitizeHtml(this string? value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			return MarkdownRenderer.EmptyMarkupString;
+		}
+
+		var sanitizedHtml = MarkdownRenderer.Sanitize(value);
+		return new MarkupString(sanitizedHtml);
+	}
 }

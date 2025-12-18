@@ -1,0 +1,80 @@
+@using Jordnaer.Shared
+@inject GroupPostService PostService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudCard Class="pa-3 my-3" Elevation="3">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">
+                @if (string.IsNullOrEmpty(PostItem.Author.ProfilePictureUrl))
+                {
+                    @PostItem.Author.DisplayName.FirstOrDefault()
+                }
+                else
+                {
+                    <MudImage Src="@PostItem.Author.ProfilePictureUrl" />
+                }
+            </MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1">
+                <MudLink Underline="Underline.Hover"
+                         title="@_title"
+                         Href="@($"/{PostItem.Author.UserName}")"
+                         Color="Color.Inherit">
+                    @PostItem.Author.DisplayName
+                </MudLink>
+            </MudText>
+            <MudText Typo="Typo.body2">@PostItem.CreatedUtc.ToLocalTime().ToString("g")</MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            @if (PostItem.Author.Id == CurrentUserId)
+            {
+               <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeletePostAsync" />
+            }
+        </CardHeaderActions>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">@PostItem.Text.SanitizeHtml()</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private string _title => $"Gå til {PostItem.Author.UserName.Sanitize()}'s profil";
+
+    [Parameter, EditorRequired]
+    public required GroupPostDto PostItem { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string CurrentUserId { get; set; }
+
+    [Parameter]
+    public EventCallback OnPostDeleted { get; set; }
+
+    private async Task DeletePostAsync()
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Slet opslag?",
+            "Er du sikker på at du vil slette dette opslag?",
+            yesText: "Slet",
+            cancelText: "Annuller");
+
+        if (result != true)
+        {
+            return;
+        }
+
+        var deletionResult = await PostService.DeletePostAsync(PostItem.Id, CurrentUserId);
+        if (deletionResult.IsT0)
+        {
+            Snackbar.Add("Opslaget er slettet", Severity.Success);
+            await OnPostDeleted.InvokeAsync();
+        }
+        else
+        {
+            Snackbar.Add(deletionResult.AsT1.Value, Severity.Error);
+        }
+    }
+
+}

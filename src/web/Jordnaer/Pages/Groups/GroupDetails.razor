@@ -1,5 +1,7 @@
 @page "/groups/{GroupName}"
 
+@using Jordnaer.Features.GroupPosts
+
 @attribute [Sitemap]
 
 @inherits CancellableComponent
@@ -79,12 +81,13 @@
                 </MudPaper>
             }
         </MudItem>
-        @if (_isMember)
+        @if (_isMember && _group is not null)
         {
             <MudItem xs="12">
-                <MudPaper Elevation="3" Class="pa-5">
-                    <MudAlert Severity="Severity.Info">Glæd dig - Her kommer du til at kunne oprette og læse indlæg i gruppen.</MudAlert>
-                </MudPaper>
+                <MudStack Spacing="4">
+                    <GroupPostForm GroupId="_group.Id" OnPostCreated="@(async () => { if (_groupPostList is not null) await _groupPostList.RefreshPostsAsync(); })" />
+                    <GroupPostList @ref="_groupPostList" GroupId="_group.Id" />
+                </MudStack>
             </MudItem>
         }
     </MudGrid>
@@ -106,6 +109,7 @@
     private List<UserSlim> _recipients = [];
     private List<UserSlim>? _groupMembers;
     private List<UserSlim> _admins = [];
+    private GroupPostList? _groupPostList;
 
     protected override async Task OnInitializedAsync()
     {

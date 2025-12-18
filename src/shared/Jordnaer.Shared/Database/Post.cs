@@ -11,7 +11,7 @@ public class Post
 	[DatabaseGenerated(DatabaseGeneratedOption.None)]
 	public required Guid Id { get; init; }
 
-	[StringLength(1000, ErrorMessage = "Opslag må højest være 1000 karakterer lang.")]
+	[StringLength(4000, ErrorMessage = "Opslag må højest være 4000 karakterer lang.")]
 	[Required(AllowEmptyStrings = false, ErrorMessage = "Opslag skal have mindst 1 karakter.")]
 	public required string Text { get; set; }
 

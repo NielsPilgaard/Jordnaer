@@ -1,23 +1,25 @@
+@using Jordnaer.Shared
+
 <MudCard Class="pa-3 my-3" Elevation="3">
 	<MudCardContent>
-		<MudText Typo="Typo.body1">@Post.Text.SanitizeAndRenderMarkupString() @string.Join(',', Post.Categories)</MudText>
-		<MudText Typo="Typo.caption">@Post.CreatedUtc.ToLocalTime().ToString("g")</MudText>
-		@if (Post.ZipCode is not null && !string.IsNullOrEmpty(Post.City))
+		<MudText Typo="Typo.body1">@PostItem.Text.SanitizeAndRenderMarkupString() @string.Join(',', PostItem.Categories)</MudText>
+		<MudText Typo="Typo.caption">@PostItem.CreatedUtc.ToLocalTime().ToString("g")</MudText>
+		@if (PostItem.ZipCode is not null && !string.IsNullOrEmpty(PostItem.City))
 		{
-            <MudText Typo="Typo.caption">@Post.ZipCode, @Post.City.Sanitize()</MudText>
+            <MudText Typo="Typo.caption">@PostItem.ZipCode, @PostItem.City.Sanitize()</MudText>
 		}
 		<MudLink Underline="Underline.Hover"
                  title="@_title"
-                 Href="@($"/{Post.Author.UserName}")">
-            @Post.Author.DisplayName.SanitizeAndRenderMarkupString()
+                 Href="@($"/{PostItem.Author.UserName}")">
+            @PostItem.Author.DisplayName.SanitizeAndRenderMarkupString()
 		</MudLink>
 	</MudCardContent>
 </MudCard>
 
 @code {
-    private string _title => $"Gå til {Post.Author.UserName.Sanitize()}'s profil";
+    private string _title => $"Gå til {PostItem.Author.UserName.Sanitize()}'s profil";
 
     [Parameter, EditorRequired]
-    public required PostDto Post { get; set; }
+    public required PostDto PostItem { get; set; }
 
 }

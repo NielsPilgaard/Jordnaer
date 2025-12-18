@@ -1,0 +1,51 @@
+@using Jordnaer.Features.Posts
+@inject GroupPostService PostService
+@inject IProfileCache ProfileCache
+
+<MudStack Spacing="4">
+    @if (_isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (_posts.Count == 0)
+    {
+        <MudText Typo="Typo.body1" Align="Align.Center">Ingen opslag endnu. Vær den første til at skrive noget!</MudText>
+    }
+    else
+    {
+        @foreach (var post in _posts)
+        {
+            <GroupPostCardComponent PostItem="post" CurrentUserId="@_userId" OnPostDeleted="RefreshPostsAsync" />
+        }
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid GroupId { get; set; }
+
+    private List<GroupPostDto> _posts = [];
+    private bool _isLoading = true;
+    private string _userId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profile = await ProfileCache.GetProfileAsync();
+        if (profile is not null)
+        {
+            _userId = profile.Id;
+        }
+
+        _posts = await PostService.GetPostsAsync(GroupId);
+        _isLoading = false;
+    }
+
+    public async Task RefreshPostsAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+        _posts = await PostService.GetPostsAsync(GroupId);
+        _isLoading = false;
+        StateHasChanged();
+    }
+}

@@ -21,4 +21,21 @@ public static class PostExtensions
 			Categories = post.Categories.Select(category => category.Name).ToList()
 		};
 	}
+
+	public static GroupPostDto ToGroupPostDto(this GroupPost post)
+	{
+		return new GroupPostDto
+		{
+			Id = post.Id,
+			Text = post.Text,
+			CreatedUtc = post.CreatedUtc,
+			Author = new UserSlim
+			{
+				Id = post.UserProfileId,
+				ProfilePictureUrl = post.UserProfile.ProfilePictureUrl,
+				UserName = post.UserProfile.UserName,
+				DisplayName = post.UserProfile.DisplayName
+			}
+		};
+	}
 }

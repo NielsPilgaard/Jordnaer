@@ -13,6 +13,7 @@ using Jordnaer.Features.Groups;
 using Jordnaer.Features.GroupSearch;
 using Jordnaer.Features.Images;
 using Jordnaer.Features.Membership;
+using Jordnaer.Features.GroupPosts;
 using Jordnaer.Features.Posts;
 using Jordnaer.Features.PostSearch;
 using Jordnaer.Features.Profile;
@@ -78,6 +79,7 @@ builder.AddProfileServices();
 builder.AddChatServices();
 builder.AddMembershipServices();
 builder.AddPostFeature();
+builder.AddGroupPostFeature();
 builder.AddPostSearchFeature();
 
 builder.AddMudBlazor();

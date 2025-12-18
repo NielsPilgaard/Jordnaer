@@ -1,0 +1,82 @@
+@using Jordnaer.Shared
+@using OneOf
+@using OneOf.Types
+@inject GroupPostService PostService
+@inject IProfileCache ProfileCache
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-4" Elevation="3">
+    <Jordnaer.Features.WYSIWYG.TextEditorComponent @ref="_textEditor" Label="Skriv et opslag"
+        Placeholder="Del noget med gruppen..." />
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreatePostAsync" Disabled="@_isSending">
+            @if (_isSending)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Sender...</MudText>
+            }
+            else
+            {
+                <MudText>Slå op</MudText>
+            }
+        </MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid GroupId { get; set; }
+
+    [Parameter]
+    public EventCallback OnPostCreated { get; set; }
+
+    private Jordnaer.Features.WYSIWYG.TextEditorComponent _textEditor = null!;
+    private string _postText = string.Empty;
+    private bool _isSending = false;
+    private UserProfile? _userProfile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userProfile = await ProfileCache.GetProfileAsync();
+    }
+
+    private async Task CreatePostAsync()
+    {
+        _postText = await _textEditor.GetHtmlAsync();
+
+        if (string.IsNullOrWhiteSpace(_postText) || _userProfile is null)
+        {
+            return;
+        }
+
+        _isSending = true;
+
+        var post = new GroupPost
+        {
+            Id = Guid.NewGuid(),
+            GroupId = GroupId,
+            UserProfileId = _userProfile.Id,
+            Text = _postText,
+            CreatedUtc = DateTimeOffset.UtcNow
+        };
+
+        var result = await PostService.CreatePostAsync(post);
+
+        await result.Match(
+        async _ =>
+        {
+            Snackbar.Add("Opslaget er oprettet!", Severity.Success);
+            _postText = string.Empty;
+            await OnPostCreated.InvokeAsync();
+        },
+        error =>
+        {
+            Snackbar.Add(error.Value, Severity.Error);
+            return Task.CompletedTask;
+        });
+
+        _isSending = false;
+    }
+}

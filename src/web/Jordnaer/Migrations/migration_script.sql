@@ -512,7 +512,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20231112182745_Initial', N'9.0.2');
+    VALUES (N'20231112182745_Initial', N'9.0.8');
 END;
 
 IF NOT EXISTS (
@@ -537,7 +537,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'9.0.2');
+    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'9.0.8');
 END;
 
 IF NOT EXISTS (
@@ -554,7 +554,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20240219081648_Add_ApplicationUser_Cookie', N'9.0.2');
+    VALUES (N'20240219081648_Add_ApplicationUser_Cookie', N'9.0.8');
 END;
 
 IF NOT EXISTS (
@@ -644,7 +644,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20250220204935_Add_Posts_And_GroupPosts', N'9.0.2');
+    VALUES (N'20250220204935_Add_Posts_And_GroupPosts', N'9.0.8');
 END;
 
 IF NOT EXISTS (
@@ -661,7 +661,67 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20250220210616_Add_ZipCodeIndex_On_Post', N'9.0.2');
+    VALUES (N'20250220210616_Add_ZipCodeIndex_On_Post', N'9.0.8');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251218120748_Increase_Post_Text_Limit'
+)
+BEGIN
+    DECLARE @var sysname;
+    SELECT @var = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Posts]') AND [c].[name] = N'Text');
+    IF @var IS NOT NULL EXEC(N'ALTER TABLE [Posts] DROP CONSTRAINT [' + @var + '];');
+    ALTER TABLE [Posts] ALTER COLUMN [Text] nvarchar(4000) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251218120748_Increase_Post_Text_Limit'
+)
+BEGIN
+    DECLARE @var1 sysname;
+    SELECT @var1 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[GroupPosts]') AND [c].[name] = N'Text');
+    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [GroupPosts] DROP CONSTRAINT [' + @var1 + '];');
+    ALTER TABLE [GroupPosts] ALTER COLUMN [Text] nvarchar(4000) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251218120748_Increase_Post_Text_Limit'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20251218120748_Increase_Post_Text_Limit', N'9.0.8');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251218130525_Remove_GroupPost_ZipCode'
+)
+BEGIN
+    DECLARE @var2 sysname;
+    SELECT @var2 = [d].[name]
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[GroupPosts]') AND [c].[name] = N'ZipCode');
+    IF @var2 IS NOT NULL EXEC(N'ALTER TABLE [GroupPosts] DROP CONSTRAINT [' + @var2 + '];');
+    ALTER TABLE [GroupPosts] DROP COLUMN [ZipCode];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251218130525_Remove_GroupPost_ZipCode'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20251218130525_Remove_GroupPost_ZipCode', N'9.0.8');
 END;
 
 COMMIT;
