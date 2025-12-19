@@ -4,28 +4,23 @@
 <MudContainer MaxWidth="MaxWidth.Small">
     <MudPaper Elevation="3" Class="pa-10 mt-5">
         <p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
-		    Find ligesindede nær dig
-	    </p>
+            Find ligesindede nær dig
+        </p>
 
         <MudDivider Class="mb-5 mt-1" />
 
         <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
-	        <DataAnnotationsValidator />
+            <DataAnnotationsValidator />
 
             <MudGrid Justify="Justify.SpaceAround" Spacing="6">
 
                 <MudItem xs="8">
-	                <ZipCodeAutoComplete 
-		                For="() => Filter.Location" 
-		                Location="@Filter.Location" 
-		                LocationChanged="LocationChanged" 
-		                DisableSmartCompletion="_disableSmartCompletionForZipCode"/>
+                    <ZipCodeAutoComplete For="() => Filter.Location" Location="@Filter.Location"
+                        LocationChanged="LocationChanged" DisableSmartCompletion="_disableSmartCompletionForZipCode" />
                 </MudItem>
                 <MudItem xs="4">
                     <MudNumericField For="() => Filter.WithinRadiusKilometers"
-                                     @bind-Value="Filter.WithinRadiusKilometers"
-                                     Label="km"
-                                     Placeholder="Radius">
+                    @bind-Value="Filter.WithinRadiusKilometers" Label="km" Placeholder="Radius">
                     </MudNumericField>
                 </MudItem>
 
@@ -34,74 +29,65 @@
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-3">
-	                <MudButton OnClick="ToggleAdvancedSearch"
-	                           FullWidth
-	                           Variant="Variant.Outlined"
-	                           Color="Color.Default">
-                        @(ExpandAdvancedSearch ? "Luk udvidet søgning" : "Udvidet søgning")
-	                </MudButton>
+                    <MudButton OnClick="ToggleAdvancedSearch" FullWidth Variant="Variant.Outlined"
+                         Color="Color.Default">
+                         @(ExpandAdvancedSearch ? "Luk udvidet søgning" : "Udvidet søgning")
+                    </MudButton>
                 </MudItem>
 
                 <MudItem xs="12">
 
                     <MudCollapse @bind-Expanded="ExpandAdvancedSearch">
-	                    <MudTextField @bind-Value="Filter.Name" 
-	                                  Label="Søg på navn" 
-	                                  Placeholder="Fornavn, efternavn eller brugernavn." Clearable />
+                        <MudTextField @bind-Value="Filter.Name" Label="Søg på navn"
+                            Placeholder="Fornavn, efternavn eller brugernavn." Clearable />
 
-		                <MudText Typo="Typo.h6" Class="mt-6">Børn</MudText>
+                         <MudText Typo="Typo.h6" Class="mt-6">Børn</MudText>
 
-		                <MudStack Row>
-			                <MudItem xs="6" Class="pt-0">
-				                <MudNumericField For="() => Filter.MinimumChildAge"
-				                                 @bind-Value="Filter.MinimumChildAge"
-				                                 Label="Min. alder">
-				                </MudNumericField>
-			                </MudItem>
-			                <MudItem xs="6" Class="pt-0">
-				                <MudNumericField For="() => Filter.MaximumChildAge"
-				                                 @bind-Value="Filter.MaximumChildAge"
-				                                 Label="Max. alder">
-				                </MudNumericField>
-			                </MudItem>
-		                </MudStack>
+                         <MudStack Row>
+                            <MudItem xs="6" Class="pt-0">
+                                <MudNumericField For="() => Filter.MinimumChildAge" @bind-Value="Filter.MinimumChildAge"
+                                    Label="Min. alder">
+                                </MudNumericField>
+                            </MudItem>
+                            <MudItem xs="6" Class="pt-0">
+                                <MudNumericField For="() => Filter.MaximumChildAge" @bind-Value="Filter.MaximumChildAge"
+                                    Label="Max. alder">
+                                </MudNumericField>
+                            </MudItem>
+                        </MudStack>
 
-		                <MudSelect @bind-Value="Filter.ChildGender" Clearable Placeholder="Køn">
-			                @foreach (var gender in Enum.GetValues<Gender>())
-			                {
-				                <MudSelectItem T="Gender?" Value="gender">@gender.ToStringFast()</MudSelectItem>
-			                }
-		                </MudSelect>
+                        <MudSelect @bind-Value="Filter.ChildGender" Clearable Placeholder="Køn">
+                             @foreach (var gender in Enum.GetValues<Gender>())
+                            {
+                                <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
+                            }
+                        </MudSelect>
 
-	                </MudCollapse>
+                    </MudCollapse>
 
                 </MudItem>
 
                 <MudItem xs="12" sm="11" md="10" lg="9" xl="8">
 
-	                <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
-		                <MudButton FullWidth
-		                           Variant="Variant.Filled"
-		                           Color="Color.Success"
-		                           ButtonType="ButtonType.Submit">
-			                <MudIcon Icon="@Icons.Material.Filled.Search" />
-		                </MudButton>
-		                <MudButton OnClick="ClearFilter"
-		                           Color="Color.Transparent"
-		                           Variant="Variant.Filled"
-		                           ButtonType="ButtonType.Reset">
-			                <MudIcon Icon="@Icons.Material.Filled.Clear" />
-		                </MudButton>
-	                </MudButtonGroup>
+                    <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
+                        <MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
+                             ButtonType="ButtonType.Submit">
+                             <MudIcon Icon="@Icons.Material.Filled.Search" />
+                         </MudButton>
+                         <MudButton OnClick="ClearFilter" Color="Color.Transparent" Variant="Variant.Filled"
+                             ButtonType="ButtonType.Reset">
+                             <MudIcon Icon="@Icons.Material.Filled.Clear" />
+                         </MudButton>
+                     </MudButtonGroup>
 
-                </MudItem>
-            </MudGrid>
-        </EditForm>
-    </MudPaper>
-</MudContainer>
+                 </MudItem>
+             </MudGrid>
+         </EditForm>
+     </MudPaper>
+ </MudContainer>
 
-@code
-{
+ @code
+ {
     [Parameter]
     public required UserSearchFilter Filter { get; set; }
 
@@ -143,8 +129,8 @@
         ExpandAdvancedSearch = !ExpandAdvancedSearch;
 
         var newUri = Navigation.GetUriWithQueryParameter(
-	        nameof(ExpandAdvancedSearch).ToLower(), 
-	        ExpandAdvancedSearch.ToString().ToLower());
+        nameof(ExpandAdvancedSearch).ToLower(),
+        ExpandAdvancedSearch.ToString().ToLower());
 
         Navigation.NavigateTo(newUri);
     }

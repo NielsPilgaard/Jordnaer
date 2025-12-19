@@ -1,41 +1,36 @@
 @using Jordnaer.Shared
-<ChildProfilePicture @bind-ChildProfile="@ChildProfile" />
+<div class="d-flex justify-center mb-6">
+    <ChildProfilePicture @bind-ChildProfile="@ChildProfile" />
+</div>
 <MudGrid>
     <MudItem xs="12" sm="6">
-        <MudTextField For="() => ChildProfile.FirstName" @bind-Value="@ChildProfile.FirstName" Label="Fornavn" Variant="Variant.Text" InputType="InputType.Text" name="name" />
+        <MudTextField For="() => ChildProfile.FirstName" @bind-Value="@ChildProfile.FirstName" Label="Fornavn"
+            Variant="Variant.Text" InputType="InputType.Text" name="name" />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudTextField For="() => ChildProfile.LastName" @bind-Value="@ChildProfile.LastName" Label="Efternavn" Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
+        <MudTextField For="() => ChildProfile.LastName" @bind-Value="@ChildProfile.LastName" Label="Efternavn"
+            Variant="Variant.Text" InputType="InputType.Text" name="lastname" />
     </MudItem>
     <MudItem xs="12" sm="6">
         <MudSelect For="() => ChildProfile.Gender" @bind-Value="ChildProfile.Gender" Label="Køn">
             @foreach (var gender in Enum.GetValues<Gender>())
             {
-                <MudSelectItem T="Gender" Value="gender">@gender.ToStringFast()</MudSelectItem>
+                <MudSelectItem T="Gender" Value="gender">@gender.GetDisplayName()</MudSelectItem>
             }
         </MudSelect>
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudDatePicker @bind-Date="@ChildProfile.DateOfBirth"
-                       OpenTo="OpenTo.Year"
-                       PickerVariant="PickerVariant.Dialog"
-                       AnchorOrigin="Origin.BottomLeft"
-                       For="@(()=>ChildProfile.DateOfBirth)"
-                       AdornmentColor="Color.Primary"
-                       Color="Color.Primary"
-                       Rounded
-                       Placeholder="@DateTime.Now.ToString("d")"
-                       Label="Fødselsdato" />
-    </MudItem>
-    <MudItem xs="12">
-        <TextEditorComponent Placeholder="Du kan f.eks fortælle om interesser, personlighed, drømme og udfordringer."
-                             Label="Beskrivelse"
-                             Text="@ChildProfile.Description"
-                             @ref="_textEditorComponent" />
-    </MudItem>
-</MudGrid>
+        <MudDatePicker @bind-Date="@ChildProfile.DateOfBirth" OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog"
+            AnchorOrigin="Origin.BottomLeft" For="@(()=>ChildProfile.DateOfBirth)" AdornmentColor="Color.Primary"
+            Color="Color.Primary" Rounded Placeholder="@DateTime.Now.ToString("d")" Label="Fødselsdato" />
+     </MudItem>
+     <MudItem xs="12">
+         <TextEditorComponent Placeholder="Du kan f.eks fortælle om interesser, personlighed, drømme og udfordringer."
+             Label="Beskrivelse" Text="@ChildProfile.Description" @ref="_textEditorComponent" />
+     </MudItem>
+ </MudGrid>
 
-@code {
+ @code {
     [Parameter]
     public required ChildProfile ChildProfile { get; set; }
 

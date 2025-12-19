@@ -1,81 +1,79 @@
-<MudCard Elevation="3" Style="background-color:rgba(207,193,166,0.20)">
-	<MudCardContent>
+<MudPaper Elevation="3" Class="pa-6">
+	<MudGrid Justify="Justify.Center" Spacing="4">
+		<!-- Avatar Column -->
+		<MudItem xs="12" sm="3" Class="d-flex justify-center justify-sm-start">
+			@if (!string.IsNullOrEmpty(Profile.ProfilePictureUrl))
+			{
+				<MudImage Src="@Profile.ProfilePictureUrl"
+					Style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;" Class="elevation-4"
+					Alt="@Profile.DisplayName" />
+			}
+			else
+			{
+				<MudAvatar Style="width: 150px; height: 150px; font-size: 4rem;" Color="Color.Primary" Class="elevation-4">
+					@Profile.DisplayName.FirstOrDefault()
+				</MudAvatar>
+			}
+		</MudItem>
 
-		<MudImage
-			ObjectPosition="ObjectPosition.Left"
-			Style="border-radius: 50%"
-			Src="@Profile.ProfilePictureUrl"
-			loading="lazy"/>
+		<!-- Info Column -->
+		<MudItem xs="12" sm="9">
+			<MudStack Spacing="2">
+				<div class="d-flex flex-wrap align-baseline gap-2 justify-center justify-sm-start">
+					<MudText Typo="Typo.h4"><b>@Profile.DisplayName</b></MudText>
+					<MudText Typo="Typo.h6" Color="Color.Secondary">@@@UserName</MudText>
+				</div>
 
-		<MudTextField Label="Brugernavn"
-		              Adornment="Adornment.Start"
-		              AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
-		              ReadOnly
-		              T="string"
-		              Text="@UserName"/>
+				<div class="d-flex flex-wrap gap-4 justify-center justify-sm-start mt-2">
+					@if (!string.IsNullOrEmpty(Profile.DisplayLocation))
+					{
+						<div class="d-flex align-center gap-1">
+							<MudIcon Icon="@Icons.Material.Filled.Place" Color="Color.Default" Size="Size.Small" />
+							<MudText Typo="Typo.body1">@Profile.DisplayLocation</MudText>
+						</div>
+					}
 
-		<MudTextField Label="Område"
-		              Adornment="Adornment.Start"
-		              AdornmentIcon="@Icons.Material.Filled.Place"
-		              ReadOnly
-		              T="string"
-		              Text="@Profile.DisplayLocation"/>
+					@if (Profile.DateOfBirth is not null)
+					{
+						<div class="d-flex align-center gap-1" title="@Profile.DateOfBirth.Value.ToString("d")">
+							<MudIcon Icon="@Icons.Material.Filled.Cake" Color="Color.Default" Size="Size.Small" />
+							<MudText Typo="Typo.body1">@Profile.Age år</MudText>
+						</div>
+					}
+				</div>
 
-		<MudTextField Label="Navn"
-		              Adornment="Adornment.Start"
-		              AdornmentIcon="@Icons.Material.Filled.AccountCircle"
-		              ReadOnly
-		              T="string"
-		              Text="@Profile.DisplayName"/>
+				@if (Profile.Categories.Count > 0)
+				{
+					<div class="d-flex flex-wrap gap-1 mt-2 justify-center justify-sm-start">
+						@foreach (var category in Profile.Categories)
+						{
+							<MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Filled">@category.Name
+							</MudChip>
+						}
+					</div>
+				}
+			</MudStack>
+		</MudItem>
 
-		@if (Profile.DateOfBirth is not null)
+		<!-- Description / Content -->
+		@if (!string.IsNullOrEmpty(Profile.Description))
 		{
-			<MudTextField title="@Profile.DateOfBirth.Value.ToString("d")" 
-			              AdornmentIcon="@Icons.Material.Filled.Cake" 
-                          Adornment="Adornment.Start"
-			              Label="Alder" 
-			              ReadOnly T="string" 
-			              Value="@($"{Profile.Age} år")" />
+			<MudItem xs="12">
+				<MudDivider Class="my-4" />
+				<MudText Typo="Typo.h6" Class="mb-2">Om mig</MudText>
+				<MudText Typo="Typo.body1">
+					@MarkdownRenderer.SanitizeAndRenderMarkupString(Profile.Description)
+				</MudText>
+			</MudItem>
 		}
-        
-		@if (Profile.Categories.Count > 0)
-		{
-			<MudChipField ChipColor="Color.Tertiary"
-			              Label="Kategorier"
-			              Values="Profile.Categories.Select(x => x.Name).ToList()"
-			              T="string"
-			              ReadOnly
-			              ChipVariant="Variant.Filled"
-			              Closeable="false"
-			              Clearable="false"
-			              Class="ms-0"
-			              WrapChips />
-		}
-		else
-		{
-			<MudTextField Label="Kategorier"
-			              Adornment="Adornment.Start"
-			              AdornmentIcon="@Icons.Material.Filled.Star"
-			              ReadOnly
-			              T="string"
-			              Text="" />
-		}
-
-		@if (Profile.Description is not null)
-		{
-			<MudText Class="mt-3">
-				@MarkdownRenderer.SanitizeAndRenderMarkupString(Profile.Description)
-			</MudText>
-		}
-
-	</MudCardContent>
-</MudCard>
+	</MudGrid>
+</MudPaper>
 
 @code
 {
-    [Parameter]
-    public required string UserName { get; set; }
+	[Parameter]
+	public required string UserName { get; set; }
 
-    [Parameter]
-    public required ProfileDto Profile { get; set; }
+	[Parameter]
+	public required ProfileDto Profile { get; set; }
 }

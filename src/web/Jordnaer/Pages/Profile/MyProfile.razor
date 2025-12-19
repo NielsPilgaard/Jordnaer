@@ -7,8 +7,7 @@
 
 @attribute [Authorize]
 
-<MetadataComponent Title="Redigér Profil"
-                   Description="Her kan du redigere din profil" />
+<MetadataComponent Title="Redigér Profil" Description="Her kan du redigere din profil" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_userProfile is null)
@@ -16,14 +15,9 @@
         return;
     }
 
-    <MudButton Disabled="@(_userProfile.UserName is null)"
-               Href="@($"/{_userProfile.UserName}")"
-               Size="Size.Large"
-               Class="mb-3"
-               Color="Color.Info"
-               Variant="Variant.Outlined"
-               StartIcon="@Icons.Material.Filled.KeyboardArrowLeft"
-               EndIcon="@Icons.Material.Filled.Person">
+    <MudButton Disabled="@(_userProfile.UserName is null)" Href="@($"/{_userProfile.UserName}")" Size="Size.Large"
+        Class="mb-3" Color="Color.Info" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.KeyboardArrowLeft"
+        EndIcon="@Icons.Material.Filled.Person">
         @(_userProfile.UserName is null
             ? "Sæt et brugernavn for at gøre din profil offentlig"
             : "Se hvordan andre ser din profil")
@@ -35,103 +29,79 @@
 
         <MudPaper Elevation="3" Class="pa-4">
 
-            <UserProfilePicture @bind-UserProfile="_userProfile" />
+            <div class="d-flex justify-center mb-6">
+                <UserProfilePicture @bind-UserProfile="_userProfile" />
+            </div>
+
             <MudGrid>
                 <MudItem xs="12" sm="4">
-                    <MudTextField Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
-                                  @bind-Value="@_userProfile.UserName"
-                                  For="() => _userProfile.UserName"
-                                  Label="Brugernavn"
-                                  name="username" />
+                    <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                    @bind-Value="@_userProfile.UserName" For="() => _userProfile.UserName" Label="Brugernavn"
+                        name="username" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="@_userProfile.FirstName"
-                                  For="() => _userProfile.FirstName"
-                                  Label="Fornavn"
-                                  name="name"
-                                  Variant="Variant.Text" />
+                    <MudTextField @bind-Value="@_userProfile.FirstName" For="() => _userProfile.FirstName"
+                        Label="Fornavn" name="name" Variant="Variant.Text" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="@_userProfile.LastName"
-                                  For="() => _userProfile.LastName"
-                                  Label="Efternavn"
-                                  name="lastname" />
+                    <MudTextField @bind-Value="@_userProfile.LastName" For="() => _userProfile.LastName"
+                        Label="Efternavn" name="lastname" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudNumericField @bind-Value="@_userProfile.ZipCode"
-                                     For="() => _userProfile.ZipCode"
-                                     Label="Postnummer"
-                                     name="zipcode" />
+                    <MudNumericField @bind-Value="@_userProfile.ZipCode" For="() => _userProfile.ZipCode"
+                        Label="Postnummer" name="zipcode" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="@_userProfile.City"
-                                  For="() => _userProfile.City"
-                                  Label="By"
-                                  name="city"
-                                  Placeholder="Aarhus C" />
+                    <MudTextField @bind-Value="@_userProfile.City" For="() => _userProfile.City" Label="By" name="city"
+                        Placeholder="Aarhus C" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudDatePicker AdornmentColor="Color.Primary"
-                                   @bind-Date="@_userProfile.DateOfBirth"
-                                   Color="Color.Primary"
-                                   For="() => _userProfile.DateOfBirth"
-                                   Label="Fødselsdato"
-                                   OpenTo="OpenTo.Year"
-                                   PickerVariant="PickerVariant.Dialog"
-                                   Placeholder="@DateTime.Now.ToString("d")"
-                                   Rounded
-                                   name="bday" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-                                       T="string"
-                                       Label="Interesseret i"
-                                       MultiSelection="true"
-                                       SelectedValues="_userProfile.Categories.Select(e => e.Name)"
-                                       ValuePresenter="ValuePresenter.Chip"
-                                       SelectedValuesChanged="SelectedCategoriesChanged" />
-                </MudItem>
+                    <MudDatePicker AdornmentColor="Color.Primary" @bind-Date="@_userProfile.DateOfBirth"
+                        Color="Color.Primary" For="() => _userProfile.DateOfBirth" Label="Fødselsdato"
+                        OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog"
+                        Placeholder="@DateTime.Now.ToString("d")" Rounded name="bday" />
+                 </MudItem>
+                 <MudItem xs="12">
+                     <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()" T="string"
+                         Label="Interesseret i" MultiSelection="true"
+                         SelectedValues="_userProfile.Categories.Select(e => e.Name)"
+                         ValuePresenter="ValuePresenter.Chip" SelectedValuesChanged="SelectedCategoriesChanged" />
+                 </MudItem>
 
-                <MudItem xs="12">
-                    <TextEditorComponent Placeholder="Du kan f.eks fortælle om dine interesser, uddannelse, familie, børnesyn, værdier og den slags."
-                                         Label="Beskrivelse"
-                                         Text="@_userProfile.Description"
-                                         @ref="_textEditorComponent" />
-                </MudItem>
+                 <MudItem xs="12">
+                     <TextEditorComponent
+                         Placeholder="Du kan f.eks fortælle om dine interesser, uddannelse, familie, børnesyn, værdier og den slags."
+                         Label="Beskrivelse" Text="@_userProfile.Description" @ref="_textEditorComponent" />
+                 </MudItem>
 
-            </MudGrid>
+             </MudGrid>
 
-        </MudPaper>
+         </MudPaper>
 
-        <MudText Class="mt-10 mb-5" Typo="Typo.h5">Børn</MudText>
+         <MudText Class="mt-10 mb-5" Typo="Typo.h5">Børn</MudText>
 
-        <EditChildProfileTabs @bind-Parent="_userProfile" @ref="_editChildProfileTabsComponent"></EditChildProfileTabs>
+         <EditChildProfileTabs @bind-Parent="_userProfile" @ref="_editChildProfileTabsComponent"></EditChildProfileTabs>
 
-        <MudButton Size="Size.Large"
-                   StartIcon="@Icons.Material.Filled.Save"
-                   Class="my-6"
-                   ButtonType="ButtonType.Submit"
-                   Variant="Variant.Filled"
-                   FullWidth
-                   Color="Color.Primary">
-            Gem
-        </MudButton>
+         <MudButton Size="Size.Large" StartIcon="@Icons.Material.Filled.Save" Class="my-6" ButtonType="ButtonType.Submit"
+             Variant="Variant.Filled" FullWidth Color="Color.Primary">
+             Gem
+         </MudButton>
 
-    </EditForm>
+     </EditForm>
 
-    <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8" />
-    
-    <div class="d-flex justify-center align-center mt-5 mb-8">
-        <MudButton StartIcon="@Icons.Material.Filled.Logout" title="Log ud" Href="/Account/Logout" Color="Color.Info" Size="Size.Large" Variant="Variant.Outlined">
-		    Log ud
-	    </MudButton>
-    </div>
+     <MiniDivider Color="MiniDividerColor.Blue" Center Class="mt-5 mb-8" />
 
-    <DeleteUserComponent />
+     <div class="d-flex justify-center align-center mt-5 mb-8">
+         <MudButton StartIcon="@Icons.Material.Filled.Logout" title="Log ud" Href="/Account/Logout" Color="Color.Info"
+             Size="Size.Large" Variant="Variant.Outlined">
+             Log ud
+         </MudButton>
+     </div>
 
-</MudLoading>
-@code {
+     <DeleteUserComponent />
+
+ </MudLoading>
+ @code {
     private bool _isLoading = true;
     private UserProfile? _userProfile;
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
@@ -149,7 +119,7 @@
         if (userProfile is null)
         {
             Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh,
-                Severity.Warning);
+            Severity.Warning);
             _isLoading = false;
             return;
         }
@@ -177,12 +147,12 @@
 
         var updateProfileResult = await ProfileService.UpdateUserProfile(_userProfile);
         updateProfileResult.Switch(
-            success =>
-            {
-                Snackbar.Add("Din profil er blevet opdateret!", Severity.Success);
-                ProfileCache.SetProfile(success.Value);
-            },
-            _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error));
+        success =>
+        {
+            Snackbar.Add("Din profil er blevet opdateret!", Severity.Success);
+            ProfileCache.SetProfile(success.Value);
+        },
+        _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error));
 
         _isLoading = false;
     }

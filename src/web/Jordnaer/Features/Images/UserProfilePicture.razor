@@ -5,23 +5,25 @@
 @inject ISnackbar Snackbar
 @inject IProfileImageService ProfileImageService
 
-<MudFileUpload T="IBrowserFile"
-               Accept="image/jpeg, image/png"
-               OnFilesChanged="OnInputFileChanged"
-               MaximumFileCount="1"
-               Hidden="false"
-               title="Klik her for at skifte billede"
-               Class="flex-1"
-               InputClass="absolute mud-height-full overflow-hidden z-20"
-               InputStyle="opacity:0;cursor: pointer">
+<MudFileUpload T="IBrowserFile" Accept="image/jpeg, image/png" OnFilesChanged="OnInputFileChanged" MaximumFileCount="1"
+    Hidden="false" title="Klik her for at skifte billede" InputClass="absolute mud-height-full overflow-hidden z-20"
+    InputStyle="opacity:0;cursor: pointer">
     <ActivatorContent>
-        <MudImage ObjectPosition="ObjectPosition.Center"
-                  Style="border-radius: 50%"
-                  loading="lazy"
-                  Fluid
-                  Class="editable-image"
-                  Src="@UserProfile.ProfilePictureUrl"
-                  Alt="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")" />
+        <MudPaper Elevation="4" Class="rounded-circle d-flex align-center justify-center overflow-hidden"
+            Style="width: 250px; height: 250px;">
+            @if (!string.IsNullOrEmpty(UserProfile.ProfilePictureUrl))
+            {
+                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Cover"
+                    Style="width: 100%; height: 100%;" Src="@UserProfile.ProfilePictureUrl"
+                    Alt="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")" />
+            }
+            else
+            {
+                <MudAvatar Style="width: 100%; height: 100%; font-size: 4rem;" Color="Color.Primary">
+                    @UserProfile.FirstName?.FirstOrDefault()
+                </MudAvatar>
+            }
+        </MudPaper>
     </ActivatorContent>
 </MudFileUpload>
 
@@ -49,12 +51,13 @@
         await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
         var bytes = ms.ToArray();
 
-        var setUserProfilePictureResponse = await ProfileImageService.SetUserProfilePictureAsync(new SetUserProfilePicture(UserProfile, bytes));
+        var setUserProfilePictureResponse = await ProfileImageService.SetUserProfilePictureAsync(new
+        SetUserProfilePicture(UserProfile, bytes));
 
-	    UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+        UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
 
-	    await UserProfileChanged.InvokeAsync(UserProfile);
+        await UserProfileChanged.InvokeAsync(UserProfile);
 
-	    Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
     }
 }

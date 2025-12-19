@@ -1,27 +1,47 @@
-<MudCard Elevation="3" Style="background-color:rgba(207,193,166,0.20)">
-    <MudCardContent>
-        <MudImage Src="@Child.PictureUrl" loading="lazy" />
-        <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@Child.DisplayName" />
-        @if (Child.DateOfBirth is not null)
-        {
-            <MudTextField title="@Child.DateOfBirth.Value.ToString("d")"
-                          AdornmentIcon="@Icons.Material.Filled.Cake" 
-	                      Adornment="Adornment.Start"
-	                      Label="Alder" 
-	                      ReadOnly T="string"
-                          Value="@($"{Child.Age} år")" />
-        }
-        <MudTextField Label="Køn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" ReadOnly T="string" Text="@Child.Gender.ToStringFast()" />
-        
-        @if (Child.Description is not null)
-        {
-            <MudText Typo="Typo.body1" Class="mt-3">
-		        @MarkdownRenderer.SanitizeAndRenderMarkupString(Child.Description)
-	        </MudText>
-        }
+<MudPaper Elevation="3" Class="pa-4 h-100">
+    <div class="d-flex flex-column flex-sm-row gap-4 align-start">
+        <!-- Avatar -->
+        <div class="d-flex justify-center flex-shrink-0" style="width: 100px;">
+            @if (!string.IsNullOrEmpty(Child.PictureUrl))
+            {
+                <MudImage Src="@Child.PictureUrl" Style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
+                    Alt="@Child.DisplayName" />
+            }
+            else
+            {
+                <MudAvatar Style="width: 80px; height: 80px; font-size: 2rem;" Color="Color.Secondary">
+                    @Child.DisplayName.FirstOrDefault()
+                </MudAvatar>
+            }
+        </div>
 
-    </MudCardContent>
-</MudCard>
+        <!-- Info -->
+        <div class="flex-grow-1">
+            <MudText Typo="Typo.h6"><b>@Child.DisplayName</b></MudText>
+
+            <div class="d-flex flex-wrap gap-3 mt-1 mb-2">
+                @if (Child.DateOfBirth is not null)
+                {
+                    <div class="d-flex align-center gap-1" title="@Child.DateOfBirth.Value.ToString("d")">
+                        <MudIcon Icon="@Icons.Material.Filled.Cake" Size="Size.Small" Color="Color.Default" />
+                        <MudText Typo="Typo.body2">@Child.Age år</MudText>
+                    </div>
+                }
+                <div class="d-flex align-center gap-1">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Default" />
+                    <MudText Typo="Typo.body2">@Child.Gender.GetDisplayName()</MudText>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Child.Description))
+            {
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    @MarkdownRenderer.SanitizeAndRenderMarkupString(Child.Description)
+                </MudText>
+            }
+        </div>
+    </div>
+</MudPaper>
 
 @code
 {

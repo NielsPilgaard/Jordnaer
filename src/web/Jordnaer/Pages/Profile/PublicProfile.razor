@@ -19,52 +19,48 @@
     }
 
     <MetadataComponent Title="@($"{UserName}'s profil")"
-                       Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")"
-                       Image="@_profile?.ProfilePictureUrl" />
+        Description="@($"Beskrivelse af {UserName}:\n {_profile?.Description}")" Image="@_profile?.ProfilePictureUrl" />
 
-    <MudContainer MaxWidth="MaxWidth.Medium">
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
 
-        <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Info" OnClick="JsRuntime.GoBackAsync" />
+        <!-- Top Action Bar -->
+        <div class="d-flex align-center justify-space-between mb-6 gap-4">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="JsRuntime.GoBackAsync" Color="Color.Info"
+                Variant="Variant.Filled" Title="Tilbage" />
 
-        @if (_currentUserId != _profile?.Id)
-        {
-            <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" />
-        }
-        else
-        {
-            <MudButton Href="/profile"
-                       Class="mb-5 ml-3"
-                       Color="Color.Info"
-                       Size="Size.Large"
-                       Variant="Variant.Outlined"
-                       StartIcon="@Icons.Material.Filled.Edit"
-                       EndIcon="@Icons.Material.Filled.Person">
-                Redigér Profil
-            </MudButton>
-        }
+            <div class="d-flex gap-2">
+                @if (_currentUserId != _profile?.Id)
+                {
+                    <OpenChat Disabled="@_disableOpenChatButton" Recipients="_userIds" />
+                }
+                else
+                {
+                    <MudButton Href="/profile" Color="Color.Info" Variant="Variant.Filled"
+                        StartIcon="@Icons.Material.Filled.Edit">
+                        Redigér Profil
+                    </MudButton>
+                }
+            </div>
+        </div>
 
-        <MudGrid Justify="Justify.FlexStart">
-            <MudItem xs="12">
-                <UserProfileCard Profile="_profile" UserName="@UserName" />
-            </MudItem>
+        <MudStack Spacing="4">
+            <UserProfileCard Profile="_profile" UserName="@UserName" />
 
             @if (_profile!.ChildProfiles.Count > 0)
             {
-                <MudItem xs="12" Class="text-center">
-                    <MiniDivider Color="MiniDividerColor.Red" Class="my-5" />
-                    <MudText Typo="Typo.h3" Class="d-sm-none mt-3">
-                        Børn
-                    </MudText>
-                </MudItem>
-
-                foreach (var child in _profile.ChildProfiles)
-                {
-                    <MudItem xs="12" sm="6" md="6" lg="6">
-                        <ChildProfileCard Child="child" />
-                    </MudItem>
-                }
+                <div class="mt-8">
+                    <MudText Typo="Typo.h5" Class="mb-4">Børn</MudText>
+                    <MudGrid Spacing="3">
+                        @foreach (var child in _profile.ChildProfiles)
+                        {
+                            <MudItem xs="12" sm="@(_profile.ChildProfiles.Count == 1 ? 12 : 6)" md="@(_profile.ChildProfiles.Count == 1 ? 12 : 6)">
+                                <ChildProfileCard Child="child" />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </div>
             }
-        </MudGrid>
+        </MudStack>
     </MudContainer>
 </MudLoading>
 

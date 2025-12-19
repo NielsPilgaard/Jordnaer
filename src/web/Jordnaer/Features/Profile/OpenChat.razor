@@ -5,13 +5,9 @@
 
 @attribute [Authorize]
 
-<MudButton Disabled="Disabled"
-           EndIcon="@(_isMessageSent ? Icons.Material.Filled.Check : Icons.Material.Filled.Message)"
-           OnClick="OpenOrStartChat"
-           Color="@(_isMessageSent ? Color.Tertiary : Color.Success)"
-           Size="Size.Large"
-           Variant="Disabled ? Variant.Outlined : Variant.Filled"
-           Class="mb-5 ml-3">
+<MudButton Disabled="Disabled" EndIcon="@(_isMessageSent ? Icons.Material.Filled.Check : Icons.Material.Filled.Message)"
+    OnClick="OpenOrStartChat" Color="@(_isMessageSent ? Color.Tertiary : Color.Success)"
+    Variant="Disabled ? Variant.Outlined : Variant.Filled">
     @(_isMessageSent ? "Besked sendt" : "Send Besked")
 </MudButton>
 
@@ -33,7 +29,8 @@
 
     private async Task OpenOrStartChat()
     {
-        var getChatResponse = await ChatService.GetChatByUserIdsAsync(CurrentUser.Id!, Recipients.Select(recipient => recipient.Id).ToArray());
+        var getChatResponse = await ChatService.GetChatByUserIdsAsync(CurrentUser.Id!, Recipients.Select(recipient =>
+        recipient.Id).ToArray());
         await getChatResponse.Match<Task>(chatId =>
         {
             NavigationManager.NavigateTo($"/chat/{chatId}");
@@ -41,11 +38,11 @@
         }, async notFound =>
         {
             var parameters = new DialogParameters<SendMessageDialog>
-                {
-            { dialog => dialog.InitiatorId, CurrentUser.Id! },
-            { dialog => dialog.Recipients, Recipients },
-            { dialog => dialog.ChatName, ChatName }
-                };
+            {
+{ dialog => dialog.InitiatorId, CurrentUser.Id! },
+{ dialog => dialog.Recipients, Recipients },
+{ dialog => dialog.ChatName, ChatName }
+            };
 
             var dialogReference = await DialogService.ShowAsync<SendMessageDialog>("Send besked", parameters);
 

@@ -21,77 +21,101 @@
     }
 
     <MetadataComponent Title="@_group?.Name"
-                       Description="@($"Beskrivelse af {_group?.Name}:\n {_group?.ShortDescription}")"
-                       Image="@_group?.ProfilePictureUrl" />
+        Description="@($"Beskrivelse af {_group?.Name}:\n {_group?.ShortDescription}")"
+        Image="@_group?.ProfilePictureUrl" />
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack"
-            Class="mb-5"
-            Color="Color.Primary"
-            OnClick="JsRuntime.GoBackAsync" />
+    <!-- Top Action Bar -->
+    <div class="d-flex align-center mb-6 gap-2">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="JsRuntime.GoBackAsync" Color="Color.Primary"
+            Variant="Variant.Filled" Class="mr-2" Title="Tilbage" />
 
-    <AuthorizeView>
-        <Authorized>
-            <OpenChat Disabled="_isMember"
-                      Recipients="_recipients"
-                      ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
+        <MudSpacer />
 
-            <MudButton Disabled="_hasPendingMembershipRequest || _isMember"
-                       Class="mb-5"
-                       Color="Color.Tertiary"
-                       OnClick="RequestMembership"
-                       EndIcon="@Icons.Material.Filled.GroupAdd">
-                Anmod om Medlemskab
-            </MudButton>
-            @if (_currentUserIsAdmin && _group is not null)
-            {
-                <MudButton Href="@($"/groups/{_group?.Id}/edit")"
-                           Class="mb-5"
-                           Color="Color.Warning"
-                           Variant="Variant.Text"
-                           EndIcon="@Icons.Material.Filled.Edit">
-                    Redigér Gruppe
-                </MudButton>
-            }
-        </Authorized>
-    </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <div class="d-flex gap-2 flex-wrap justify-end">
+                    <OpenChat Disabled="_isMember" Recipients="_recipients"
+                        ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
+
+                    <MudButton Disabled="_hasPendingMembershipRequest || _isMember" Variant="Variant.Filled"
+                        Color="Color.Tertiary" OnClick="RequestMembership" StartIcon="@Icons.Material.Filled.GroupAdd">
+                        Anmod om Medlemskab
+                    </MudButton>
+
+                    @if (_currentUserIsAdmin && _group is not null)
+                    {
+                        <MudButton Href="@($"/groups/{_group?.Id}/edit")" Variant="Variant.Outlined" Color="Color.Warning"
+                            StartIcon="@Icons.Material.Filled.Edit">
+                            Redigér
+                        </MudButton>
+                    }
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
 
     <MudGrid>
-        <MudItem xs="12" sm="6">
-            @if (_group is null)
-            {
-                <MudLoading Loading="true" />
-            }
-            else
-            {
-                <GroupCard Group="_group" />
-            }
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudPaper Elevation="3">
-                <GroupMemberListComponent CurrentUserIsAdmin="_currentUserIsAdmin"
-                                          GroupMembers="_groupMembers"
-                                          GroupName="@GroupName" />
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="12">
-            @if (!string.IsNullOrEmpty(_group?.Description))
-            {
-                <MudPaper Elevation="3" Class="pa-5">
-                    @MarkdownRenderer.SanitizeAndRenderMarkupString(_group?.Description)
+        <!-- Left Sidebar: Info & Members -->
+        <MudItem xs="12" md="4">
+            <MudStack Spacing="4">
+                @if (_group is null)
+                {
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
+                }
+                else
+                {
+                    <GroupCard Group="_group" />
+                }
+
+                <MudPaper Elevation="3" Class="overflow-hidden" Style="max-height: 500px; overflow-y: auto;">
+                    <GroupMemberListComponent CurrentUserIsAdmin="_currentUserIsAdmin" GroupMembers="_groupMembers"
+                        GroupName="@GroupName" />
                 </MudPaper>
-            }
+            </MudStack>
         </MudItem>
-        @if (_isMember && _group is not null)
-        {
-            <MudItem xs="12">
-                <MudStack Spacing="4">
-                    <GroupPostForm GroupId="_group.Id" OnPostCreated="@(async () => { if (_groupPostList is not null) await _groupPostList.RefreshPostsAsync(); })" />
-                    <GroupPostList @ref="_groupPostList" GroupId="_group.Id" />
-                </MudStack>
-            </MudItem>
-        }
+
+        <!-- Right Main Content: Description & Posts -->
+        <MudItem xs="12" md="8">
+            <MudStack Spacing="4">
+                @if (!string.IsNullOrEmpty(_group?.Description))
+                {
+                    <MudPaper Elevation="3" Class="pa-6">
+                        <MudText Typo="Typo.h6" Class="mb-4">Om gruppen</MudText>
+                        <MudDivider Class="mb-4" />
+                        @MarkdownRenderer.SanitizeAndRenderMarkupString(_group?.Description)
+                    </MudPaper>
+                }
+
+                @if (_isMember && _group is not null)
+                {
+                    <div id="posts-section">
+                        <MudText Typo="Typo.h5" Class="mb-4">Opslag</MudText>
+                        <MudStack Spacing="4">
+                            <GroupPostForm GroupId="_group.Id"
+                                OnPostCreated="@(async () => { if (_groupPostList is not null) await _groupPostList.RefreshPostsAsync(); })" />
+                            <GroupPostList @ref="_groupPostList" GroupId="_group.Id" />
+                        </MudStack>
+                    </div>
+                }
+                else if (!_isMember && !_isLoading)
+                {
+                    <MudPaper Class="pa-8 d-flex flex-column align-center justify-center dashed-border">
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Secondary"
+                            Class="mb-2" />
+                        <MudText Typo="Typo.h6" Color="Color.Secondary">Lukket Gruppe</MudText>
+                        <MudText Color="Color.Secondary">Du skal være medlem for at se opslag i denne gruppe.</MudText>
+                    </MudPaper>
+                }
+            </MudStack>
+        </MudItem>
     </MudGrid>
 </MudLoading>
+
+<style>
+    .dashed-border {
+        border: 2px dashed var(--mud-palette-divider);
+    }
+</style>
 
 @code {
     [Parameter]
@@ -116,8 +140,8 @@
         // TODO: Speed up with ContinueWith and Task.WhenAll
         var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
         response.Switch(
-            groupSlim => _group = groupSlim,
-            _ => { });
+        groupSlim => _group = groupSlim,
+        _ => { });
 
         _isLoading = false;
         if (_group is null)
@@ -133,20 +157,20 @@
         }
 
         _groupMembers = await GroupService
-            .GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
-                                                  x.MembershipStatus == MembershipStatus.Active);
+        .GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
+        x.MembershipStatus == MembershipStatus.Active);
 
         var currentUsersGroupMembership = await GroupService.GetCurrentUsersGroupMembershipAsync(_group.Id);
 
         _isMember = currentUsersGroupMembership?.MembershipStatus is MembershipStatus.Active;
         _hasPendingMembershipRequest = currentUsersGroupMembership?.MembershipStatus
-            is MembershipStatus.PendingApprovalFromGroup
-            or MembershipStatus.PendingApprovalFromUser;
+        is MembershipStatus.PendingApprovalFromGroup
+        or MembershipStatus.PendingApprovalFromUser;
 
         _admins = await GroupService
-            .GetGroupMembersByPredicateAsync(x =>
-                x.GroupId == _group.Id &&
-                x.PermissionLevel == PermissionLevel.Admin);
+        .GetGroupMembersByPredicateAsync(x =>
+        x.GroupId == _group.Id &&
+        x.PermissionLevel == PermissionLevel.Admin);
 
         _recipients = _admins.Concat([_currentUser.ToUserSlim()]).ToList();
     }
@@ -155,14 +179,14 @@
     {
         var requestMembershipResponse = await MembershipService.RequestMembership(GroupName, CancellationToken);
         requestMembershipResponse.Switch(
-            _ =>
-            {
-                Snackbar.Add("Anmodning sendt!", Severity.Success);
-                _hasPendingMembershipRequest = true;
-                StateHasChanged();
-            },
-            existingMembershipError => Snackbar.Add($"Nuværende medlems status: {existingMembershipError.Value}",
-                Severity.Warning),
-            error => Snackbar.Add(error.Value, Severity.Warning));
+        _ =>
+        {
+            Snackbar.Add("Anmodning sendt!", Severity.Success);
+            _hasPendingMembershipRequest = true;
+            StateHasChanged();
+        },
+        existingMembershipError => Snackbar.Add($"Nuværende medlems status: {existingMembershipError.Value}",
+        Severity.Warning),
+        error => Snackbar.Add(error.Value, Severity.Warning));
     }
 }
