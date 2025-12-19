@@ -1,12 +1,14 @@
 # Task 03: Make UI/UX Warmer
 
 ## Context
+
 **App:** Jordnaer (.NET Blazor Server)  
 **Area:** Global UI/UX  
 **Priority:** High  
 **Design Reference:** `docs/Mini Design Guide.pdf`
 
 ## Objective
+
 Implement the official Mini Møder design system to create a warm, friendly, and harmonious visual identity throughout the application.
 
 ## Design System Overview
@@ -27,6 +29,7 @@ The design uses a warm, nature-inspired palette with specific usage rules:
 ### Typography
 
 **Headings: Cherry Bomb One** (Google Font)
+
 - Use for short words and headings
 - Primarily lowercase (not caps)
 - Letter spacing: 110 (tracking between characters)
@@ -36,6 +39,7 @@ The design uses a warm, nature-inspired palette with specific usage rules:
 - If too small to read, use Open Sans Bold instead
 
 **Body Text: Open Sans Light** (Google Font)
+
 - Use for body text
 - Can use variants (Bold, Italic) to emphasize words/sentences
 - Letter spacing: 410 for logo and subheadings, normal otherwise
@@ -43,6 +47,7 @@ The design uses a warm, nature-inspired palette with specific usage rules:
 - **Important:** Avoid light colors (like yellow) for readability
 
 **Subheadings: Open Sans Light** (Google Font)
+
 - Use where Cherry Bomb becomes unreadable
 - Letter spacing: 410
 - Color: Blue or red-brown (not light colors)
@@ -112,11 +117,13 @@ The design uses a warm, nature-inspired palette with specific usage rules:
 ## Implementation Steps
 
 1. **Setup Fonts**
+
    ```css
    @import url('https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap');
    ```
 
 2. **Create CSS Variables**
+
    ```css
    :root {
      /* Brand Colors */
@@ -175,6 +182,7 @@ The design uses a warm, nature-inspired palette with specific usage rules:
 ### Priority Fix
 
 **Update `YellowBackground` in `JordnaerPalette.cs`:**
+
 ```csharp
 // Current (too bright):
 public static readonly MudColor YellowBackground = "#fcca3f";
@@ -186,4 +194,5 @@ public static readonly MudColor YellowBackground = "#dbab45";
 This will make the yellow warmer and more harmonious with the rest of the palette.
 
 ## Reference
+
 See `docs/Mini Design Guide.pdf` for visual examples and full design system documentation.

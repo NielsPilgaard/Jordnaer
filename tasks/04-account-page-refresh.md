@@ -9,6 +9,7 @@ Enhance the user experience and visual design of all authentication and account 
 All pages under `/Account` and `/Account/Manage`:
 
 **Account Pages (17 pages):**
+
 - Login, Register, ExternalLogin
 - ForgotPassword, ForgotPasswordConfirmation, ResetPassword, ResetPasswordConfirmation
 - RegisterConfirmation, ConfirmEmail, ConfirmEmailChange, ResendEmailConfirmation
@@ -16,6 +17,7 @@ All pages under `/Account` and `/Account/Manage`:
 - Lockout, InvalidPasswordReset, InvalidUser
 
 **Manage Pages (13 pages):**
+
 - Index (main profile page)
 - Email, ChangePassword, SetPassword
 - DeletePersonalData, PersonalData
@@ -100,6 +102,7 @@ All pages under `/Account` and `/Account/Manage`:
 ## Files to Modify
 
 **All Account Pages (17 files):**
+
 - [Components/Account/Pages/Login.razor](../src/web/Jordnaer/Components/Account/Pages/Login.razor)
 - [Components/Account/Pages/Register.razor](../src/web/Jordnaer/Components/Account/Pages/Register.razor)
 - [Components/Account/Pages/ExternalLogin.razor](../src/web/Jordnaer/Components/Account/Pages/ExternalLogin.razor)
@@ -108,12 +111,14 @@ All pages under `/Account` and `/Account/Manage`:
 - And 12 other Account pages...
 
 **All Manage Pages (13 files):**
+
 - [Components/Account/Pages/Manage/Index.razor](../src/web/Jordnaer/Components/Account/Pages/Manage/Index.razor)
 - [Components/Account/Pages/Manage/Email.razor](../src/web/Jordnaer/Components/Account/Pages/Manage/Email.razor)
 - [Components/Account/Pages/Manage/ChangePassword.razor](../src/web/Jordnaer/Components/Account/Pages/Manage/ChangePassword.razor)
 - And 10 other Manage pages...
 
 **Styling:**
+
 - [wwwroot/css/app.css](../src/web/Jordnaer/wwwroot/css/app.css) - for shared styles
 - Consider creating `wwwroot/css/account-forms.css` for dedicated Account/Manage page styles
 - Or use scoped CSS files (`.razor.css`) for component-specific styles
