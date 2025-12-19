@@ -1,239 +1,168 @@
 # Jordnaer Codebase Instructions
 
-## Architecture Overview
+## Architecture
 
-**Mini Møder** is a Blazor-based social platform helping parents find playgroups and communities. The architecture uses:
-
-- **Frontend**: Interactive Razor components with MudBlazor UI library  
-- **Backend**: ASP.NET Core web API with feature-based folder structure
-- **Messaging**: MassTransit with in-memory bus (planned: Azure Container Apps for scaling)
-- **Real-time**: SignalR hubs for chat and notifications
-- **Database**: EF Core with SQL Server, Azure SQL in production
-- **Observability**: Serilog + OpenTelemetry (Grafana in prod, Aspire dashboard in dev)
+Blazor social platform for parents to find playgroups. Stack:
+- **Frontend**: Razor components + MudBlazor (v8.11.0)
+- **Backend**: ASP.NET Core, feature-based structure
+- **Messaging**: MassTransit (in-memory, outbox pattern)
+- **Real-time**: SignalR for chat/notifications
+- **Database**: EF Core + SQL Server (Azure SQL in prod)
+- **Observability**: Serilog + OpenTelemetry
 
 ## Project Structure
 
 ```
-src/
-├── web/Jordnaer/              # Main Blazor app
-│   ├── Features/              # Feature modules (Groups, Chat, Posts, etc.)
-│   ├── Components/            # Razor components
-│   ├── Extensions/            # DI setup extension methods
-│   ├── Consumers/             # MassTransit message handlers
-│   ├── Database/              # EF Core context
-│   └── SignalR/               # Hub definitions
-├── shared/
-│   ├── Jordnaer.Shared/       # Shared models, DTOs, interfaces
-│   └── Jordnaer.Shared.Infrastructure/  # Infrastructure abstractions
-└── container_apps/
-    └── Jordnaer.Chat/         # (Future) Chat service for Container Apps
+src/web/Jordnaer/
+├── Features/          # Feature modules (Groups, Chat, Posts)
+├── Components/        # Razor components
+├── Extensions/        # DI setup (WebApplicationBuilderExtensions)
+├── Consumers/         # MassTransit message handlers
+├── Database/          # EF Core context
+└── SignalR/          # Hub definitions
 
-tests/
-├── web/Jordnaer.Tests/        # Unit tests
-├── web/Jordnaer.E2E.Tests/    # Playwright-based E2E tests
-└── web/Jordnaer.UI.Tests/     # UI-specific tests
+src/shared/
+├── Jordnaer.Shared/                    # Models, DTOs, interfaces
+└── Jordnaer.Shared.Infrastructure/     # Infrastructure abstractions
+
+tests/web/
+├── Jordnaer.Tests/        # Unit tests
+├── Jordnaer.E2E.Tests/    # Playwright E2E
+└── Jordnaer.UI.Tests/     # UI tests
 ```
 
-## Core Patterns & Conventions
+## Core Patterns
 
 ### 1. Feature Module Setup
-
-Each feature (e.g., Groups, Chat, Posts) follows a standard pattern:
-
+Each feature has `WebApplicationBuilderExtensions.cs` for DI registration:
 ```csharp
-// src/web/Jordnaer/Features/Groups/WebApplicationBuilderExtensions.cs
 public static WebApplicationBuilder AddGroupServices(this WebApplicationBuilder builder)
 {
     builder.Services.AddScoped<GroupService>();
-    // DI registrations...
     return builder;
 }
 ```
+**Rule**: All DI setup in extension methods called from `Program.cs`.
 
-**Key principle**: All DI setup happens in extension methods called from `Program.cs`. Search `Program.cs` to see all registered features.
-
-### 2. Data Access with Factory Pattern
-
-Services use `IDbContextFactory<JordnaerDbContext>` to create scoped context instances:
-
+### 2. Data Access
+Use `IDbContextFactory<JordnaerDbContext>` for scoped contexts:
 ```csharp
 public class GroupService(IDbContextFactory<JordnaerDbContext> contextFactory) 
 {
     public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id)
     {
         await using var context = await contextFactory.CreateDbContextAsync();
-        // EF queries with AsNoTracking() for read-only operations
         var group = await context.Groups.AsNoTracking().FirstOrDefaultAsync(/* ... */);
-        return group is null ? new NotFound() : group;
+        return group ?? new NotFound();
     }
 }
 ```
+**Rules**: 
+- Always `await using var context`
+- Use `AsNoTracking()` for read-only queries
 
-**Pattern**: Always use `await using var context` for proper disposal. Use `AsNoTracking()` for read-only queries.
-
-### 3. Result Types with OneOf
-
-The codebase uses the OneOf library for explicit error handling:
-
+### 3. Result Types
+Use OneOf for explicit error handling:
 ```csharp
-// Success returns business object or error discriminator
-public async Task<OneOf<GroupSlim, NotFound>> GetSlimGroupByNameAsync(string name)
-{
-    // ... 
-    return group is null ? new NotFound() : group;
-}
+public async Task<OneOf<Group, NotFound>> GetGroupAsync(Guid id) { /* ... */ }
 
-// Usage in consumers/handlers
-var result = await groupService.GetGroupByIdAsync(id);
+// Usage
+var result = await service.GetGroupAsync(id);
 return result.Match(
     group => HandleSuccess(group),
     notFound => HandleNotFound()
 );
 ```
 
-### 4. MassTransit Message Consumers
-
-Background tasks are handled by consumers for async/deferred operations:
-
+### 4. MassTransit Consumers
+Background tasks via consumers:
 ```csharp
-// src/web/Jordnaer/Consumers/SendEmailConsumer.cs
-public class SendEmailConsumer(
-    ILogger<SendEmailConsumer> logger,
-    EmailClient emailClient)
+public class SendEmailConsumer(ILogger<SendEmailConsumer> logger, EmailClient client)
     : IConsumer<SendEmail>
 {
-    public async Task Consume(ConsumeContext<SendEmail> consumeContext)
+    public async Task Consume(ConsumeContext<SendEmail> context)
     {
-        var message = consumeContext.Message;
-        // Process message, use Polly retry policies
-        // Track metrics with JordnaerMetrics.Counter.Add()
+        // Process message, track metrics: JordnaerMetrics.Counter.Add()
     }
 }
 ```
+**Auto-discovery**: Consumers in `Jordnaer.Consumers` namespace auto-registered.
+**Future**: Migrate chat to Azure Container Apps at 100+ msg/hour.
 
-**Configuration**: `WebApplicationBuilderExtensions.AddMassTransit()` auto-discovers consumers in `Jordnaer.Consumers` namespace. Uses in-memory transport with outbox pattern for reliability.
-
-**Future**: Move chat consumers to Azure Container Apps when traffic exceeds 100 msg/hour consistently (see `Consumers/README.md`).
-
-### 5. Real-time Communication with SignalR
-
-Chat and notifications use SignalR hubs:
-
+### 5. SignalR
+Hub interface + `IHubContext` for broadcasting:
 ```csharp
-// src/web/Jordnaer/SignalR/ChatHub.cs
 public interface IChatHub
 {
     Task ReceiveChatMessage(ChatMessageDto message);
-    Task StartChat(ChatDto chat);
 }
 
-// Consumers publish to clients
+// In consumer
 await chatHub.Clients.Users(recipientIds).ReceiveChatMessage(message);
 ```
 
-**Pattern**: Hub methods defined in shared interface, consumers use `IHubContext<ChatHub, IChatHub>` to broadcast.
+## Development
 
-## Development Workflow
-
-### Building & Testing
-
+### Build & Test
 ```powershell
-# Restore and build (from repo root)
 dotnet build
-
-# Run unit tests (skips slow E2E and SkipInCi marked tests)
-dotnet test tests/web/Jordnaer.Tests --filter Category!=SkipInCi
-
-# Run all tests including E2E
-dotnet test tests/web
-
-# Run specific test file
-dotnet test tests/web/Jordnaer.Tests --filter FullyQualifiedName~SendEmailConsumerTests
+dotnet test tests/web/Jordnaer.Tests --filter Category!=SkipInCi  # Unit tests
+dotnet test tests/web  # All tests including E2E
 ```
 
-**CI Configuration**: GitHub Actions workflows check push events filtered by path (e.g., changes to `src/web/Jordnaer/**` trigger backend tests).
-
-### Database Migrations
-
-Managed with EF Core tooling:
-
+### Migrations
 ```powershell
 cd src/web/Jordnaer
-# Create migration (check add-migration.ps1 script)
 dotnet ef migrations add MigrationName
-
-# Update database
 dotnet ef database update
 ```
 
-### Logging & Observability
-
-Use Serilog's LogContext and structured logging:
-
+### Logging
 ```csharp
-logger.LogFunctionBegan();  // Custom extension in LoggerExtensions.cs
-logger.LogError(exception, "Error context with {Variable}", variable);
-
-// Diagnostic context for correlation
+logger.LogFunctionBegan();  // Custom extension
+logger.LogError(ex, "Error with {Variable}", variable);
 diagnosticContext.Set("GroupId", groupId);
-
-// Metrics
 JordnaerMetrics.ChatMessagesSentCounter.Add(1);
 ```
+**Dev**: Aspire dashboard at `http://localhost:4318`
 
-**Development**: Aspire dashboard at `http://localhost:4318` (auto-configured)  
-**Production**: Grafana with OpenTelemetry exporter (configured in `WebApplicationBuilderExtensions.AddOpenTelemetry()`)
-
-## External Integrations
-
-- **Azure Communication Email**: Email service (consumers in `Features/Email/`)
-- **Azure Blob Storage**: Profile pictures and attachments
-- **DSFAPI (DataForsyningen)**: Danish civil registry for user search
-- **OAuth**: Google, Microsoft, Facebook authentication
-- **MudBlazor**: Component library (v8.11.0)
+## External Services
+- **Azure Communication Email**: Email sending
+- **Azure Blob Storage**: Profile pics, attachments
+- **DSFAPI**: Danish civil registry search
+- **OAuth**: Google, Microsoft, Facebook
 
 ## Common Tasks
 
-### Adding a New Feature
-
-1. Create `src/web/Jordnaer/Features/YourFeature/` folder
-2. Add domain service class with `IDbContextFactory<JordnaerDbContext>`
+### Add Feature
+1. Create `Features/YourFeature/` folder
+2. Add service with `IDbContextFactory<JordnaerDbContext>`
 3. Create `WebApplicationBuilderExtensions.cs` with `AddYourFeatureServices()`
-4. Call in `Program.cs`: `builder.AddYourFeatureServices()`
-5. Add Razor components in `Components/`
-6. Write tests in `tests/web/Jordnaer.Tests/`
+4. Register in `Program.cs`
+5. Add components in `Components/`
+6. Write tests
 
-### Publishing Async Messages
-
-Use `IPublishEndpoint` to trigger async work:
-
+### Publish Messages
 ```csharp
-// In service
 await publishEndpoint.Publish<SendEmail>(/* ... */, cancellationToken);
-
-// In consumer
-public class EmailConsumer : IConsumer<SendEmail> { /* ... */ }
 ```
 
-### Testing Consumer Logic
+## Libraries
+- **Validation**: FluentValidation
+- **Feature Flags**: IFeatureManager
+- **Rate Limiting**: Custom RateLimitExtensions
+- **Security**: NetEscapades.AspNetCore.SecurityHeaders
+- **Images**: SixLabors.ImageSharp
+- **Markdown**: Markdig
+- **Testing**: NSubstitute for mocking
 
-Use NSubstitute for mocking (see `SendEmailConsumerTests.cs`). Create mock `ConsumeContext<T>` to verify consumer behavior.
+## Critical Rules
+1. **Always dispose DbContext**: `await using var context = await contextFactory.CreateDbContextAsync()`
+2. **Consumers**: Must be in `Jordnaer.Consumers` namespace for auto-discovery
+3. **DO NOT**: Reformat unchanged code
+4. **SignalR**: `UserCircuitHandler` manages circuit state (see `Features/Authentication/`)
+5. **Health**: Endpoint at `/health`
 
-## Important Notes
-
-- **Feature Flags**: Uses `IFeatureManager` for A/B testing and gradual rollouts
-- **Validation**: FluentValidation for input validation across features
-- **Rate Limiting**: Custom `RateLimitExtensions` in middleware pipeline
-- **Security Headers**: `NetEscapades.AspNetCore.SecurityHeaders` applied in middleware
-- **Image Processing**: SixLabors.ImageSharp for profile pictures (handles resizing, validation)
-- **Markdown Support**: Markdig library for rich text content
-- **HealthChecks**: Endpoint at `/health` (includes SQL Server and self checks)
-- **DO NOT**: Re-format code that you have not otherwise changed
-
-## Gotchas & Tips
-
-1. **Always dispose DbContext**: Use `await using var context = await contextFactory.CreateDbContextAsync()`
-2. **Slow Email Test**: `SendEmailConsumerTests.Consume_ShouldSendEmailSuccessfully` is marked as `Skip="35 min execution"` — investigate if needed
-3. **Consumers Auto-Discovery**: MassTransit auto-discovers `IConsumer<T>` implementations; ensure they're in `Jordnaer.Consumers` namespace
-4. **Chat Migration**: Monitor chat volume; start planning Azure Container Apps migration at 100+ msg/hour consistency
-5. **SignalR Circuit Handler**: `UserCircuitHandler` manages circuit state; check `Features/Authentication/` for auth context preservation
+## Known Issues
+- `SendEmailConsumerTests.Consume_ShouldSendEmailSuccessfully` skipped (35min execution)
+- Monitor chat volume for Container Apps migration at 100+ msg/hour
