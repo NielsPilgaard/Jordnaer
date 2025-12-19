@@ -2,19 +2,16 @@
 
 @inject ISnackbar Snackbar
 
-<MudDialogProvider CloseOnEscapeKey="true"
-                   BackdropClick="true"
-                   Position="DialogPosition.Center"
-                   MaxWidth="MaxWidth.Large"
-                   CloseButton="true" />
+<MudDialogProvider CloseOnEscapeKey="true" BackdropClick="true" Position="DialogPosition.Center"
+    MaxWidth="MaxWidth.Large" CloseButton="true" />
 <MudSnackbarProvider />
 <MudThemeProvider Theme="JordnaerTheme.CustomTheme" />
-<MudPopoverProvider/>
+<MudPopoverProvider />
 
 <MudLayout>
-	<TopBar />
-    <MudMainContent Class="mb-15">
-        <MudContainer MaxWidth="MaxWidth.Large">
+    <TopBar />
+    <MudMainContent id="main-content" Class="mb-15">
+        <MudContainer id="main-container" MaxWidth="MaxWidth.Large">
             @Body
         </MudContainer>
     </MudMainContent>
@@ -25,18 +22,18 @@
 
 <BlazorErrorFooter />
 
-@code{
+@code {
 
     [SupplyParameterFromQuery]
     public bool? FirstLogin { get; set; }
 
-	protected override void OnInitialized()
-	{
-		if (FirstLogin is true)
-		{
-            Snackbar.Add("Velkommen til Mini Møder! Du er nu logget ind.", Severity.Success, 
-	            options => options.VisibleStateDuration = 7500);
-		}
-	}
+    protected override void OnInitialized()
+    {
+        if (FirstLogin is true)
+        {
+            Snackbar.Add("Velkommen til Mini Møder! Du er nu logget ind.", Severity.Success,
+            options => options.VisibleStateDuration = 7500);
+        }
+    }
 
 }

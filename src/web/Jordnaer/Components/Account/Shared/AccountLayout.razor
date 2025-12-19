@@ -1,12 +1,8 @@
 ﻿@inherits LayoutComponentBase
-@layout FrontPageLayout
+@layout MainLayout
 @inject NavigationManager NavigationManager
 
-<MudMainContent Class="mb-6">
-	<MudContainer MaxWidth="MaxWidth.Large">
-		@Body
-	</MudContainer>
-</MudMainContent>
+@Body
 
 @code {
     [CascadingParameter]

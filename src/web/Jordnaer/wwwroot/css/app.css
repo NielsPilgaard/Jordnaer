@@ -108,3 +108,33 @@ div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
     font-size: 1.2rem;
     letter-spacing: 0.5px;
 }
+
+/* Topbar Navigation Styles */
+.topbar-nav-link {
+    text-transform: none;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 10px 16px !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.topbar-nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.topbar-nav-link .mud-button-label {
+    font-size: 15px;
+}
+
+/* Mobile Navigation Styles */
+.mobile-nav-item {
+    text-transform: none;
+}
+
+/* Dashboard Card Styles */
+.dashboard-card {
+    cursor: pointer;
+}

@@ -1,50 +1,64 @@
 @page "/"
 @using Microsoft.AspNetCore.OutputCaching
+@using Jordnaer.Features.Dashboard
 
 @inject IBrowserViewportService BrowserViewportService
 
-@attribute [OutputCache(Duration = 300)]
-@attribute [Layout(typeof(FrontPageLayout))]
+@attribute [OutputCache(Duration = 31536000)] // 1 year caching for landing page
 @attribute [Sitemap]
 
-<MetadataComponent Title="Mini Møder"
-                   Description="Et online mødested for børnefamilier" />
+<MetadataComponent Title="Mini Møder" Description="Et online mødested for børnefamilier" />
 
-@if (_isMobile)
-{
-    <MobileLandingPage />
-}
-else
-{
-    <DesktopLandingPage />
-}
+<style>
+    /* Remove container constraints for full-width landing page */
+    #main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    #main-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+</style>
+
+<AuthorizeView>
+    <Authorized>
+        @* Authenticated users see the dashboard *@
+        <UserDashboard />
+    </Authorized>
+    <NotAuthorized>
+        @* Guest users see the landing page *@
+        @if (_isMobile)
+        {
+            <MobileLandingPage />
+        }
+        else
+        {
+            <DesktopLandingPage />
+        }
+    </NotAuthorized>
+</AuthorizeView>
 
 @code
 {
-    [CascadingParameter] public HttpContext? HttpContext { get; set; }
-
     private bool _isMobile = false;
+    private readonly Guid _breakpointObserverId = Guid.NewGuid();
 
     protected override async Task OnInitializedAsync()
     {
-        await SetDeviceType();
-    }
-
-    private async Task SetDeviceType()
-    {
-        if (HttpContext is null)
+        await BrowserViewportService.SubscribeAsync(
+        observerId: _breakpointObserverId,
+        lambda: async args =>
         {
-	        _isMobile = await BrowserViewportService.GetCurrentBreakpointAsync() <= Breakpoint.Sm;
-            return;
-        }
-
-        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-        string[] mobileIdentifiers =
-        [
-            "Android", "iPhone", "iPod", "Windows Phone", "BlackBerry", "webOS", "IEMobile", "Opera Mini"
-        ];
-
-        // Check if any of the mobile identifiers are contained in the user agent string
-        _isMobile = mobileIdentifiers.Any(userAgent.Contains);
+            var isMobile = args.Breakpoint <= Breakpoint.Sm;
+            if (isMobile != _isMobile)
+            {
+                _isMobile = isMobile;
+                await InvokeAsync(StateHasChanged);
+            }
+        },
+        fireImmediately: true);
     }
 }

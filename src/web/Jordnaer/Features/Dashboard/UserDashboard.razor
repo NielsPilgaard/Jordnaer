@@ -1,0 +1,100 @@
+@namespace Jordnaer.Features.Dashboard
+@inject CurrentUser CurrentUser
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+	@* Welcome Header *@
+	<MudText Typo="Typo.h3" Class="font-cherry-bomb-one mb-8" Align="Align.Center"
+		Style="@JordnaerPalette.YellowBackground.ToTextColor()">
+		Velkommen tilbage @_displayName
+	</MudText>
+
+	@* Quick Actions Grid *@
+	<MudGrid Spacing="6" Class="mb-12">
+		<MudItem xs="12" sm="6" md="4">
+			<DashboardCard Title="Søg efter familier" Description="Find andre familier i dit område"
+				Icon="@Icons.Material.Filled.PersonSearch" Href="/users" ButtonText="Søg nu"
+				BackgroundColor="JordnaerPalette.YellowBackground" />
+		</MudItem>
+
+		<MudItem xs="12" sm="6" md="4">
+			<DashboardCard Title="Dine Grupper" Description="Se dine grupper eller find nye"
+				Icon="@Icons.Material.Filled.Groups" Href="/groups" ButtonText="Se grupper"
+				BackgroundColor="JordnaerPalette.GreenBackground" TextColor="@("#FFFFFF")"
+				ButtonBackgroundColor="@("#FFFFFF")" ButtonTextColor="JordnaerPalette.RedHeader" />
+		</MudItem>
+
+		<MudItem xs="12" sm="6" md="4">
+			<DashboardCard Title="Mine Beskeder" Description="Chat med andre forældre"
+				Icon="@Icons.Material.Filled.Chat" Href="/chat" ButtonText="Gå til chat"
+				BackgroundColor="JordnaerPalette.PaleBlueBackground" />
+		</MudItem>
+
+		<Feature Name="@FeatureFlags.Posts">
+			<MudItem xs="12" sm="6" md="4">
+				<DashboardCard Title="Seneste Opslag" Description="Se hvad der sker i fællesskabet"
+					Icon="@Icons.Material.Filled.Feed" Href="/posts" ButtonText="Se opslag"
+					BackgroundColor="JordnaerPalette.BeigeBackground" />
+			</MudItem>
+		</Feature>
+
+		<MudItem xs="12" sm="6" md="4">
+			<DashboardCard Title="Min Profil" Description="Redigér din profil og børn"
+				Icon="@Icons.Material.Filled.Person" Href="/profile" ButtonText="Redigér profil"
+				BackgroundColor="JordnaerPalette.BeigeBackground60" />
+		</MudItem>
+
+		<MudItem xs="12" sm="6" md="4">
+			<DashboardCard Title="Opret Gruppe" Description="Start din egen gruppe"
+				Icon="@Icons.Material.Filled.GroupAdd" Href="/personal/groups" ButtonText="Opret gruppe"
+				BackgroundColor="JordnaerPalette.PaleBlueBackground40" />
+		</MudItem>
+	</MudGrid>
+
+	<MiniDivider Color="MiniDividerColor.Green" Center Class="my-12" />
+
+	@* Tips Section *@
+	<MudPaper Elevation="0" Class="pa-8"
+		Style="@($"{JordnaerPalette.WarmWhite.ToBackgroundColor()}; border-radius: 16px;")">
+		<MudStack Spacing="4">
+			<MudText Typo="Typo.h5" Class="font-cherry-bomb-one" Style="@JordnaerPalette.GreenBackground.ToTextColor()">
+				Tips til at komme i gang
+			</MudText>
+			<MudStack Row Class="align-center">
+				<MudIcon Icon="@Icons.Material.Filled.CheckCircle"
+					Style="@JordnaerPalette.GreenBackground.ToTextColor()" />
+				<MudText Class="font-open-sans-light" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+					Færdiggør din profil for at hjælpe andre med at lære dig bedre at kende
+				</MudText>
+			</MudStack>
+			<MudStack Row Class="align-center">
+				<MudIcon Icon="@Icons.Material.Filled.CheckCircle"
+					Style="@JordnaerPalette.GreenBackground.ToTextColor()" />
+				<MudText Class="font-open-sans-light" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+					Søg efter familier i dit område og send en besked
+				</MudText>
+			</MudStack>
+			<MudStack Row Class="align-center">
+				<MudIcon Icon="@Icons.Material.Filled.CheckCircle"
+					Style="@JordnaerPalette.GreenBackground.ToTextColor()" />
+				<MudText Class="font-open-sans-light" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+					Deltag i eller opret en gruppe der matcher din families interesser
+				</MudText>
+			</MudStack>
+		</MudStack>
+	</MudPaper>
+</MudContainer>
+
+@code {
+	private string? _displayName;
+
+	protected override void OnInitialized()
+	{
+		var userProfile = CurrentUser.UserProfile;
+		if (userProfile is null)
+		{
+			return;
+		}
+
+		_displayName = userProfile.FirstName ?? userProfile.DisplayName;
+	}
+}

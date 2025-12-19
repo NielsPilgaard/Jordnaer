@@ -14,10 +14,7 @@
 
 @attribute [Authorize]
 
-@layout FrontPageLayout
-
-<MetadataComponent Title="Chat"
-                   Description="Her kan du skrive med andre" />
+<MetadataComponent Title="Chat" Description="Her kan du skrive med andre" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_isMobile)
@@ -26,7 +23,8 @@
 
             @if ((_activeChat is null && _isMobile) || _isMobile is false)
             {
-                <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
+                <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat"
+                    StartNewChatCallback="StartNewChat" />
             }
 
             @if (_isMobile is false)
@@ -36,9 +34,8 @@
                 </MudItem>
             }
 
-            <ChatMessageList @bind-ActiveChat="_activeChat"
-                             IsMobile="_isMobile"
-                             LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
+            <ChatMessageList @bind-ActiveChat="_activeChat" IsMobile="_isMobile"
+                LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
         </MudGrid>
     }
     else
@@ -50,7 +47,8 @@
 
                         @if ((_activeChat is null && _isMobile) || _isMobile is false)
                         {
-                            <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat" StartNewChatCallback="StartNewChat" />
+                            <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat"
+                                StartNewChatCallback="StartNewChat" />
                         }
 
                         @if (_isMobile is false)
@@ -60,9 +58,8 @@
                             </MudItem>
                         }
 
-                        <ChatMessageList @bind-ActiveChat="_activeChat"
-                                         IsMobile="_isMobile"
-                                         LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
+                        <ChatMessageList @bind-ActiveChat="_activeChat" IsMobile="_isMobile"
+                            LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
                     </MudGrid>
                 </MudPaper>
             </MudContainer>
@@ -96,17 +93,17 @@
         await JsRuntime.HideElement(".footer");
 
         await BrowserViewportService.SubscribeAsync(
-            observerId: _breakpointObserverId,
-            lambda: async args =>
+        observerId: _breakpointObserverId,
+        lambda: async args =>
+        {
+            var isMobile = args.Breakpoint <= Breakpoint.Sm;
+            if (isMobile != _isMobile)
             {
-                var isMobile = args.Breakpoint <= Breakpoint.Sm;
-                if (isMobile != _isMobile)
-                {
-                    _isMobile = isMobile;
-                    await InvokeAsync(StateHasChanged);
-                }
-            },
-            fireImmediately: true);
+                _isMobile = isMobile;
+                await InvokeAsync(StateHasChanged);
+            }
+        },
+        fireImmediately: true);
     }
 
     protected override async Task OnInitializedAsync()
@@ -248,7 +245,7 @@
         {
             var userIdsToFind = new[] { userList.First().Id, _currentUser.Id };
             var existingChat = _chats.FirstOrDefault(chat => chat.Recipients.Count == 2 &&
-                                                             userIdsToFind.All(id => chat.Recipients.Any(recipient => recipient.Id == id)));
+            userIdsToFind.All(id => chat.Recipients.Any(recipient => recipient.Id == id)));
             if (existingChat is not null)
             {
                 await SelectChat(existingChat);
@@ -257,22 +254,22 @@
         }
 
         var newChat = new ChatDto
-            {
-                Id = NewId.NextGuid(),
-                Recipients = [_currentUser.ToUserSlim()],
-                LastMessageSentUtc = DateTime.UtcNow,
-                StartedUtc = DateTime.UtcNow
-            };
+        {
+            Id = NewId.NextGuid(),
+            Recipients = [_currentUser.ToUserSlim()],
+            LastMessageSentUtc = DateTime.UtcNow,
+            StartedUtc = DateTime.UtcNow
+        };
 
         foreach (var user in userList.Where(u => u.Id != _currentUser.Id))
         {
             newChat.Recipients.Add(new UserSlim
-                {
-                    DisplayName = user.DisplayName,
-                    Id = user.Id,
-                    ProfilePictureUrl = user.ProfilePictureUrl,
-                    UserName = user.UserName
-                });
+            {
+                DisplayName = user.DisplayName,
+                Id = user.Id,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                UserName = user.UserName
+            });
         }
 
         _chats.Insert(0, newChat);
