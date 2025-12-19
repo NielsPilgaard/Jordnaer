@@ -10,7 +10,7 @@
             else
             {
                 <MudAvatar Style="width: 80px; height: 80px; font-size: 2rem;" Color="Color.Secondary">
-                    @Child.DisplayName.FirstOrDefault()
+                    @Child.DisplayName?.FirstOrDefault()
                 </MudAvatar>
             }
         </div>
