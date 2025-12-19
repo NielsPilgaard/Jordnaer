@@ -1,117 +1,130 @@
-# Task 04: Navigation & Authenticated Experience
+# Task 04: Improve Account & Manage Pages UI/UX
 
-## Context
-**App:** Jordnaer (.NET Blazor Server)  
-**Area:** Layout (`TopBar.razor`), Home (`MainLandingPage.razor`), and New Authenticated Dashboard  
-**Priority:** High  
-**Design Reference:** See `tasks/03-warmer-ui-ux.md` for design system guidelines
+## Overview
 
-## Objective
-Improve navigation discoverability by revamping the Topbar and creating a dedicated dashboard for authenticated users. Users should immediately see where they can navigate (Home, Chat, Groups, Users, Posts, Profile) regardless of their device.
+Enhance the user experience and visual design of all authentication and account management pages to make them more modern, user-friendly, and responsive across all device sizes.
 
-## Current State
-- **Topbar:** Uses only icons, which can be ambiguous. It feels a bit "bare" and lacks labels.
-- **Mobile Nav:** No dedicated mobile-optimized menu (just a row of icons).
-- **Home Page:** Logged-in users see the same landing page as guests, which isn't personalized or helpful for frequent users.
-- **First Login:** `FirstLogin.razor` exists but is intended only for the very first visit and isn't "premium" or reliable enough for regular use.
+## Scope
 
-## Requirements
+All pages under `/Account` and `/Account/Manage`:
 
-### 1. Enhanced Topbar
-**Goal:** Make navigation options explicit and accessible.
+**Account Pages (17 pages):**
+- Login, Register, ExternalLogin
+- ForgotPassword, ForgotPasswordConfirmation, ResetPassword, ResetPasswordConfirmation
+- RegisterConfirmation, ConfirmEmail, ConfirmEmailChange, ResendEmailConfirmation
+- LoginWith2fa, LoginWithRecoveryCode
+- Lockout, InvalidPasswordReset, InvalidUser
 
-- **Desktop:**
-  - Add text labels next to icons (e.g., "Søg", "Grupper", "Chat", "Opslag", "Profil").
-  - Use Cherry Bomb One or Open Sans Semi-Bold for labels.
-  - Maintain a warm, gummy aesthetic with subtle hover effects.
-  - Ensure clear active states for the current page.
-- **Mobile:**
-  - Implement a dropdown or "hamburger" menu to better show navigation options.
-  - Ensure tap targets are large (min 44px).
-  - Consider a bottom navigation bar or a side drawer if it fits the "warm" aesthetic better.
-- **SSR Considerations:** 
-  - The menu should be functional/visible even before full Blazor hydration if possible.
-  - Use standard HTML/CSS for the layout of the topbar to ensure it renders instantly.
+**Manage Pages (13 pages):**
+- Index (main profile page)
+- Email, ChangePassword, SetPassword
+- DeletePersonalData, PersonalData
+- TwoFactorAuthentication, EnableAuthenticator, Disable2fa
+- GenerateRecoveryCodes, ResetAuthenticator
+- ExternalLogins
 
-### 2. Authenticated Dashboard (`UserDashboard.razor`)
-**Goal:** Create a high-quality landing page for logged-in users.
+## Current State & Constraints
 
-- Modify `MainLandingPage.razor` to show a `UserDashboard` component for authorized users.
-- **Features to Showcase:**
-  - **Søg efter familier**: Find other families near you.
-  - **Dine Grupper**: Quick access to joined groups or discovering new ones.
-  - **Mine Beskeder**: Direct link to chat.
-  - **Seneste Opslag**: Link to the feed/posts.
-  - **Min Profil**: Edit profile and children.
-- **Design:**
-  - Use the "Card" pattern from `FirstLogin.razor` but elevate it with better spacing, icons, and brand colors (GLÆDE, RO, OMSORG, LEG).
-  - Add a "Welcome back, [Name]" header.
-  - Ensure the cards look premium (soft shadows, rounded corners, warm colors).
+- **All pages use Blazor Static SSR** - no client-side interactivity available
+- **Current implementation works correctly** - MudButton (for navigation/submit), MudContainer, MudPaper, MudStack, MudText, MudIcon are all fine
+- **Avoid these MudBlazor components**: MudButton with @onclick, MudTextField, MudSelect, or any component requiring client-side state changes
+- **What works**: MudButton with Href or ButtonType.Submit, all static layout/display components
+- Pages currently use Bootstrap form-floating classes with InputText components
+- Register page has password validation indicators that render server-side (lines 49-69) - these currently work but only update on form submission/page refresh
+- All forms must work without JavaScript - current implementation already does this
 
-### 3. Visual Polish & Animations
-- Add subtle micro-animations (e.g., hover scaling on cards, smooth transition for the mobile menu).
-- Use `MiniDivider` to separate sections if the dashboard has multiple parts.
-- Ensure the color palette follows the "Warmer UI/UX" guide.
+## Proposed Improvements
 
-## Acceptance Criteria
+### 1. Visual Design Enhancements
 
-### Topbar
-- [ ] Topbar links have both icons and text labels on desktop.
-- [ ] A functional mobile menu (dropdown or drawer) is implemented.
-- [ ] Active page is clearly highlighted in the navigation.
-- [ ] Design matches the warm/friendly brand aesthetic.
-- [ ] Topbar remains fixed or behaves predictably during scroll.
+- **Consistent spacing**: Review and standardize padding/margins between form elements across all 30 pages
+- **Better visual hierarchy**: Ensure headers, inputs, and CTAs have clear visual separation
+- **Color consistency**: Ensure all colors follow the JordnaerPalette theme
+- **Focus states**: Add clear CSS-based visual feedback for focused input fields (no JS)
+- **Button states**: Ensure hover/active/disabled states are well-defined using CSS only
+- **Unified design system**: Create consistent patterns for form layouts, buttons, links, and error/success messages
 
-### User Dashboard
-- [ ] Logged-in users are automatically shown the dashboard at `/`.
-- [ ] Dashboard contains clear links to all core features: Users, Groups, Chat, Posts, and Profile.
-- [ ] Dashboard uses the design system's typography (Cherry Bomb One for headers).
-- [ ] Layout is responsive (cards stack on mobile, grid on desktop).
-- [ ] Loading state is handled gracefully.
+### 2. Responsive Design (SSR-Compatible)
 
-### Technical & Performance
-- [ ] Initial page load (SSR) is < 200ms.
-- [ ] No layout shift (CLS) during navigation menu opening/closing.
-- [ ] Minimal use of heavy Blazor components for the topbar to ensure SSR reliability.
-- [ ] Images/Icons are optimized.
+- **Mobile optimization**: Test and improve layout on mobile devices (320px - 768px)
+- **Tablet optimization**: Ensure proper display on tablets (768px - 1024px)
+- **Desktop optimization**: Verify layout looks good on larger screens (1024px+)
+- **Touch targets**: Ensure buttons and links meet minimum touch target size (44x44px) on mobile
+- **Form field sizing**: Make input fields appropriately sized for each breakpoint using CSS media queries
+- **No JavaScript required**: All responsive behavior must use CSS only
 
-## Implementation Steps
+### 3. User Experience Improvements (SSR-Compatible)
 
-### Phase 1: Topbar Refactor
-1. Update `TopBar.razor` to include text labels for desktop view.
-2. Implement a responsive mobile menu (CSS-based toggle or simple JS to ensure SSR speed).
-3. Apply brand colors and typography.
+- **Better error messages**: Make validation errors more prominent and actionable (server-side validation only)
+- **Auto-focus**: Focus first input field on page load using HTML autofocus attribute
+- **Accessibility**: Ensure proper ARIA labels, semantic HTML, and keyboard navigation
+- **Progressive enhancement**: Ensure core functionality works without JavaScript
+- **Loading states**: Use CSS animations and SSR techniques for form submission feedback
+- **Success/confirmation pages**: Improve visual feedback on confirmation pages
 
-### Phase 2: User Dashboard Component
-1. Create `src/web/Jordnaer/Features/Dashboard/UserDashboard.razor`.
-2. Design the "Quick Actions" cards based on the `FeatureCard` pattern but optimized for regular users.
-3. Integrate user-specific data (e.g., "Welcome [Name]").
+### 4. Form Validation Improvements (Server-Side Only)
 
-### Phase 3: Home Page Logic & FirstLogin Removal
-1. Update `MainLandingPage.razor` to use `<AuthorizeView>` to switch between Guest Landing Page and User Dashboard.
-2. **Remove `FirstLogin.razor` entirely.**
-3. Update `Login.razor` and `ExternalLogin.razor` to redirect to `/` (Home) instead of `/first-login`.
-4. Add `?FirstLogin=true` to these redirects so `MainLayout.razor` can display the welcome snackbar.
+- **Consistent validation display**: Ensure validation messages appear in the same position/style across all forms
+- **Clear error states**: Make invalid fields visually distinct using CSS
+- **HTML5 validation**: Use native HTML5 validation attributes (required, pattern, type, etc.)
+- **Server-side validation**: All validation must happen server-side with clear error messaging
 
-### Phase 4: Polish
-1. Add micro-animations.
-2. Test responsiveness across all breakpoints.
-3. Verify SSR performance.
+### 5. Layout Improvements
+
+- **Single-column flow**: Ensure all forms work well in narrow viewports
+- **Consistent layouts**: Standardize form layouts across all Account and Manage pages
+- **External login integration**: Improve visual integration of external login options
+- **Card/container consistency**: Ensure MudContainer and MudPaper usage is consistent
+
+### 6. Technical Improvements (SSR-Specific)
+
+- **Pure CSS solutions**: Replace any interactive MudBlazor components with standard HTML + CSS
+- **Form attributes**: Use proper form attributes (method="post", asp-route, etc.)
+- **No client-side state**: Remove any dependency on client-side state management
+- **CSS-only interactions**: Implement hover, focus, and active states using pure CSS
+- **Remove incompatible features**: Identify and remove features that require JavaScript (like the password validation indicators on Register page)
+
+## Success Criteria
+
+- [ ] All 30 pages work without JavaScript enabled
+- [ ] No interactive MudBlazor components are used (only static layout components allowed)
+- [ ] All pages are fully responsive on mobile, tablet, and desktop using CSS only
+- [ ] Forms have clear visual feedback for all states using pure CSS (focus, invalid, disabled)
+- [ ] Touch targets meet accessibility guidelines (44x44px minimum) on mobile
+- [ ] Server-side validation messages are clear and helpful
+- [ ] Color scheme is consistent with JordnaerPalette across all pages
+- [ ] Keyboard navigation works smoothly with proper focus indicators
+- [ ] Screen readers can navigate all forms properly with semantic HTML
+- [ ] Consistent design patterns across all Account and Manage pages
 
 ## Files to Modify
-- `src/web/Jordnaer/Pages/Shared/TopBar.razor`
-- `src/web/Jordnaer/Pages/Home/MainLandingPage.razor`
-- `src/web/Jordnaer/Features/Dashboard/UserDashboard.razor` (New)
-- `src/web/Jordnaer/Components/Account/Pages/Login.razor`
-- `src/web/Jordnaer/Components/Account/Pages/ExternalLogin.razor`
-- `src/web/Jordnaer/wwwroot/css/app.css` or `landing-page.css`
 
-## Files to Delete
-- `src/web/Jordnaer/Pages/Registration/FirstLogin.razor`
+**All Account Pages (17 files):**
+- [Components/Account/Pages/Login.razor](../src/web/Jordnaer/Components/Account/Pages/Login.razor)
+- [Components/Account/Pages/Register.razor](../src/web/Jordnaer/Components/Account/Pages/Register.razor)
+- [Components/Account/Pages/ExternalLogin.razor](../src/web/Jordnaer/Components/Account/Pages/ExternalLogin.razor)
+- [Components/Account/Pages/ForgotPassword.razor](../src/web/Jordnaer/Components/Account/Pages/ForgotPassword.razor)
+- [Components/Account/Pages/ResetPassword.razor](../src/web/Jordnaer/Components/Account/Pages/ResetPassword.razor)
+- And 12 other Account pages...
 
+**All Manage Pages (13 files):**
+- [Components/Account/Pages/Manage/Index.razor](../src/web/Jordnaer/Components/Account/Pages/Manage/Index.razor)
+- [Components/Account/Pages/Manage/Email.razor](../src/web/Jordnaer/Components/Account/Pages/Manage/Email.razor)
+- [Components/Account/Pages/Manage/ChangePassword.razor](../src/web/Jordnaer/Components/Account/Pages/Manage/ChangePassword.razor)
+- And 10 other Manage pages...
 
-## Success Metrics
-- Users can navigate to any major feature in 1 click from the dashboard.
-- Mobile users report improved ease of use with the new menu.
-- 100% compliance with the "Warmer UI/UX" design system.
+**Styling:**
+- [wwwroot/css/app.css](../src/web/Jordnaer/wwwroot/css/app.css) - for shared styles
+- Consider creating `wwwroot/css/account-forms.css` for dedicated Account/Manage page styles
+- Or use scoped CSS files (`.razor.css`) for component-specific styles
 
+## Notes & Constraints
+
+- **CRITICAL**: All pages use Blazor Static SSR - no client-side interactivity available
+- **Current implementation already works** - the existing components (MudButton for submit/navigation, InputText, etc.) are SSR-compatible
+- **MudBlazor components to avoid**: MudTextField, MudSelect, MudButton with @onclick, or any component requiring client-side state
+- **Safe MudBlazor components**: MudButton (Href/Submit), MudContainer, MudPaper, MudStack, MudText, MudIcon - all work fine
+- **Password validation indicators** (Register.razor lines 49-69): These work server-side but only update on page refresh, not in real-time - this is acceptable for SSR
+- All responsive behavior must be CSS-based (media queries, flexbox, grid)
+- All validation must be server-side with proper error display (current implementation already does this)
+- Use InputText components (not MudTextField) with Bootstrap form-floating classes (current pattern)
