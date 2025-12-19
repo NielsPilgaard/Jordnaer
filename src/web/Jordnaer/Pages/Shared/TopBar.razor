@@ -44,10 +44,10 @@
 
 		<MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Left" Elevation="1" Variant="DrawerVariant.Temporary"
 			ClipMode="DrawerClipMode.Always" Width="280px">
-			<MudDrawerHeader Style="@($"{JordnaerPalette.YellowBackground.ToBackgroundColor()}; padding: 24px 16px;")">
-				<MudText Typo="Typo.h6" Class="font-cherry-bomb-one" Style="@JordnaerPalette.BlueBody.ToTextColor()">
-					Mini Møder
-				</MudText>
+			<MudDrawerHeader
+				Style="@($"{JordnaerPalette.YellowBackground.ToBackgroundColor()}; display: flex; justify-content: center; align-items: center;")"
+				Class=px-4>
+				<MudImage Src="/images/minimoeder_logo.png" Alt="Mini Møder" Height="80" />
 			</MudDrawerHeader>
 			<MudNavMenu>
 				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Hjem</MudNavLink>
