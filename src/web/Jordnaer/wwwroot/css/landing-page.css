@@ -21,7 +21,6 @@
 
 @media (min-width: 768px) {
     .hero-section {
-        height: 500px;
         padding: 30px 0;
     }
 
@@ -52,56 +51,59 @@
     height: 200px;
 }
 
-@media (max-width: 300px) {
+.feature-card {
+    border-radius: 24px !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
+}
+
+.font-cherry-bomb-one {
+    font-family: 'Cherry Bomb One', cursive;
+    letter-spacing: 0.11em;
+}
+
+.font-open-sans-light {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 300;
+}
+
+.section-container {
+    padding: 80px 0;
+}
+
+.final-cta-section {
+    border-radius: 32px;
+    padding: 60px 40px;
+    margin-top: 40px;
+    margin-bottom: 80px;
+}
+
+@media (max-width: 600px) {
+    .section-container {
+        padding: 40px 0;
+    }
+    
+    .final-cta-section {
+        padding: 40px 20px;
+        border-radius: 20px;
+    }
+    
     #landing-page-center-image {
         height: 150px;
     }
 }
 
-@media (min-width: 400px) {
-    #landing-page-center-image {
-        height: 200px;
-    }
-}
-
-@media (min-width: 600px) {
-    #landing-page-center-image {
-        height: 250px;
-    }
-}
-
-@media (min-width: 800px) {
-    #landing-page-center-image {
-        height: 300px;
-    }
-}
-
-@media (min-width: 1200px) {
-    #landing-page-center-image {
-        height: 350px;
-    }
-}
-
-@media (min-width: 1400px) {
-    #landing-page-center-image {
-        height: 400px;
-    }
-}
-
-@media (min-width: 1600px) {
-    #landing-page-center-image {
-        height: 600px;
-    }
-}
-
-@media (min-width: 1800px) {
-    #landing-page-center-image {
-        height: 700px;
-    }
-}
-
-@media (min-width: 2000px) {
-    #landing-page-center-image {
-        height: 800px;
-    }
-}
+/* responsive image heights */
+@media (min-width: 400px) { #landing-page-center-image { height: 200px; } }
+@media (min-width: 600px) { #landing-page-center-image { height: 250px; } }
+@media (min-width: 800px) { #landing-page-center-image { height: 300px; } }
+@media (min-width: 1200px) { #landing-page-center-image { height: 350px; } }
+@media (min-width: 1400px) { #landing-page-center-image { height: 400px; } }
+@media (min-width: 1600px) { #landing-page-center-image { height: 600px; } }
+@media (min-width: 1800px) { #landing-page-center-image { height: 700px; } }
+@media (min-width: 2000px) { #landing-page-center-image { height: 800px; } }

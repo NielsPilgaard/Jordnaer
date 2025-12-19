@@ -1,0 +1,33 @@
+@namespace Jordnaer.Features.LandingPage
+<MudCard Class="feature-card h-100" Style="@($"{Style}; {BackgroundColor.ToBackgroundColor()}")" Elevation="0">
+    <MudCardContent>
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudIcon Icon="@Icon" Size="Size.Large" Style="@(TextColor.ToTextColor())" />
+            <MudText Align="Align.Center" Class="font-cherry-bomb-one"
+                Style="@($"{TextColor.ToTextColor()}; font-size: 28px;")">
+                @Title
+            </MudText>
+            <MudText Align="Align.Center" Class="font-open-sans-light mb-4" Style="@(TextColor.ToTextColor())">
+                @Description
+            </MudText>
+            <MudButton Href="@Href" Variant="Variant.Filled"
+                Style="@($"{ButtonBackgroundColor.ToBackgroundColor()}; {ButtonTextColor.ToTextColor()}; font-weight: bold;")"
+                Class="rounded-pill px-8" Size="Size.Large">
+                @ButtonText
+            </MudButton>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public string Icon { get; set; } = string.Empty;
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string Href { get; set; } = string.Empty;
+    [Parameter] public string ButtonText { get; set; } = string.Empty;
+    [Parameter] public MudColor BackgroundColor { get; set; } = JordnaerPalette.YellowBackground;
+    [Parameter] public MudColor TextColor { get; set; } = JordnaerPalette.BlueBody;
+    [Parameter] public MudColor ButtonBackgroundColor { get; set; } = JordnaerPalette.BlueBody;
+    [Parameter] public MudColor ButtonTextColor { get; set; } = (MudColor)"#FFFFFF";
+    [Parameter] public string? Style { get; set; }
+}

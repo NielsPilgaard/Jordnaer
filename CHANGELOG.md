@@ -15,6 +15,10 @@
 
 #### UI/UX Improvements
 
+**Front Page & Design System**
+- **Redesigned Landing Page**: New interactive feature showcase for better discoverability.
+- **Refined Footer Pages**: Enhanced readability for About, Terms, and Privacy pages with harmonious backgrounds.
+
 **Group Pages**
 - **Redesigned Group Details Page**: Modern two-column layout
   - Sidebar with group metadata and member list

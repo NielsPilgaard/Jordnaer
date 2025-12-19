@@ -1,3 +1,4 @@
+@using Jordnaer.Pages.Home
 <MudPage FullScreen="FullScreen.Full" Row="2" Column="5" Height="800px">
 
     <MudSection Row="1" ColSpan="2" Column="1" Class="hero-section-top">
@@ -6,9 +7,9 @@
 
     <MudSection Row="1" ColSpan="2" Column="4" Class="hero-section-top">
         <MudToolBar Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 24px; overflow: hidden")">
-	        <Feature Name="@FeatureFlags.Posts">
-		        <MudNavLink Href="/posts" Class="d-md-none d-lg-flex">OPSLAG</MudNavLink>
-	        </Feature>
+            <Feature Name="@FeatureFlags.Posts">
+                <MudNavLink Href="/posts" Class="d-md-none d-lg-flex">OPSLAG</MudNavLink>
+            </Feature>
             <MudNavLink Href="/Account/Register" Class="hero-navbar-underline">VÆR' MED</MudNavLink>
             <MudNavLink Href="/groups">GRUPPER</MudNavLink>
         </MudToolBar>
@@ -18,27 +19,71 @@
 
     <MudSection Row="1" Column="2" ColSpan="3" RowSpan="2" Class="hero-section-top">
         <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0">
-            <MudImage id="landing-page-center-image" fetchpriority="high" Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
-            <MudText Class="font-cherry-bomb-one" Style="@($"{JordnaerPalette.GreenBackground.ToTextColor()}; font-size: 48px")">Velkommen</MudText>
-            <MudText Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 24px")">Til mødestedet for børnefamilier</MudText>
+            <MudImage id="landing-page-center-image" fetchpriority="high"
+                Src="/images/landing-page/nathan-dumlao-P5MXtYfgmmw-unsplash_cropped.webp" />
+            <MudText Class="font-cherry-bomb-one"
+                Style="@($"{JordnaerPalette.GreenBackground.ToTextColor()}; font-size: 48px")">Velkommen</MudText>
+            <MudText Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-size: 24px")">Til mødestedet for
+                børnefamilier</MudText>
         </MudStack>
     </MudSection>
 
 </MudPage>
-<MudContainer MaxWidth="MaxWidth.Large">
+<MudContainer MaxWidth="MaxWidth.Large" Class="pb-16">
+    <div class="section-container">
+        <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-12"
+            Style="@($"{JordnaerPalette.YellowBackground.ToTextColor()}; font-size: 48px")">
+            hvad kan jeg bruge mini møder til?
+        </MudText>
 
-    <div class="flex-row-reverse hero-section" style="height: 600px;">
-        <MudImage Src="/images/landing-page/fabian-centeno-uY60pJUHqOo-unsplash_small.webp" Class="ml-10" Style="max-width: 50%" />
-        <div class="content-section">
-            <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-3 mt-15" Style="@($"{JordnaerPalette.YellowBackground.ToTextColor()}; font-size: 36px")">
-                Hvad kan jeg bruge Mini Møder til?
-            </MudText>
-
-            <LandingPageLinkComponent IsMobile="false"/>
-
-        </div>
+        <MudGrid Spacing="6">
+            <MudItem xs="12" sm="6" md="3">
+                <FeatureCard Title="Find legekammerater"
+                    Description="Find andre børnefamilier i dit nærområde baseret på interesser og børnenes alder."
+                    Icon="@Icons.Material.Filled.PersonSearch" Href="/users" ButtonText="Søg nu"
+                    BackgroundColor="JordnaerPalette.YellowBackground" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <FeatureCard Title="Skriv sammen"
+                    Description="Skriv direkte til andre forældre og planlæg jeres næste møde eller legeaftale."
+                    Icon="@Icons.Material.Filled.Chat" Href="/chat" ButtonText="Gå til chat"
+                    BackgroundColor="JordnaerPalette.PaleBlueBackground" />
+            </MudItem>
+            <Feature Name="@FeatureFlags.Posts">
+                <MudItem xs="12" sm="6" md="3">
+                    <FeatureCard Title="Del oplevelser"
+                        Description="Del dine oplevelser, spørgsmål eller gode råd med resten af fællesskabet."
+                        Icon="@Icons.Material.Filled.DynamicFeed" Href="/posts" ButtonText="Læs opslag"
+                        BackgroundColor="JordnaerPalette.BeigeBackground" />
+                </MudItem>
+            </Feature>
+            <MudItem xs="12" sm="6" md="3">
+                <FeatureCard Title="Deltag i grupper"
+                    Description="Deltag i eksisterende grupper eller opret din egen for at samle ligesindede familier."
+                    Icon="@Icons.Material.Filled.Groups" Href="/groups" ButtonText="Se grupper"
+                    BackgroundColor="JordnaerPalette.GreenBackground" TextColor="@("#FFFFFF")"
+                    ButtonBackgroundColor="@("#FFFFFF")" ButtonTextColor="JordnaerPalette.RedHeader" />
+            </MudItem>
+        </MudGrid>
     </div>
 
-    <MiniDivider Class="mt-15" Color="MiniDividerColor.Yellow" Center />
+    <MiniDivider Color="MiniDividerColor.Red" Center Class="my-16" />
 
-</MudContainer>
+     <div class="final-cta-section" style="@($"{JordnaerPalette.GreenBackground.ToBackgroundColor()}")">
+         <MudStack AlignItems="AlignItems.Center" Spacing="6">
+             <MudText Align="Align.Center" Class="font-cherry-bomb-one" Style="color: white; font-size: 42px;">
+                 Skal du også være med?
+             </MudText>
+             <MudText Align="Align.Center" Class="font-open-sans-light"
+                 Style="color: white; font-size: 20px; max-width: 600px;">
+                 Bliv en del af et varmt og støttende fællesskab for børnefamilier. Det er helt gratis og tager kun to
+                 minutter at komme i gang.
+             </MudText>
+             <MudButton Href="/Account/Register" Variant="Variant.Filled" Color="Color.Surface" Size="Size.Large"
+                 Class="rounded-pill px-12 py-4 mt-4"
+                 Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-weight: bold; font-size: 1.25rem;")">
+                 OPRET DIN PROFIL
+             </MudButton>
+         </MudStack>
+     </div>
+ </MudContainer>
