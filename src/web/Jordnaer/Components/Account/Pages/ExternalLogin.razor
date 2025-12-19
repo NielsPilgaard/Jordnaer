@@ -65,8 +65,8 @@
     private string? ProviderDisplayName => _externalLoginInfo?.ProviderDisplayName;
 
     private string FirstLoginReturnUrl => string.IsNullOrEmpty(ReturnUrl)
-        ? "/first-login"
-        : $"/first-login?returnUrl={ReturnUrl}";
+        ? "/?FirstLogin=true"
+        : $"{ReturnUrl}?FirstLogin=true";
 
     protected override async Task OnInitializedAsync()
     {
