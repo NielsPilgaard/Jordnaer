@@ -56,6 +56,8 @@
         {
             var result = await PostSearchService.GetPostsAsync(_filter);
 
+            Snackbar.Clear();
+
             result.Switch(
                 success =>
                 {
@@ -68,6 +70,7 @@
         catch (Exception exception)
         {
             Logger.LogError(exception, "Error occurred during post search");
+            Snackbar.Clear();
             Snackbar.Add("Der opstod en fejl under søgningen.", Severity.Error);
         }
         finally

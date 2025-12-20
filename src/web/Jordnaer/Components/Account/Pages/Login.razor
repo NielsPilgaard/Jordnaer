@@ -64,8 +64,8 @@
     private string? ReturnUrl { get; set; }
 
     private string RedirectUrlAfterLogin => string.IsNullOrEmpty(ReturnUrl)
-	    ? "/?FirstLogin=true"
-	    : $"{ReturnUrl}?FirstLogin=true";
+	    ? "/"
+	    : ReturnUrl;
 
     protected override async Task OnInitializedAsync()
     {

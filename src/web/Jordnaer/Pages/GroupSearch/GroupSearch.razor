@@ -73,7 +73,9 @@
         _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
 
         await UpdateQueryString();
-        
+
+        Snackbar.Clear();
+
         if (_searchResult.TotalCount is 0)
         {
 	        Snackbar.Add(
@@ -83,8 +85,7 @@
 		        {
 			        options.VisibleStateDuration = 3500;
 			        options.CloseAfterNavigation = true;
-		        },
-		        key: nameof(GroupSearch));
+		        });
         }
         else
         {
@@ -95,8 +96,7 @@
 			        options.VisibleStateDuration = 3500;
 			        options.Icon = Icons.Material.Filled.ArrowDownward;
 			        options.CloseAfterNavigation = true;
-		        },
-                key: nameof(GroupSearch));
+		        });
         }
 
         _hasSearched = true;
