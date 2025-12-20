@@ -118,7 +118,6 @@ public static class WebApplicationBuilderExtensions
 			{
 				logging.IncludeFormattedMessage = true;
 				logging.IncludeScopes = true;
-				logging.AddOtlpExporter();
 			});
 		}
 		else // Use Grafana in production
