@@ -43,5 +43,4 @@
 .font-cherry-bomb-one {
     font-family: 'Cherry Bomb One', Arial, sans-serif;
     letter-spacing: 0.11em; /* 110 tracking as per design guide */
-    text-transform: lowercase; /* Design guide specifies lowercase for headings */
 }

@@ -312,11 +312,6 @@ input:focus, textarea:focus, select:focus {
    WARMTH ENHANCEMENTS
    ======================================== */
 
-/* Smooth page transitions */
-* {
-    transition-timing-function: ease;
-}
-
 /* Softer shadows for warmth */
 .warm-shadow {
     box-shadow: 0 4px 12px rgba(135, 142, 100, 0.15);
