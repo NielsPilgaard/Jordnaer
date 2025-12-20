@@ -49,8 +49,8 @@
                 _statusMessage = new AlertMessage("Tak fordi du bekræftede din email, du bliver nu logget ind.");
 
                 await SignInManager.SignInAsync(user, isPersistent: true);
-                
-                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/profile?firstLogin=true" : $"{ReturnUrl}?firstLogin=true";
+
+                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/profile" : ReturnUrl;
 
                 RedirectManager.RedirectTo(returnUrl, forceLoad: true);
             }

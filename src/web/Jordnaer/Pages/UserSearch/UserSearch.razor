@@ -77,6 +77,8 @@
 
         _searchResult = await UserSearchService.GetUsersAsync(_filter);
 
+        Snackbar.Clear();
+
         if (_searchResult.TotalCount is 0)
         {
             Snackbar.Add(
@@ -86,8 +88,7 @@
 	            {
 		            options.VisibleStateDuration = 3500;
 		            options.CloseAfterNavigation = true;
-	            },
-                key: nameof(UserSearch));
+	            });
         }
         else
         {
@@ -98,8 +99,7 @@
 			        options.VisibleStateDuration = 3500;
 			        options.Icon = Icons.Material.Filled.ArrowDownward;
 			        options.CloseAfterNavigation = true;
-		        },
-		        key: nameof(UserSearch));
+		        });
         }
 
         await UpdateQueryString();

@@ -69,6 +69,20 @@
 
 </MudLoading>
 
+<style>
+    /* Remove container constraints for full-width landing page */
+    #main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    #main-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+</style>
+
 @code {
     [Parameter]
     public Guid? ChatId { get; set; }

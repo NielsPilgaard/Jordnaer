@@ -52,10 +52,12 @@
                 Icon="@Icons.Material.Filled.Groups" Href="/groups" ButtonText="Se grupper"
                 BackgroundColor="JordnaerPalette.GreenBackground" TextColor="@("#FFFFFF")" />
 
-            <FeatureCard Title="Del oplevelser"
-                Description="Del dine oplevelser, spørgsmål eller gode råd med resten af fællesskabet."
-                Icon="@Icons.Material.Filled.DynamicFeed" Href="/posts" ButtonText="Læs opslag"
-                BackgroundColor="JordnaerPalette.BeigeBackground" />
+            <Feature Name="@FeatureFlags.Posts">
+                <FeatureCard Title="Del oplevelser"
+                    Description="Del dine oplevelser, spørgsmål eller gode råd med resten af fællesskabet."
+                    Icon="@Icons.Material.Filled.DynamicFeed" Href="/posts" ButtonText="Læs opslag"
+                    BackgroundColor="JordnaerPalette.BeigeBackground" />
+            </Feature>
 
             <FeatureCard Title="Skriv sammen"
                 Description="Skriv direkte til andre forældre og planlæg jeres næste møde eller legeaftale."
