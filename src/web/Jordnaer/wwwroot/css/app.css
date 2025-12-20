@@ -1,3 +1,32 @@
+/* ========================================
+   JORDNAER DESIGN SYSTEM - CSS VARIABLES
+   Based on Mini Møder Design Guide
+   ======================================== */
+
+:root {
+    /* Brand Colors */
+    --color-glaede: #dbab45;      /* Joy - primary yellow-orange */
+    --color-ro: #878e64;          /* Calm - secondary green */
+    --color-moede: #41556b;       /* Meeting - body text blue */
+    --color-moede-red: #673417;   /* Meeting - small text/quotes red-brown */
+    --color-omsorg: #cfc1a6;      /* Care - light beige background */
+    --color-leg: #a9c0cf;         /* Play - light blue background */
+
+    /* Typography */
+    --font-heading: 'Cherry Bomb One', cursive, Arial, sans-serif;
+    --font-body: 'Open Sans Light', Arial, sans-serif;
+    --font-body-bold: 'Open Sans Bold', Arial, sans-serif;
+    --font-body-medium: 'Open Sans Medium', Arial, sans-serif;
+
+    /* Letter Spacing (tracking) */
+    --tracking-heading: 0.11em;      /* 110 for Cherry Bomb headings */
+    --tracking-subheading: 0.41em;   /* 410 for Open Sans subheadings */
+
+    /* Transitions */
+    --transition-fast: 200ms ease;
+    --transition-medium: 300ms ease;
+}
+
 body {
     background: var(--mud-palette-background-grey);
 }
@@ -137,4 +166,212 @@ div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
 /* Dashboard Card Styles */
 .dashboard-card {
     cursor: pointer;
+}
+
+/* ========================================
+   TYPOGRAPHY - DESIGN SYSTEM
+   ======================================== */
+
+/* Headings with Cherry Bomb One */
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    letter-spacing: var(--tracking-heading);
+    text-transform: lowercase;
+}
+
+h4, h5, h6 {
+    font-family: var(--font-body-bold);
+    letter-spacing: var(--tracking-subheading);
+    color: var(--color-moede);
+}
+
+/* Body text */
+body, p, div {
+    font-family: var(--font-body);
+    color: var(--color-moede);
+}
+
+/* Subheadings with Open Sans Light */
+.subheading {
+    font-family: var(--font-body);
+    letter-spacing: var(--tracking-subheading);
+    color: var(--color-moede);
+}
+
+.subheading-red {
+    font-family: var(--font-body);
+    letter-spacing: var(--tracking-subheading);
+    color: var(--color-moede-red);
+}
+
+/* Small text, quotes, payoffs */
+.small-text, blockquote, .quote {
+    color: var(--color-moede-red);
+    font-family: var(--font-body);
+}
+
+/* ========================================
+   HEADING COLOR ROTATION UTILITIES
+   ======================================== */
+
+.heading-yellow {
+    color: var(--color-glaede);
+}
+
+.heading-green {
+    color: var(--color-ro);
+}
+
+.heading-blue {
+    color: var(--color-moede);
+}
+
+/* Background color utilities */
+.bg-glaede {
+    background-color: var(--color-glaede);
+}
+
+.bg-ro {
+    background-color: var(--color-ro);
+}
+
+.bg-moede {
+    background-color: var(--color-moede);
+}
+
+.bg-omsorg {
+    background-color: var(--color-omsorg);
+}
+
+.bg-leg {
+    background-color: var(--color-leg);
+}
+
+/* Background with text color for headings */
+.bg-heading-yellow {
+    background-color: var(--color-glaede);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.bg-heading-green {
+    background-color: var(--color-ro);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.bg-heading-blue {
+    background-color: var(--color-moede);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+/* ========================================
+   WARMTH - TRANSITIONS & INTERACTIONS
+   ======================================== */
+
+/* Enhanced button transitions */
+button, .mud-button, .mud-fab {
+    transition: all var(--transition-fast);
+}
+
+button:hover, .mud-button:hover, .mud-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+button:active, .mud-button:active, .mud-fab:active {
+    transform: translateY(0);
+}
+
+/* Card hover effects */
+.mud-card, .card {
+    transition: all var(--transition-medium);
+}
+
+.mud-card:hover, .card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Link transitions */
+a {
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-glaede);
+}
+
+/* Input field focus states */
+input:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--color-glaede);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   DOTTED LINE SEPARATOR
+   ======================================== */
+
+.dotted-separator {
+    border: none;
+    border-top: 3px dotted var(--color-glaede);
+    margin: 2rem 0;
+    opacity: 0.6;
+}
+
+.dotted-separator-green {
+    border-top-color: var(--color-ro);
+}
+
+.dotted-separator-blue {
+    border-top-color: var(--color-moede);
+}
+
+/* Decorative bee flight path */
+.bee-separator {
+    position: relative;
+    height: 20px;
+    margin: 2rem 0;
+}
+
+.bee-separator::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    top: 50%;
+    left: 0;
+    border-top: 3px dotted var(--color-glaede);
+    opacity: 0.6;
+}
+
+/* ========================================
+   WARMTH ENHANCEMENTS
+   ======================================== */
+
+/* Smooth page transitions */
+* {
+    transition-timing-function: ease;
+}
+
+/* Softer shadows for warmth */
+.warm-shadow {
+    box-shadow: 0 4px 12px rgba(135, 142, 100, 0.15);
+}
+
+.warm-shadow-hover:hover {
+    box-shadow: 0 8px 24px rgba(135, 142, 100, 0.25);
+}
+
+/* Rounded corners for friendliness */
+.warm-rounded {
+    border-radius: 12px;
+}
+
+/* Spacing utility for consistent rhythm */
+.warm-spacing {
+    margin-bottom: 1.5rem;
 }
