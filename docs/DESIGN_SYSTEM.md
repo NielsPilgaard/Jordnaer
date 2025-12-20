@@ -83,7 +83,7 @@ JordnaerPalette.PaleBlueBackground40 // 40% opacity
 
 **Subheadings**
 - Use `.subheading` or `.subheading-red` classes
-- Letter spacing: `0.41em` (410 tracking)
+- Letter spacing: `0.05em` (50 tracking - within readable range)
 - Color: MØDE blue or MØDE red
 - Use where Cherry Bomb becomes unreadable
 
@@ -188,6 +188,7 @@ Use the `MiniDivider` component with image-based dotted lines (bee flight path):
 <MiniDivider Color="MiniDividerColor.Yellow" Class="my-4" />
 <MiniDivider Color="MiniDividerColor.Green" Class="my-4" />
 <MiniDivider Color="MiniDividerColor.Blue" Class="my-4" />
+<MiniDivider Color="MiniDividerColor.Red" Class="my-4" />
 ```
 
 **MiniDivider with Center property**:
@@ -200,7 +201,7 @@ Use the `Center` parameter to center the divider image:
 ```
 
 Parameters:
-- `Color` (required): `MiniDividerColor.Yellow`, `MiniDividerColor.Green`, or `MiniDividerColor.Blue`
+- `Color` (required): `MiniDividerColor.Yellow`, `MiniDividerColor.Green`, `MiniDividerColor.Blue`, or `MiniDividerColor.Red`
 - `Center` (optional, default: false): Centers the divider image in a flex container
 - `Class` (optional): Additional CSS classes
 - `Style` (optional): Inline styles

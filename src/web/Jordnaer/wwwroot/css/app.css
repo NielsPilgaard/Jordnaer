@@ -20,7 +20,7 @@
 
     /* Letter Spacing (tracking) */
     --tracking-heading: 0.11em;      /* 110 for Cherry Bomb headings */
-    --tracking-subheading: 0.41em;   /* 410 for Open Sans subheadings */
+    --tracking-subheading: 0.05em;   /* 50 for Open Sans subheadings (readable range) */
 
     /* Transitions */
     --transition-fast: 200ms ease;
@@ -173,7 +173,7 @@ div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
    ======================================== */
 
 /* Body text */
-body, p, div {
+body, p {
     font-family: var(--font-body);
     color: var(--color-moede);
 }
