@@ -172,19 +172,6 @@ div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
    TYPOGRAPHY - DESIGN SYSTEM
    ======================================== */
 
-/* Headings with Cherry Bomb One */
-h1, h2, h3 {
-    font-family: var(--font-heading);
-    letter-spacing: var(--tracking-heading);
-    text-transform: lowercase;
-}
-
-h4, h5, h6 {
-    font-family: var(--font-body-bold);
-    letter-spacing: var(--tracking-subheading);
-    color: var(--color-moede);
-}
-
 /* Body text */
 body, p, div {
     font-family: var(--font-body);
@@ -214,16 +201,26 @@ body, p, div {
    HEADING COLOR ROTATION UTILITIES
    ======================================== */
 
+/* Opt-in Cherry Bomb headings with colors - includes lowercase for design guide compliance */
 .heading-yellow {
+    font-family: var(--font-heading);
+    letter-spacing: var(--tracking-heading);
     color: var(--color-glaede);
+    text-transform: lowercase;
 }
 
 .heading-green {
+    font-family: var(--font-heading);
+    letter-spacing: var(--tracking-heading);
     color: var(--color-ro);
+    text-transform: lowercase;
 }
 
 .heading-blue {
+    font-family: var(--font-heading);
+    letter-spacing: var(--tracking-heading);
     color: var(--color-moede);
+    text-transform: lowercase;
 }
 
 /* Background color utilities */
@@ -309,43 +306,6 @@ a:hover {
 input:focus, textarea:focus, select:focus {
     outline: 2px solid var(--color-glaede);
     outline-offset: 2px;
-}
-
-/* ========================================
-   DOTTED LINE SEPARATOR
-   ======================================== */
-
-.dotted-separator {
-    border: none;
-    border-top: 3px dotted var(--color-glaede);
-    margin: 2rem 0;
-    opacity: 0.6;
-}
-
-.dotted-separator-green {
-    border-top-color: var(--color-ro);
-}
-
-.dotted-separator-blue {
-    border-top-color: var(--color-moede);
-}
-
-/* Decorative bee flight path */
-.bee-separator {
-    position: relative;
-    height: 20px;
-    margin: 2rem 0;
-}
-
-.bee-separator::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 3px;
-    top: 50%;
-    left: 0;
-    border-top: 3px dotted var(--color-glaede);
-    opacity: 0.6;
 }
 
 /* ========================================

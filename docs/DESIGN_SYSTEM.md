@@ -65,21 +65,26 @@ JordnaerPalette.PaleBlueBackground40 // 40% opacity
 
 ### Heading Styles
 
-**H1, H2, H3** - Cherry Bomb One
-- Automatically use Cherry Bomb One font
+**Default Headings**
+- All headings (h1-h6) use the standard font by default
+- Cherry Bomb One is **opt-in** using specific CSS classes (see below)
+
+**Cherry Bomb One Headings (Opt-in)**
+- Use `.heading-yellow`, `.heading-green`, or `.heading-blue` classes
 - Letter spacing: `0.11em` (110 tracking)
 - Text transform: lowercase
 - Use for short words and main headings
 
 ```html
-<h1>velkommen til jordnaer</h1>
-<h2 class="heading-yellow">find nye venner</h2>
-<h3 class="heading-green">lokal fællesskab</h3>
+<h1 class="heading-yellow">velkommen til jordnaer</h1>
+<h2 class="heading-green">find nye venner</h2>
+<h3 class="heading-blue">lokal fællesskab</h3>
 ```
 
-**H4, H5, H6** - Open Sans Bold
+**Subheadings**
+- Use `.subheading` or `.subheading-red` classes
 - Letter spacing: `0.41em` (410 tracking)
-- Color: MØDE blue (`#41556b`)
+- Color: MØDE blue or MØDE red
 - Use where Cherry Bomb becomes unreadable
 
 ### Body Text
@@ -106,15 +111,23 @@ All body text automatically uses **Open Sans Light** with MØDE blue color.
 
 ## Heading Color Rotation
 
-To create visual variety, rotate heading colors across sections:
+To create visual variety, rotate heading colors across sections using the opt-in Cherry Bomb classes:
 
-### Text Color Utilities
+### Cherry Bomb Heading Classes (Opt-in)
+
+These classes apply Cherry Bomb One font, letter-spacing, lowercase transform, and color:
 
 ```html
-<h1 class="heading-yellow">overskrift 1</h1>
-<h2 class="heading-green">overskrift 2</h2>
-<h3 class="heading-blue">overskrift 3</h3>
+<h1 class="heading-yellow">overskrift 1</h1>  <!-- Yellow Cherry Bomb heading -->
+<h2 class="heading-green">overskrift 2</h2>   <!-- Green Cherry Bomb heading -->
+<h3 class="heading-blue">overskrift 3</h3>    <!-- Blue Cherry Bomb heading -->
 ```
+
+Each class includes:
+- `font-family: 'Cherry Bomb One'`
+- `letter-spacing: 0.11em`
+- `text-transform: lowercase`
+- Brand color (yellow, green, or blue)
 
 ### Background Color Utilities
 
@@ -165,20 +178,39 @@ For custom backgrounds:
 
 ## Visual Elements
 
-### Dotted Line Separator
+### Separators
 
-Use dotted lines to separate sections (represents bee flight path):
+**MiniDivider Component** (for major section breaks):
 
-```html
-<hr class="dotted-separator" />
-<hr class="dotted-separator-green" />
-<hr class="dotted-separator-blue" />
+Use the `MiniDivider` component with image-based dotted lines (bee flight path):
+
+```razor
+<MiniDivider Color="MiniDividerColor.Yellow" Class="my-4" />
+<MiniDivider Color="MiniDividerColor.Green" Class="my-4" />
+<MiniDivider Color="MiniDividerColor.Blue" Class="my-4" />
 ```
 
-Or use the bee separator with pseudo-element:
+**MiniDivider with Center property**:
 
-```html
-<div class="bee-separator"></div>
+Use the `Center` parameter to center the divider image:
+
+```razor
+<MiniDivider Color="MiniDividerColor.Yellow" Center Class="my-4" />
+<MiniDivider Color="MiniDividerColor.Green" Center="true" Class="my-4" />
+```
+
+Parameters:
+- `Color` (required): `MiniDividerColor.Yellow`, `MiniDividerColor.Green`, or `MiniDividerColor.Blue`
+- `Center` (optional, default: false): Centers the divider image in a flex container
+- `Class` (optional): Additional CSS classes
+- `Style` (optional): Inline styles
+
+**MudDivider** (for card/content separators):
+
+Use standard `MudDivider` for clean separators inside cards:
+
+```razor
+<MudDivider Class="my-4" />
 ```
 
 ## Warmth & Interactions
@@ -250,8 +282,14 @@ Input fields show GLÆDE yellow outline when focused.
 ### Typography in Blazor
 
 ```razor
+<!-- Opt-in Cherry Bomb heading with color -->
 <MudText Typo="Typo.h1" Class="heading-yellow">
     hovedoverskrift
+</MudText>
+
+<!-- Standard heading without Cherry Bomb -->
+<MudText Typo="Typo.h2">
+    standard overskrift
 </MudText>
 
 <MudText Typo="Typo.body1" Style="@($"color: {JordnaerPalette.BlueBody}")">
@@ -283,11 +321,12 @@ All color combinations meet WCAG contrast standards:
 
 When implementing new features, ensure:
 
-- [ ] Headings use Cherry Bomb One (h1-h3) with `0.11em` letter-spacing
-- [ ] Heading colors rotate across sections (not all same color)
+- [ ] Cherry Bomb headings are opt-in using `.heading-yellow`, `.heading-green`, or `.heading-blue` classes
+- [ ] Heading colors rotate across sections when using Cherry Bomb (not all same color)
 - [ ] Body text uses MØDE blue or MØDE red (never yellow/light colors)
 - [ ] Background colors follow usage rules (primary: yellow/green, light: beige/blue)
-- [ ] Dotted separators used between major sections
+- [ ] `MiniDivider` component used for major section breaks (not CSS dotted separators)
+- [ ] `MudDivider` used for clean separators inside cards
 - [ ] Interactive elements have smooth transitions (200-300ms)
 - [ ] Cards have warm shadows and hover effects
 - [ ] Consistent spacing maintained throughout
