@@ -34,53 +34,52 @@
 
 <MiniDivider Class="mt-9" Color="MiniDividerColor.Red" Center />
 
- <MudContainer MaxWidth="MaxWidth.Medium" Class="pb-12">
-     <div class="section-container">
-         <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-8"
-             Style="@($"{JordnaerPalette.YellowBackground.ToTextColor()}; font-size: 32px")">
-             hvad kan jeg bruge mini møder til?
-         </MudText>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pb-12">
+    <div class="section-container">
+        <MudText Align="Align.Center" Class="font-cherry-bomb-one mb-8"
+            Style="@($"{JordnaerPalette.YellowBackground.ToTextColor()}; font-size: 32px")">
+            Hvad kan jeg bruge mini møder til?
+        </MudText>
 
-         <MudStack Spacing="4">
-             <FeatureCard Title="Find legekammerater"
-                 Description="Find andre børnefamilier i dit nærområde baseret på interesser og børnenes alder."
-                 Icon="@Icons.Material.Filled.PersonSearch" Href="/users" ButtonText="Søg nu"
-                 BackgroundColor="JordnaerPalette.YellowBackground" />
+        <MudStack Spacing="4">
+            <FeatureCard Title="Find legekammerater"
+                Description="Find andre børnefamilier i dit nærområde baseret på interesser og børnenes alder."
+                Icon="@Icons.Material.Filled.PersonSearch" Href="/users" ButtonText="Søg nu"
+                BackgroundColor="JordnaerPalette.YellowBackground" />
 
             <FeatureCard Title="Deltag i grupper"
-                         Description="Deltag i eksisterende grupper eller opret din egen for at samle ligesindede familier."
-                         Icon="@Icons.Material.Filled.Groups" Href="/groups" ButtonText="Se grupper"
-                         BackgroundColor="JordnaerPalette.GreenBackground"
-                         TextColor="@("#FFFFFF")"/>
+                Description="Deltag i eksisterende grupper eller opret din egen for at samle ligesindede familier."
+                Icon="@Icons.Material.Filled.Groups" Href="/groups" ButtonText="Se grupper"
+                BackgroundColor="JordnaerPalette.GreenBackground" TextColor="@("#FFFFFF")" />
 
             <FeatureCard Title="Del oplevelser"
-                         Description="Del dine oplevelser, spørgsmål eller gode råd med resten af fællesskabet."
-                         Icon="@Icons.Material.Filled.DynamicFeed" Href="/posts" ButtonText="Læs opslag"
-                         BackgroundColor="JordnaerPalette.BeigeBackground" />
+                Description="Del dine oplevelser, spørgsmål eller gode råd med resten af fællesskabet."
+                Icon="@Icons.Material.Filled.DynamicFeed" Href="/posts" ButtonText="Læs opslag"
+                BackgroundColor="JordnaerPalette.BeigeBackground" />
 
             <FeatureCard Title="Skriv sammen"
-                         Description="Skriv direkte til andre forældre og planlæg jeres næste møde eller legeaftale."
-                         Icon="@Icons.Material.Filled.Chat" Href="/chat" ButtonText="Gå til chat"
-                         BackgroundColor="JordnaerPalette.PaleBlueBackground" />
-         </MudStack>
-     </div>
+                Description="Skriv direkte til andre forældre og planlæg jeres næste møde eller legeaftale."
+                Icon="@Icons.Material.Filled.Chat" Href="/chat" ButtonText="Gå til chat"
+                BackgroundColor="JordnaerPalette.PaleBlueBackground" />
+        </MudStack>
+    </div>
 
-     <MiniDivider Color="MiniDividerColor.Red" Center Class="my-12" />
+    <MiniDivider Color="MiniDividerColor.Red" Center Class="my-12" />
 
-     <div class="final-cta-section" style="@($"{JordnaerPalette.GreenBackground.ToBackgroundColor()}")">
-         <MudStack AlignItems="AlignItems.Center" Spacing="4">
-             <MudText Align="Align.Center" Class="font-cherry-bomb-one" Style="color: white; font-size: 32px;">
-                 skal du også være med?
-             </MudText>
-             <MudText Align="Align.Center" Class="font-open-sans-light" Style="color: white; font-size: 16px;">
-                 Bliv en del af et varmt og støttende fællesskab for børnefamilier. Det er helt gratis og tager kun to
-                 minutter.
-             </MudText>
-             <MudButton Href="/Account/Register" Variant="Variant.Filled" Color="Color.Surface" Size="Size.Large"
-                 Class="rounded-pill px-8 py-3 mt-2"
-                 Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-weight: bold;")">
-                 OPRET DIN PROFIL
-             </MudButton>
-         </MudStack>
-     </div>
- </MudContainer>
+    <div class="final-cta-section" style="@($"{JordnaerPalette.GreenBackground.ToBackgroundColor()}")">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudText Align="Align.Center" Class="font-cherry-bomb-one" Style="color: white; font-size: 32px;">
+                Skal du også være med?
+            </MudText>
+            <MudText Align="Align.Center" Class="font-open-sans-light" Style="color: white; font-size: 16px;">
+                Bliv en del af et varmt og støttende fællesskab for børnefamilier. Det er helt gratis og tager kun to
+                minutter.
+            </MudText>
+            <MudButton Href="/Account/Register" Variant="Variant.Filled" Color="Color.Surface" Size="Size.Large"
+                Class="rounded-pill px-8 py-3 mt-2"
+                Style="@($"{JordnaerPalette.RedHeader.ToTextColor()}; font-weight: bold;")">
+                OPRET DIN PROFIL
+            </MudButton>
+        </MudStack>
+    </div>
+</MudContainer>
