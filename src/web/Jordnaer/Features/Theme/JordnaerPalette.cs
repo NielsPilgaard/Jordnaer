@@ -79,4 +79,9 @@ public static class JordnaerPalette
 	/// Light Blue. A softer version of <see cref="PaleBlueBackground"/> for long-form text.
 	/// </summary>
 	public static readonly MudColor LightBlue = "#E6F0F7";
+
+	/// <summary>
+	/// Pure White. Used for text on dark backgrounds and button backgrounds.
+	/// </summary>
+	public static readonly MudColor White = "#FFFFFF";
 }
