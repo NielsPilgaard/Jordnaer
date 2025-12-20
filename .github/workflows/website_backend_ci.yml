@@ -30,3 +30,4 @@ jobs:
           dotnet test "${{ env.WORKING_DIRECTORY }}" 
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
           --filter Category!=SkipInCi
+          -p:InformationalVersion=${{ github.ref_name }}

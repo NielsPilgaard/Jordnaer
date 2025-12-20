@@ -9,9 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Reflection;
 
 namespace Jordnaer.Extensions;
 
@@ -67,8 +70,17 @@ public static class WebApplicationBuilderExtensions
 	}
 	public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
 	{
+		const string serviceName = "Jordnaer";
+
 		var openTelemetryBuilder = builder.Services
 			   .AddOpenTelemetry()
+			   .ConfigureResource(resource => resource
+				   .AddService(serviceName)
+				   .AddAttributes(new Dictionary<string, object>
+				   {
+					   ["environment"] = builder.Environment.EnvironmentName,
+					   ["version"] = GetVersion()
+				   }))
 			   .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation()
 											  .AddHealthChecksInstrumentation(options => options.IncludeHealthCheckMetadata = true)
 											  .AddHttpClientInstrumentation()
@@ -76,69 +88,45 @@ public static class WebApplicationBuilderExtensions
 											  .AddRuntimeInstrumentation()
 											  .AddMeter(InstrumentationOptions.MeterName)
 											  .AddMeter("Polly")
-											  .AddMeter("Jordnaer"))
+											  .AddMeter("Microsoft.EntityFrameworkCore")
+											  .AddMeter(serviceName))
 			   .WithTracing(tracing =>
 			   {
-				   if (builder.Environment.IsDevelopment())
-				   {
-					   // We want to view all traces in development
-					   tracing.SetSampler(new AlwaysOnSampler());
-				   }
-
-				   tracing.AddAspNetCoreInstrumentation()
+				   tracing.AddAspNetCoreInstrumentation(options =>
+						  {
+							  // Filter out health checks and other noisy paths to keep traces clean
+							  options.Filter = httpContext =>
+							  {
+								  var path = httpContext.Request.Path.Value;
+								  return path is not (null or "/health" or "/healthy" or "/alive" or "/favicon.ico");
+							  };
+							  options.RecordException = true;
+						  })
 						  .AddHttpClientInstrumentation()
+						  .AddSqlClientInstrumentation()
+						  .AddEntityFrameworkCoreInstrumentation()
 						  .AddSource(DiagnosticHeaders.DefaultListenerName)
 						  .AddSource("Polly")
-						  .AddSource("Jordnaer");
+						  .AddSource(serviceName);
 			   });
 
 		// Use the Aspire Dashboard in development
 		if (builder.Environment.IsDevelopment())
 		{
-			builder.AddAspireOpenTelemetryExporters();
-
+			openTelemetryBuilder.UseOtlpExporter();
 			builder.Logging.AddOpenTelemetry(logging =>
 			{
 				logging.IncludeFormattedMessage = true;
 				logging.IncludeScopes = true;
+				logging.AddOtlpExporter();
 			});
 		}
 		else // Use Grafana in production
 		{
-			openTelemetryBuilder.UseGrafana(options =>
-			{
-				options.Instrumentations.Clear();
-				options.Instrumentations.Add(Instrumentation.AspNetCore);
-				options.Instrumentations.Add(Instrumentation.EntityFrameworkCore);
-				options.Instrumentations.Add(Instrumentation.NetRuntime);
-				options.Instrumentations.Add(Instrumentation.Process);
-				options.Instrumentations.Add(Instrumentation.SqlClient);
-			});
+			openTelemetryBuilder.UseGrafana();
 		}
 
 		return builder;
-	}
-
-	private static void AddAspireOpenTelemetryExporters(this IHostApplicationBuilder builder)
-	{
-		// The default endpoint is http://localhost:4318, it's automatically set when using Aspire
-		// If you want to run the Aspire dashboard standalone, set
-		// the OTEL_EXPORTER_OTLP_ENDPOINT environment variable or appsetting to http://localhost:4318
-		var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-
-		if (useOtlpExporter)
-		{
-			builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
-			builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
-			builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
-		}
-
-		// Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-		//if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-		//{
-		//    builder.Services.AddOpenTelemetry()
-		//       .UseAzureMonitor();
-		//}
 	}
 
 	public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
@@ -158,4 +146,26 @@ public static class WebApplicationBuilderExtensions
 		configuration.GetConnectionString(nameof(JordnaerDbContext))
 		?? throw new InvalidOperationException(
 			$"Connection string '{nameof(JordnaerDbContext)}' not found.");
+
+	private static string GetVersion()
+	{
+		var informationalVersion = typeof(Program).Assembly
+			.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+		if (string.IsNullOrWhiteSpace(informationalVersion))
+		{
+			return typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+		}
+
+		// If the version contains a +, it's a git commit hash suffix, let's keep it or strip it?
+		// Usually informational version is "1.7.2+commitHash" or just "1.7.2"
+		// If it's the full tag "release-website-v1.7.2", we might want to clean it.
+		const string prefix = "release-website-v";
+		if (informationalVersion.StartsWith(prefix))
+		{
+			informationalVersion = informationalVersion[prefix.Length..];
+		}
+
+		return informationalVersion;
+	}
 }
