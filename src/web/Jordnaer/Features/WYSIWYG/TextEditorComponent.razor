@@ -1,13 +1,22 @@
 <div id="wysiwyg-editor-wrapper" style="margin-bottom: 89px; min-height: 200px;">
     <MudText Class="my-2" Typo="Typo.h6">@Label</MudText>
-    <TextEditor Toolbar="_toolbar" @ref="@_textEditor" Placeholder="@Placeholder">
-    </TextEditor>
+    @if (_isQuillLoaded)
+    {
+        <TextEditor Toolbar="_toolbar" @ref="@_textEditor" Placeholder="@Placeholder">
+        </TextEditor>
+    }
+    else
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+    }
 </div>
 <style>
     #wysiwyg-editor-wrapper {
         margin-bottom: 10px !important;
     }
 </style>
+@inject IJSRuntime JSRuntime
+
 @code {
     [Parameter]
     public required string Placeholder { get; set; }
@@ -19,6 +28,7 @@
     private const int LoadingDelayMillis = 1500;
 
     private TextEditor _textEditor = default!;
+    private bool _isQuillLoaded = false;
 
     private static readonly Toolbar _toolbar = new()
         {
@@ -40,8 +50,16 @@
             ShowStyleControls = true
         };
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            // Lazy load Quill dependencies
+            await JSRuntime.InvokeVoidAsync("QuillLoader.ensureLoaded");
+            _isQuillLoaded = true;
+            StateHasChanged();
+        }
+
         if (!firstRender || string.IsNullOrEmpty(Text))
         {
             return;
