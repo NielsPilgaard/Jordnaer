@@ -16,6 +16,7 @@
     white-space: pre-wrap;
     word-wrap: break-word;
     height: 100% !important;
+    flex-shrink: 0;
 }
 
 .mud-chip-content {
@@ -30,7 +31,8 @@
     margin-left: -16px;
 }
 
-.chat-message-window, .chat-selector-window {
+.chat-message-window,
+.chat-selector-window {
     overflow: auto;
     height: 100%;
 }
@@ -48,13 +50,14 @@
 }
 
 .chat-message-list .mud-input-control {
-    flex: none; /* or flex: none; depending on what you want */
+    flex: none;
+    /* or flex: none; depending on what you want */
 }
 
 .chat-message-list {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
 }
 
 #chat-message-input {
