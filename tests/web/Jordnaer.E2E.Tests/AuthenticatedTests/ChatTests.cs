@@ -1,4 +1,4 @@
-﻿using Jordnaer.E2E.Tests.Infrastructure;
+using Jordnaer.E2E.Tests.Infrastructure;
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
@@ -16,11 +16,11 @@ public class ChatTests : BrowserTest
 	public async Task Chat_Search_Should_Return_Niels_When_Searching_For_Niels()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
+		var chatPage = page.CreateChatPage();
 
-		// Search for user
-		await page.GetByRole(AriaRole.Textbox).ClickAsync();
-		await page.GetByRole(AriaRole.Textbox).FillAsync("Niels Pilgaard Grøndahl");
+		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await chatPage.SearchForUserAsync("Niels Pilgaard Grøndahl");
+
 		await Expect(page.GetByText("Niels Pilgaard Grøndahl").First).ToBeVisibleAsync();
 
 		await page.CloseAsync();
@@ -30,29 +30,15 @@ public class ChatTests : BrowserTest
 	public async Task Chat_Should_Be_Able_To_Send_Messages()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
+		var chatPage = page.CreateChatPage();
 
-		// Search for user
-		await page.GetByRole(AriaRole.Textbox).ClickAsync();
-		await page.GetByRole(AriaRole.Textbox).FillAsync("Niels Pilgaard Grøndahl");
-		await Task.Delay(500);
-		await page.GetByText("Niels Pilgaard Grøndahl").First.ClickAsync();
+		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await chatPage.SearchForUserAsync("Niels Pilgaard Grøndahl");
+		await chatPage.SelectUserFromSearchResultsAsync("Niels Pilgaard Grøndahl");
 
-		// Dismiss cookie banner
-		await page.GetByText("Mini Møder anvender cookies").ClickAsync();
+		await chatPage.SendMessageAsync("Dette er en test meddelelse.");
 
-		// Send message
-		await page.Locator("#chat-message-input").ClickAsync();
-		await page.Locator("#chat-message-input").FillAsync("Dette er en test meddelelse.");
-
-		// Click send icon
-		await page.GetByRole(AriaRole.Button).Nth(2).ClickAsync();
-
-		// Assert message was sent
-		await Expect(page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions
-		{
-			Name = "Dette er en test meddelelse."
-		}).First).ToBeVisibleAsync();
+		await Expect(chatPage.GetMessage("Dette er en test meddelelse.")).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}
@@ -61,26 +47,15 @@ public class ChatTests : BrowserTest
 	public async Task Chat_Should_Clear_The_Input_After_Message_Is_Sent()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
+		var chatPage = page.CreateChatPage();
 
-		// Search for user
-		await page.GetByRole(AriaRole.Textbox).ClickAsync();
-		await page.GetByRole(AriaRole.Textbox).FillAsync("Niels Pilgaard Grøndahl");
-		await Task.Delay(500);
-		await page.GetByText("Niels Pilgaard Grøndahl").First.ClickAsync();
+		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await chatPage.SearchForUserAsync("Niels Pilgaard Grøndahl");
+		await chatPage.SelectUserFromSearchResultsAsync("Niels Pilgaard Grøndahl");
 
-		// Dismiss cookie banner
-		await page.GetByText("Mini Møder anvender cookies").ClickAsync();
+		await chatPage.SendMessageAsync("Dette er en test meddelelse.");
 
-		// Send message
-		await page.Locator("#chat-message-input").ClickAsync();
-		await page.Locator("#chat-message-input").FillAsync("Dette er en test meddelelse.");
-
-		// Click send icon
-		await page.GetByRole(AriaRole.Button).Nth(2).ClickAsync();
-
-		// Assert message input is now empty
-		await Expect(page.Locator("#chat-message-input")).ToBeEmptyAsync();
+		await Expect(chatPage.GetMessageInput()).ToBeEmptyAsync();
 
 		await page.CloseAsync();
 	}
@@ -89,12 +64,11 @@ public class ChatTests : BrowserTest
 	public async Task Chat_Should_Hide_Footers()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl + "/chat");
+		var chatPage = page.CreateChatPage();
 
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
-		{
-			Name = "Kontakt"
-		})).ToBeHiddenAsync();
+		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+
+		await Expect(chatPage.GetFooterLink("Kontakt")).ToBeHiddenAsync();
 
 		await page.CloseAsync();
 	}

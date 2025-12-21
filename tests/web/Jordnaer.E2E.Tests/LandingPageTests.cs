@@ -15,10 +15,10 @@ public class LandingPageTests : BrowserTest
 	public async Task When_User_Clicks_Join_User_Should_Be_Redirected_To_Login()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
+		var landingPage = page.CreateLandingPage();
 
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).First.ClickAsync();
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.ClickJoinAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/Account/Register"));
 
@@ -30,10 +30,10 @@ public class LandingPageTests : BrowserTest
 	public async Task When_User_Clicks_Posts_User_Should_Be_Redirected_To_Posts()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
+		var landingPage = page.CreateLandingPage();
 
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "OPSLAG" }).ClickAsync();
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.ClickPostsAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/posts"));
 
@@ -44,13 +44,10 @@ public class LandingPageTests : BrowserTest
 	public async Task When_User_Clicks_Groups_User_Should_Be_Redirected_To_Groups()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
+		var landingPage = page.CreateLandingPage();
 
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
-		{
-			Name = "GRUPPER", Exact = true
-		}).ClickAsync();
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.ClickGroupsAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/groups"));
 
@@ -61,10 +58,11 @@ public class LandingPageTests : BrowserTest
 	public async Task Topbar_Logo_Should_Not_Be_Visible()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
+		var landingPage = page.CreateLandingPage();
 
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
 
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Logo" })).ToBeHiddenAsync();
+		await Expect(landingPage.GetLogoLink()).ToBeHiddenAsync();
 
 		await page.CloseAsync();
 	}
@@ -73,18 +71,12 @@ public class LandingPageTests : BrowserTest
 	public async Task Topbar_Menu_Should_Have_Links()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
+		var landingPage = page.CreateLandingPage();
 
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
 
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
-		{
-			Name = "Personer"
-		})).ToBeVisibleAsync();
-
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
-		{
-			Name = "Grupper", Exact = true
-		})).ToBeVisibleAsync();
+		await Expect(landingPage.GetPeopleLink()).ToBeVisibleAsync();
+		await Expect(landingPage.GetGroupsLink()).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}
@@ -100,12 +92,11 @@ public class LandingPageTests : BrowserTest
 		string linkText)
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		var landingPage = page.CreateLandingPage();
 
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
-		{
-			Name = linkText
-		})).ToBeVisibleAsync();
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+
+		await Expect(landingPage.GetFooterLink(linkText)).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}

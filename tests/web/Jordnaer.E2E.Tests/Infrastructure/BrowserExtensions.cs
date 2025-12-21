@@ -9,18 +9,13 @@ public static class BrowserExtensions
 	public static async Task Login(this IBrowser browser, IPlaywright playwright)
 	{
 		var page = await browser.NewPageAsync(playwright, false);
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret ny konto" })
-				  .ClickAsync();
 
-		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
-		await page.GetByPlaceholder("navn@eksempel.com", GetByPlaceholderOptions).ClickAsync();
-		await page.GetByPlaceholder("navn@eksempel.com", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserName);
-		await page.GetByPlaceholder("Adgangskode", GetByPlaceholderOptions).FillAsync(TestConfiguration.Values.TestUserPassword);
+		// Use LoginPage Page Object for maintainability
+		var loginPage = page.CreateLoginPage();
+		await loginPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await loginPage.LoginAsync(TestConfiguration.Values.TestUserName, TestConfiguration.Values.TestUserPassword);
 
-		await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Log ind", Exact = true })
-				  .ClickAsync();
-
+		// Save authentication state
 		await page.Context.StorageStateAsync(new BrowserContextStorageStateOptions
 		{
 			Path = "auth.json"

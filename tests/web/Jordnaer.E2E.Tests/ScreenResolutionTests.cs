@@ -34,10 +34,13 @@ public class ScreenResolutionTests : BrowserTest
 	public async Task LandingPage(int width, int height)
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
+		var landingPage = page.CreateLandingPage();
 
 		await page.SetViewportSizeAsync(width, height);
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
-		await page.Locator("img#landing-page-center-image")
+		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+
+		// Wait for the center image to be visible before taking screenshot
+		await landingPage.GetCenterImage()
 			.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
 		var path = $"{Constants.ScreenshotFolder}/{width}x{height}.png";
