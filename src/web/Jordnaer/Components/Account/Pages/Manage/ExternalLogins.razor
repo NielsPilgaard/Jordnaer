@@ -8,61 +8,84 @@
 
 @attribute [Sitemap]
 
-<MetadataComponent Title="Håndter dine eksterne logins"/>
+<MetadataComponent Title="Håndter dine eksterne logins" />
 
-<h2 class="manage-page-title">Håndter dine eksterne logins</h2>
-<p class="manage-page-description">Tilknyt og administrer eksterne loginmetoder</p>
+<div class="external-logins-page">
+    <h2 class="manage-page-title">Håndter dine ekstra logins</h2>
+    <p class="manage-page-description">Tilknyt og administrer ekstra loginmetoder</p>
 
-<StatusMessage />
+    <StatusMessage />
 
-@if (_currentLogins?.Count > 0)
-{
-    <h3 style="margin-top: 2rem;">Registrerede Logins</h3>
-    <table class="table">
-        <tbody>
-            @foreach (var login in _currentLogins)
-            {
-                <tr>
-                    <td>@login.ProviderDisplayName</td>
-                    <td>
+    @if (_currentLogins?.Count > 0)
+    {
+        <section class="current-logins-section">
+            <h3 class="section-heading">Registrerede logins</h3>
+            <div class="logins-list">
+                @foreach (var login in _currentLogins)
+                {
+                    <div class="login-item">
+                        <span class="login-provider">@login.ProviderDisplayName</span>
                         @if (_showRemoveButton)
                         {
                             <form @formname="@($"remove-login-{login.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
                                 <AntiforgeryToken />
-                                <div>
-                                    <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
-                                    <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
-                                    <button type="submit" class="account-button-secondary" title="Fjern dette @login.ProviderDisplayName login fra din konto">Fjern</button>
-                                </div>
+                                <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
+                                <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
+                                <button type="submit" class="remove-button"
+                                    title="Fjern dette @login.ProviderDisplayName login fra din konto">Fjern</button>
                             </form>
                         }
-                        else
-                        {
-                            @: &nbsp;
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-@if (_otherLogins?.Count > 0)
-{
-    <h3 style="margin-top: 2rem;">Tilføj en anden tjeneste til at logge ind</h3>
-    <form class="form-horizontal" action="Account/Manage/LinkExternalLogin" method="post">
-        <AntiforgeryToken />
-        <div>
-            <p>
-                @foreach (var provider in _otherLogins)
-                {
-                    <button type="submit" class="account-button-primary" name="Provider" value="@provider.Name" title="Log ind med din @provider.DisplayName konto" style="margin-right: 0.5rem;">
-                        @provider.DisplayName
-                    </button>
+                    </div>
                 }
-            </p>
-        </div>
-    </form>
-}
+            </div>
+        </section>
+    }
+
+    @if (_otherLogins?.Count > 0)
+    {
+        <section class="add-logins-section">
+            <h3 class="section-heading">Tilknyt en ekstra login metode til din konto</h3>
+            <form class="external-login-form" action="Account/Manage/LinkExternalLogin" method="post">
+                <AntiforgeryToken />
+                <div class="external-login-buttons">
+                    @foreach (var provider in _otherLogins)
+                    {
+                        switch (provider.DisplayName)
+                        {
+                            case "Facebook":
+                                <MudButton StartIcon="@Icons.Custom.Brands.Facebook" Variant="Variant.Filled"
+                                    Style="background-color: #3B5998; color: white; height: 48px; min-height: 44px;"
+                                    ButtonType="ButtonType.Submit" FullWidth name="provider" value="@provider.Name">
+                                    Facebook
+                                </MudButton>
+                                break;
+                            case "Google":
+                                <MudButton StartIcon="@Icons.Custom.Brands.Google" Variant="Variant.Filled"
+                                    Style="background-color: #dd4b39; color: white; height: 48px; min-height: 44px;"
+                                    ButtonType="ButtonType.Submit" FullWidth name="provider" value="@provider.Name">
+                                    Google
+                                </MudButton>
+                                break;
+                            case "Microsoft":
+                                <MudButton StartIcon="@SvgIcons.Microsoft" Variant="Variant.Filled" Color="Color.Primary"
+                                    Style="height: 48px; min-height: 44px;" ButtonType="ButtonType.Submit" FullWidth name="provider"
+                                    value="@provider.Name">
+                                    Microsoft
+                                </MudButton>
+                                break;
+                            default:
+                                <button type="submit" class="account-button-primary" name="Provider" value="@provider.Name"
+                                    title="Log ind med din @provider.DisplayName konto">
+                                    @provider.DisplayName
+                                </button>
+                                break;
+                        }
+                    }
+                </div>
+            </form>
+        </section>
+    }
+</div>
 
 @code {
     public const string LinkLoginCallbackAction = "LinkLoginCallback";

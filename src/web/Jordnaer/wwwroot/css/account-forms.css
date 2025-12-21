@@ -348,6 +348,15 @@
 
 .manage-content {
     padding: 2rem;
+    border-left: none;
+}
+
+/* Add visual separator on desktop */
+@media (min-width: 768px) {
+    .manage-content {
+        border-left: 1px solid rgba(65, 85, 107, 0.15);
+        padding-left: 2.5rem;
+    }
 }
 
 .manage-page-title {
@@ -369,6 +378,8 @@
 .manage-nav-mobile {
     display: block;
     margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(65, 85, 107, 0.15);
 }
 
 .manage-nav-desktop {
