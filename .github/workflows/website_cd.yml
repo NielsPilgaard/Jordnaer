@@ -29,6 +29,9 @@ jobs:
       - name: Build
         run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration Release --no-restore -p:InformationalVersion=${{ github.ref_name }}
 
+      - name: Build Tests
+        run: dotnet build "${{ env.TESTS_DIRECTORY }}" --configuration Release --no-restore
+
       - name: Test
         run: >
           dotnet test "${{ env.TESTS_DIRECTORY }}"
