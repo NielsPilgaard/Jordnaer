@@ -133,3 +133,4 @@ All pages under `/Account` and `/Account/Manage`:
 - All responsive behavior must be CSS-based (media queries, flexbox, grid)
 - All validation must be server-side with proper error display (current implementation already does this)
 - Use InputText components (not MudTextField) with Bootstrap form-floating classes (current pattern)
+- In all these pages, the TopBar is empty, due to MudHidden being used. It would be nice if it worked.
