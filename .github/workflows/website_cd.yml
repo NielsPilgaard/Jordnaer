@@ -12,7 +12,7 @@ env:
   AZURE_WEBAPP_NAME: jordnaer
   WORKING_DIRECTORY: src/web/Jordnaer
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,11 +23,11 @@ jobs:
         with:
           dotnet-version: "9.x"
 
-      - name: Restore Nugets Tests
+      - name: Restore
         run: dotnet restore "${{ env.TESTS_DIRECTORY }}"
 
-      - name: Build Tests
-        run: dotnet build "${{ env.TESTS_DIRECTORY }}" --configuration Release --no-restore
+      - name: Build
+        run: dotnet build "${{ env.TESTS_DIRECTORY }}" --configuration Release --no-restore -p:InformationalVersion=${{ github.ref_name }}
 
       - name: Test
         run: >
@@ -38,41 +38,8 @@ jobs:
           --filter Category!=SkipInCi
           -p:InformationalVersion=${{ github.ref_name }}
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up dotnet
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: "9.x"
-
-      - name: Restore Nugets
-        run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
-
-      - name: Build
-        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration Release --no-restore -p:InformationalVersion=${{ github.ref_name }}
-
       - name: Publish
         run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-
-      - name: Upload publish artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: publish-artifacts
-          path: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [test, build]
-    steps:
-      - name: Download publish artifacts
-        uses: actions/download-artifact@v6
-        with:
-          name: publish-artifacts
-          path: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
