@@ -10,9 +10,9 @@
 
 <MetadataComponent Title="Slet personlige data"/>
 
-<StatusMessage Message="@_message" />
+<h2 class="manage-page-title">Slet personlige data</h2>
 
-<h3>Slet personlige data</h3>
+<StatusMessage Message="@_message" />
 
 <div class="alert alert-warning" role="alert">
 	<p>
@@ -20,21 +20,21 @@
 	</p>
 </div>
 
-<div>
-	<EditForm Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync" method="post">
-		<DataAnnotationsValidator />
-		<ValidationSummary class="text-danger" role="alert" />
-		@if (_requirePassword)
-		{
-			<div class="form-floating mb-3">
-				<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Indtast venligst din adgangskode." />
-				<label for="password" class="form-label">Adgangskode</label>
-				<ValidationMessage For="() => Input.Password" class="text-danger" />
-			</div>
-		}
-		<button class="w-100 btn btn-lg btn-danger" type="submit">Slet data og luk min konto</button>
-	</EditForm>
-</div>
+<EditForm Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form" style="max-width: 600px;">
+	<DataAnnotationsValidator />
+	<ValidationSummary class="validation-message" role="alert" />
+
+	@if (_requirePassword)
+	{
+		<div class="form-floating">
+			<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Indtast venligst din adgangskode." autofocus />
+			<label for="password" class="form-label">Adgangskode</label>
+			<ValidationMessage For="() => Input.Password" class="validation-message" />
+		</div>
+	}
+
+	<button class="account-button-primary" type="submit" style="background-color: var(--danger-color);">Slet data og luk min konto</button>
+</EditForm>
 
 
 @code {

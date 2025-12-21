@@ -14,7 +14,8 @@
 }
 else
 {
-	<h3>Generer To-faktor-autentificerings (2FA) gendannelseskoder</h3>
+	<h2 class="manage-page-title">Generer To-faktor-autentificerings (2FA) gendannelseskoder</h2>
+
 	<div class="alert alert-warning" role="alert">
 		<p>
 			<span class="glyphicon glyphicon-warning-sign"></span>
@@ -25,15 +26,14 @@ else
 		</p>
 		<p>
 			At generere nye gendannelseskoder ændrer ikke nøglerne, der bruges i autentificeringsapps. Hvis du ønsker at ændre nøglen
-			brugt i en autentificeringsapp, bør du <a href="Account/Manage/ResetAuthenticator">nulstille dine autentificeringsnøgler.</a>
+			brugt i en autentificeringsapp, bør du <a href="Account/Manage/ResetAuthenticator" class="account-link">nulstille dine autentificeringsnøgler.</a>
 		</p>
 	</div>
-	<div>
-		<form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post">
-			<AntiforgeryToken />
-			<button class="btn btn-danger" type="submit">Generer Gendannelseskoder</button>
-		</form>
-	</div>
+
+	<form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post" style="max-width: 600px;">
+		<AntiforgeryToken />
+		<button class="account-button-primary" type="submit" style="background-color: var(--danger-color);">Generer Gendannelseskoder</button>
+	</form>
 }
 
 

@@ -4,106 +4,140 @@
 	Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")">
 
 	@* Desktop Navigation - Icons with Labels *@
-	<MudHidden Breakpoint="Breakpoint.SmAndDown">
-		<div style="display: flex; gap: 4px;">
-			<MudButton Href="/" StartIcon="@Icons.Material.Filled.Home" Variant="Variant.Text"
+	<div class="topbar-desktop" style="display: flex; gap: 4px;">
+		<MudButton Href="/" StartIcon="@Icons.Material.Filled.Home" Variant="Variant.Text"
+			Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Hjem
+		</MudButton>
+		<MudButton Href="/users" StartIcon="@Icons.Material.Filled.PersonSearch" Variant="Variant.Text"
+			Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Søg
+		</MudButton>
+		<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
+			Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Grupper
+		</MudButton>
+
+		<Feature Name="@FeatureFlags.Posts">
+			<MudButton Href="/posts" StartIcon="@Icons.Material.Filled.Feed" Variant="Variant.Text"
 				Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+				Opslag
+			</MudButton>
+		</Feature>
+
+		<AuthorizeView>
+			<Authorized>
+				<MudButton Href="/chat" StartIcon="@Icons.Material.Filled.Chat" Variant="Variant.Text"
+					Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+					Chat
+				</MudButton>
+			</Authorized>
+		</AuthorizeView>
+	</div>
+
+	@* Mobile Navigation - Dropdown Menu *@
+	<div class="topbar-mobile-menu">
+		<input type="checkbox" id="mobile-menu-toggle" class="mobile-menu-toggle" />
+		<label for="mobile-menu-toggle" class="mobile-menu-button" aria-label="Toggle navigation menu">
+			<MudIcon Icon="@Icons.Material.Filled.Menu" Style="@JordnaerPalette.BlueBody.ToTextColor()" />
+		</label>
+
+		<nav class="mobile-menu-dropdown" aria-label="Mobile navigation" onclick="document.getElementById('mobile-menu-toggle').checked = false;">
+			<a href="/" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Hjem
-			</MudButton>
-			<MudButton Href="/users" StartIcon="@Icons.Material.Filled.PersonSearch" Variant="Variant.Text"
-				Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			</a>
+			<a href="/users" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<MudIcon Icon="@Icons.Material.Filled.PersonSearch" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Søg
-			</MudButton>
-			<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
-				Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			</a>
+			<a href="/groups" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Grupper
-			</MudButton>
+			</a>
 
 			<Feature Name="@FeatureFlags.Posts">
-				<MudButton Href="/posts" StartIcon="@Icons.Material.Filled.Feed" Variant="Variant.Text"
-					Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<a href="/posts" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<MudIcon Icon="@Icons.Material.Filled.Feed" Size="Size.Small" Style="margin-right: 0.75rem;" />
 					Opslag
-				</MudButton>
+				</a>
 			</Feature>
 
 			<AuthorizeView>
 				<Authorized>
-					<MudButton Href="/chat" StartIcon="@Icons.Material.Filled.Chat" Variant="Variant.Text"
-						Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/chat" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" Style="margin-right: 0.75rem;" />
 						Chat
-					</MudButton>
+					</a>
 				</Authorized>
 			</AuthorizeView>
-		</div>
-	</MudHidden>
-
-	@* Mobile Navigation - Drawer Menu *@
-	<MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
-		<MudIconButton Icon="@Icons.Material.Filled.Menu" Style="@JordnaerPalette.BlueBody.ToTextColor()"
-			OnClick="ToggleDrawer" Size="Size.Medium" />
-
-		<MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Left" Elevation="1" Variant="DrawerVariant.Temporary"
-			ClipMode="DrawerClipMode.Always" Width="280px">
-			<MudDrawerHeader
-				Style="@($"{JordnaerPalette.YellowBackground.ToBackgroundColor()}; display: flex; justify-content: center; align-items: center;")"
-				Class=px-4>
-				<MudImage Src="/images/minimoeder_logo.png" Alt="Mini Møder" Height="80" />
-			</MudDrawerHeader>
-			<MudNavMenu>
-				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Hjem</MudNavLink>
-				<MudNavLink Href="/users" Icon="@Icons.Material.Filled.PersonSearch">Søg</MudNavLink>
-				<MudNavLink Href="/groups" Icon="@Icons.Material.Filled.Groups">Grupper</MudNavLink>
-
-				<Feature Name="@FeatureFlags.Posts">
-					<MudNavLink Href="/posts" Icon="@Icons.Material.Filled.Feed">Opslag</MudNavLink>
-				</Feature>
-
-				<AuthorizeView>
-					<Authorized>
-						<MudNavLink Href="/chat" Icon="@Icons.Material.Filled.Chat">Chat</MudNavLink>
-					</Authorized>
-				</AuthorizeView>
-			</MudNavMenu>
-		</MudDrawer>
-	</MudHidden>
+		</nav>
+	</div>
 
 	<MudSpacer />
 
 	<AuthorizeView>
 		<Authorized>
-			<MudHidden Breakpoint="Breakpoint.SmAndDown">
-				<MudButton Href="/profile" StartIcon="@Icons.Material.Filled.Person" Variant="Variant.Text"
-					Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
-					Profil
-				</MudButton>
-			</MudHidden>
-			<MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
-				<MudIconButton Href="/profile" Icon="@Icons.Material.Filled.Person"
-					Style="@JordnaerPalette.BlueBody.ToTextColor()" Size="Size.Medium" />
-			</MudHidden>
+			@* Desktop Profile Dropdown *@
+			<div class="topbar-desktop profile-dropdown">
+				<input type="checkbox" id="profile-menu-toggle" class="profile-menu-toggle" />
+				<label for="profile-menu-toggle" class="profile-menu-button" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<MudIcon Icon="@Icons.Material.Filled.Person" Style="margin-right: 0.25rem;" />
+					<span class="font-open-sans-semibold">Profil</span>
+					<MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Style="margin-left: 0.25rem;" />
+				</label>
+				<nav class="profile-menu-dropdown" aria-label="Profile menu" onclick="document.getElementById('profile-menu-toggle').checked = false;">
+					<a href="/profile" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						Profil
+					</a>
+					<a href="/Account/Manage" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						Kontoindstillinger
+					</a>
+					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						Log ud
+					</a>
+				</nav>
+			</div>
+
+			@* Mobile Profile Dropdown *@
+			<div class="topbar-mobile profile-dropdown">
+				<input type="checkbox" id="profile-menu-toggle-mobile" class="profile-menu-toggle" />
+				<label for="profile-menu-toggle-mobile" class="profile-menu-button" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
+				</label>
+				<nav class="profile-menu-dropdown" aria-label="Profile menu" onclick="document.getElementById('profile-menu-toggle-mobile').checked = false;">
+					<a href="/profile" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						Profil
+					</a>
+					<a href="/Account/Manage" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						Kontoindstillinger
+					</a>
+					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						Log ud
+					</a>
+				</nav>
+			</div>
 		</Authorized>
 		<NotAuthorized>
-			<MudHidden Breakpoint="Breakpoint.SmAndDown">
+			<div class="topbar-desktop">
 				<MudButton Href="/Account/Register" StartIcon="@Icons.Material.Filled.Login" Variant="Variant.Outlined"
 					Class="font-open-sans-semibold"
 					Style="@($"{JordnaerPalette.BlueBody.ToTextColor()}; border-color: {JordnaerPalette.BlueBody}")">
 					Opret konto
 				</MudButton>
-			</MudHidden>
-			<MudHidden Breakpoint="Breakpoint.SmAndDown" Invert>
+			</div>
+			<div class="topbar-mobile">
 				<MudIconButton Href="/Account/Register" Icon="@Icons.Material.Filled.Login" Variant="Variant.Outlined"
 					Style="@($"{JordnaerPalette.BlueBody.ToTextColor()}; border-color: {JordnaerPalette.BlueBody}")"
-					Size="Size.Medium" />
-			</MudHidden>
+					Size="Size.Medium"
+					title="Opret konto" aria-label="Opret konto" />
+			</div>
 		</NotAuthorized>
 	</AuthorizeView>
 </MudAppBar>
-
-@code {
-	private bool _drawerOpen = false;
-
-	private void ToggleDrawer()
-	{
-		_drawerOpen = !_drawerOpen;
-	}
-}

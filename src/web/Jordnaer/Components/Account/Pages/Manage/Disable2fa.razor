@@ -9,8 +9,9 @@
 
 <MetadataComponent Title="Deaktiver to-faktor-autentificering (2FA)"/>
 
+<h2 class="manage-page-title">Deaktiver to-faktor-autentificering (2FA)</h2>
+
 <StatusMessage />
-<h3>Deaktiver to-faktor-autentificering (2FA)</h3>
 
 <div class="alert alert-warning" role="alert">
 	<p>
@@ -18,16 +19,14 @@
 	</p>
 	<p>
 		At deaktivere 2FA ændrer ikke de nøgler, der bruges i autentificeringsapps. Hvis du ønsker at ændre nøglen
-		brugt i en autentificeringsapp, bør du <a href="Account/Manage/ResetAuthenticator">nulstille dine autentificeringsnøgler.</a>
+		brugt i en autentificeringsapp, bør du <a href="Account/Manage/ResetAuthenticator" class="account-link">nulstille dine autentificeringsnøgler.</a>
 	</p>
 </div>
 
-<div>
-	<form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post">
-		<AntiforgeryToken />
-		<button class="btn btn-danger" type="submit">Deaktiver 2FA</button>
-	</form>
-</div>
+<form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post" style="max-width: 600px;">
+	<AntiforgeryToken />
+	<button class="account-button-primary" type="submit" style="background-color: var(--danger-color);">Deaktiver 2FA</button>
+</form>
 
 
 @code {

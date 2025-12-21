@@ -7,26 +7,26 @@
 
 <MetadataComponent Title="Verifikation af gendannelseskode"/>
 
-<h1>Verifikation af gendannelseskode</h1>
-<hr />
-<StatusMessage Message="@_message" />
-<p>
-    Du har anmodet om at logge ind med en gendannelseskode. Dette login vil ikke blive husket, indtil du angiver
-    en kode fra en autentifikations-app ved login eller deaktiverer 2FA og logger ind igen.
-</p>
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="Gendannelseskode" />
-                <label for="recovery-code" class="form-label">Gendannelseskode</label>
-                <ValidationMessage For="() => Input.RecoveryCode" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Log ind</button>
-        </EditForm>
-    </div>
+<div class="account-container">
+	<div class="account-paper">
+		<h1 class="account-header">Verifikation af gendannelseskode</h1>
+		<StatusMessage Message="@_message" />
+		<p>
+			Du har anmodet om at logge ind med en gendannelseskode. Dette login vil ikke blive husket, indtil du angiver
+			en kode fra en autentifikations-app ved login eller deaktiverer 2FA og logger ind igen.
+		</p>
+
+		<EditForm Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form">
+			<DataAnnotationsValidator />
+			<ValidationSummary class="text-danger" role="alert" />
+			<div class="form-floating">
+				<InputText @bind-Value="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="Gendannelseskode" autofocus />
+				<label for="recovery-code" class="form-label">Gendannelseskode</label>
+				<ValidationMessage For="() => Input.RecoveryCode" class="validation-message" />
+			</div>
+			<button type="submit" class="account-button-primary">Log ind</button>
+		</EditForm>
+	</div>
 </div>
 
 @code {

@@ -1,0 +1,554 @@
+/**
+ * Account & Manage Pages - Shared Styles
+ * SSR-Compatible responsive design using CSS only
+ * No JavaScript required
+ */
+
+/* ========================================
+   LAYOUT & CONTAINERS
+   ======================================== */
+
+.account-container {
+    max-width: 480px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.account-paper {
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(65, 85, 107, 0.08);
+    background-color: var(--mud-palette-background);
+}
+
+.account-header {
+    color: #673417; /* JordnaerPalette.RedHeader */
+    font-family: 'Cherry Bomb One', cursive;
+    font-size: 2rem;
+    letter-spacing: 0.11em;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.account-subheader {
+    color: #41556b; /* JordnaerPalette.BlueBody */
+    font-family: 'Open Sans Medium', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* ========================================
+   FORM ELEMENTS
+   ======================================== */
+
+.account-form {
+    width: 100%;
+}
+
+.form-field {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+/* Enhanced form-floating for better UX */
+.form-floating {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-floating > .form-control {
+    height: 56px;
+    padding-top: 1.625rem;
+    padding-bottom: 0.625rem;
+    font-family: 'Open Sans Light', sans-serif;
+    font-size: 1rem;
+    border: 1px solid rgba(65, 85, 107, 0.3);
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-floating > .form-control:focus {
+    border-color: #41556b; /* JordnaerPalette.BlueBody */
+    box-shadow: 0 0 0 3px rgba(65, 85, 107, 0.1);
+    outline: none;
+}
+
+.form-floating > .form-control:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+}
+
+.form-floating > .form-label {
+    color: rgba(65, 85, 107, 0.7);
+    font-family: 'Open Sans Light', sans-serif;
+    padding-left: 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-floating > .form-control:focus ~ .form-label,
+.form-floating > .form-control:not(:placeholder-shown) ~ .form-label {
+    color: #41556b;
+    font-size: 0.875rem;
+}
+
+/* Validation states */
+.form-control.valid {
+    border-color: #878e64; /* JordnaerPalette.GreenBackground */
+    background-image: none;
+}
+
+.form-control.invalid,
+.form-control:invalid:not(:placeholder-shown) {
+    border-color: #dc3545;
+    background-image: none;
+}
+
+.validation-message,
+.text-danger {
+    color: #dc3545;
+    font-size: 0.875rem;
+    font-family: 'Open Sans Light', sans-serif;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.account-button-primary {
+    width: 100%;
+    height: 48px;
+    min-height: 44px; /* Touch target minimum */
+    padding: 0.75rem 1.5rem;
+    font-family: 'Open Sans Medium', sans-serif;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #41556b; /* JordnaerPalette.BlueBody */
+    color: #FFFFFF;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+.account-button-primary:hover {
+    background-color: #2d3d4f;
+    box-shadow: 0 2px 8px rgba(65, 85, 107, 0.3);
+}
+
+.account-button-primary:active {
+    background-color: #1f2b38;
+    transform: translateY(1px);
+}
+
+.account-button-primary:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+}
+
+.account-button-primary:disabled {
+    background-color: rgba(65, 85, 107, 0.4);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.account-button-secondary {
+    width: 100%;
+    height: 48px;
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Open Sans Medium', sans-serif;
+    font-size: 1rem;
+    border: 1px solid #41556b;
+    border-radius: 4px;
+    background-color: transparent;
+    color: #41556b;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+.account-button-secondary:hover {
+    background-color: rgba(65, 85, 107, 0.05);
+    border-color: #2d3d4f;
+}
+
+.account-button-secondary:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+
+.account-link {
+    color: #41556b;
+    text-decoration: underline;
+    font-family: 'Open Sans Light', sans-serif;
+    transition: color 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.account-link:hover {
+    color: #2d3d4f;
+    text-decoration: underline;
+}
+
+.account-link:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* ========================================
+   EXTERNAL LOGIN SECTION
+   ======================================== */
+
+.external-login-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(65, 85, 107, 0.2);
+}
+
+.external-login-heading {
+    color: #41556b;
+    font-family: 'Open Sans Medium', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.external-login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ========================================
+   DIVIDERS
+   ======================================== */
+
+.account-divider {
+    border: none;
+    border-top: 1px solid rgba(65, 85, 107, 0.2);
+    margin: 2rem 0;
+}
+
+/* ========================================
+   STATUS MESSAGES & ALERTS
+   ======================================== */
+
+.account-alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    font-family: 'Open Sans Light', sans-serif;
+}
+
+.account-alert-info {
+    background-color: rgba(169, 192, 207, 0.2); /* PaleBlueBackground40 */
+    border-left: 4px solid #a9c0cf;
+    color: #41556b;
+}
+
+.account-alert-success {
+    background-color: rgba(135, 142, 100, 0.2);
+    border-left: 4px solid #878e64; /* GreenBackground */
+    color: #41556b;
+}
+
+.account-alert-warning {
+    background-color: rgba(219, 171, 69, 0.2);
+    border-left: 4px solid #dbab45; /* YellowBackground */
+    color: #41556b;
+}
+
+.account-alert-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid #dc3545;
+    color: #673417;
+}
+
+/* ========================================
+   CHECKBOX & REMEMBER ME
+   ======================================== */
+
+.remember-me-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.remember-me-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.5rem;
+    cursor: pointer;
+    border: 1px solid rgba(65, 85, 107, 0.3);
+    border-radius: 3px;
+}
+
+.remember-me-checkbox:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+}
+
+.remember-me-label {
+    color: #41556b;
+    font-family: 'Open Sans Light', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ========================================
+   NAVIGATION HELPERS
+   ======================================== */
+
+.account-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    align-items: stretch; /* Make all items stretch to full width */
+}
+
+.account-nav-links a {
+    color: #41556b;
+    text-decoration: none;
+    font-family: 'Open Sans Light', sans-serif;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 0.75rem 1.5rem; /* Match button padding */
+    transition: all 0.2s ease-in-out;
+    display: flex; /* Use flexbox for vertical centering */
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+}
+
+.account-nav-links a:hover {
+    color: #2d3d4f;
+    background-color: rgba(65, 85, 107, 0.05);
+    border-radius: 4px;
+}
+
+.account-nav-links a:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ========================================
+   MANAGE PAGES SPECIFIC STYLES
+   ======================================== */
+
+.manage-content {
+    padding: 2rem;
+}
+
+.manage-page-title {
+    color: #673417;
+    font-family: 'Cherry Bomb One', cursive;
+    font-size: 2rem;
+    letter-spacing: 0.11em;
+    margin-bottom: 0.5rem;
+}
+
+.manage-page-description {
+    color: #41556b;
+    font-family: 'Open Sans Light', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+/* Manage navigation - mobile first */
+.manage-nav-mobile {
+    display: block;
+    margin-bottom: 2rem;
+}
+
+.manage-nav-desktop {
+    display: none;
+}
+
+/* Two-column layout for manage pages on larger screens */
+@media (min-width: 768px) {
+    .manage-layout-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .manage-nav-mobile {
+        display: none;
+    }
+
+    .manage-nav-desktop {
+        display: block;
+    }
+
+    .manage-content {
+        min-width: 0; /* Prevent grid blowout */
+    }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ======================================== */
+
+/* Mobile: 320px - 767px */
+@media (max-width: 767px) {
+    .account-container {
+        margin: 1rem auto;
+        padding: 0 0.75rem;
+    }
+
+    .account-paper {
+        padding: 1.5rem;
+    }
+
+    .account-header {
+        font-size: 1.75rem;
+    }
+
+    .form-floating > .form-control {
+        height: 52px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .account-button-primary,
+    .account-button-secondary {
+        height: 52px;
+        min-height: 48px; /* Larger touch target on mobile */
+        font-size: 1.05rem;
+    }
+
+    .external-login-buttons {
+        gap: 0.5rem;
+    }
+}
+
+/* Tablet: 768px - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .account-container {
+        max-width: 540px;
+        margin: 2.5rem auto;
+    }
+
+    .account-paper {
+        padding: 2.5rem;
+    }
+}
+
+/* Desktop: 1024px+ */
+@media (min-width: 1024px) {
+    .account-container {
+        max-width: 480px;
+        margin: 3rem auto;
+    }
+
+    .account-paper {
+        padding: 3rem;
+    }
+
+    .account-header {
+        font-size: 2.25rem;
+    }
+}
+
+
+/* ========================================
+   ACCESSIBILITY IMPROVEMENTS
+   ======================================== */
+
+/* Skip to main content link */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background-color: #41556b;
+    color: #FFFFFF;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 0 0 4px 0;
+    z-index: 1000;
+    font-family: 'Open Sans Medium', sans-serif;
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .form-control:focus {
+        outline: 3px solid currentColor;
+        outline-offset: 2px;
+    }
+
+    .account-button-primary,
+    .account-button-secondary {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========================================
+   NAVIGATION LINK STYLES (for ManageNavMenu)
+   ======================================== */
+
+.nav-link {
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    background-color: rgba(65, 85, 107, 0.05) !important;
+    color: #2d3d4f !important;
+}
+
+.nav-link:focus-visible {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+}
+
+.nav-link.active {
+    background-color: #41556b !important;
+    color: #FFFFFF !important;
+    font-family: 'Open Sans Medium', sans-serif !important;
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+    .account-button-primary,
+    .account-button-secondary,
+    .external-login-section,
+    .account-nav-links {
+        display: none;
+    }
+
+    .account-paper {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+}

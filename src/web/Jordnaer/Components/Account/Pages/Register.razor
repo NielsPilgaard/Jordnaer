@@ -17,26 +17,28 @@
 
 <MetadataComponent Title="Opret en ny konto" />
 
-<MudContainer MaxWidth="MaxWidth.Small">
-    <MudPaper Elevation="3" Class="pa-4">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register" Enhance>
-            <DataAnnotationsValidator />
-            <h2 class="font-open-sans-medium" style="@($"color: {JordnaerPalette.RedHeader}")">Opret en ny konto</h2>
-            <hr />
+<div class="account-container">
+    <div class="account-paper">
+        <h1 class="account-header">Opret en ny konto</h1>
 
-            <div class="form-floating mb-3">
+        <StatusMessage Message="@Message" />
+
+        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register" Enhance class="account-form">
+            <DataAnnotationsValidator />
+
+            <div class="form-floating">
                 <InputText @bind-Value="Input.Email"
                            class="form-control"
                            autocomplete="email"
                            aria-required="true"
                            placeholder="navn@eksempel.com"
-                           id="email" />
+                           id="email"
+                           autofocus />
                 <label for="email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
+                <ValidationMessage For="() => Input.Email" class="validation-message" />
             </div>
 
-            <div class="form-floating mb-3">
+            <div class="form-floating">
                 <InputText type="password"
                            @bind-Value="Input.Password"
                            class="form-control"
@@ -48,28 +50,28 @@
 
                 @if (_showPasswordValidation)
                 {
-	                <MudStack Spacing="2" Class="mt-2">
-		                <MudText Typo="Typo.body2" Color="@(PasswordLengthValid ? Color.Success : Color.Error)">
-			                <MudIcon Icon="@(PasswordLengthValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Class="mr-2" />
+	                <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+		                <MudText Typo="Typo.body2" Color="@(PasswordLengthValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
+			                <MudIcon Icon="@(PasswordLengthValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
 			                Mindst 8 tegn langt
 		                </MudText>
-		                <MudText Typo="Typo.body2" Color="@(PasswordUppercaseValid ? Color.Success : Color.Error)">
-			                <MudIcon Icon="@(PasswordUppercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Class="mr-2" />
+		                <MudText Typo="Typo.body2" Color="@(PasswordUppercaseValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
+			                <MudIcon Icon="@(PasswordUppercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
 			                Mindst ét stort bogstav
 		                </MudText>
-		                <MudText Typo="Typo.body2" Color="@(PasswordLowercaseValid ? Color.Success : Color.Error)">
-			                <MudIcon Icon="@(PasswordLowercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Class="mr-2" />
+		                <MudText Typo="Typo.body2" Color="@(PasswordLowercaseValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
+			                <MudIcon Icon="@(PasswordLowercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
 			                Mindst ét lille bogstav
 		                </MudText>
-		                <MudText Typo="Typo.body2" Color="@(PasswordNumberValid ? Color.Success : Color.Error)">
-			                <MudIcon Icon="@(PasswordNumberValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Class="mr-2" />
+		                <MudText Typo="Typo.body2" Color="@(PasswordNumberValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
+			                <MudIcon Icon="@(PasswordNumberValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
 			                Mindst ét tal
 		                </MudText>
-	                </MudStack>
+	                </div>
                 }
             </div>
 
-            <div class="form-floating mb-3">
+            <div class="form-floating">
                 <InputText type="password"
                            class="form-control"
                            @bind-Value="Input.ConfirmPassword"
@@ -80,27 +82,28 @@
                 <label for="confirm-password">Bekræft adgangskode</label>
                 @if (_showConfirmPasswordValidation && IsPasswordValid)
                 {
-	                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+	                <ValidationMessage For="() => Input.ConfirmPassword" class="validation-message" />
                 }
             </div>
 
-            <MudButton ButtonType="ButtonType.Submit"
-                       Variant="Variant.Filled"
-                       Color="Color.Success"
-                       FullWidth>Opret
-	            </MudButton>
+            <button type="submit" class="account-button-primary">
+                Opret
+            </button>
 
-            <div class="d-flex justify-center">
-                <MudButton Href="/Account/Login" Class="mt-4" ButtonType="ButtonType.Button" Variant="Variant.Text" Color="Color.Info">
+            <hr class="account-divider" />
+
+            <nav class="account-nav-links" aria-label="Konto muligheder">
+                <a href="/Account/Login" class="account-link text-center">
                     Log ind med eksisterende konto
-                </MudButton>
-            </div>
+                </a>
+            </nav>
         </EditForm>
-    </MudPaper>
-    <MudPaper Elevation="3" Class="pa-4 mt-4">
-        <ExternalLoginPicker />
-    </MudPaper>
-</MudContainer>
+
+        <div class="external-login-section">
+            <ExternalLoginPicker />
+        </div>
+    </div>
+</div>
 
 @code {
     private IEnumerable<IdentityError>? _identityErrors;
@@ -123,11 +126,28 @@
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
-    
+
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
     protected override void OnParametersSet()
     {
 	    _showPasswordValidation = !string.IsNullOrEmpty(Input.Password);
 	    _showConfirmPasswordValidation = !string.IsNullOrEmpty(Input.ConfirmPassword);
+
+        // Set HasVisited cookie to indicate this visitor has been to the site
+        // Cookie never expires so future visits will show Login page
+        if (HttpContext is not null && HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            HttpContext.Response.Cookies.Append("HasVisited", "true", new CookieOptions
+            {
+                Expires = DateTimeOffset.MaxValue,
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                IsEssential = true
+            });
+        }
     }
 
     private AlertMessage? Message => _identityErrors is null

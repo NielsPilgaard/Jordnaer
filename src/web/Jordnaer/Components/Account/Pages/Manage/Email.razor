@@ -12,44 +12,46 @@
 
 <MetadataComponent Title="Håndter email" />
 
-<h3>Håndter email</h3>
+<h2 class="manage-page-title">Håndter email</h2>
+<p class="manage-page-description">Skift din email adresse</p>
 
 <StatusMessage Message="@_message" />
-<div class="row">
-    <div class="col-md-6">
-        <form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
-            <AntiforgeryToken />
-        </form>
-        <EditForm Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            @if (_isEmailConfirmed)
-            {
-                <div class="form-floating mb-3 input-group">
-                    <input type="text" value="@_email" class="form-control" placeholder="Indtast venligst din email." disabled />
-                    <div class="input-group-append">
-                        <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
-                    </div>
-                    <label for="email" class="form-label">Email</label>
-                </div>
-            }
-            else
-            {
-                <div class="form-floating mb-3">
-                    <input type="text" value="@_email" class="form-control" placeholder="Indtast venligst din email." disabled />
-                    <label for="email" class="form-label">Email</label>
-                    <button type="submit" class="btn btn-link" form="send-verification-form">Send bekræftelses email</button>
-                </div>
-            }
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Indtast venligst ny email." />
-                <label for="new-email" class="form-label">Ny email</label>
-                <ValidationMessage For="() => Input.NewEmail" class="text-danger" />
+
+<form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
+    <AntiforgeryToken />
+</form>
+
+<EditForm Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form" style="max-width: 600px;">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="validation-message" role="alert" />
+
+    @if (_isEmailConfirmed)
+    {
+        <div class="form-floating input-group">
+            <input type="text" value="@_email" class="form-control" placeholder="Indtast venligst din email." disabled />
+            <div class="input-group-append">
+                <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Skift email</button>
-        </EditForm>
+            <label for="email" class="form-label">Email</label>
+        </div>
+    }
+    else
+    {
+        <div class="form-floating">
+            <input type="text" value="@_email" class="form-control" placeholder="Indtast venligst din email." disabled />
+            <label for="email" class="form-label">Email</label>
+            <button type="submit" class="account-link" form="send-verification-form">Send bekræftelses email</button>
+        </div>
+    }
+
+    <div class="form-floating">
+        <InputText @bind-Value="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Indtast venligst ny email." autofocus />
+        <label for="new-email" class="form-label">Ny email</label>
+        <ValidationMessage For="() => Input.NewEmail" class="validation-message" />
     </div>
-</div>
+
+    <button type="submit" class="account-button-primary">Skift email</button>
+</EditForm>
 
 
 @code {

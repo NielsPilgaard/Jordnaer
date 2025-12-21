@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document explains how to use the Jordnaer (Mini Møder) design system implemented based on the official `Mini Design Guide.pdf`.
+This document provides practical guidelines for using the Jordnaer (Mini Møder) design system based on the official `Mini Design Guide.pdf`.
+
+**Philosophy**: Pragmatic and flexible. Use MudBlazor components, plain HTML, or CSS classes - whatever gets the job done efficiently while maintaining brand consistency. These are guidelines, not strict rules. Prioritize dev speed, maintainability, and good results.
 
 ## Color Palette
 
@@ -41,16 +43,16 @@ JordnaerPalette.BeigeBackground60  // 60% opacity
 JordnaerPalette.PaleBlueBackground40 // 40% opacity
 ```
 
-### Usage Rules
+### Usage Guidelines
 
 - **GLÆDE (Yellow)**: Primary color for heading backgrounds and key elements
-- **RO (Green)**: Secondary color for heading backgrounds
-- **MØDE (Blue)**: Body text color - use for all readable text
+- **RO (Green)**: Secondary color for heading backgrounds, success actions (save buttons)
+- **MØDE (Blue)**: Body text color - use for readable text
 - **MØDE Red (Red-brown)**: Small text, payoffs, quotes
-- **OMSORG (Beige)**: Background when yellow/green are too dark
-- **LEG (Blue)**: Rarely used lighter background
+- **OMSORG (Beige)**: Background when yellow/green are too saturated
+- **LEG (Blue)**: Lighter background option
 
-⚠️ **Important**: Never use yellow or light colors for body text (readability issues)
+⚠️ **Accessibility Note**: Avoid yellow or light colors for body text (readability issues)
 
 ## Typography
 
@@ -66,14 +68,13 @@ JordnaerPalette.PaleBlueBackground40 // 40% opacity
 ### Heading Styles
 
 **Default Headings**
-- All headings (h1-h6) use the standard font by default
-- Cherry Bomb One is **opt-in** using specific CSS classes (see below)
+- Headings use the standard font by default
+- Cherry Bomb One is **opt-in** for marketing pages and special emphasis
 
-**Cherry Bomb One Headings (Opt-in)**
-- Use `.heading-yellow`, `.heading-green`, or `.heading-blue` classes
-- Letter spacing: `0.11em` (110 tracking)
-- Text transform: lowercase
-- Use for short words and main headings
+**Cherry Bomb One Headings (Optional)**
+- Add `.heading-yellow`, `.heading-green`, or `.heading-blue` classes when you want the fun brand font
+- Letter spacing: `0.11em`, lowercase transform
+- Best for short words and main headings on public-facing pages
 
 ```html
 <h1 class="heading-yellow">velkommen til jordnaer</h1>
@@ -81,11 +82,17 @@ JordnaerPalette.PaleBlueBackground40 // 40% opacity
 <h3 class="heading-blue">lokal fællesskab</h3>
 ```
 
+**Or just use MudBlazor directly with inline styles:**
+```razor
+<MudText Typo="Typo.h4" Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+    Din Profil
+</MudText>
+```
+
 **Subheadings**
-- Use `.subheading` or `.subheading-red` classes
-- Letter spacing: `0.05em` (50 tracking - within readable range)
+- Use `.subheading` or `.subheading-red` classes, or just style directly
+- Letter spacing: `0.05em` is good for readability
 - Color: MØDE blue or MØDE red
-- Use where Cherry Bomb becomes unreadable
 
 ### Body Text
 
@@ -109,25 +116,30 @@ All body text automatically uses **Open Sans Light** with MØDE blue color.
 .small-text              /* Small text in red-brown */
 ```
 
-## Heading Color Rotation
+## Creating Visual Variety
 
-To create visual variety, rotate heading colors across sections using the opt-in Cherry Bomb classes:
+**Optional**: When you want visual interest on marketing/public pages, consider rotating heading colors across sections.
 
-### Cherry Bomb Heading Classes (Opt-in)
+### Quick Ways to Add Color
 
-These classes apply Cherry Bomb One font, letter-spacing, lowercase transform, and color:
-
+**CSS Classes** (easiest):
 ```html
-<h1 class="heading-yellow">overskrift 1</h1>  <!-- Yellow Cherry Bomb heading -->
-<h2 class="heading-green">overskrift 2</h2>   <!-- Green Cherry Bomb heading -->
-<h3 class="heading-blue">overskrift 3</h3>    <!-- Blue Cherry Bomb heading -->
+<h1 class="heading-yellow">overskrift 1</h1>
+<h2 class="heading-green">overskrift 2</h2>
+<h3 class="heading-blue">overskrift 3</h3>
 ```
 
-Each class includes:
-- `font-family: 'Cherry Bomb One'`
-- `letter-spacing: 0.11em`
-- `text-transform: lowercase`
-- Brand color (yellow, green, or blue)
+**Inline Styles** (when you need more control):
+```razor
+<MudText Typo="Typo.h4" Style="@($"color: {JordnaerPalette.RedHeader};")">
+    Section Title
+</MudText>
+```
+
+**Plain Colors** (simplest):
+```html
+<h2 style="color: #41556b;">Simple heading</h2>
+```
 
 ### Background Color Utilities
 
@@ -149,9 +161,9 @@ For custom backgrounds:
 <div class="bg-leg">Light blue background</div>
 ```
 
-### Design Principle: Color Variety
+### Optional: Color Variety
 
-✅ **DO**: Vary colors across sections
+If you want to add visual interest (especially on public pages), you can vary colors:
 ```html
 <section>
   <h2 class="heading-yellow">første sektion</h2>
@@ -161,177 +173,116 @@ For custom backgrounds:
   <h2 class="heading-green">anden sektion</h2>
   <p>Content...</p>
 </section>
-<section>
-  <h2 class="heading-blue">tredje sektion</h2>
-  <p>Content...</p>
-</section>
 ```
 
-❌ **DON'T**: Use multiple colors in one heading
-```html
-<h1>
-  <span class="heading-yellow">multi</span>
-  <span class="heading-green">colored</span>
-</h1>
-<!-- Only the logo does this! -->
-```
+**Note**: Multiple colors in one heading is only for the logo, but honestly, do what works.
 
 ## Visual Elements
 
 ### Separators
 
-**MiniDivider Component** (for major section breaks):
-
-Use the `MiniDivider` component with image-based dotted lines (bee flight path):
-
+**MiniDivider** - For fun visual breaks (bee flight path dotted lines):
 ```razor
-<MiniDivider Color="MiniDividerColor.Yellow" Class="my-4" />
-<MiniDivider Color="MiniDividerColor.Green" Class="my-4" />
-<MiniDivider Color="MiniDividerColor.Blue" Class="my-4" />
-<MiniDivider Color="MiniDividerColor.Red" Class="my-4" />
+<MiniDivider Color="MiniDividerColor.Blue" Center Class="my-6" />
+<MiniDivider Color="MiniDividerColor.Green" Center Class="my-6" />
 ```
 
-**MiniDivider with Center property**:
-
-Use the `Center` parameter to center the divider image:
-
-```razor
-<MiniDivider Color="MiniDividerColor.Yellow" Center Class="my-4" />
-<MiniDivider Color="MiniDividerColor.Green" Center="true" Class="my-4" />
-```
-
-Parameters:
-- `Color` (required): `MiniDividerColor.Yellow`, `MiniDividerColor.Green`, `MiniDividerColor.Blue`, or `MiniDividerColor.Red`
-- `Center` (optional, default: false): Centers the divider image in a flex container
-- `Class` (optional): Additional CSS classes
-- `Style` (optional): Inline styles
-
-**MudDivider** (for card/content separators):
-
-Use standard `MudDivider` for clean separators inside cards:
-
+**MudDivider** - For clean, simple separators:
 ```razor
 <MudDivider Class="my-4" />
 ```
 
-## Warmth & Interactions
-
-### Button Transitions
-
-All buttons automatically have smooth hover effects:
-- Slight upward movement on hover
-- Subtle shadow enhancement
-- 200ms transition
-
-### Card Hover Effects
-
-Cards have built-in warm hover states:
-
+**Or just use whatever works:**
 ```html
-<div class="mud-card warm-shadow">
-  <!-- Card content -->
-</div>
+<hr class="my-4" />
 ```
 
-### Link Transitions
+Use whichever fits your needs. MiniDivider adds brand personality, MudDivider is cleaner.
 
-Links automatically transition to GLÆDE yellow on hover.
+## Warmth & Interactions (Optional)
 
-### Input Focus States
+We have some nice-to-have interactive effects already set up:
+- Buttons have smooth hover effects
+- Links transition to GLÆDE yellow on hover
+- Input fields show yellow outline when focused
+- Cards can use `.warm-shadow` class for soft shadows
 
-Input fields show GLÆDE yellow outline when focused.
-
-## Utility Classes
-
-### Warmth Utilities
-
+Feel free to use these utility classes when they help:
 ```css
 .warm-shadow          /* Soft shadow with brand green tint */
-.warm-shadow-hover    /* Enhanced shadow on hover */
 .warm-rounded         /* Friendly 12px border radius */
 .warm-spacing         /* Consistent 1.5rem bottom margin */
 ```
 
-### Example Usage
+But don't stress about it - MudBlazor's defaults usually look fine.
 
-```html
-<div class="mud-card warm-shadow warm-rounded warm-spacing">
-  <h3 class="heading-yellow">bruger profil</h3>
-  <p>Dette er en varm og venlig card...</p>
-</div>
-```
+## Practical Examples
 
-## Blazor Component Examples
-
-### Using Colors in MudBlazor
+### Colors in MudBlazor
 
 ```razor
 @using Jordnaer.Features.Theme
 
-<MudPaper Style="@($"background-color: {JordnaerPalette.YellowBackground}")">
-    <MudText Typo="Typo.h2" Style="@($"color: white")">
-        velkommen
-    </MudText>
-</MudPaper>
-
-<MudButton Color="Color.Primary"
-           Style="@($"background-color: {JordnaerPalette.GreenBackground}")">
-    Klik her
+<!-- Green save button -->
+<MudButton ButtonType="ButtonType.Submit"
+           Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")">
+    Gem
 </MudButton>
-```
 
-### Typography in Blazor
-
-```razor
-<!-- Opt-in Cherry Bomb heading with color -->
-<MudText Typo="Typo.h1" Class="heading-yellow">
-    hovedoverskrift
+<!-- Section heading with brand color -->
+<MudText Typo="Typo.h4"
+         Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+    Din Profil
 </MudText>
 
-<!-- Standard heading without Cherry Bomb -->
-<MudText Typo="Typo.h2">
-    standard overskrift
-</MudText>
-
-<MudText Typo="Typo.body1" Style="@($"color: {JordnaerPalette.BlueBody}")">
-    Body tekst i den rigtige farve
-</MudText>
-
-<MudText Class="small-text">
-    Lille tekst eller citat
+<!-- Or keep it simple -->
+<MudText Typo="Typo.h5" Style="@($"color: {JordnaerPalette.BlueBody};")">
+    Section Title
 </MudText>
 ```
+
+### Plain HTML Works Too
+
+```html
+<button type="submit" class="account-button-primary">Log ind</button>
+<h1 class="heading-yellow">velkommen</h1>
+```
+
+Use whatever approach makes sense for your component.
 
 ## Accessibility
 
-All color combinations meet WCAG contrast standards:
+**Important**: Keep text readable!
 
-✅ **Good Contrast**:
-- MØDE blue (#41556b) on white background
-- MØDE red (#673417) on white background
-- White text on GLÆDE yellow (#dbab45)
-- White text on RO green (#878e64)
-- White text on MØDE blue (#41556b)
+✅ **Good contrast combinations**:
+- MØDE blue (#41556b) on white
+- MØDE red (#673417) on white
+- White text on green, yellow, or blue backgrounds
 
-❌ **Poor Contrast** (avoid):
-- Yellow text on white background
-- Beige text on white background
-- Light blue text on white background
+❌ **Bad contrast** (avoid):
+- Yellow, beige, or light blue text on white backgrounds
 
-## Design Checklist
+## Quick Guidelines
 
-When implementing new features, ensure:
+When building features, keep in mind:
 
-- [ ] Cherry Bomb headings are opt-in using `.heading-yellow`, `.heading-green`, or `.heading-blue` classes
-- [ ] Heading colors rotate across sections when using Cherry Bomb (not all same color)
-- [ ] Body text uses MØDE blue or MØDE red (never yellow/light colors)
-- [ ] Background colors follow usage rules (primary: yellow/green, light: beige/blue)
-- [ ] `MiniDivider` component used for major section breaks (not CSS dotted separators)
-- [ ] `MudDivider` used for clean separators inside cards
-- [ ] Interactive elements have smooth transitions (200-300ms)
-- [ ] Cards have warm shadows and hover effects
-- [ ] Consistent spacing maintained throughout
-- [ ] Overall feel is warm, friendly, and harmonious
+**Must Do**:
+- Use readable text colors (MØDE blue or red for body text)
+- Maintain decent contrast ratios for accessibility
+
+**Nice to Have**:
+- Use brand colors for visual interest on public pages
+- Add MiniDividers for fun visual breaks
+- Keep spacing consistent
+- Make it feel warm and friendly
+
+**Don't Worry About**:
+- Being pixel-perfect
+- Memorizing all the CSS classes
+- Using every utility class
+- Strict color rotation rules
+
+**When in doubt**: Use MudBlazor defaults and add brand colors where they make sense.
 
 ## Resources
 

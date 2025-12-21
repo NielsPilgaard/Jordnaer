@@ -4,16 +4,14 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 
 ## Quick Reference
 
-| Order | Task File | Task Name | Why This Order |
-|-------|-----------|-----------|----------------|
-| **1** | [01-warmer-ui-ux.md](01-warmer-ui-ux.md) | Warmer UI/UX | Foundation - establishes design system |
-| **2** | [02-nettopologysuite-migration.md](02-nettopologysuite-migration.md) | NetTopologySuite | Backend infrastructure for map search |
-| **3** | [03-finish-posts-feature.md](03-finish-posts-feature.md) | Finish Posts | Content ready for map search |
-| **4** | [04-groups-navigation.md](04-groups-navigation.md) | Groups Hub | Content ready for map search |
-| **5** | [05-map-search.md](05-map-search.md) | Map Search 🚩 | Complex feature - needs all prerequisites |
-| **6** | [06-improve-user-search-display.md](06-improve-user-search-display.md) | User Search Display 🚩 | Benefits from map integration |
-| **7** | [07-account-page-refresh.md](07-account-page-refresh.md) | Account Pages | Polish - isolated |
-| **8** | [08-improve-chat-ui.md](08-improve-chat-ui.md) | Chat UI | Polish - independent |
+| Order | Task File                                                              | Task Name              | Why This Order                            |
+| ----- | ---------------------------------------------------------------------- | ---------------------- | ----------------------------------------- |
+| **2** | [02-nettopologysuite-migration.md](02-nettopologysuite-migration.md)   | NetTopologySuite       | Backend infrastructure for map search     |
+| **3** | [03-finish-posts-feature.md](03-finish-posts-feature.md)               | Finish Posts           | Content ready for map search              |
+| **4** | [04-groups-navigation.md](04-groups-navigation.md)                     | Groups Hub             | Content ready for map search              |
+| **5** | [05-map-search.md](05-map-search.md)                                   | Map Search 🚩          | Complex feature - needs all prerequisites |
+| **6** | [06-improve-user-search-display.md](06-improve-user-search-display.md) | User Search Display 🚩 | Benefits from map integration             |
+| **8** | [08-improve-chat-ui.md](08-improve-chat-ui.md)                         | Chat UI                | Polish - independent                      |
 
 🚩 = Behind `EnableNewSearchExperience` feature flag
 
@@ -24,6 +22,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 ### Phase 1: Foundation (Design System)
 
 #### Task 01: Warmer UI/UX ⭐ **START HERE**
+
 - **Priority:** Do this FIRST
 - **Why:** Establishes color palette, typography, and design tokens that ALL other tasks will use
 - **Impact:** Prevents rework - all subsequent UI changes use correct design system from the start
@@ -36,6 +35,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 ### Phase 2: Backend Infrastructure
 
 #### Task 02: NetTopologySuite Migration
+
 - **Priority:** Early backend work
 - **Why:** Provides distance calculation engine needed for map search (Task 05)
 - **No UI Dependency:** Pure backend work, won't conflict with design system changes
@@ -52,6 +52,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 ### Phase 3: Core Features
 
 #### Task 03: Finish Posts Feature
+
 - **Priority:** Medium - needed before map search
 - **Why:** Posts must be complete before they can appear in map search
 - **Design System Ready:** Uses warmer UI/UX from Task 01
@@ -64,6 +65,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
   - Great-looking create post form
 
 #### Task 04: Groups Navigation Hub
+
 - **Priority:** Medium - needed before map search
 - **Why:** Groups must be discoverable before they can appear in map search
 - **Design System Ready:** Uses warmer UI/UX from Task 01
@@ -80,6 +82,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 ### Phase 4: Advanced Search (Feature Flagged)
 
 #### Task 05: Map Search 🗺️ **FEATURE FLAG REQUIRED**
+
 - **Priority:** High - complex feature
 - **Why Now:** Backend ready (Task 02), content ready (Tasks 03, 04), design ready (Task 01)
 - **Feature Flag:** `EnableNewSearchExperience = false` (start disabled)
@@ -95,6 +98,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
   - Works for all three search types
 
 **Feature Flag Implementation:**
+
 ```csharp
 // appsettings.json
 {
@@ -108,6 +112,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 **When flag = true:** New map-based search with improved display
 
 #### Task 06: Improve User Search Display 🔍 **FEATURE FLAG REQUIRED**
+
 - **Priority:** High - part of new search experience
 - **Why Now:** Can design search results considering map integration from Task 05
 - **Feature Flag:** `EnableNewSearchExperience` (same flag as Task 05)
@@ -120,6 +125,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
   - Consistent with JordnaerPalette design system
 
 **Design Considerations:**
+
 - Cards display distance info from map-based search
 - Works in split view (map + list) and list-only view
 - Clicking card can highlight corresponding map marker
@@ -129,6 +135,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
 ### Phase 5: Polish (Independent UI Improvements)
 
 #### Task 07: Account Page Refresh
+
 - **Priority:** Medium - pure UI polish
 - **Why Now:** No functional dependencies, can be done anytime after design system
 - **Design System Ready:** Uses warmer UI/UX from Task 01
@@ -142,6 +149,7 @@ This document explains the optimal order for executing the Jordnaer tasks, based
   - Server-side validation only
 
 #### Task 08: Improve Chat UI
+
 - **Priority:** Low - pure polish
 - **Why Last:** Completely isolated from other features, no dependencies
 - **Design System Ready:** Uses warmer UI/UX from Task 01

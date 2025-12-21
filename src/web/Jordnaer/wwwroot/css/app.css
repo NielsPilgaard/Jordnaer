@@ -265,3 +265,223 @@ body, p {
     padding: 8px 16px;
     border-radius: 4px;
 }
+
+
+/* ========================================
+   TOPBAR RESPONSIVE FIX (CSS-ONLY)
+   Replace MudHidden with media queries
+   ======================================== */
+
+.topbar-desktop {
+    display: none !important;
+}
+
+.topbar-mobile {
+    display: flex !important;
+}
+
+.topbar-mobile-menu {
+    display: block;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .topbar-desktop {
+        display: flex !important;
+    }
+
+    .topbar-mobile {
+        display: none !important;
+    }
+
+    .topbar-mobile-menu {
+        display: none !important;
+    }
+}
+
+/* ========================================
+   MOBILE DROPDOWN MENU (CSS-ONLY)
+   Uses checkbox hack for SSR compatibility
+   ======================================== */
+
+/* Hide the checkbox */
+.mobile-menu-toggle {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Menu button styling */
+.mobile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.mobile-menu-button:hover {
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+.mobile-menu-button:focus-within {
+    outline: 2px solid #41556b;
+    outline-offset: 2px;
+}
+
+/* Dropdown menu - hidden by default */
+.mobile-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(65, 85, 107, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.25s ease-in-out;
+    z-index: 1000;
+    min-width: 200px;
+    border: 1px solid rgba(65, 85, 107, 0.15);
+}
+
+/* Show dropdown when checkbox is checked */
+.mobile-menu-toggle:checked ~ .mobile-menu-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Menu items */
+.mobile-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    font-family: 'Open Sans Light', sans-serif;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease-in-out;
+    border-bottom: 1px solid rgba(65, 85, 107, 0.1);
+    min-height: 44px;
+}
+
+.mobile-menu-item:last-child {
+    border-bottom: none;
+}
+
+.mobile-menu-item:hover {
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+.mobile-menu-item:focus {
+    outline: 2px solid #41556b;
+    outline-offset: -2px;
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+/* First and last items get rounded corners */
+.mobile-menu-item:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.mobile-menu-item:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+/* ========================================
+   PROFILE DROPDOWN MENU (CSS-ONLY)
+   Uses checkbox hack for SSR compatibility
+   ======================================== */
+
+/* Profile dropdown container */
+.profile-dropdown {
+    position: relative;
+}
+
+/* Hide the checkbox */
+.profile-menu-toggle {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Menu button styling */
+.profile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+    user-select: none;
+}
+
+.profile-menu-button:hover {
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+/* Dropdown menu - hidden by default */
+.profile-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(65, 85, 107, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.25s ease-in-out;
+    z-index: 1000;
+    min-width: 220px;
+    border: 1px solid rgba(65, 85, 107, 0.15);
+}
+
+/* Show dropdown when checkbox is checked */
+.profile-menu-toggle:checked ~ .profile-menu-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Menu items */
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    font-family: 'Open Sans Light', sans-serif;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease-in-out;
+    border-bottom: 1px solid rgba(65, 85, 107, 0.1);
+    min-height: 44px;
+}
+
+.profile-menu-item:last-child {
+    border-bottom: none;
+}
+
+.profile-menu-item:hover {
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+.profile-menu-item:focus {
+    outline: 2px solid #41556b;
+    outline-offset: -2px;
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+/* First and last items get rounded corners */
+.profile-menu-item:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.profile-menu-item:last-child {
+    border-radius: 0 0 8px 8px;
+}
