@@ -1,17 +1,21 @@
 ﻿@inherits LayoutComponentBase
 @layout AccountLayout
 
-<h1>Administrer din konto</h1>
+<div class="account-container" style="max-width: 1200px;">
+	<div class="account-paper">
+		<h1 class="account-header">Administrer din konto</h1>
+		<p class="account-subheader text-center">Ændre dine kontoindstillinger</p>
 
-<div>
-	<h2>Ændre dine kontoindstillinger</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
-            <ManageNavMenu />
-        </div>
-        <div class="col-md-9">
-            @Body
-        </div>
-    </div>
+		<div class="manage-layout-container">
+			<div class="manage-nav-desktop">
+				<ManageNavMenu />
+			</div>
+			<div class="manage-nav-mobile">
+				<ManageNavMenu />
+			</div>
+			<div class="manage-content">
+				@Body
+			</div>
+		</div>
+	</div>
 </div>

@@ -9,21 +9,21 @@
 
 <MetadataComponent Title="Gensend emailbekræftelse"/>
 
-<h1>Gensend emailbekræftelse</h1>
-<h2>Indtast din email.</h2>
-<hr />
-<StatusMessage Message="@_message" />
-<div class="row">
-	<div class="col-md-4">
-		<EditForm Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync" method="post">
+<div class="account-container">
+	<div class="account-paper">
+		<h1 class="account-header">Gensend emailbekræftelse</h1>
+		<p class="account-subheader">Indtast din email.</p>
+
+		<StatusMessage Message="@_message" />
+		<EditForm Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form">
 			<DataAnnotationsValidator />
 			<ValidationSummary class="text-danger" role="alert" />
-			<div class="form-floating mb-3">
-				<InputText @bind-Value="Input.Email" class="form-control" aria-required="true" placeholder="navn@eksempel.com" />
+			<div class="form-floating">
+				<InputText @bind-Value="Input.Email" class="form-control" aria-required="true" placeholder="navn@eksempel.com" autofocus />
 				<label for="email" class="form-label">Email</label>
-				<ValidationMessage For="() => Input.Email" class="text-danger" />
+				<ValidationMessage For="() => Input.Email" class="validation-message" />
 			</div>
-			<button type="submit" class="w-100 btn btn-lg btn-primary">Gensend</button>
+			<button type="submit" class="account-button-primary">Gensend</button>
 		</EditForm>
 	</div>
 </div>

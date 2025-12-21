@@ -10,8 +10,10 @@
 
 <MetadataComponent Title="Nulstil autentificeringsnøgle" />
 
+<h2 class="manage-page-title">Nulstil autentificeringsnøgle</h2>
+
 <StatusMessage />
-<h3>Nulstil autentificeringsnøgle</h3>
+
 <div class="alert alert-warning" role="alert">
 	<p>
 		<span class="glyphicon glyphicon-warning-sign"></span>
@@ -22,12 +24,11 @@
 		Hvis du ikke fuldfører konfigurationen af din autentificeringsapp, kan du miste adgangen til din konto.
 	</p>
 </div>
-<div>
-	<form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
-		<AntiforgeryToken />
-		<button class="btn btn-danger" type="submit">Nulstil autentificeringsnøgle</button>
-	</form>
-</div>
+
+<form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post" style="max-width: 600px;">
+	<AntiforgeryToken />
+	<button class="account-button-primary" type="submit" style="background-color: var(--danger-color);">Nulstil autentificeringsnøgle</button>
+</form>
 
 
 @code {

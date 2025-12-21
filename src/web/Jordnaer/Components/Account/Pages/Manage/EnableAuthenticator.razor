@@ -18,24 +18,27 @@
 }
 else
 {
+    <h2 class="manage-page-title">Konfigurer autentificeringsapp</h2>
+    <p class="manage-page-description">Opsæt to-faktor-autentificering med en autentificeringsapp</p>
+
     <StatusMessage Message="@_message" />
-    <h3>Konfigurer autentificeringsapp</h3>
+
     <div>
         <p>For at bruge en autentificeringsapp, følg følgende trin:</p>
         <ol class="list">
             <li>
                 <p>
                     Download en To-faktor-autentificeringsapp som Microsoft Authenticator til
-                    <a href="https://go.microsoft.com/fwlink/?Linkid=825072">Android</a> og
-                    <a href="https://go.microsoft.com/fwlink/?Linkid=825073">iOS</a> eller
+                    <a href="https://go.microsoft.com/fwlink/?Linkid=825072" class="account-link">Android</a> og
+                    <a href="https://go.microsoft.com/fwlink/?Linkid=825073" class="account-link">iOS</a> eller
                     Google Authenticator til
-                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en">Android</a> og
-                    <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8">iOS</a>.
+                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en" class="account-link">Android</a> og
+                    <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8" class="account-link">iOS</a>.
                 </p>
             </li>
             <li>
                 <p>Scan QR-koden eller indtast denne nøgle <kbd>@_sharedKey</kbd> i din To-faktor-autentificeringsapp. Mellemrum og store/små bogstaver betyder ikke noget.</p>
-                <div class="alert alert-info">Lær hvordan du <a href="https://go.microsoft.com/fwlink/?Linkid=852423">aktiverer QR-kodegenerering</a>.</div>
+                <div class="alert alert-info">Lær hvordan du <a href="https://go.microsoft.com/fwlink/?Linkid=852423" class="account-link">aktiverer QR-kodegenerering</a>.</div>
                 <div></div>
                 <div data-url="@_authenticatorUri"></div>
             </li>
@@ -44,21 +47,20 @@ else
                     Når du har scannet QR-koden eller indtastet nøglen ovenfor, vil din To-faktor-autentificeringsapp give dig
                     en unik kode. Indtast koden i bekræftelsesboksen nedenfor.
                 </p>
-                <div class="row">
-                    <div class="col-md-6">
-                        <EditForm Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync" method="post">
-                            <DataAnnotationsValidator />
-                            <div class="form-floating mb-3">
-                                <InputText @bind-Value="Input.Code" class="form-control" autocomplete="off"
-                                           placeholder="Indtast venligst koden." />
-                                <label for="code" class="control-label form-label">Verifikationskode</label>
-                                <ValidationMessage For="() => Input.Code" class="text-danger" />
-                            </div>
-                            <button type="submit" class="w-100 btn btn-lg btn-primary">Bekræft</button>
-                            <ValidationSummary class="text-danger" role="alert" />
-                        </EditForm>
+
+                <EditForm Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form" style="max-width: 600px;">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-floating">
+                        <InputText @bind-Value="Input.Code" class="form-control" autocomplete="off"
+                                   placeholder="Indtast venligst koden." autofocus />
+                        <label for="code" class="control-label form-label">Verifikationskode</label>
+                        <ValidationMessage For="() => Input.Code" class="validation-message" />
                     </div>
-                </div>
+
+                    <button type="submit" class="account-button-primary">Bekræft</button>
+                    <ValidationSummary class="validation-message" role="alert" />
+                </EditForm>
             </li>
         </ol>
     </div>

@@ -7,21 +7,21 @@
 
 <MetadataComponent Title="To-faktor autentifikation"/>
 
-<h1>To-faktor autentifikation</h1>
-<hr />
-<StatusMessage Message="@_message" />
-<p>Dit login er beskyttet med en autentifikations-app. Indtast din autentifikations kode nedenfor.</p>
-<div class="row">
-	<div class="col-md-4">
-		<EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post">
+<div class="account-container">
+	<div class="account-paper">
+		<h1 class="account-header">To-faktor autentifikation</h1>
+		<StatusMessage Message="@_message" />
+		<p>Dit login er beskyttet med en autentifikations-app. Indtast din autentifikations kode nedenfor.</p>
+
+		<EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form">
 			<input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
 			<input type="hidden" name="RememberMe" value="@RememberMe" />
 			<DataAnnotationsValidator />
 			<ValidationSummary class="text-danger" role="alert" />
-			<div class="form-floating mb-3">
-				<InputText @bind-Value="Input.TwoFactorCode" class="form-control" autocomplete="off" />
-                <label for="two-factor-code" class="form-label">Autentifikations kode</label>
-				<ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
+			<div class="form-floating">
+				<InputText @bind-Value="Input.TwoFactorCode" class="form-control" autocomplete="off" autofocus />
+				<label for="two-factor-code" class="form-label">Autentifikations kode</label>
+				<ValidationMessage For="() => Input.TwoFactorCode" class="validation-message" />
 			</div>
 			<div class="checkbox mb-3">
 				<label for="remember-machine" class="form-label">
@@ -29,16 +29,19 @@
 					Husk denne maskine
 				</label>
 			</div>
-			<div>
-				<button type="submit" class="w-100 btn btn-lg btn-primary">Log ind</button>
-			</div>
+			<button type="submit" class="account-button-primary">Log ind</button>
 		</EditForm>
+
+		<hr class="account-divider" />
+
+		<nav class="account-nav-links" aria-label="Konto muligheder">
+			<p>
+				Har du ikke adgang til din autentifikations-enhed? Du kan
+				<a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl" class="account-link">logge ind med en gendannelseskode</a>.
+			</p>
+		</nav>
 	</div>
 </div>
-<p>
-    Har du ikke adgang til din autentifikations-enhed? Du kan
-	<a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl">logge ind med en gendannelseskode</a>.
-</p>
 
 
 @code {

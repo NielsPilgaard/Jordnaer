@@ -6,23 +6,23 @@
 
 <MetadataComponent Title="Personlige Data"/>
 
-<StatusMessage />
-<h3>Personlige Data</h3>
+<h2 class="manage-page-title">Personlige Data</h2>
+<p class="manage-page-description">Administrer dine personlige data</p>
 
-<div class="row">
-	<div class="col-md-6">
-		<p>Din konto indeholder personlige data, som du har givet os. Denne side giver dig mulighed for at downloade eller slette disse data.</p>
-		<p>
-			<strong>At slette disse data vil permanent fjerne din konto, og dette kan ikke fortrydes.</strong>
-		</p>
-		<form action="Account/Manage/DownloadPersonalData" method="post">
-			<AntiforgeryToken />
-			<button class="btn btn-primary" type="submit">Download</button>
-		</form>
-		<p>
-			<a href="Account/Manage/DeletePersonalData" class="btn btn-danger">Slet</a>
-		</p>
-	</div>
+<StatusMessage />
+
+<div style="max-width: 600px;">
+	<p>Din konto indeholder personlige data, som du har givet os. Denne side giver dig mulighed for at downloade eller slette disse data.</p>
+	<p>
+		<strong>At slette disse data vil permanent fjerne din konto, og dette kan ikke fortrydes.</strong>
+	</p>
+
+	<form action="Account/Manage/DownloadPersonalData" method="post" style="margin-bottom: 1rem;">
+		<AntiforgeryToken />
+		<button class="account-button-primary" type="submit">Download</button>
+	</form>
+
+	<a href="Account/Manage/DeletePersonalData" class="account-button-primary" style="background-color: var(--danger-color); display: inline-block; text-decoration: none;">Slet</a>
 </div>
 
 

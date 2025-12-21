@@ -11,8 +11,11 @@
 
 <MetadataComponent Title="To-faktor-autentificering (2FA)"/>
 
+<h2 class="manage-page-title">To-faktor-autentificering (2FA)</h2>
+<p class="manage-page-description">Administrer dine to-faktor-autentificeringsindstillinger</p>
+
 <StatusMessage />
-<h3>To-faktor-autentificering (2FA)</h3>
+
 @if (_canTrack)
 {
     if (_is2FaEnabled)
@@ -21,45 +24,45 @@
         {
             <div class="alert alert-danger">
                 <strong>Du har ingen gendannelseskoder tilbage.</strong>
-                <p>Du skal <a href="Account/Manage/GenerateRecoveryCodes">generere et nyt sæt gendannelseskoder</a> før du kan logge ind med en gendannelseskode.</p>
+                <p>Du skal <a href="Account/Manage/GenerateRecoveryCodes" class="account-link">generere et nyt sæt gendannelseskoder</a> før du kan logge ind med en gendannelseskode.</p>
             </div>
         }
         else if (_recoveryCodesLeft == 1)
         {
             <div class="alert alert-danger">
                 <strong>Du har 1 gendannelseskode tilbage.</strong>
-                <p>Du kan <a href="Account/Manage/GenerateRecoveryCodes">generere et nyt sæt gendannelseskoder</a>.</p>
+                <p>Du kan <a href="Account/Manage/GenerateRecoveryCodes" class="account-link">generere et nyt sæt gendannelseskoder</a>.</p>
             </div>
         }
         else if (_recoveryCodesLeft <= 3)
         {
             <div class="alert alert-warning">
                 <strong>Du har @_recoveryCodesLeft gendannelseskoder tilbage.</strong>
-                <p>Du bør <a href="Account/Manage/GenerateRecoveryCodes">generere et nyt sæt gendannelseskoder</a>.</p>
+                <p>Du bør <a href="Account/Manage/GenerateRecoveryCodes" class="account-link">generere et nyt sæt gendannelseskoder</a>.</p>
             </div>
         }
 
         if (_isMachineRemembered)
         {
-            <form style="display: inline-block" @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
+            <form style="display: inline-block; margin-right: 0.5rem;" @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
                 <AntiforgeryToken />
-                <button type="submit" class="btn btn-primary">Glem denne browser</button>
+                <button type="submit" class="account-button-secondary">Glem denne browser</button>
             </form>
         }
 
-        <a href="Account/Manage/Disable2fa" class="btn btn-primary">Deaktiver 2FA</a>
-        <a href="Account/Manage/GenerateRecoveryCodes" class="btn btn-primary">Nulstil gendannelseskoder</a>
+        <a href="Account/Manage/Disable2fa" class="account-button-secondary" style="margin-right: 0.5rem;">Deaktiver 2FA</a>
+        <a href="Account/Manage/GenerateRecoveryCodes" class="account-button-secondary">Nulstil gendannelseskoder</a>
     }
 
-    <h4>Autentificeringsapp</h4>
+    <h3 style="margin-top: 2rem;">Autentificeringsapp</h3>
     @if (!_hasAuthenticator)
     {
-        <a href="Account/Manage/EnableAuthenticator" class="btn btn-primary">Tilføj autentificeringsapp</a>
+        <a href="Account/Manage/EnableAuthenticator" class="account-button-primary">Tilføj autentificeringsapp</a>
     }
     else
     {
-        <a href="Account/Manage/EnableAuthenticator" class="btn btn-primary">Opsæt autentificeringsapp</a>
-        <a href="Account/Manage/ResetAuthenticator" class="btn btn-primary">Nulstil autentificeringsapp</a>
+        <a href="Account/Manage/EnableAuthenticator" class="account-button-secondary" style="margin-right: 0.5rem;">Opsæt autentificeringsapp</a>
+        <a href="Account/Manage/ResetAuthenticator" class="account-button-secondary">Nulstil autentificeringsapp</a>
     }
 }
 else

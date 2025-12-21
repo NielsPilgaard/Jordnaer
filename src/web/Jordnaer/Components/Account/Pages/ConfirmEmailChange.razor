@@ -9,9 +9,12 @@
 
 <MetadataComponent Title="Bekræft ændring af email" />
 
-<h1>Bekræft ændring af email</h1>
-
-<StatusMessage Message="@_message" />
+<div class="account-container">
+	<div class="account-paper">
+		<h1 class="account-header">Bekræft ændring af email</h1>
+		<StatusMessage Message="@_message" />
+	</div>
+</div>
 
 @code {
     private AlertMessage? _message;
