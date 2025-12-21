@@ -11,12 +11,13 @@
 	return;
 }
 
-<MudContainer MaxWidth="MaxWidth.Medium">
-	<h2 class="font-open-sans-light">Registreringsbekræftelse</h2>
-
-	<MudText Class="my-4">Check venligst din email for at bekræfte din konto. </MudText>
-	<MudAlert Severity="Severity.Info" Class="mt-4">Husk at tjekke spam/uønsket mail.</MudAlert>
-</MudContainer>
+<div class="account-container">
+	<div class="account-paper">
+		<h1 class="account-header">Registreringsbekræftelse</h1>
+		<p>Check venligst din email for at bekræfte din konto.</p>
+		<div class="alert alert-info">Husk at tjekke spam/uønsket mail.</div>
+	</div>
+</div>
 
 @code {
 	private AlertMessage? _statusMessage;

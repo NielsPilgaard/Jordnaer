@@ -10,11 +10,14 @@
 
 <MetadataComponent Title="Håndter dine eksterne logins"/>
 
+<h2 class="manage-page-title">Håndter dine eksterne logins</h2>
+<p class="manage-page-description">Tilknyt og administrer eksterne loginmetoder</p>
+
 <StatusMessage />
 
 @if (_currentLogins?.Count > 0)
 {
-    <h3>Registrerede Logins</h3>
+    <h3 style="margin-top: 2rem;">Registrerede Logins</h3>
     <table class="table">
         <tbody>
             @foreach (var login in _currentLogins)
@@ -29,7 +32,7 @@
                                 <div>
                                     <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
                                     <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
-                                    <button type="submit" class="btn btn-primary" title="Fjern dette @login.ProviderDisplayName login fra din konto">Fjern</button>
+                                    <button type="submit" class="account-button-secondary" title="Fjern dette @login.ProviderDisplayName login fra din konto">Fjern</button>
                                 </div>
                             </form>
                         }
@@ -45,15 +48,14 @@
 }
 @if (_otherLogins?.Count > 0)
 {
-    <h4>Tilføj en anden tjeneste til at logge ind.</h4>
-    <hr />
+    <h3 style="margin-top: 2rem;">Tilføj en anden tjeneste til at logge ind</h3>
     <form class="form-horizontal" action="Account/Manage/LinkExternalLogin" method="post">
         <AntiforgeryToken />
         <div>
             <p>
                 @foreach (var provider in _otherLogins)
                 {
-                    <button type="submit" class="btn btn-primary" name="Provider" value="@provider.Name" title="Log ind med din @provider.DisplayName konto">
+                    <button type="submit" class="account-button-primary" name="Provider" value="@provider.Name" title="Log ind med din @provider.DisplayName konto" style="margin-right: 0.5rem;">
                         @provider.DisplayName
                     </button>
                 }
