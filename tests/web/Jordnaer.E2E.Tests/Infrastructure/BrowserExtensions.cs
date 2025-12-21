@@ -13,7 +13,7 @@ public static class BrowserExtensions
 		// Use LoginPage Page Object for maintainability
 		var loginPage = page.CreateLoginPage();
 		await loginPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
-		await loginPage.LoginAsync(TestConfiguration.Values.TestUserName, TestConfiguration.Values.TestUserPassword);
+		await loginPage.LoginAsync(TestConfiguration.Values.Username, TestConfiguration.Values.Password);
 
 		// Save authentication state
 		await page.Context.StorageStateAsync(new BrowserContextStorageStateOptions

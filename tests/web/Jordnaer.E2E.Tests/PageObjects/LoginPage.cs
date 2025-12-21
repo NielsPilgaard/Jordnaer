@@ -18,9 +18,9 @@ public class LoginPage
 
 	// Locators
 	private ILocator EmailInput => _page.GetByPlaceholder("navn@eksempel.com", new PageGetByPlaceholderOptions { Exact = true });
-	private ILocator PasswordInput => _page.GetByPlaceholder("Adgangskode", new PageGetByPlaceholderOptions { Exact = true });
+	private ILocator PasswordInput => _page.GetByPlaceholder("adgangskode", new PageGetByPlaceholderOptions { Exact = true });
 	private ILocator LoginButton => _page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Log ind", Exact = true });
-	private ILocator CreateAccountLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret ny konto" });
+	private ILocator CreateAccountLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" });
 	private ILocator ForgotPasswordLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Glemt" });
 
 	// Actions
