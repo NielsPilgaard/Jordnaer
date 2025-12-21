@@ -23,66 +23,65 @@
 
         <StatusMessage Message="@Message" />
 
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register" Enhance class="account-form">
+        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser"
+            FormName="register" Enhance class="account-form">
             <DataAnnotationsValidator />
 
             <div class="form-floating">
-                <InputText @bind-Value="Input.Email"
-                           class="form-control"
-                           autocomplete="email"
-                           aria-required="true"
-                           placeholder="navn@eksempel.com"
-                           id="email"
-                           autofocus />
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true"
+                    placeholder="navn@eksempel.com" id="email" autofocus />
                 <label for="email">Email</label>
                 <ValidationMessage For="() => Input.Email" class="validation-message" />
             </div>
 
             <div class="form-floating">
-                <InputText type="password"
-                           @bind-Value="Input.Password"
-                           class="form-control"
-                           autocomplete="new-password"
-                           aria-required="true"
-                           placeholder="Adgangskode"
-                           id="password" />
+                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password"
+                    aria-required="true" placeholder="Adgangskode" id="password" />
                 <label for="password">Adgangskode</label>
 
                 @if (_showPasswordValidation)
                 {
-	                <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
-		                <MudText Typo="Typo.body2" Color="@(PasswordLengthValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
-			                <MudIcon Icon="@(PasswordLengthValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
-			                Mindst 8 tegn langt
-		                </MudText>
-		                <MudText Typo="Typo.body2" Color="@(PasswordUppercaseValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
-			                <MudIcon Icon="@(PasswordUppercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
-			                Mindst ét stort bogstav
-		                </MudText>
-		                <MudText Typo="Typo.body2" Color="@(PasswordLowercaseValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
-			                <MudIcon Icon="@(PasswordLowercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
-			                Mindst ét lille bogstav
-		                </MudText>
-		                <MudText Typo="Typo.body2" Color="@(PasswordNumberValid ? Color.Success : Color.Error)" Style="font-family: 'Open Sans Light', sans-serif;">
-			                <MudIcon Icon="@(PasswordNumberValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" Size="Size.Small" Style="margin-right: 0.5rem;" />
-			                Mindst ét tal
-		                </MudText>
-	                </div>
+                    <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <MudText Typo="Typo.body2" Color="@(PasswordLengthValid? Color.Success: Color.Error)"
+                            Style="font-family: 'Open Sans Light', sans-serif;">
+                            <MudIcon
+                                Icon="@(PasswordLengthValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                Size="Size.Small" Style="margin-right: 0.5rem;" />
+                            Mindst 8 tegn langt
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="@(PasswordUppercaseValid? Color.Success: Color.Error)"
+                            Style="font-family: 'Open Sans Light', sans-serif;">
+                            <MudIcon
+                                Icon="@(PasswordUppercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                Size="Size.Small" Style="margin-right: 0.5rem;" />
+                            Mindst ét stort bogstav
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="@(PasswordLowercaseValid? Color.Success: Color.Error)"
+                            Style="font-family: 'Open Sans Light', sans-serif;">
+                            <MudIcon
+                                Icon="@(PasswordLowercaseValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                Size="Size.Small" Style="margin-right: 0.5rem;" />
+                            Mindst ét lille bogstav
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="@(PasswordNumberValid? Color.Success: Color.Error)"
+                            Style="font-family: 'Open Sans Light', sans-serif;">
+                            <MudIcon
+                                Icon="@(PasswordNumberValid ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)"
+                                Size="Size.Small" Style="margin-right: 0.5rem;" />
+                            Mindst ét tal
+                        </MudText>
+                    </div>
                 }
             </div>
 
             <div class="form-floating">
-                <InputText type="password"
-                           class="form-control"
-                           @bind-Value="Input.ConfirmPassword"
-                           autocomplete="new-password"
-                           aria-required="true"
-                           placeholder="Gentag adgangskode"
-                           id="confirm-password" />
+                <InputText type="password" class="form-control" @bind-Value="Input.ConfirmPassword"
+                    autocomplete="new-password" aria-required="true" placeholder="Gentag adgangskode"
+                    id="confirm-password" />
                 <label for="confirm-password">Bekræft adgangskode</label>
                 @if (_showConfirmPasswordValidation && IsPasswordValid)
                 {
-	                <ValidationMessage For="() => Input.ConfirmPassword" class="validation-message" />
+                    <ValidationMessage For="() => Input.ConfirmPassword" class="validation-message" />
                 }
             </div>
 
@@ -107,7 +106,7 @@
 
 @code {
     private IEnumerable<IdentityError>? _identityErrors;
-    
+
     private bool _showPasswordValidation = false;
     private bool _showConfirmPasswordValidation = false;
 
@@ -116,10 +115,10 @@
     private bool PasswordLowercaseValid => Input.Password.Any(char.IsLower);
     private bool PasswordNumberValid => Input.Password.Any(char.IsDigit);
 
-    private bool IsPasswordValid => PasswordLengthValid && 
-                                    PasswordUppercaseValid && 
-                                    PasswordLowercaseValid && 
-                                    PasswordNumberValid;
+    private bool IsPasswordValid => PasswordLengthValid &&
+    PasswordUppercaseValid &&
+    PasswordLowercaseValid &&
+    PasswordNumberValid;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
@@ -132,27 +131,13 @@
 
     protected override void OnParametersSet()
     {
-	    _showPasswordValidation = !string.IsNullOrEmpty(Input.Password);
-	    _showConfirmPasswordValidation = !string.IsNullOrEmpty(Input.ConfirmPassword);
-
-        // Set HasVisited cookie to indicate this visitor has been to the site
-        // Cookie never expires so future visits will show Login page
-        if (HttpContext is not null && HttpMethods.IsGet(HttpContext.Request.Method))
-        {
-            HttpContext.Response.Cookies.Append("HasVisited", "true", new CookieOptions
-            {
-                Expires = DateTimeOffset.MaxValue,
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-                IsEssential = true
-            });
-        }
+        _showPasswordValidation = !string.IsNullOrEmpty(Input.Password);
+        _showConfirmPasswordValidation = !string.IsNullOrEmpty(Input.ConfirmPassword);
     }
 
     private AlertMessage? Message => _identityErrors is null
-        ? null
-        : new AlertMessage(_identityErrors.Select(error => error.Description), true);
+    ? null
+    : new AlertMessage(_identityErrors.Select(error => error.Description), true);
 
     public async Task RegisterUser(EditContext editContext)
     {
@@ -181,16 +166,16 @@
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+        NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+        new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                queryParameters: new Dictionary<string, object?> { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+            "Account/RegisterConfirmation",
+            queryParameters: new Dictionary<string, object?> { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
@@ -208,7 +193,7 @@
         [DataType(DataType.Password)]
         [Display(Name = "Adgangskode")]
         [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
-            ErrorMessage = "Adgangskoden skal indeholde mindst 1 stort bogstav, 1 småt bogstav, 1 tal, samt være mindst 8 karakterer langt.")]
+        ErrorMessage = "Adgangskoden skal indeholde mindst 1 stort bogstav, 1 småt bogstav, 1 tal, samt være mindst 8 karakterer langt.")]
         public string Password { get; set; } = "";
 
         [DataType(DataType.Password)]
