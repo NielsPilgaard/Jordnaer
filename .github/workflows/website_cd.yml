@@ -31,9 +31,12 @@ jobs:
 
       - name: Test
         run: >
-          dotnet test "${{ env.TESTS_DIRECTORY }}" 
-          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
+          dotnet test "${{ env.TESTS_DIRECTORY }}"
+          --configuration Release
+          --no-build
+          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
+          -p:InformationalVersion=${{ github.ref_name }}
 
       - name: Publish
         run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
