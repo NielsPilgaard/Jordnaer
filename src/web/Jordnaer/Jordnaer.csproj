@@ -22,6 +22,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="9.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="9.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,6 +30,7 @@
 		<PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
 		<PackageReference Include="Bogus" Version="35.6.3" />
 		<PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="1.1.0" />
+		<PackageReference Include="NetTopologySuite" Version="2.6.0" />
 		<PackageReference Include="OneOf" Version="3.0.271" />
 		<PackageReference Include="Mediator.Abstractions" Version="3.0.1" />
 		<PackageReference Include="Mediator.SourceGenerator" Version="3.0.1">
