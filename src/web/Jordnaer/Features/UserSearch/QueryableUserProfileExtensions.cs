@@ -6,7 +6,8 @@ namespace Jordnaer.Features.UserSearch;
 
 internal static class QueryableUserProfileExtensions
 {
-	internal static async Task<(List<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilter(
+	// TODO: We can make this generic for posts, groups and users
+	internal static async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilter(
 		this IQueryable<UserProfile> users,
 		UserSearchFilter filter,
 		ILocationService locationService,
@@ -14,26 +15,24 @@ internal static class QueryableUserProfileExtensions
 	{
 		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
 		{
-			return (await users.ToListAsync(cancellationToken), false);
+			return (users, false);
 		}
 
 		// Get location from the search location
 		// TODO: When we get a map in our user, group and post search filters, we should use that location instead and remove async 
 		var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
 
-		if (!searchLocation.HasValue)
+		if (searchLocation is null)
 		{
-			return (await users.ToListAsync(cancellationToken), false);
+			return (users, false);
 		}
 
-		var location = searchLocation.Value.Location;
+		var location = searchLocation.Location;
 		var radiusMeters = filter.WithinRadiusKilometers.Value * 1000;
 
 		// Use SQL Server's built-in distance calculation with geography type
-		var usersWithDistance = await users
-			.Where(u => u.Location != null && u.Location.Distance(location) <= radiusMeters)
-			.OrderBy(u => u.Location!.Distance(location))
-			.ToListAsync(cancellationToken);
+		var usersWithDistance = users.Where(p => p.Location != null && p.Location.IsWithinDistance(location, radiusMeters))
+									  .OrderBy(u => u.Location!.Distance(location));
 
 		return (usersWithDistance, true);
 	}

@@ -9,6 +9,7 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddScoped<IProfileCache, ProfileCache>();
 		builder.Services.AddScoped<IProfileService, ProfileService>();
 		builder.Services.AddScoped<IProfileImageService, ProfileImageService>();
+		builder.Services.AddScoped<ILocationService, LocationService>();
 
 		builder.Services.AddScoped<IExternalProviderPictureDownloader, MicrosoftPictureDownloader>();
 		builder.Services.AddScoped<IExternalProviderPictureDownloader, FacebookPictureDownloader>();

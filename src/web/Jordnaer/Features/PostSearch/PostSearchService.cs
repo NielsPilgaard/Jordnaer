@@ -1,6 +1,6 @@
 ﻿using Jordnaer.Database;
 using Jordnaer.Features.Metrics;
-using Jordnaer.Features.Search;
+using Jordnaer.Features.Profile;
 using Jordnaer.Models;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace Jordnaer.Features.PostSearch;
 
 public class PostSearchService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	IZipCodeService zipCodeService,
+	ILocationService locationService,
 	ILogger<PostSearchService> logger)
 {
 	public async Task<OneOf<PostSearchResult, Error<string>>> GetPostsAsync(PostSearchFilter filter,
@@ -70,18 +70,19 @@ public class PostSearchService(
 			return posts;
 		}
 
-		var (zipCodesWithinCircle, searchedZipCode) = await zipCodeService.GetZipCodesNearLocationAsync(
-														  filter.Location,
-														  filter.WithinRadiusKilometers.Value,
-														  cancellationToken);
+		// Get location from the search location
+		var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
 
-		if (zipCodesWithinCircle.Count is 0 || searchedZipCode is null)
+		if (searchLocation is null)
 		{
 			return posts;
 		}
 
-		posts = posts.Where(user => user.ZipCode != null &&
-									zipCodesWithinCircle.Contains(user.ZipCode.Value));
+		var location = searchLocation.Location;
+		var radiusMeters = filter.WithinRadiusKilometers.Value * 1000;
+
+		// Use SQL Server's built-in distance calculation with geography type
+		posts = posts.Where(p => p.Location != null && p.Location.IsWithinDistance(location, radiusMeters));
 
 		return posts;
 	}
@@ -96,8 +97,7 @@ public class PostSearchService(
 		// This ToList prevents a LINQ translation issue on Ubuntu
 		var categories = filter.Categories.ToList();
 
-		posts = posts.Where(
-			user => user.Categories.Any(category => categories.Contains(category.Name)));
+		posts = posts.Where(user => user.Categories.Any(category => categories.Contains(category.Name)));
 
 		return posts;
 	}

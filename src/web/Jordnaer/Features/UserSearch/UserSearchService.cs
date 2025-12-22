@@ -1,6 +1,6 @@
 using Jordnaer.Database;
 using Jordnaer.Features.Metrics;
-using Jordnaer.Features.Search;
+using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +13,14 @@ public interface IUserSearchService
 }
 
 public class UserSearchService(
-	IZipCodeService zipCodeService,
+	ILocationService locationService,
 	IDbContextFactory<JordnaerDbContext> contextFactory)
 	: IUserSearchService
 {
 	public async Task<List<UserSlim>> GetUsersByNameAsync(string currentUserId, string searchString, CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
 		var users = context.UserProfiles.ApplyNameFilter(searchString);
 
 		var firstTenUsers = await users
@@ -52,44 +53,43 @@ public class UserSearchService(
 		users = users.ApplyChildFilters(filter);
 		users = users.ApplyNameFilter(filter.Name);
 		users = users.ApplyCategoryFilter(filter);
-		(users, var isOrdered) = await users.ApplyLocationFilterAsync(filter, zipCodeService, cancellationToken);
+
+		// Apply location filter (returns List<UserProfile>)
+		(users, var isOrdered) = await users.ApplyLocationFilter(
+									 filter,
+									 locationService,
+									 cancellationToken);
 
 		if (!isOrdered)
 		{
 			users = users.OrderBy(user => user.CreatedUtc);
 		}
 
-		// TODO: This uses a ton of memory, Dapper? (60+mb)
-		// TODO: Try-catch and error in return type
+		var totalCount = await users.CountAsync(cancellationToken);
+
 		var usersToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedUsers = await users
-			.Skip(usersToSkip)
-			.Take(filter.PageSize)
-			.Include(user => user.Categories)
-			.Include(user => user.ChildProfiles)
-			.AsSplitQuery()
-			.Select(user => new UserDto
-			{
-				ProfilePictureUrl = user.ProfilePictureUrl,
-				UserName = user.UserName,
-				FirstName = user.FirstName,
-				LastName = user.LastName,
-				ZipCode = user.ZipCode,
-				City = user.City,
-				Categories = user.Categories.Select(category => category.Name).ToList(),
-				Children = user.ChildProfiles.Select(child => new ChildDto
-				{
-					FirstName = child.FirstName,
-					LastName = child.LastName,
-					Gender = child.Gender,
-					DateOfBirth = child.DateOfBirth,
-					Age = child.Age
-				}).ToList()
-			})
-			.AsNoTracking()
-			.ToListAsync(cancellationToken);
-
-		var totalCount = await users.AsNoTracking().CountAsync(cancellationToken);
+								   .Skip(usersToSkip)
+								   .Take(filter.PageSize)
+								   .Select(user => new UserDto
+								   {
+									   ProfilePictureUrl = user.ProfilePictureUrl,
+									   UserName = user.UserName,
+									   FirstName = user.FirstName,
+									   LastName = user.LastName,
+									   ZipCode = user.ZipCode,
+									   City = user.City,
+									   Categories = user.Categories.Select(category => category.Name).ToList(),
+									   Children = user.ChildProfiles.Select(child => new ChildDto
+									   {
+										   FirstName = child.FirstName,
+										   LastName = child.LastName,
+										   Gender = child.Gender,
+										   DateOfBirth = child.DateOfBirth,
+										   Age = child.Age
+									   }).ToList()
+								   })
+								   .ToListAsync(cancellationToken);
 
 		return new UserSearchResult { TotalCount = totalCount, Users = paginatedUsers };
 	}

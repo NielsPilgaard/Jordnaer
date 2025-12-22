@@ -1,13 +1,13 @@
 using Bogus;
 using FluentAssertions;
 using Jordnaer.Database;
+using Jordnaer.Features.Profile;
 using Jordnaer.Features.UserSearch;
 using Jordnaer.Shared;
 using Jordnaer.Tests.Infrastructure;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Jordnaer.Features.Search;
 using Xunit;
 
 namespace Jordnaer.Tests.UserSearch;
@@ -17,7 +17,7 @@ namespace Jordnaer.Tests.UserSearch;
 public class UserSearchServiceTests
 {
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
-	private readonly IZipCodeService _zipCodeServiceMock = Substitute.For<IZipCodeService>();
+	private readonly ILocationService _locationServiceMock = Substitute.For<ILocationService>();
 	private readonly UserSearchService _sut;
 	private readonly Faker _faker = new();
 	private readonly JordnaerDbContext _context;
@@ -27,7 +27,7 @@ public class UserSearchServiceTests
 		_context = sqlServerContainer.CreateContext();
 		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(_context);
 
-		_sut = new UserSearchService(_zipCodeServiceMock, _contextFactory);
+		_sut = new UserSearchService(_locationServiceMock, _contextFactory);
 	}
 
 	[Fact]
@@ -236,12 +236,17 @@ public class UserSearchServiceTests
 		var filter = new UserSearchFilter { Location = location, WithinRadiusKilometers = 3 };
 		var users = CreateTestUsers(5);
 
+		// Create a point for Aarhus (approximate coordinates)
+		var geometryFactory = new NetTopologySuite.Geometries.GeometryFactory(new NetTopologySuite.Geometries.PrecisionModel(), 4326);
+		var aarhusPoint = geometryFactory.CreatePoint(new NetTopologySuite.Geometries.Coordinate(10.203921, 56.162939));
+
 		users[0].ZipCode = zipCode;
+		users[0].Location = aarhusPoint;
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
-		_zipCodeServiceMock.GetZipCodesNearLocationAsync(location, 3)
-			.Returns(([8000], 8000));
+		_locationServiceMock.GetLocationFromZipCodeAsync(location, Arg.Any<CancellationToken>())
+			.Returns((aarhusPoint, zipCode, "Aarhus"));
 
 		// Act
 		var result = await _sut.GetUsersAsync(filter);
