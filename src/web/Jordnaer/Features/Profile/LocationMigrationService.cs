@@ -10,29 +10,26 @@ namespace Jordnaer.Features.Profile;
 /// Runs once on application startup and marks completion to avoid re-running.
 /// </summary>
 public class LocationMigrationService(
-	IDbContextFactory<JordnaerDbContext> contextFactory,
-	ILocationService locationService,
+	IServiceScopeFactory serviceScopeFactory,
 	ILogger<LocationMigrationService> logger) : BackgroundService
 {
-	private const string MigrationKey = "LocationMigration_ZipCodeToPoint_Completed";
 	private const int BatchSize = 50; // Process in batches to avoid overloading DataForsyningen API
 	private const int DelayBetweenBatchesMs = 1000; // 1 second delay between batches
+
+	private readonly ILocationService locationService = serviceScopeFactory
+		.CreateAsyncScope()
+		.ServiceProvider
+		.GetRequiredService<ILocationService>();
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		try
 		{
-			logger.LogInformation("LocationMigrationService started");
+			await using var scope = serviceScopeFactory.CreateAsyncScope();
+
+			var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<JordnaerDbContext>>();
 
 			await using var context = await contextFactory.CreateDbContextAsync(stoppingToken);
-
-			// Check if migration has already been completed
-			var migrationCompleted = await IsMigrationCompleted(context, stoppingToken);
-			if (migrationCompleted)
-			{
-				logger.LogInformation("Location migration already completed. Skipping.");
-				return;
-			}
 
 			logger.LogInformation("Starting location migration from ZipCode to Point geometry");
 
@@ -48,9 +45,6 @@ public class LocationMigrationService(
 			var postsUpdated = await MigratePosts(context, stoppingToken);
 			logger.LogInformation("Migrated {Count} posts", postsUpdated);
 
-			// Mark migration as completed
-			await MarkMigrationCompleted(context, stoppingToken);
-
 			logger.LogInformation(
 				"Location migration completed successfully. Total: {UserProfiles} users, {Groups} groups, {Posts} posts",
 				userProfilesUpdated, groupsUpdated, postsUpdated);
@@ -59,28 +53,6 @@ public class LocationMigrationService(
 		{
 			logger.LogError(ex, "Location migration failed. This is non-critical and the application will continue running.");
 		}
-	}
-
-	private async Task<bool> IsMigrationCompleted(JordnaerDbContext context, CancellationToken cancellationToken)
-	{
-		try
-		{
-			var result = await context.Database
-				.SqlQueryRaw<int>($"SELECT COUNT(*) FROM sys.extended_properties WHERE name = '{MigrationKey}'")
-				.FirstOrDefaultAsync(cancellationToken);
-			return result > 0;
-		}
-		catch
-		{
-			return false;
-		}
-	}
-
-	private async Task MarkMigrationCompleted(JordnaerDbContext context, CancellationToken cancellationToken)
-	{
-		await context.Database.ExecuteSqlRawAsync(
-			$"EXEC sys.sp_addextendedproperty @name=N'{MigrationKey}', @value=N'1'",
-			cancellationToken);
 	}
 
 	private async Task<int> MigrateUserProfiles(JordnaerDbContext context, CancellationToken cancellationToken)
@@ -120,7 +92,6 @@ public class LocationMigrationService(
 						{
 							await context.Database.ExecuteSqlRawAsync(
 								"UPDATE UserProfiles SET Location = {0} WHERE Id = {1}",
-								cancellationToken,
 								locationResult.Location,
 								user.Id);
 
@@ -189,7 +160,6 @@ public class LocationMigrationService(
 						{
 							await context.Database.ExecuteSqlRawAsync(
 								"UPDATE Groups SET Location = {0} WHERE Id = {1}",
-								cancellationToken,
 								locationResult.Location,
 								group.Id);
 
@@ -257,7 +227,6 @@ public class LocationMigrationService(
 						{
 							await context.Database.ExecuteSqlRawAsync(
 								"UPDATE Posts SET Location = {0} WHERE Id = {1}",
-								cancellationToken,
 								locationResult.Location,
 								post.Id);
 
