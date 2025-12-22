@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace Jordnaer.Shared;
 
@@ -22,6 +23,8 @@ public class Group
 
 	[MaxLength(100, ErrorMessage = "By navn må højest være 100 karakterer langt.")]
 	public string? City { get; set; }
+
+	public Point? Location { get; set; }
 
 	[MinLength(2, ErrorMessage = "Gruppe navn skal være mindst 2 karakterer langt.")]
 	[MaxLength(128, ErrorMessage = "Gruppens navn må højest være 128 karakterer lang.")]

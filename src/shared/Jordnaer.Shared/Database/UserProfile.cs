@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace Jordnaer.Shared;
 
@@ -38,6 +39,8 @@ public class UserProfile
 
 	[MaxLength(100, ErrorMessage = "By må højest være 50 karakterer langt.")]
 	public string? City { get; set; }
+
+	public Point? Location { get; set; }
 
 	[MaxLength(2000, ErrorMessage = "Beskrivelse må højest være 2000 karakterer langt.")]
 	public string? Description { get; set; }

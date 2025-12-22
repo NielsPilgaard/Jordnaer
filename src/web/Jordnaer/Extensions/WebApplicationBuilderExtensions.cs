@@ -134,8 +134,7 @@ public static class WebApplicationBuilderExtensions
 
 		builder.Services.AddDbContextFactory<JordnaerDbContext>(
 				   optionsBuilder => optionsBuilder
-					   .UseAzureSql(connectionString)
-					   .UseNetTopologySuite(),
+					   .UseSqlServer(connectionString, sqlOptions => sqlOptions.UseNetTopologySuite()),
 				   ServiceLifetime.Scoped);
 
 		builder.Services.AddHealthChecks().AddSqlServer(connectionString);
