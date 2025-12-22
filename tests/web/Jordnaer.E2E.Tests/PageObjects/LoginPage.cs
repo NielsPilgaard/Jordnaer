@@ -17,8 +17,8 @@ public class LoginPage
 	}
 
 	// Locators
-	private ILocator EmailInput => _page.GetByPlaceholder("navn@eksempel.com", new PageGetByPlaceholderOptions { Exact = true });
-	private ILocator PasswordInput => _page.GetByPlaceholder("adgangskode", new PageGetByPlaceholderOptions { Exact = true });
+	private ILocator EmailInput => _page.GetByPlaceholder("navn@eksempel.com");
+	private ILocator PasswordInput => _page.GetByPlaceholder("adgangskode");
 	private ILocator LoginButton => _page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Log ind", Exact = true });
 	private ILocator CreateAccountLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" });
 	private ILocator ForgotPasswordLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Glemt" });
@@ -43,7 +43,8 @@ public class LoginPage
 	public async Task ClickLoginAsync()
 	{
 		await LoginButton.ClickAsync();
-		await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+		// Wait for navigation after login - the page will redirect to home
+		await _page.WaitForURLAsync("**/", new PageWaitForURLOptions { WaitUntil = WaitUntilState.NetworkIdle });
 	}
 
 	public async Task LoginAsync(string email, string password)

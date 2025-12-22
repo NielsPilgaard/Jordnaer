@@ -25,7 +25,7 @@ public class LandingPage
 
 	// Locators - Footer
 	public ILocator GetFooterLink(string linkText) =>
-		_page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = linkText });
+		_page.GetByRole(AriaRole.Contentinfo).GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = linkText });
 
 	// Locators - Images
 	private ILocator CenterImage => _page.Locator("img#landing-page-center-image");

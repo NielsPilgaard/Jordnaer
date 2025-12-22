@@ -33,10 +33,13 @@ public class ScreenResolutionTests : BrowserTest
 	[TestCase(4096, 2160)]
 	public async Task LandingPage(int width, int height)
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
-		var landingPage = page.CreateLandingPage();
+		// Create page WITHOUT authentication state to see the public landing page
+		var page = await SetUpFixture.Browser.NewPageAsync(new BrowserNewPageOptions
+		{
+			ViewportSize = new ViewportSize { Width = width, Height = height }
+		});
 
-		await page.SetViewportSizeAsync(width, height);
+		var landingPage = page.CreateLandingPage();
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
 
 		// Wait for the center image to be visible before taking screenshot

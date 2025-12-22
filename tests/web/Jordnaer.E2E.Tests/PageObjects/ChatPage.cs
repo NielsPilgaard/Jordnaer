@@ -19,7 +19,8 @@ public class ChatPage
 	// Locators
 	private ILocator SearchTextbox => _page.GetByRole(AriaRole.Textbox).First;
 	private ILocator MessageInput => _page.Locator("#chat-message-input");
-	private ILocator SendButton => _page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Send" });
+	// The send button is an adornment icon button on the text field - we target it by the parent container
+	private ILocator SendButton => _page.Locator("#chat-message-input").Locator("..").GetByRole(AriaRole.Button).Last;
 
 	// Actions
 	public async Task NavigateAsync(string baseUrl)

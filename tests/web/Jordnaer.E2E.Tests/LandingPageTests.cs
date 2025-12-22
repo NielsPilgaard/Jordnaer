@@ -14,7 +14,8 @@ public class LandingPageTests : BrowserTest
 	[Test]
 	public async Task When_User_Clicks_Join_User_Should_Be_Redirected_To_Login()
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
+		// Use unauthenticated page to see the public landing page
+		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
@@ -29,7 +30,7 @@ public class LandingPageTests : BrowserTest
 	[Ignore("The Posts navlink is currently hidden")]
 	public async Task When_User_Clicks_Posts_User_Should_Be_Redirected_To_Posts()
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
+		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
@@ -43,7 +44,7 @@ public class LandingPageTests : BrowserTest
 	[Test]
 	public async Task When_User_Clicks_Groups_User_Should_Be_Redirected_To_Groups()
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
+		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
@@ -57,7 +58,7 @@ public class LandingPageTests : BrowserTest
 	[Test]
 	public async Task Topbar_Logo_Should_Not_Be_Visible()
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
+		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
@@ -70,12 +71,14 @@ public class LandingPageTests : BrowserTest
 	[Test]
 	public async Task Topbar_Menu_Should_Have_Links()
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
+		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
 
-		await Expect(landingPage.GetPeopleLink()).ToBeVisibleAsync();
+		// On unauthenticated landing page, check for visible navigation links
+		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Hjem" }).First).ToBeVisibleAsync();
+		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Søg" }).First).ToBeVisibleAsync();
 		await Expect(landingPage.GetGroupsLink()).ToBeVisibleAsync();
 
 		await page.CloseAsync();
@@ -91,7 +94,7 @@ public class LandingPageTests : BrowserTest
 	public async Task When_User_Is_On_The_LandingPage_Footer_Links_Should_Be_Visible_At_Very_The_Bottom(
 		string linkText)
 	{
-		var page = await SetUpFixture.Context.NewPageAsync();
+		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
 		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
