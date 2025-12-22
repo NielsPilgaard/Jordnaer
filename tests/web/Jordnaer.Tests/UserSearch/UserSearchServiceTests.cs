@@ -246,7 +246,7 @@ public class UserSearchServiceTests
 		await _context.SaveChangesAsync();
 
 		_locationServiceMock.GetLocationFromZipCodeAsync(location, Arg.Any<CancellationToken>())
-			.Returns((aarhusPoint, zipCode, "Aarhus"));
+			.Returns(new LocationResult(aarhusPoint, zipCode, "Aarhus"));
 
 		// Act
 		var result = await _sut.GetUsersAsync(filter);
