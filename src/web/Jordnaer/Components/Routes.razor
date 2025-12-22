@@ -4,31 +4,47 @@
     return;
 } *@
 
-<Router AppAssembly="@typeof(Program).Assembly">
-    <Found Context="routeData">
-        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-            <NotAuthorized>
-                @if (context.User.Identity?.IsAuthenticated is not true)
-                {
-                    <RedirectToLogin />
-                }
-                else
-                {
-                    <MudContainer MaxWidth="MaxWidth.Small">
-                        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke adgang til at se denne side</MudAlert>
-                    </MudContainer>
-                }
-            </NotAuthorized>
-            <Authorizing>
-                <MudLoading Loading="true" />
-            </Authorizing>
-        </AuthorizeRouteView>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="typeof(MainLayout)">
-            <NotFoundComponent />
-        </LayoutView>
-    </NotFound>
-</Router>
+<ErrorBoundary @ref="_errorBoundary">
+    <ChildContent>
+        <Router AppAssembly="@typeof(Program).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        @if (context.User.Identity?.IsAuthenticated is not true)
+                        {
+                            <RedirectToLogin />
+                        }
+                        else
+                        {
+                            <MudContainer MaxWidth="MaxWidth.Small">
+                                <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke adgang til at se denna side</MudAlert>
+                            </MudContainer>
+                        }
+                    </NotAuthorized>
+                    <Authorizing>
+                        <MudLoading Loading="true" />
+                    </Authorizing>
+                </AuthorizeRouteView>
+                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </Found>
+            <NotFound>
+                <LayoutView Layout="typeof(MainLayout)">
+                    <NotFoundComponent />
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </ChildContent>
+    <ErrorContent Context="exception">
+        @{
+            _logger.LogWarning(exception, "Error boundary caught exception during navigation");
+            // Hide error from user but log it for debugging
+        }
+    </ErrorContent>
+</ErrorBoundary>
 
+@code {
+    [Inject]
+    private ILogger<Routes> _logger { get; set; } = default!;
+
+    private ErrorBoundary? _errorBoundary;
+}
