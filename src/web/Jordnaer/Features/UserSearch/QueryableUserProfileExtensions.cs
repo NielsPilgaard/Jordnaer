@@ -1,4 +1,4 @@
-using Jordnaer.Features.Search;
+using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,32 +6,36 @@ namespace Jordnaer.Features.UserSearch;
 
 internal static class QueryableUserProfileExtensions
 {
-	internal static async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilterAsync(
+	internal static async Task<(List<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilter(
 		this IQueryable<UserProfile> users,
 		UserSearchFilter filter,
-		IZipCodeService zipCodeService,
+		ILocationService locationService,
 		CancellationToken cancellationToken = default)
 	{
 		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
 		{
-			return (users, false);
+			return (await users.ToListAsync(cancellationToken), false);
 		}
 
-		var (zipCodesWithinCircle, searchedZipCode) = await zipCodeService.GetZipCodesNearLocationAsync(
-										 filter.Location,
-										 filter.WithinRadiusKilometers.Value,
-										 cancellationToken);
+		// Get location from the search location
+		// TODO: When we get a map in our user, group and post search filters, we should use that location instead and remove async 
+		var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
 
-		if (zipCodesWithinCircle.Count is 0 || searchedZipCode is null)
+		if (!searchLocation.HasValue)
 		{
-			return (users, false);
+			return (await users.ToListAsync(cancellationToken), false);
 		}
 
-		users = users.Where(user => user.ZipCode != null &&
-									zipCodesWithinCircle.Contains(user.ZipCode.Value))
-					 .OrderBy(user => Math.Abs(user.ZipCode!.Value - searchedZipCode.Value));
+		var location = searchLocation.Value.Location;
+		var radiusMeters = filter.WithinRadiusKilometers.Value * 1000;
 
-		return (users, true);
+		// Use SQL Server's built-in distance calculation with geography type
+		var usersWithDistance = await users
+			.Where(u => u.Location != null && u.Location.Distance(location) <= radiusMeters)
+			.OrderBy(u => u.Location!.Distance(location))
+			.ToListAsync(cancellationToken);
+
+		return (usersWithDistance, true);
 	}
 
 	internal static IQueryable<UserProfile> ApplyCategoryFilter(this IQueryable<UserProfile> users,
