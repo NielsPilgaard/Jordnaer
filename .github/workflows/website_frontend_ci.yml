@@ -34,9 +34,9 @@ jobs:
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
           --filter Category!=SkipInCi
         env:
-          Playwright_BaseUrl: "https://mini-moeder.dk"
-          Playwright_Username: ${{ secrets.Playwright_Username }}
-          Playwright_Password: ${{ secrets.Playwright_Password }}
+          Playwright__BaseUrl: "https://mini-moeder.dk"
+          Playwright__Username: ${{ secrets.Playwright_Username }}
+          Playwright__Password: ${{ secrets.Playwright_Password }}
 
       - name: Upload Screenshots
         if: always()
