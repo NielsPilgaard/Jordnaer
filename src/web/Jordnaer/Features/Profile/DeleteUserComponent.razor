@@ -4,14 +4,12 @@
 @inject ISnackbar Snackbar
 
 <div class="d-flex justify-center align-center">
-    <MudButton StartIcon="@Icons.Material.Filled.Warning"
-               Size="Size.Large"
-               Variant="Variant.Outlined"
-               Color="Color.Error"
-               OnClick="OpenDialog">
+    <MudButton StartIcon="@Icons.Material.Filled.Warning" Size="Size.Large" Variant="Variant.Outlined"
+        Color="Color.Error" OnClick="OpenDialog">
         Slet Bruger
     </MudButton>
 </div>
+
 
 <MudDialog @bind-Visible="_dialogIsOpen">
     <DialogContent>
@@ -27,22 +25,20 @@
         <MudText Typo="Typo.body1" Class="mt-3">
             Indtast din e-mail <code>@_userEmail</code> for at fortsætte
         </MudText>
-        <MudTextField Immediate
-                       Label="Email"
-                       @bind-Value="@_inputEmail"
-                       Class="mt-3" />
-     </DialogContent>
-     <DialogActions>
-         <MudButton Color="Color.Default" OnClick="CloseDialog" Variant="Variant.Filled">
-             Annuller
-         </MudButton>
-         <MudButton ButtonType="ButtonType.Submit" Color="Color.Error" Disabled="@(!EmailConfirmed)" OnClick="DeleteAccount" Variant="Variant.Filled">
-             Slet Bruger
-         </MudButton>
-     </DialogActions>
- </MudDialog>
+        <MudTextField Immediate Label="Email" @bind-Value="@_inputEmail" Class="mt-3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Default" OnClick="CloseDialog" Variant="Variant.Filled">
+            Annuller
+        </MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Error" Disabled="@(!EmailConfirmed)"
+            OnClick="DeleteAccount" Variant="Variant.Filled">
+            Slet Bruger
+        </MudButton>
+    </DialogActions>
+</MudDialog>
 
- @code {
+@code {
     [CascadingParameter]
     public required Task<AuthenticationState> AuthenticationState { get; set; }
 

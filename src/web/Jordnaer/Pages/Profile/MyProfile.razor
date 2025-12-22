@@ -1,8 +1,10 @@
 @page "/profile"
+@using NetTopologySuite.Geometries
 
 @inject ICategoryCache CategoryCache
 @inject IProfileCache ProfileCache
 @inject IProfileService ProfileService
+@inject ILocationService LocationService
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -33,10 +35,10 @@
             <DataAnnotationsValidator />
 
             @* Profile Picture & Basic Info *@
-            <MudPaper Elevation="3" Class="pa-6 mb-6">
+            <MudPaper Elevation="3" Class="pa-6 mb-4">
                 <MudText Typo="Typo.h4" Class="mb-6"
                     Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
-                    Din Profil
+                    Grundlæggende Info
                 </MudText>
 
                 <div class="d-flex justify-center mb-6">
@@ -57,25 +59,80 @@
                         <MudTextField @bind-Value="@_userProfile.LastName" For="() => _userProfile.LastName"
                             Label="Efternavn" Variant="Variant.Outlined" name="lastname" />
                     </MudItem>
-                    <MudItem xs="12" sm="4">
-                        <MudNumericField @bind-Value="@_userProfile.ZipCode" For="() => _userProfile.ZipCode"
-                            Label="Postnummer" Variant="Variant.Outlined" name="zipcode" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4">
-                        <MudTextField @bind-Value="@_userProfile.City" For="() => _userProfile.City" Label="By"
-                            Variant="Variant.Outlined" name="city" Placeholder="Aarhus C" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4">
+                    <MudItem xs="12" sm="6">
                         <MudDatePicker AdornmentColor="Color.Primary" @bind-Date="@_userProfile.DateOfBirth"
                             Color="Color.Primary" For="() => _userProfile.DateOfBirth" Label="Fødselsdato"
                             OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog"
                             Placeholder="@DateTime.Now.ToString("d")" Variant="Variant.Outlined" Rounded name="bday" />
                     </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            @* Location Section *@
+            <MudPaper Elevation="3" Class="pa-6 mb-4">
+                <MudText Typo="Typo.h4" Class="mb-6"
+                    Style="@($"color: {JordnaerPalette.BlueBody}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+                    Lokation
+                </MudText>
+
+                <MudGrid Spacing="3">
+
+                    @* Location input - smaller on desktop *@
+                    <MudItem xs="12" md="8" lg="6">
+                        @if (_useZipCodeOnly)
+                        {
+                            <ZipCodeAutoComplete Location="@_zipCodeLocation" LocationChanged="OnZipCodeLocationChanged"
+                                For="() => _zipCodeLocation" DisableSmartCompletion="true" />
+                        }
+                        else
+                        {
+                            <AddressAutoComplete Address="@_addressLocation" AddressChanged="OnAddressLocationChanged"
+                                For="() => _addressLocation" />
+                        }
+                    </MudItem>
+
+                    @* Privacy toggle - aligned with input on desktop *@
+                    <MudItem xs="12" md="4" lg="6" Class="d-flex align-center text-center justify-content-center">
+                        <MudTooltip
+                            Text="Klik for at skifte mellem fuld adresse og kun postnummer. Postnummer er mere privat, men mindre præcist.">
+                            <MudChip T="string" Size="Size.Large" Color="@(_useZipCodeOnly? Color.Default: Color.Info)"
+                                Variant="Variant.Outlined" OnClick="@ToggleLocationMode" Style="cursor: pointer;">
+                                @if (_useZipCodeOnly)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
+                                    <span>Kun postnummer</span>
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1" />
+                                    <span>Fuld adresse</span>
+                                }
+                            </MudChip>
+                        </MudTooltip>
+                    </MudItem>
+
+
+                    @* Privacy Notice - show first for context *@
                     <MudItem xs="12">
-                        <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()" T="string"
-                            Label="Interesseret i" MultiSelection="true" Variant="Variant.Outlined"
-                            SelectedValues="_userProfile.Categories.Select(e => e.Name)"
-                            ValuePresenter="ValuePresenter.Chip" SelectedValuesChanged="SelectedCategoriesChanged" />
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="pa-3">
+                            Din adresse vises aldrig offentligt. Andre ser kun omtrentlig afstand (f.eks. "5 km væk").
+                        </MudAlert>
+                    </MudItem>
+
+                </MudGrid>
+            </MudPaper>
+
+            @* Interests & Description Section *@
+            <MudPaper Elevation="3" Class="pa-6 mb-4">
+                <MudText Typo="Typo.h4" Class="mb-6"
+                    Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+                    Interesser
+                </MudText>
+
+                <MudGrid Spacing="3">
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.body1" Class="mb-2">Interesseret i</MudText>
+                        <CategorySelector @bind-Categories="_selectedCategoryNames" />
                     </MudItem>
 
                     <MudItem xs="12">
@@ -100,7 +157,7 @@
             @* Children Section *@
             <MudPaper Elevation="3" Class="pa-6 mb-6">
                 <MudText Typo="Typo.h4" Class="mb-6"
-                    Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+                    Style="@($"color: {JordnaerPalette.BlueBody}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
                     Børn
                 </MudText>
                 <EditChildProfileTabs @bind-Parent="_userProfile" @ref="_editChildProfileTabsComponent">
@@ -117,18 +174,6 @@
             </div>
         </EditForm>
 
-        <MiniDivider Color="MiniDividerColor.Green" Center Class="my-15" />
-
-        @* Delete Account Section *@
-        <MudPaper Elevation="3" Class="pa-6">
-            <MudText Typo="Typo.h5" Class="mb-4"
-                Style="@($"color: {JordnaerPalette.BlueBody}; font-family: 'Open Sans Medium', sans-serif;")">
-                Kontohandlinger
-            </MudText>
-
-            <DeleteUserComponent />
-        </MudPaper>
-
     </MudContainer>
 </MudLoading>
 @code {
@@ -137,6 +182,11 @@
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
 
     private TextEditorComponent _textEditorComponent = default!;
+
+    private bool _useZipCodeOnly = false;
+    private string _zipCodeLocation = string.Empty;
+    private string _addressLocation = string.Empty;
+    private string[]? _selectedCategoryNames;
 
     protected override async Task OnInitializedAsync()
     {
@@ -156,9 +206,80 @@
 
         _userProfile = userProfile;
 
-        _isLoading = false;
+        // Initialize location fields from existing data
+        if (_userProfile.Address is not null)
+        {
+            _addressLocation = _userProfile.Address;
+            _useZipCodeOnly = false;
+        }
+        else if (_userProfile.ZipCode is not null && _userProfile.City is not null)
+        {
+            _zipCodeLocation = $"{_userProfile.ZipCode} {_userProfile.City}";
+            _useZipCodeOnly = true;
+        }
 
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+
+        // Initialize selected category names
+        _selectedCategoryNames = _userProfile.Categories.Select(c => c.Name).ToArray();
+
+        _isLoading = false;
+    }
+
+    private async Task OnAddressLocationChanged(string address)
+    {
+        _addressLocation = address;
+
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            _userProfile!.Address = null;
+            _userProfile.ZipCode = null;
+            _userProfile.City = null;
+            _userProfile.Location = null;
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromAddressAsync(address);
+        if (result is not null)
+        {
+            _userProfile!.Address = address;
+            _userProfile.ZipCode = result.ZipCode;
+            _userProfile.City = result.City;
+            _userProfile.Location = result.Location;
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+            Severity.Warning);
+        }
+    }
+
+    private async Task OnZipCodeLocationChanged(string zipCode)
+    {
+        _zipCodeLocation = zipCode;
+
+        if (string.IsNullOrWhiteSpace(zipCode))
+        {
+            _userProfile!.Address = null;
+            _userProfile.ZipCode = null;
+            _userProfile.City = null;
+            _userProfile.Location = null;
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromZipCodeAsync(zipCode);
+        if (result is not null)
+        {
+            _userProfile!.Address = null; // Don't store address when using zip code only
+            _userProfile.ZipCode = result.ZipCode;
+            _userProfile.City = result.City;
+            _userProfile.Location = result.Location;
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+            Severity.Warning);
+        }
     }
 
     private async Task UpdateUserProfile()
@@ -171,6 +292,11 @@
             _isLoading = false;
             return;
         }
+
+        // Sync selected categories back to user profile
+        _userProfile.Categories = _categories
+        .Where(c => _selectedCategoryNames != null && _selectedCategoryNames.Contains(c.Name))
+        .ToList();
 
         _userProfile.Description = await _textEditorComponent.GetHtmlAsync();
         await _editChildProfileTabsComponent.UpdateChildProfileDescriptions();
@@ -187,9 +313,9 @@
         _isLoading = false;
     }
 
-    private void SelectedCategoriesChanged(IEnumerable<string> categories)
+    private void ToggleLocationMode()
     {
-        _userProfile!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+        _useZipCodeOnly = !_useZipCodeOnly;
     }
 
     private EditChildProfileTabs _editChildProfileTabsComponent = default!;

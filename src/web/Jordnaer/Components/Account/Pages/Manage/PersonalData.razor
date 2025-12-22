@@ -12,17 +12,12 @@
 <StatusMessage />
 
 <div style="max-width: 600px;">
-	<p>Din konto indeholder personlige data, som du har givet os. Denne side giver dig mulighed for at downloade eller slette disse data.</p>
-	<p>
-		<strong>At slette disse data vil permanent fjerne din konto, og dette kan ikke fortrydes.</strong>
-	</p>
+	<p>Din konto indeholder personlige data, som du har givet os. Denne side giver dig mulighed for at downloade disse data.</p>
 
-	<form action="Account/Manage/DownloadPersonalData" method="post" style="margin-bottom: 1rem;">
+	<form action="Account/Manage/DownloadPersonalData" method="post">
 		<AntiforgeryToken />
 		<button class="account-button-primary" type="submit">Download</button>
 	</form>
-
-	<a href="Account/Manage/DeletePersonalData" class="account-button-primary" style="background-color: var(--danger-color); display: inline-block; text-decoration: none;">Slet</a>
 </div>
 
 
