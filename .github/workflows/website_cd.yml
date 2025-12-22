@@ -69,7 +69,7 @@ jobs:
     needs: [test, build]
     steps:
       - name: Download publish artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: publish-artifacts
           path: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
