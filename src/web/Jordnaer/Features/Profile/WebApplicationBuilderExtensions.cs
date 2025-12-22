@@ -15,6 +15,9 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddScoped<IExternalProviderPictureDownloader, FacebookPictureDownloader>();
 		builder.Services.AddScoped<IExternalProviderPictureDownloader, GooglePictureDownloader>();
 
+		// One-time migration service to convert Latitude/Longitude to Location Point geometry
+		builder.Services.AddHostedService<LocationMigrationService>();
+
 		return builder;
 	}
 }
