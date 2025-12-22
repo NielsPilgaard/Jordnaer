@@ -724,6 +724,39 @@ BEGIN
     VALUES (N'20251218130525_Remove_GroupPost_ZipCode', N'9.0.8');
 END;
 
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251222211350_Add_Location_Geography_Column'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [Location] geography NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251222211350_Add_Location_Geography_Column'
+)
+BEGIN
+    ALTER TABLE [Posts] ADD [Location] geography NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251222211350_Add_Location_Geography_Column'
+)
+BEGIN
+    ALTER TABLE [Groups] ADD [Location] geography NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251222211350_Add_Location_Geography_Column'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20251222211350_Add_Location_Geography_Column', N'9.0.8');
+END;
+
 COMMIT;
 GO
 
