@@ -1,0 +1,44 @@
+@inject IDataForsyningenClient DataForsyningenClient
+
+<MudAutocomplete T="string"
+                 ValueChanged="AddressValueChanged"
+                 Placeholder="Søg efter adresse"
+                 Value="Address"
+                 Label="Adresse"
+                 SearchFunc="@SearchForAddresses"
+                 SelectValueOnTab
+                 ShowProgressIndicator
+                 OpenIcon="@string.Empty"
+                 AdornmentIcon="@Icons.Material.Filled.Home"
+                 Adornment="Adornment.Start"
+                 DebounceInterval="250"
+                 Clearable
+                 For="@For"
+                 MinCharacters="3" />
+
+@code
+{
+    [Parameter, EditorRequired]
+    public required string Address { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<string> AddressChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Expression<Func<string?>> For { get; set; }
+
+    public async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
+    {
+        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+
+        return searchResponse.IsSuccessful
+          ? searchResponse.Content!.Select(response => response.ToString())
+          : [];
+    }
+
+    private async Task AddressValueChanged(string value)
+    {
+        Address = value;
+        await AddressChanged.InvokeAsync(Address);
+    }
+}

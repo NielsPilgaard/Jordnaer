@@ -10,10 +10,10 @@
 <MetadataComponent Title="Bekræft email" />
 
 <div class="account-container">
-	<div class="account-paper">
-		<h1 class="account-header">Bekræft email</h1>
-		<StatusMessage Message="@_statusMessage" />
-	</div>
+    <div class="account-paper">
+        <h1 class="account-header">Bekræft email</h1>
+        <StatusMessage Message="@_statusMessage" />
+    </div>
 </div>
 
 @code {
@@ -54,7 +54,7 @@
 
                 await SignInManager.SignInAsync(user, isPersistent: true);
 
-                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/profile" : ReturnUrl;
+                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
 
                 RedirectManager.RedirectTo(returnUrl, forceLoad: true);
             }

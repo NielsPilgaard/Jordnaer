@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
 
 #nullable disable
 
@@ -242,6 +243,9 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -355,6 +359,9 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -480,6 +487,9 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("LastName")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");

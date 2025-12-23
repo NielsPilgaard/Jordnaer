@@ -2,19 +2,11 @@
 @using MassTransit
 @using MudBlazor
 @using OpenTelemetry.Trace
-<MudDynamicTabs @bind-ActivePanelIndex="@_activePanelIndex"
-                AddTab="@AddChildCallback"
-                AddIconToolTip="Klik for at oprette et barn"
-                PanelClass="px-4 py-6"
-                Elevation="4"
-                Rounded
-                CloseTab="RemoveChild"
-                CloseTabIcon="@Icons.Material.Filled.DeleteForever"
-                CloseIconToolTip="Klik for at fjerne barnet"
-                CloseIconStyle="color: var(--mud-palette-error)"
-                AddIconStyle="color: var(--mud-palette-success)"
-                KeepPanelsAlive
-                ApplyEffectsToContainer>
+<MudDynamicTabs @bind-ActivePanelIndex="@_activePanelIndex" AddTab="@AddChildCallback"
+    AddIconToolTip="Klik for at oprette et barn" PanelClass="px-4 py-6" Elevation="4" Rounded CloseTab="RemoveChild"
+    CloseTabIcon="@Icons.Material.Filled.Close" CloseIconToolTip="Klik for at fjerne barnet"
+    CloseIconStyle="color: var(--mud-palette-error)" AddIconStyle="color: var(--mud-palette-success)" KeepPanelsAlive
+    ApplyEffectsToContainer>
 
     @foreach (var childProfile in Parent.ChildProfiles)
     {
@@ -31,17 +23,17 @@
 
     public EditChildProfile _editChildProfileComponentRef
     {
-	    get => _editChildProfileComponents[_activePanelIndex];
-		set => _editChildProfileComponents.Add(value);
-	}
+        get => _editChildProfileComponents[_activePanelIndex];
+        set => _editChildProfileComponents.Add(value);
+    }
 
-	public async Task UpdateChildProfileDescriptions()
-	{
+    public async Task UpdateChildProfileDescriptions()
+    {
         foreach (var editChildProfileComponent in _editChildProfileComponents)
-		{
-			await editChildProfileComponent.UpdateDescription();
-		}
-	}
+        {
+            await editChildProfileComponent.UpdateDescription();
+        }
+    }
 
     [Parameter]
     public required UserProfile Parent { get; set; }
@@ -70,17 +62,17 @@
 
     private void RemoveChild(MudTabPanel obj)
     {
-	    var tab = Parent.ChildProfiles.Find(e => e.Id == (Guid?) obj.ID);
-        if (tab is null) 		
+        var tab = Parent.ChildProfiles.Find(e => e.Id == (Guid?)obj.ID);
+        if (tab is null)
         {
-			return;
-		}
+            return;
+        }
         Parent.ChildProfiles.Remove(tab);
 
-        var editChildProfileComponent = _editChildProfileComponents.Find(e => e.ChildProfile.Id == (Guid?) obj.ID);
+        var editChildProfileComponent = _editChildProfileComponents.Find(e => e.ChildProfile.Id == (Guid?)obj.ID);
         if (editChildProfileComponent is null)
         {
-	        return;
+            return;
         }
         _editChildProfileComponents.Remove(editChildProfileComponent);
     }

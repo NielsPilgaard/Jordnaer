@@ -14,7 +14,7 @@ public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : 
 	public TDbContext CreateContext() => (TDbContext)Activator
 		.CreateInstance(typeof(TDbContext),
 						new DbContextOptionsBuilder<TDbContext>()
-							.UseSqlServer(_connectionString)
+							.UseSqlServer(_connectionString, options => options.UseNetTopologySuite())
 							.Options)!;
 
 	private string _connectionString = null!;

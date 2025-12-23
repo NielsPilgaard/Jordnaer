@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace Jordnaer.Shared;
 
@@ -20,6 +21,8 @@ public class Post
 	public int? ZipCode { get; set; }
 
 	public string? City { get; set; }
+
+	public Point? Location { get; set; }
 
 	[ForeignKey(nameof(UserProfile))]
 	public required string UserProfileId { get; set; } = null!;

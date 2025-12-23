@@ -1,0 +1,24 @@
+@page "/InitializeDeleteUser"
+
+@layout MainLayout
+
+@attribute [Sitemap]
+
+<MetadataComponent Title="Slet bruger" />
+
+<MudContainer MaxWidth="MaxWidth.Small">
+	<MudPaper Elevation="3" Class="pa-10 mt-5">
+		<h2 class="manage-page-title">Slet bruger</h2>
+
+		<StatusMessage />
+
+		<div style="max-width: 600px;">
+			<MudText Typo="Typo.body1" Class="mb-4">
+				<strong>Når du sletter din bruger, vil din konto blive permanent fjernet, og dette kan ikke
+					fortrydes.</strong>
+			</MudText>
+
+			<DeleteUserComponent />
+		</div>
+	</MudPaper>
+</MudContainer>

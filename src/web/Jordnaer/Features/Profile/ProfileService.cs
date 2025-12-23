@@ -93,6 +93,7 @@ public sealed class ProfileService(
 		currentUserProfile.Address = updatedUserProfile.Address;
 		currentUserProfile.City = updatedUserProfile.City;
 		currentUserProfile.ZipCode = updatedUserProfile.ZipCode;
+		currentUserProfile.Location = updatedUserProfile.Location;
 		currentUserProfile.DateOfBirth = updatedUserProfile.DateOfBirth;
 		currentUserProfile.Description = updatedUserProfile.Description;
 		currentUserProfile.PhoneNumber = updatedUserProfile.PhoneNumber;

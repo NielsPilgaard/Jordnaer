@@ -1,84 +1,20 @@
 ﻿@page "/Account/Manage/DeletePersonalData"
 
-@inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
-@inject IdentityUserAccessor UserAccessor
-@inject IdentityRedirectManager RedirectManager
-@inject ILogger<DeletePersonalData> Logger
-
 @attribute [Sitemap]
 
-<MetadataComponent Title="Slet personlige data"/>
+<MetadataComponent Title="Slet bruger" />
 
-<h2 class="manage-page-title">Slet personlige data</h2>
+<h2 class="manage-page-title">Slet bruger</h2>
 
-<StatusMessage Message="@_message" />
+<StatusMessage />
 
-<div class="alert alert-warning" role="alert">
-	<p>
-		<strong>Når du sletter disse data, vil din konto blive permanent fjernet, og dette kan ikke fortrydes.</strong>
-	</p>
+<div style="max-width: 600px;">
+	<MudText Typo="Typo.body1" Class="mb-4">
+		<strong>Når du sletter din bruger, vil din konto blive permanent fjernet, og dette kan ikke fortrydes.</strong>
+	</MudText>
+
+	<MudButton StartIcon="@Icons.Material.Filled.Warning" Size="Size.Large" Href="/InitializeDeleteUser"
+		Color="Color.Error" Variant="Variant.Outlined">
+		Slet Bruger
+	</MudButton>
 </div>
-
-<EditForm Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync" method="post" class="account-form" style="max-width: 600px;">
-	<DataAnnotationsValidator />
-	<ValidationSummary class="validation-message" role="alert" />
-
-	@if (_requirePassword)
-	{
-		<div class="form-floating">
-			<InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Indtast venligst din adgangskode." autofocus />
-			<label for="password" class="form-label">Adgangskode</label>
-			<ValidationMessage For="() => Input.Password" class="validation-message" />
-		</div>
-	}
-
-	<button class="account-button-primary" type="submit" style="background-color: var(--danger-color);">Slet data og luk min konto</button>
-</EditForm>
-
-
-@code {
-    private AlertMessage? _message;
-    private ApplicationUser _user = default!;
-    private bool _requirePassword;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        _user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        _requirePassword = await UserManager.HasPasswordAsync(_user);
-    }
-
-    private async Task OnValidSubmitAsync()
-    {
-        if (_requirePassword && !await UserManager.CheckPasswordAsync(_user, Input.Password))
-        {
-            _message = new AlertMessage("Forkert adgangskode.", true);
-            return;
-        }
-
-        var result = await UserManager.DeleteAsync(_user);
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException("Unexpected error occurred deleting user.");
-        }
-
-        await SignInManager.SignOutAsync();
-
-        var userId = await UserManager.GetUserIdAsync(_user);
-        Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
-
-        RedirectManager.RedirectToCurrentPage();
-    }
-
-    private sealed class InputModel
-    {
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
-    }
-}

@@ -13,6 +13,7 @@
         <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.8" />
         <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.8.0" />
         <PackageReference Include="NetEscapades.EnumGenerators" Version="1.0.0-beta12" />
+        <PackageReference Include="NetTopologySuite" Version="2.6.0" />
         <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
         <PackageReference Include="MassTransit.Abstractions" Version="8.5.2" />
     </ItemGroup>
