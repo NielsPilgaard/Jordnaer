@@ -3,6 +3,8 @@
 @inject PostSearchService PostSearchService
 @inject ISnackbar Snackbar
 @inject ILogger<Posts> Logger
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
 
 @attribute [Sitemap]
 
@@ -43,11 +45,33 @@
 </MudLoading>
 
 @code {
+    [SupplyParameterFromQuery]
+    public string? Contents { get; set; }
+    [SupplyParameterFromQuery]
+    public string[]? Categories { get; set; } = [];
+    [SupplyParameterFromQuery]
+    public int? WithinRadiusKilometers { get; set; }
+    [SupplyParameterFromQuery]
+    public string? Location { get; set; }
+    [SupplyParameterFromQuery]
+    public double? Latitude { get; set; }
+    [SupplyParameterFromQuery]
+    public double? Longitude { get; set; }
+    [SupplyParameterFromQuery]
+    public int? PageNumber { get; set; }
+    [SupplyParameterFromQuery]
+    public int? PageSize { get; set; }
+
     private PostSearchFilter _filter = new();
     private PostSearchResult _searchResult = new();
 
     private bool _isSearching = false;
     private bool _hasSearched = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFromQueryString();
+    }
 
     private async Task Search()
     {
@@ -55,6 +79,8 @@
         try
         {
             var result = await PostSearchService.GetPostsAsync(_filter);
+
+            await UpdateQueryString();
 
             Snackbar.Clear();
 
@@ -78,6 +104,56 @@
             _hasSearched = true;
             _isSearching = false;
         }
+    }
+
+    private static readonly Dictionary<string, object?> _queryStrings = [];
+    private async Task UpdateQueryString()
+    {
+        _queryStrings[nameof(_filter.Contents).ToLower()] = _filter.Contents;
+        _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
+        _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
+        _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
+        _queryStrings[nameof(_filter.Latitude).ToLower()] = _filter.Latitude;
+        _queryStrings[nameof(_filter.Longitude).ToLower()] = _filter.Longitude;
+        _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
+        _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
+
+        var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
+
+        await JsRuntime.NavigateTo(newUrl);
+    }
+
+    private async ValueTask LoadFromQueryString()
+    {
+        var queryStrings = new Uri(Navigation.Uri).Query;
+        if (string.IsNullOrEmpty(queryStrings))
+        {
+            return;
+        }
+
+        var filter = new PostSearchFilter
+        {
+            Contents = Contents,
+            Categories = Categories,
+            WithinRadiusKilometers = WithinRadiusKilometers,
+            Location = Location,
+            Latitude = Latitude,
+            Longitude = Longitude,
+        };
+
+        if (PageNumber is not null)
+        {
+            filter.PageNumber = PageNumber.Value;
+        }
+
+        if (PageSize is not null)
+        {
+            filter.PageSize = PageSize.Value;
+        }
+
+        _filter = filter;
+
+        await Search();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

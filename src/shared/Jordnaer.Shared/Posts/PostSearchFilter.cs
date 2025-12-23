@@ -17,6 +17,18 @@ public class PostSearchFilter
 	[RadiusRequired]
 	public string? Location { get; set; }
 
+	/// <summary>
+	/// Latitude coordinate for map-based location search.
+	/// When set (along with Longitude), takes precedence over Location string.
+	/// </summary>
+	public double? Latitude { get; set; }
+
+	/// <summary>
+	/// Longitude coordinate for map-based location search.
+	/// When set (along with Latitude), takes precedence over Location string.
+	/// </summary>
+	public double? Longitude { get; set; }
+
 	public int PageNumber { get; set; } = 1;
 	public int PageSize { get; set; } = 10;
 }
@@ -44,13 +56,19 @@ file class LocationRequiredAttribute : ValidationAttribute
 	{
 		var postSearchFilter = (PostSearchFilter)validationContext.ObjectInstance;
 
-		if (postSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(postSearchFilter.Location))
+		if (postSearchFilter.WithinRadiusKilometers is null &&
+			string.IsNullOrEmpty(postSearchFilter.Location) &&
+			!postSearchFilter.Latitude.HasValue &&
+			!postSearchFilter.Longitude.HasValue)
 		{
 			return ValidationResult.Success!;
-
 		}
 
-		return string.IsNullOrEmpty(postSearchFilter.Location)
+		// Valid if either Location string is set OR lat/long coordinates are set
+		var hasLocation = !string.IsNullOrEmpty(postSearchFilter.Location) ||
+						  (postSearchFilter.Latitude.HasValue && postSearchFilter.Longitude.HasValue);
+
+		return !hasLocation
 				   ? new ValidationResult("Område skal vælges når en radius er valgt.")
 				   : ValidationResult.Success!;
 	}

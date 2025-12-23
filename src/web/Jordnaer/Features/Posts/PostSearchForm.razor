@@ -1,4 +1,12 @@
-﻿<MudContainer MaxWidth="MaxWidth.Small">
+@using Jordnaer.Features.Map
+@using Microsoft.FeatureManagement
+@using MudBlazor
+@using Variant = MudBlazor.Variant
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+@inject IFeatureManager FeatureManager
+
+<MudContainer MaxWidth="MaxWidth.Small">
 
     <MudPaper Elevation="3" Class="pa-10 mt-5">
         <p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
@@ -11,21 +19,35 @@
             <DataAnnotationsValidator />
 
             <MudGrid Justify="Justify.SpaceAround" Spacing="6">
-                
-	            <MudItem xs="8">
-		            <ZipCodeAutoComplete 
-			            For="() => Filter.Location" 
-			            Location="@Filter.Location" 
-			            LocationChanged="LocationChanged" 
-			            DisableSmartCompletion="_recentlyClearedForm"/>
-	            </MudItem>
-	            <MudItem xs="4">
-		            <MudNumericField For="() => Filter.WithinRadiusKilometers"
-		                             @bind-Value="Filter.WithinRadiusKilometers"
-		                             Label="km"
-		                             Placeholder="Radius">
-		            </MudNumericField>
-	            </MudItem>
+
+				@if (_mapSearchEnabled)
+				{
+					@* New map-based search experience *@
+					<MudItem xs="12">
+						<MapSearchFilter @ref="_mapSearchFilter"
+										 RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
+										 RadiusKmChanged="OnRadiusChanged"
+										 OnLocationSearchChanged="OnLocationSearchChanged" />
+					</MudItem>
+				}
+				else
+				{
+					@* Existing zip code search *@
+					<MudItem xs="8">
+						<ZipCodeAutoComplete
+							For="() => Filter.Location"
+							Location="@Filter.Location"
+							LocationChanged="LocationChanged"
+							DisableSmartCompletion="_recentlyClearedForm"/>
+					</MudItem>
+					<MudItem xs="4">
+						<MudNumericField For="() => Filter.WithinRadiusKilometers"
+										 @bind-Value="Filter.WithinRadiusKilometers"
+										 Label="km"
+										 Placeholder="Radius">
+						</MudNumericField>
+					</MudItem>
+				}
 
 	            <MudItem xs="12">
 		            <CategorySelector @bind-Categories="Filter.Categories" />
@@ -59,6 +81,9 @@
 
 @code
 {
+	private MapSearchFilter? _mapSearchFilter;
+	private bool _mapSearchEnabled = false;
+
     [Parameter, EditorRequired]
     public required PostSearchFilter Filter { get; set; }
 
@@ -70,6 +95,52 @@
 
     private bool _recentlyClearedForm = false;
 
+	protected override async Task OnInitializedAsync()
+	{
+		_mapSearchEnabled = await FeatureManager.IsEnabledAsync(FeatureFlags.MapSearch);
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && _mapSearchEnabled && _mapSearchFilter is not null)
+		{
+			// If we have lat/long in the filter from query string, set the map location
+			if (Filter.Latitude.HasValue && Filter.Longitude.HasValue && Filter.WithinRadiusKilometers.HasValue)
+			{
+				await _mapSearchFilter.SetLocationAsync(
+					Filter.Latitude.Value,
+					Filter.Longitude.Value,
+					13);
+			}
+		}
+	}
+
+	private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address) locationSearch)
+	{
+		Filter.Latitude = locationSearch.Latitude;
+		Filter.Longitude = locationSearch.Longitude;
+		Filter.WithinRadiusKilometers = locationSearch.RadiusKm;
+		Filter.Location = locationSearch.Address;
+
+		await FilterChanged.InvokeAsync(Filter);
+	}
+
+	private async Task OnRadiusChanged(int newRadius)
+	{
+		Filter.WithinRadiusKilometers = newRadius;
+
+		// Update the map if we have a location
+		if (_mapSearchFilter is not null && Filter.Latitude.HasValue && Filter.Longitude.HasValue)
+		{
+			await _mapSearchFilter.UpdateSearchRadiusAsync(
+				Filter.Latitude.Value,
+				Filter.Longitude.Value,
+				newRadius);
+		}
+
+		await FilterChanged.InvokeAsync(Filter);
+	}
+
     private async Task ClearFilter()
     {
         Filter = new PostSearchFilter();
@@ -77,7 +148,7 @@
 
         _recentlyClearedForm = true;
     }
-    
+
     private void LocationChanged(string location)
     {
 	    Filter.Location = location;

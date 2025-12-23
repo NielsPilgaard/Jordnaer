@@ -3,6 +3,7 @@ using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace Jordnaer.Features.GroupSearch;
 
@@ -16,6 +17,7 @@ public class GroupSearchService(
 	ILocationService locationService)
 	: IGroupSearchService
 {
+	private static readonly GeometryFactory GeometryFactory = new(new PrecisionModel(), 4326);
 	public async Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter,
 		CancellationToken cancellationToken = default)
 	{
@@ -63,20 +65,34 @@ public class GroupSearchService(
 		GroupSearchFilter filter,
 		CancellationToken cancellationToken = default)
 	{
-		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
+		if (filter.WithinRadiusKilometers is null)
 		{
 			return (groups, false);
 		}
 
-		// Get location from the search location
-		var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
+		Point? location = null;
 
-		if (searchLocation is null)
+		// Prefer lat/long from map search if available
+		if (filter.Latitude.HasValue && filter.Longitude.HasValue)
+		{
+			// NetTopologySuite Point uses (longitude, latitude) order
+			location = GeometryFactory.CreatePoint(new Coordinate(filter.Longitude.Value, filter.Latitude.Value));
+		}
+		// Fall back to zip code/location string lookup for backward compatibility
+		else if (!string.IsNullOrEmpty(filter.Location))
+		{
+			var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
+			if (searchLocation is null)
+			{
+				return (groups, false);
+			}
+			location = searchLocation.Location;
+		}
+		else
 		{
 			return (groups, false);
 		}
 
-		var location = searchLocation.Location;
 		var radiusMeters = filter.WithinRadiusKilometers.Value * 1000;
 
 		// Use SQL Server's built-in distance calculation with geography type
