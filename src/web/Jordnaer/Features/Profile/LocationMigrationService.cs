@@ -16,7 +16,7 @@ public class LocationMigrationService(
 	private const int BatchSize = 50; // Process in batches to avoid overloading DataForsyningen API
 	private const int DelayBetweenBatchesMs = 1000; // 1 second delay between batches
 
-	private readonly ILocationService locationService = null!;
+	private ILocationService locationService = null!;
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
@@ -25,7 +25,7 @@ public class LocationMigrationService(
 			await using var scope = serviceScopeFactory.CreateAsyncScope();
 
 			var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<JordnaerDbContext>>();
-			var locationService = scope.ServiceProvider.GetRequiredService<ILocationService>();
+			locationService = scope.ServiceProvider.GetRequiredService<ILocationService>();
 			await using var context = await contextFactory.CreateDbContextAsync(stoppingToken);
 
 			logger.LogInformation("Starting location migration from ZipCode to Point geometry");
