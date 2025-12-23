@@ -60,9 +60,7 @@ public record GroupSearchFilter
 			   WithinRadiusKilometers == other.WithinRadiusKilometers &&
 			   Location == other.Location &&
 			   Latitude == other.Latitude &&
-			   Longitude == other.Longitude &&
-			   PageNumber == other.PageNumber &&
-			   PageSize == other.PageSize;
+			   Longitude == other.Longitude;
 	}
 }
 
