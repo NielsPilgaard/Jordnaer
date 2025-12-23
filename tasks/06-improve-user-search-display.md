@@ -501,3 +501,4 @@ NEXT:
 3. The kids emoji is awful, visualize that section in a different way
 4. the user result cards ar filled in a weird way, and the blank space is grey for some reason??? (Image attached)
 5. On the AdCard, the annonce "hover" text should be small and muted in the upper right corner, like before, with a light grey background for visibility.
+6. When there's only 1 search result, the results are skewed to the left. Center them.
