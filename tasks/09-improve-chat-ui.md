@@ -48,4 +48,4 @@ NEXT:
 2. Scroll-to-bottom is still visible when scrolled down
 3. There's a bit of empty space below the chat input on mobile, we don't need that
 4. We don't get the topbar back when going from chat -> chat selector on mobile. Find a good solution. If displaying both topbar and header is the solution, that is fine.
-5. The individual chat message bubbles are not always the right size. The chat can overflow both to the left and right, and only move to the next line when the user uses enter
+5. The individual chat message bubbles are not always the right size. The chat can overflow both to the left and right, and only move to the next line when the user uses enter. The problem is almost certainly in chat.css
