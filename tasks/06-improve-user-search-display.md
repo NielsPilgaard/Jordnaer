@@ -3,69 +3,87 @@
 ## Context
 
 **App:** Jordnaer (.NET Blazor Server)
-**Area:** User Search
+**Area:** User Search Results Display
 **Priority:** High
-**Related:** Task 07 (Map Search) - both are part of the "new search experience"
-
-## ⚠️ Feature Flag Requirement
-**CRITICAL:** This feature MUST be implemented behind the same feature flag as Task 07 (Map Search).
-
-```csharp
-// appsettings.json
-{
-  "FeatureFlags": {
-    "EnableNewSearchExperience": false  // Controls BOTH map search AND improved display
-  }
-}
-```
-
-**Implementation Notes:**
-- When `false`: Use existing search results display
-- When `true`: Enable new card-based display with distance info (from map search)
-- Single flag controls entire new search experience (map + improved UI)
-- Design this UI with map integration in mind (distance display, etc.)
+**Note:** Map search (Task 07) is now enabled by default. This task focuses on improving the visual presentation of search results.
 
 ## Objective
 
-Enhance the visual presentation and layout of user search results to make them more scannable and informative, with integration for map-based distance display from Task 07.
+Enhance the visual presentation and layout of user search results to make them more scannable and informative. Since map search is now enabled by default, this task focuses on creating a modern card-based UI that displays distance information and works seamlessly with the existing map functionality.
 
 ## Current State
 
-User search results display needs improvement in terms of visual hierarchy and information presentation. Does not show distance from selected location or integrate with map view.
+User search results display needs improvement in terms of visual hierarchy and information presentation.
 
 ## Requirements
 
-1. **Feature flag implementation** - Use same `EnableNewSearchExperience` flag as Task 07
-2. Display user information in a clear, card-based layout
-3. Ensure responsive design across mobile and desktop
-4. Add user avatars and key profile details
-5. Implement visual hierarchy for better scannability
-6. **Integrate with map search** - Show distance from selected location when map search is used
-7. Support both list view and map marker view (from Task 07)
+1. Display user information in a clear, card-based layout
+2. Ensure responsive design across mobile and desktop
+3. Add user avatars and key profile details
+4. Implement visual hierarchy for better scannability
+5. **Display distance information** - Show distance from map center/selected location (e.g., "3.2 km away")
+6. **Map interaction** - Clicking a result card highlights the corresponding map marker
+7. **Ad integration** - Design a non-invasive way to intertwine ads with search results (preparing for multiple ads in the future)
 
 ## Acceptance Criteria
 
-### Feature Flag
-- [ ] Uses `EnableNewSearchExperience` feature flag (shared with Task 07)
-- [ ] When flag is `false`, existing search display is used
-- [ ] When flag is `true`, new card-based display with distance info is used
-
 ### Visual Design
+
 - [ ] Search results use a modern card-based layout
 - [ ] Each result card shows: avatar, name, location, and key profile info
-- [ ] **Distance from selected point displayed** (e.g., "3.2 km away") when using map search
+- [ ] **Distance from map center displayed** (e.g., "3.2 km away")
 - [ ] Layout is fully responsive (mobile & desktop)
 - [ ] Visual hierarchy makes results easy to scan
 - [ ] Consistent with JordnaerPalette design system (Task 03)
 
-### Integration with Map Search (Task 07)
-- [ ] Cards can display distance information from map-based search
-- [ ] Clicking card can highlight corresponding map marker (if map visible)
+### Map Integration
+
+- [ ] Distance calculation works with current map center (from existing map search feature)
+- [ ] Clicking a result card highlights the corresponding map marker
 - [ ] Design works well in split view (map + list) and list-only view
+- [ ] Results update when map is panned/zoomed (leveraging existing map search functionality)
+
+### Ad Integration
+
+- [ ] Ads are naturally intertwined with search results (not in a separate section)
+- [ ] Ad placement is non-invasive and doesn't disrupt scanning
+- [ ] Design scales to handle multiple ads in the future
+- [ ] Ads are clearly distinguishable from regular results but blend visually
+
+## Complexity Reduction & UX Improvements
+
+**Simplify search experience:**
+- Remove query string integration (no URL parameter syncing)
+- Remove auto-search on navigation (only search on explicit user action)
+- Use component-level state instead of URL state
+- Simplify [UserSearchResultCache.cs](src/web/Jordnaer/Features/UserSearch/UserSearchResultCache.cs) usage
+
+**Seamless navigation:**
+- Improve scroll position restoration when navigating from search → profile/group → back to search
+- Current implementation uses [scroll.js](src/web/Jordnaer/wwwroot/js/scroll.js) with 50ms setTimeout - this is janky
+- Replace with proper scroll restoration:
+  - Use Blazor's NavigationManager.LocationChanged event
+  - Wait for OnAfterRenderAsync to ensure DOM is ready
+  - Use IntersectionObserver API to restore to visible element instead of pixel position
+  - Store both scroll position AND the visible item ID/index
+  - More reliable restoration on different screen sizes
+- Maintain search results in cache during navigation (avoid re-querying)
+- Restore filter state when returning to search page
+
+**Browser geolocation:**
+- Use browser's Geolocation API to get user's current location as default search center
+- Request location permission on search page load
+- Set map center to user's coordinates if permission granted
+- Fallback to Denmark center if permission denied or unavailable
+- Show loading indicator while fetching location
 
 ## Files to Investigate
 
-- User search components (likely in `src/web/Jordnaer/Features/`)
+- User search components: [UserSearch.razor](src/web/Jordnaer/Pages/UserSearch/UserSearch.razor)
+- Search result component: [UserSearchResultComponent.razor](src/web/Jordnaer/Features/UserSearch/UserSearchResultComponent.razor)
+- Search cache: [UserSearchResultCache.cs](src/web/Jordnaer/Features/UserSearch/UserSearchResultCache.cs)
+- Scroll utilities: [scroll.js](src/web/Jordnaer/wwwroot/js/scroll.js)
+- Location service: [LocationService.cs](src/web/Jordnaer/Features/Profile/LocationService.cs)
+- Map component: [MapSearchFilter.razor](src/web/Jordnaer/Features/Map/MapSearchFilter.razor)
 - Existing card components for reference (e.g., `GroupCard.razor`, `ChildProfileCard.razor`)
-- Feature flag configuration service
-- Distance display formatting utilities (from Task 08)
+- Distance display formatting utilities

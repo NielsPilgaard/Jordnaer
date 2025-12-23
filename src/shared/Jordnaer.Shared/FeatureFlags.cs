@@ -7,4 +7,5 @@ public static class FeatureFlags
 	public const string Posts = "Posts";
 	public const string AccountSettings = "AccountSettings";
 	public const string NotificationSettings = "NotificationSettings";
+	public const string MapSearch = "MapSearch";
 }

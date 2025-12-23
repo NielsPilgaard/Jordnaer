@@ -51,6 +51,10 @@
     [SupplyParameterFromQuery]
     public string? Location { get; set; }
     [SupplyParameterFromQuery]
+    public double? Latitude { get; set; }
+    [SupplyParameterFromQuery]
+    public double? Longitude { get; set; }
+    [SupplyParameterFromQuery]
     public int? PageNumber { get; set; }
     [SupplyParameterFromQuery]
     public int? PageSize { get; set; }
@@ -114,6 +118,8 @@
         _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
         _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
         _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
+        _queryStrings[nameof(_filter.Latitude).ToLower()] = _filter.Latitude;
+        _queryStrings[nameof(_filter.Longitude).ToLower()] = _filter.Longitude;
         _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
         _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
 
@@ -136,6 +142,8 @@
             Categories = Categories,
             WithinRadiusKilometers = WithinRadiusKilometers,
             Location = Location,
+            Latitude = Latitude,
+            Longitude = Longitude,
         };
 
         if (PageNumber is not null)

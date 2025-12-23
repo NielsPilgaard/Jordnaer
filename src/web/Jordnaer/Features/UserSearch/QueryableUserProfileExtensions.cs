@@ -1,11 +1,14 @@
 using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace Jordnaer.Features.UserSearch;
 
 internal static class QueryableUserProfileExtensions
 {
+	private static readonly GeometryFactory GeometryFactory = new(new PrecisionModel(), 4326);
+
 	// TODO: We can make this generic for posts, groups and users
 	internal static async Task<(IQueryable<UserProfile> UserProfiles, bool AppliedOrdering)> ApplyLocationFilter(
 		this IQueryable<UserProfile> users,
@@ -13,21 +16,34 @@ internal static class QueryableUserProfileExtensions
 		ILocationService locationService,
 		CancellationToken cancellationToken = default)
 	{
-		if (string.IsNullOrEmpty(filter.Location) || filter.WithinRadiusKilometers is null)
+		if (filter.WithinRadiusKilometers is null)
 		{
 			return (users, false);
 		}
 
-		// Get location from the search location
-		// TODO: When we get a map in our user, group and post search filters, we should use that location instead and remove async 
-		var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
+		Point? location = null;
 
-		if (searchLocation is null)
+		// Prefer lat/long from map search if available
+		if (filter.Latitude.HasValue && filter.Longitude.HasValue)
+		{
+			// NetTopologySuite Point uses (longitude, latitude) order
+			location = GeometryFactory.CreatePoint(new Coordinate(filter.Longitude.Value, filter.Latitude.Value));
+		}
+		// Fall back to zip code/location string lookup for backward compatibility
+		else if (!string.IsNullOrEmpty(filter.Location))
+		{
+			var searchLocation = await locationService.GetLocationFromZipCodeAsync(filter.Location, cancellationToken);
+			if (searchLocation is null)
+			{
+				return (users, false);
+			}
+			location = searchLocation.Location;
+		}
+		else
 		{
 			return (users, false);
 		}
 
-		var location = searchLocation.Location;
 		var radiusMeters = filter.WithinRadiusKilometers.Value * 1000;
 
 		// Use SQL Server's built-in distance calculation with geography type

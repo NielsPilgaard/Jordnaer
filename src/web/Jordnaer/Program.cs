@@ -16,6 +16,7 @@ using Jordnaer.Features.Membership;
 using Jordnaer.Features.GroupPosts;
 using Jordnaer.Features.Posts;
 using Jordnaer.Features.PostSearch;
+using Jordnaer.Features.Map;
 using Jordnaer.Features.Profile;
 using Jordnaer.Features.Search;
 using Jordnaer.Features.UserSearch;
@@ -90,6 +91,8 @@ builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddDataForsyningenClient();
+
+builder.Services.AddScoped<ILeafletMapInterop, LeafletMapInterop>();
 
 builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 

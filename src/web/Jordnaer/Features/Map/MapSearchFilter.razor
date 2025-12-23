@@ -1,0 +1,174 @@
+@using Jordnaer.Shared
+@using Jordnaer.Features.Profile
+@inject IDataForsyningenClient DataForsyningenClient
+@inject ILocationService LocationService
+
+<MudStack Spacing="3">
+    @* Address search with autocomplete *@
+    <MudAutocomplete T="string" Label="Søg efter adresse" Value="@_addressText" SearchFunc="SearchForAddresses"
+        DebounceInterval="250" MinCharacters="3" ResetValueOnEmptyText CoerceText="false" CoerceValue="false"
+        Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable ValueChanged="OnAddressSelected"
+        AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+
+    @* Radius slider with value display *@
+    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+        <MudText Typo="Typo.body2" Style="min-width: 80px;">Radius:</MudText>
+        <MudSlider Value="@RadiusKm" Min="1" Max="50" Step="1" Color="Color.Primary" Style="flex: 1;"
+            ValueChanged="@(async (int newValue) => await OnRadiusChanged(newValue))" />
+        <MudText Typo="Typo.body1" Style="min-width: 60px; text-align: right;">
+            <strong>@RadiusKm km</strong>
+        </MudText>
+    </MudStack>
+
+    @* Map *@
+    <LeafletMap @ref="_mapComponent" MapId="@MapId" InitialLatitude="@InitialLatitude"
+        InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom" OnLocationSelected="OnMapClicked"
+        MapStyle="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #e0e0e0;" />
+
+    @* Instructions *@
+    <MudText Typo="Typo.caption" Class="mud-text-secondary">
+        Klik på kortet eller søg efter en adresse for at vælge et søgeområde
+    </MudText>
+</MudStack>
+
+@code {
+    private LeafletMap? _mapComponent;
+    private string? _addressText;
+
+    [Parameter]
+    public string MapId { get; set; } = $"map-search-{Guid.NewGuid()}";
+
+    [Parameter]
+    public double InitialLatitude { get; set; } = 56.0; // Center of Denmark
+
+    [Parameter]
+    public double InitialLongitude { get; set; } = 10.0; // Center of Denmark
+
+    [Parameter]
+    public int InitialZoom { get; set; } = 7;
+
+    [Parameter]
+    public int RadiusKm { get; set; } = 10;
+
+    [Parameter]
+    public EventCallback<int> RadiusKmChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(double Latitude, double Longitude, int RadiusKm, string? Address)> OnLocationSearchChanged
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
+    /// Searches for Danish addresses using DataForsyningen API
+    /// </summary>
+    private async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+        {
+            return [];
+        }
+
+        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+
+        return searchResponse.IsSuccessful && searchResponse.Content is not null
+        ? searchResponse.Content.Select(response => response.ToString())
+        : [];
+    }
+
+    /// <summary>
+    /// Called when an address is selected from autocomplete
+    /// </summary>
+    private async Task OnAddressSelected(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return;
+        }
+
+        _addressText = address;
+
+        // Get coordinates for the selected address
+        var locationResult = await LocationService.GetLocationFromAddressAsync(address);
+
+        if (locationResult is null)
+        {
+            return;
+        }
+
+        var lat = locationResult.Location.Y;
+        var lng = locationResult.Location.X;
+
+        // Update map
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.CenterMapAsync(lat, lng, 13);
+            await _mapComponent.UpdateMarkerAsync(lat, lng);
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+        }
+
+        // Notify parent component
+        await OnLocationSearchChanged.InvokeAsync((lat, lng, RadiusKm, address));
+    }
+
+    /// <summary>
+    /// Called when the map is clicked
+    /// </summary>
+    private async Task OnMapClicked((double Latitude, double Longitude) location)
+    {
+        var (lat, lng) = location;
+
+        // Clear the address text since we're selecting a new location on the map
+        _addressText = null;
+
+        // Update marker and radius on map
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.UpdateMarkerAsync(lat, lng);
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+        }
+
+        // Pass null for address when clicking on map (not from address search)
+        await OnLocationSearchChanged.InvokeAsync((lat, lng, RadiusKm, null));
+    }
+
+    /// <summary>
+    /// Called when the radius slider changes
+    /// </summary>
+    private async Task OnRadiusChanged(int newRadius)
+    {
+        RadiusKm = newRadius;
+        await RadiusKmChanged.InvokeAsync(newRadius);
+
+        // The parent will handle updating the map through the public method
+    }
+
+    /// <summary>
+    /// Public method to update the search radius visualization
+    /// Call this from parent when radius changes
+    /// </summary>
+    public async Task UpdateSearchRadiusAsync(double lat, double lng, int radiusKm)
+    {
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, radiusKm);
+        }
+    }
+
+    /// <summary>
+    /// Public method to update the map based on lat/long
+    /// </summary>
+    public async Task SetLocationAsync(double lat, double lng, int? zoom = null)
+    {
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.CenterMapAsync(lat, lng, zoom);
+            await _mapComponent.UpdateMarkerAsync(lat, lng);
+            if (RadiusKm > 0)
+            {
+                await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+            }
+        }
+    }
+}

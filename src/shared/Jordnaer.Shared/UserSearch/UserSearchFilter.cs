@@ -17,6 +17,18 @@ public record UserSearchFilter
 	[RadiusRequired]
 	public string? Location { get; set; }
 
+	/// <summary>
+	/// Latitude coordinate for map-based location search.
+	/// When set (along with Longitude), takes precedence over Location string.
+	/// </summary>
+	public double? Latitude { get; set; }
+
+	/// <summary>
+	/// Longitude coordinate for map-based location search.
+	/// When set (along with Latitude), takes precedence over Location string.
+	/// </summary>
+	public double? Longitude { get; set; }
+
 	[Range(0, 18, ErrorMessage = "Skal være mellem 0 og 18 år")]
 	public int? MinimumChildAge { get; set; }
 	[Range(0, 18, ErrorMessage = "Skal være mellem 0 og 18 år")]
@@ -37,6 +49,8 @@ public record UserSearchFilter
 			hash = hash * 23 + (Categories != null ? Categories.Aggregate(0, (current, category) => current + category.GetHashCode()) : 0);
 			hash = hash * 23 + WithinRadiusKilometers.GetHashCode();
 			hash = hash * 23 + (Location?.GetHashCode() ?? 0);
+			hash = hash * 23 + Latitude.GetHashCode();
+			hash = hash * 23 + Longitude.GetHashCode();
 			hash = hash * 23 + MinimumChildAge.GetHashCode();
 			hash = hash * 23 + MaximumChildAge.GetHashCode();
 			hash = hash * 23 + ChildGender.GetHashCode();
@@ -53,6 +67,8 @@ public record UserSearchFilter
 				(Categories != null && other.Categories != null && Categories.SequenceEqual(other.Categories))) &&
 			   WithinRadiusKilometers == other.WithinRadiusKilometers &&
 			   Location == other.Location &&
+			   Latitude == other.Latitude &&
+			   Longitude == other.Longitude &&
 			   MinimumChildAge == other.MinimumChildAge &&
 			   MaximumChildAge == other.MaximumChildAge &&
 			   ChildGender == other.ChildGender;
@@ -65,7 +81,10 @@ file class RadiusRequiredAttribute : ValidationAttribute
 	{
 		var userSearchFilter = (UserSearchFilter)validationContext.ObjectInstance;
 
-		if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
+		if (userSearchFilter.WithinRadiusKilometers is null &&
+			string.IsNullOrEmpty(userSearchFilter.Location) &&
+			!userSearchFilter.Latitude.HasValue &&
+			!userSearchFilter.Longitude.HasValue)
 		{
 			return ValidationResult.Success!;
 		}
@@ -81,13 +100,16 @@ file class LocationRequiredAttribute : ValidationAttribute
 	{
 		var userSearchFilter = (UserSearchFilter)validationContext.ObjectInstance;
 
-		if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
+		if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location) && !userSearchFilter.Latitude.HasValue && !userSearchFilter.Longitude.HasValue)
 		{
 			return ValidationResult.Success!;
-
 		}
 
-		return string.IsNullOrEmpty(userSearchFilter.Location)
+		// Valid if either Location string is set OR lat/long coordinates are set
+		var hasLocation = !string.IsNullOrEmpty(userSearchFilter.Location) ||
+		                  (userSearchFilter.Latitude.HasValue && userSearchFilter.Longitude.HasValue);
+
+		return !hasLocation
 			? new ValidationResult("Område skal vælges når en radius er valgt.")
 			: ValidationResult.Success!;
 	}

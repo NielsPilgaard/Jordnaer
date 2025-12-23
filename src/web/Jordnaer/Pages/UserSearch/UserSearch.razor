@@ -50,6 +50,10 @@
     [SupplyParameterFromQuery]
     public string? Location { get; set; }
     [SupplyParameterFromQuery]
+    public double? Latitude { get; set; }
+    [SupplyParameterFromQuery]
+    public double? Longitude { get; set; }
+    [SupplyParameterFromQuery]
     public int? MinimumChildAge { get; set; }
     [SupplyParameterFromQuery]
     public int? MaximumChildAge { get; set; }
@@ -119,6 +123,8 @@
         _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
         _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
         _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
+        _queryStrings[nameof(_filter.Latitude).ToLower()] = _filter.Latitude;
+        _queryStrings[nameof(_filter.Longitude).ToLower()] = _filter.Longitude;
         _queryStrings[nameof(_filter.MinimumChildAge).ToLower()] = _filter.MinimumChildAge;
         _queryStrings[nameof(_filter.MaximumChildAge).ToLower()] = _filter.MaximumChildAge;
         _queryStrings[nameof(_filter.ChildGender).ToLower()] = _filter.ChildGender.HasValue ? _filter.ChildGender.ToString() : null;
@@ -144,6 +150,8 @@
                 Categories = Categories,
                 WithinRadiusKilometers = WithinRadiusKilometers,
                 Location = Location,
+                Latitude = Latitude,
+                Longitude = Longitude,
                 MinimumChildAge = MinimumChildAge,
                 MaximumChildAge = MaximumChildAge
             };
