@@ -158,12 +158,13 @@
         Filter = new GroupSearchFilter();
         await FilterChanged.InvokeAsync(Filter);
 
-        var uriWithQuery = new Uri(Navigation.Uri);
-        var uriWithoutQuery = uriWithQuery.GetLeftPart(UriPartial.Path);
+        // Clear the map location if using map search
+        if (_mapSearchEnabled && _mapSearchFilter is not null)
+        {
+            await _mapSearchFilter.ClearLocationAsync();
+        }
 
         _recentlyClearedForm = true;
-
-        await JsRuntime.NavigateTo(uriWithoutQuery);
     }
 
     private void LocationChanged(string location)

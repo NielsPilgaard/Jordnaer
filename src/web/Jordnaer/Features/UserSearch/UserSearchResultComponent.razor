@@ -1,51 +1,34 @@
+@using Jordnaer.Features.Ad
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
 @implements IDisposable
 
-<MudGrid Justify="Justify.Center">
-    @foreach (var user in SearchResult.Users)
-    {
-        <MudItem xs="12" sm="8" md="6" lg="4" xl="4">
-            <MudNavLink Class="card-link" Href="@($"/{user.UserName}")">
-                <MudCard Class="pa-3 my-3 card-hover" Elevation="3">
-                    <MudCardContent Class="d-flex flex-column align-center">
-                        <MudImage Fluid Width="200" Style="border-radius: 50%" Src="@user.ProfilePictureUrl" loading="lazy" />
-                        <MudTextField Label="Brugernavn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" ReadOnly T="string" Text="@user.UserName" />
-                        <MudTextField Label="Område" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Place" ReadOnly T="string" Text="@user.DisplayLocation()" />
-                        <MudTextField Label="Navn" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AccountCircle" ReadOnly T="string" Text="@user.DisplayName" />
-
-                        @if (user.Children.Count is not 0)
-                        {
-                            <MudText Class="my-4" Typo="Typo.h6">Børn</MudText>
-                            <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1 gap-3" T="MudBadge">
-                                @foreach (var child in user.Children.OrderBy(c => c.DateOfBirth))
-                                {
-                                    <MudBadge Color="Color.Success" Overlap Origin="Origin.TopCenter" Content="GetAgeString(child)">
-                                        <MudChip Color="Color.Primary">@child.FirstName @child.LastName</MudChip>
-                                    </MudBadge>
-                                }
-                            </MudChipSet>
-                        }
-
-                        @if (user.Categories.Count is not 0)
-                        {
-                            <div class="my-4">
-                                <MudText Typo="Typo.h6"><MudIcon Class="mr-2" Icon="@Icons.Material.Filled.Star" />Interesseret i</MudText>
-                            </div>
-                            <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1" T="MudChip<string>">
-	                            @foreach (var category in user.Categories)
-	                            {
-		                            <MudChip Color="Color.Tertiary">@category</MudChip>
-	                            }
-                            </MudChipSet>
-                        }
-                    </MudCardContent>
-                </MudCard>
-            </MudNavLink>
-        </MudItem>
-    }
-</MudGrid>
+<MudContainer MaxWidth="MaxWidth.Large" Class="px-0">
+    <MudGrid Spacing="3">
+        @{
+            var items = GetItemsWithAds();
+            var index = 0;
+        }
+        @foreach (var item in items)
+        {
+            var itemId = GetItemId(index);
+            <MudItem xs="12" sm="6" md="4" lg="3" id="@itemId">
+                @if (item.IsAd && item.Ad is not null)
+                {
+                    <AdCard Link="@item.Ad.Link"
+                            ImagePath="@item.Ad.ImagePath"
+                            ImageAlt="@item.Ad.Title" />
+                }
+                else if (item.User is not null)
+                {
+                    <UserCard User="@item.User" />
+                }
+            </MudItem>
+            index++;
+        }
+    </MudGrid>
+</MudContainer>
 <MudPagination Class="mt-5 d-flex justify-center"
                BoundaryCount="0"
                MiddleCount="3"
@@ -66,24 +49,67 @@
     [Parameter]
     public EventCallback<int> SelectedPageChanged { get; set; }
 
-    private string GetAgeString(ChildDto child)
+    private IDisposable? _locationChangingHandler;
+
+    private record SearchResultItem
     {
-        return child.Age is not null ? $"{child.Age} år" : "?";
+        public bool IsAd { get; init; }
+        public UserDto? User { get; init; }
+        public AdData? Ad { get; init; }
     }
 
-    private IDisposable? _locationChangingHandler;
+    private List<SearchResultItem> GetItemsWithAds()
+    {
+        var items = new List<SearchResultItem>();
+
+        // Calculate how many ads we need based on results
+        // Always show at least 1 ad if there are any results
+        var adCount = SearchResult.Users.Count > 0
+            ? Math.Max(1, (int)Math.Ceiling(SearchResult.Users.Count / 8.0))
+            : 0;
+
+        var ads = HardcodedAds.GetAdsForUserSearch(adCount);
+        var adIndex = 0;
+
+        // Add users with ads interspersed
+        for (int i = 0; i < SearchResult.Users.Count; i++)
+        {
+            items.Add(new SearchResultItem { User = SearchResult.Users[i] });
+
+            // Insert ad after every 8th user, or at the end if we have fewer than 8 users
+            var shouldInsertAd = (i + 1) % 8 == 0 || (i == SearchResult.Users.Count - 1 && adIndex < ads.Count);
+
+            if (shouldInsertAd && adIndex < ads.Count)
+            {
+                items.Add(new SearchResultItem
+                {
+                    IsAd = true,
+                    Ad = ads[adIndex++]
+                });
+            }
+        }
+
+        return items;
+    }
+
+    private string GetItemId(int index) => $"search-item-{index}";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.loadScrollPosition", nameof(UserSearch));
+            await RestoreScrollPosition();
         }
     }
 
-    private async ValueTask SaveScrollPosition()
+    private async Task RestoreScrollPosition()
     {
-        await JsRuntime.InvokeVoidAsyncWithErrorHandling("scrollFunctions.saveScrollPosition", nameof(UserSearch));
+        await JsRuntime.InvokeVoidAsyncWithErrorHandling("userSearchScroll.restoreScrollPosition");
+    }
+
+    private async Task SaveScrollPosition()
+    {
+        await JsRuntime.InvokeVoidAsyncWithErrorHandling("userSearchScroll.saveScrollPosition");
     }
 
     protected override void OnInitialized()

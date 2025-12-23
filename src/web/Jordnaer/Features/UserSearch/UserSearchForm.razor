@@ -153,8 +153,7 @@
     [Parameter]
     public required EventCallback OnValidSubmit { get; set; }
 
-    [SupplyParameterFromQuery]
-    public bool ExpandAdvancedSearch { get; set; } = false;
+    private bool ExpandAdvancedSearch { get; set; } = false;
 
     private static readonly UserSearchFilter DefaultFilter = new();
 
@@ -212,12 +211,14 @@
         Filter = new UserSearchFilter();
         await FilterChanged.InvokeAsync(Filter);
 
-        var uriWithQuery = new Uri(Navigation.Uri);
-        var uriWithoutQuery = uriWithQuery.GetLeftPart(UriPartial.Path);
+        // Clear the map location if using map search
+        if (_mapSearchEnabled && _mapSearchFilter is not null)
+        {
+            await _mapSearchFilter.ClearLocationAsync();
+        }
 
         _recentlyClearedForm = true;
-
-        await JsRuntime.NavigateTo(uriWithoutQuery);
+        ExpandAdvancedSearch = false;
     }
 
     private void LocationChanged(string location)
@@ -229,11 +230,5 @@
     private void ToggleAdvancedSearch()
     {
         ExpandAdvancedSearch = !ExpandAdvancedSearch;
-
-        var newUri = Navigation.GetUriWithQueryParameter(
-        nameof(ExpandAdvancedSearch).ToLower(),
-        ExpandAdvancedSearch.ToString().ToLower());
-
-        Navigation.NavigateTo(newUri);
     }
 }
