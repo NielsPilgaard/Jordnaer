@@ -47,6 +47,11 @@
     <link rel="stylesheet" href="@Assets["Jordnaer.styles.css"]" media="print"
         onload="this.onload=null;this.removeAttribute('media');">
 
+    @* Leaflet.js for map search functionality *@
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+
     <ImportMap />
 
     <HeadOutlet @rendermode="RenderModeForPage" />
@@ -71,6 +76,12 @@
     <script async src="@Assets["js/utilities.js"]"></script>
     <script async src="@Assets["js/quill-loader.js"]"></script>
     <script async src="@Assets["_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"]"></script>
+
+    @* Leaflet.js for map search functionality *@
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <script async src="@Assets["js/leaflet-interop.js"]"></script>
 </body>
 
 </html>

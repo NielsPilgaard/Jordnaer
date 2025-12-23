@@ -1,0 +1,119 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject ILeafletMapInterop LeafletMapInterop
+
+<div id="@MapId" style="@MapStyle"></div>
+
+@code {
+	private DotNetObjectReference<LeafletMap>? _dotNetHelper;
+	private bool _isInitialized;
+
+	[Parameter]
+	public string MapId { get; set; } = $"map-{Guid.NewGuid()}";
+
+	[Parameter]
+	public double InitialLatitude { get; set; } = 56.0; // Center of Denmark
+
+	[Parameter]
+	public double InitialLongitude { get; set; } = 10.0; // Center of Denmark
+
+	[Parameter]
+	public int InitialZoom { get; set; } = 7;
+
+	[Parameter]
+	public string MapStyle { get; set; } = "height: 400px; width: 100%; border-radius: 8px;";
+
+	[Parameter]
+	public EventCallback<(double Latitude, double Longitude)> OnLocationSelected { get; set; }
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_dotNetHelper = DotNetObjectReference.Create(this);
+
+			// Initialize the map
+			var success = await LeafletMapInterop.InitializeMapAsync(
+				MapId,
+				InitialLatitude,
+				InitialLongitude,
+				InitialZoom);
+
+			if (success)
+			{
+				// Setup click handler
+				await LeafletMapInterop.SetupClickHandlerAsync(MapId, _dotNetHelper!);
+				_isInitialized = true;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Called from JavaScript when the map is clicked
+	/// </summary>
+	[JSInvokable]
+	public async Task OnMapClicked(double lat, double lng)
+	{
+		await OnLocationSelected.InvokeAsync((lat, lng));
+	}
+
+	/// <summary>
+	/// Updates the search radius visualization on the map
+	/// </summary>
+	public async Task UpdateSearchRadiusAsync(double lat, double lng, int radiusKm)
+	{
+		if (!_isInitialized) return;
+
+		await LeafletMapInterop.UpdateSearchRadiusAsync(MapId, lat, lng, radiusKm);
+	}
+
+	/// <summary>
+	/// Centers the map on a specific location
+	/// </summary>
+	public async Task CenterMapAsync(double lat, double lng, int? zoom = null)
+	{
+		if (!_isInitialized) return;
+
+		await LeafletMapInterop.CenterMapAsync(MapId, lat, lng, zoom);
+	}
+
+	/// <summary>
+	/// Updates the marker position
+	/// </summary>
+	public async Task UpdateMarkerAsync(double lat, double lng)
+	{
+		if (!_isInitialized) return;
+
+		await LeafletMapInterop.UpdateMarkerAsync(MapId, lat, lng);
+	}
+
+	/// <summary>
+	/// Removes the marker from the map
+	/// </summary>
+	public async Task RemoveMarkerAsync()
+	{
+		if (!_isInitialized) return;
+
+		await LeafletMapInterop.RemoveMarkerAsync(MapId);
+	}
+
+	/// <summary>
+	/// Removes the search radius circle from the map
+	/// </summary>
+	public async Task RemoveSearchRadiusAsync()
+	{
+		if (!_isInitialized) return;
+
+		await LeafletMapInterop.RemoveSearchRadiusAsync(MapId);
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_isInitialized)
+		{
+			await LeafletMapInterop.DisposeMapAsync(MapId);
+		}
+
+		_dotNetHelper?.Dispose();
+	}
+}
