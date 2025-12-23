@@ -81,7 +81,10 @@ file class RadiusRequiredAttribute : ValidationAttribute
 	{
 		var userSearchFilter = (UserSearchFilter)validationContext.ObjectInstance;
 
-		if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
+		if (userSearchFilter.WithinRadiusKilometers is null &&
+			string.IsNullOrEmpty(userSearchFilter.Location) &&
+			!userSearchFilter.Latitude.HasValue &&
+			!userSearchFilter.Longitude.HasValue)
 		{
 			return ValidationResult.Success!;
 		}

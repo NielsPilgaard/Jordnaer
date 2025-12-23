@@ -51,7 +51,7 @@ public record GroupSearchFilter
 		}
 	}
 
-	public virtual bool Equals(UserSearchFilter? other)
+	public virtual bool Equals(GroupSearchFilter? other)
 	{
 		return other is not null &&
 			   Name == other.Name &&
@@ -60,7 +60,9 @@ public record GroupSearchFilter
 			   WithinRadiusKilometers == other.WithinRadiusKilometers &&
 			   Location == other.Location &&
 			   Latitude == other.Latitude &&
-			   Longitude == other.Longitude;
+			   Longitude == other.Longitude &&
+			   PageNumber == other.PageNumber &&
+			   PageSize == other.PageSize;
 	}
 }
 
@@ -68,14 +70,17 @@ file class RadiusRequiredAttribute : ValidationAttribute
 {
 	protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
 	{
-		var userSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
+		var groupSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
 
-		if (userSearchFilter.WithinRadiusKilometers is null && string.IsNullOrEmpty(userSearchFilter.Location))
+		if (groupSearchFilter.WithinRadiusKilometers is null &&
+			string.IsNullOrEmpty(groupSearchFilter.Location) &&
+			!groupSearchFilter.Latitude.HasValue &&
+			!groupSearchFilter.Longitude.HasValue)
 		{
 			return ValidationResult.Success!;
 		}
 
-		return userSearchFilter.WithinRadiusKilometers is null
+		return groupSearchFilter.WithinRadiusKilometers is null
 			? new ValidationResult("Radius skal vælges når et område er valgt.")
 			: ValidationResult.Success!;
 	}
