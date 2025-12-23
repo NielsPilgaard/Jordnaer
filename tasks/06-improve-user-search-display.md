@@ -3,7 +3,7 @@
 ## Context
 
 **App:** Jordnaer (.NET Blazor Server)
-**Area:** User Search
+**Area:** User Search Results Display
 **Priority:** High
 **Related:** Task 05 (Map Search) - both are part of the "new search experience"
 
@@ -72,5 +72,10 @@ User search results display needs improvement in terms of visual hierarchy and i
 
 ## Files to Investigate
 
-- User search components (likely in `src/web/Jordnaer/Features/`)
+- User search components: [UserSearch.razor](src/web/Jordnaer/Pages/UserSearch/UserSearch.razor)
+- Search result component: [UserSearchResultComponent.razor](src/web/Jordnaer/Features/UserSearch/UserSearchResultComponent.razor)
+- Search cache: [UserSearchResultCache.cs](src/web/Jordnaer/Features/UserSearch/UserSearchResultCache.cs)
+- Scroll utilities: [scroll.js](src/web/Jordnaer/wwwroot/js/scroll.js)
+- Location service: [LocationService.cs](src/web/Jordnaer/Features/Profile/LocationService.cs)
+- Map component: [MapSearchFilter.razor](src/web/Jordnaer/Features/Map/MapSearchFilter.razor)
 - Existing card components for reference (e.g., `GroupCard.razor`, `ChildProfileCard.razor`)
