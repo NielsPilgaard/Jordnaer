@@ -22,190 +22,311 @@ Redesign the group members management page to improve UX, visual design, and mai
 - Sorts pending approvals to top using custom sort order
 
 **Problems with current design:**
-- DataGrid edit-on-click is not intuitive
-- Inline editing in table cells feels cramped
-- Select dropdowns in cells look awkward
+- Edit-on-row-click is too error-prone (accidental edits)
+- Inline editing clutters the table with dropdowns
+- No clear visual distinction between view mode and edit mode
 - Action buttons column is visually cluttered
-- Not mobile-friendly (table layout)
 - Unclear which rows are editable vs read-only
-- Mixing display and edit modes in same view is confusing
+- No bulk operations support
+
+## Design Decision: Tables vs Cards
+
+**Tables are the correct choice for this use case** because:
+- Admins need to compare permissions across multiple users (tables excel at comparison tasks)
+- Sorting and filtering by columns is natural for permission management
+- Bulk operations are important for admin workflows
+- Scannability: Tabular alignment makes it easy to scan structured data
+- Cards would only work for rich visual content or individual deep consideration
+
+**Verdict: Keep using MudDataGrid, but fix the interaction pattern.**
 
 ## Requirements
 
-### 1. Card-Based Layout
+### 1. Read-Only Display with Explicit Actions
 
-Replace the DataGrid with a card-based design:
-- Each member displayed as a MudCard
-- Grouped by membership status (Pending Approvals, Active Members, Rejected)
-- Use MudExpansionPanels for each group (collapsible sections)
-- Mobile-first responsive design
-- Avatar display with user profile picture
-- Link to user profile from card
+**Key change: Set `ReadOnly="true"` on MudDataGrid**
 
-**Card structure:**
+- Remove `EditMode` and `EditTrigger` attributes completely
+- Display all data as read-only text/chips
+- Add explicit "Actions" column with menu/buttons
+- Use `MudChip` with colors for status/roles (better visual scannability)
+- Keep pending approvals sorted to top (existing behavior)
+
+**Visual improvements:**
+- **Ownership Level:** Display as colored chip (Primary color for Owner, Secondary for others)
+- **Permission Level:** Display as colored chip (Success for Admin, Info for Write)
+- **Membership Status:** Display as colored chip:
+  - Pending Approval: Warning (yellow)
+  - Active: Success (green)
+  - Rejected: Default (gray)
+  - Pending from User: Info (blue)
+
+### 2. Action Column with Kebab Menu
+
+**Replace inline buttons with organized menu:**
+
 ```razor
-<MudCard Class="mb-3">
-    <MudCardContent>
-        <MudStack Row AlignItems="AlignItems.Center">
-            <!-- Avatar + Name -->
-            <MudAvatar Size="Size.Large">
-                <MudImage Src="@member.ProfilePictureUrl" />
-            </MudAvatar>
+<TemplateColumn Title="Actions" Sortable="false">
+    <CellTemplate>
+        @if (CanEditUser(context.Item))
+        {
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                <MudMenuItem Icon="@Icons.Material.Filled.Edit"
+                             OnClick="@(() => OpenEditDialog(context.Item))">
+                    Edit Permissions
+                </MudMenuItem>
 
-            <MudStack Spacing="1" Style="flex: 1">
-                <MudText Typo="Typo.h6">@member.UserDisplayName</MudText>
-
-                <!-- Status badges -->
-                <MudStack Row Spacing="1">
-                    <MudChip Size="Size.Small" Color="GetStatusColor()">
-                        @member.MembershipStatus.ToDisplayName()
-                    </MudChip>
-                    <MudChip Size="Size.Small" Variant="Variant.Outlined">
-                        @member.PermissionLevel.ToDisplayName()
-                    </MudChip>
-                    @if (member.OwnershipLevel != OwnershipLevel.None)
-                    {
-                        <MudChip Size="Size.Small" Color="Color.Primary">
-                            @member.OwnershipLevel.ToDisplayName()
-                        </MudChip>
-                    }
-                </MudStack>
-            </MudStack>
-
-            <!-- Actions Menu -->
-            <MudMenu Icon="@Icons.Material.Filled.MoreVert">
-                <!-- Context menu items -->
+                @if (context.Item.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.Check"
+                                 OnClick="@(() => ApproveMember(context.Item))">
+                        Approve
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Close"
+                                 OnClick="@(() => RejectMember(context.Item))">
+                        Reject
+                    </MudMenuItem>
+                }
+                else if (context.Item.MembershipStatus == MembershipStatus.Active)
+                {
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.PersonRemove"
+                                 OnClick="@(() => RemoveMember(context.Item))">
+                        Remove Member
+                    </MudMenuItem>
+                }
             </MudMenu>
-        </MudStack>
-    </MudCardContent>
-</MudCard>
+        }
+    </CellTemplate>
+</TemplateColumn>
 ```
 
-### 2. Improved Status Display
+**Benefits:**
+- Less visual clutter (one menu icon vs multiple buttons)
+- Actions are contextual to status
+- Icons + text make actions clear
+- Can't accidentally click (menu must be opened first)
 
-**Visual status indicators:**
-- **Pending Approval from Group:** Yellow/Warning badge, show "Approve" and "Reject" buttons prominently
-- **Active:** Green/Success badge, show "Edit Permissions" and "Remove Member" in menu
-- **Rejected:** Gray badge, show "Add Member" button
-- **Pending Approval from User:** Blue/Info badge, no actions available
+### 3. Modal Dialog for Permission Editing
 
-**Count badges:**
-- Show count of pending approvals in expansion panel header
-- Example: "Pending Approvals (3)"
-- Highlight if there are pending items
+**Replace cell editing with a proper dialog:**
 
-### 3. Action Menu System
+```razor
+<MudDialog @bind-Visible="_editDialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" />
+            Edit Permissions for @_editingMember?.UserDisplayName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudSelect @bind-Value="_editingMember.OwnershipLevel"
+                       Label="Ownership Level"
+                       HelperText="Determines ownership rights in the group">
+                @foreach (var level in Enum.GetValues<OwnershipLevel>())
+                {
+                    <MudSelectItem Value="level">
+                        @level.ToDisplayName()
+                    </MudSelectItem>
+                }
+            </MudSelect>
 
-Replace inline action buttons with MudMenu:
-- Three-dot menu icon on each card
-- Menu items based on membership status and user permissions
-- Icon + text for each action (clearer than buttons)
-- Confirmation dialogs for destructive actions (Remove Member)
+            <MudSelect @bind-Value="_editingMember.PermissionLevel"
+                       Label="Permission Level"
+                       HelperText="Controls what actions the member can perform">
+                @foreach (var level in Enum.GetValues<PermissionLevel>())
+                {
+                    <MudSelectItem Value="level">
+                        @level.ToDisplayName()
+                    </MudSelectItem>
+                }
+            </MudSelect>
 
-**Menu items by status:**
-- **Active Member:**
-  - Edit Permissions → Opens dialog
-  - Change Ownership Level → Opens dialog
-  - Remove Member → Confirmation dialog
-- **Pending Approval:**
-  - Approve Request → Immediate action
-  - Reject Request → Immediate action
-- **Rejected:**
-  - Add as Member → Immediate action
-
-### 4. Edit Dialogs
-
-Replace inline editing with modal dialogs:
-- **Edit Permissions Dialog:**
-  - Shows current permission level
-  - Radio buttons or select for new level
-  - Save/Cancel buttons
-  - Explanation of each permission level
-- **Edit Ownership Dialog:**
-  - Shows current ownership level
-  - Radio buttons or select for new level
-  - Save/Cancel buttons
-  - Warning if changing owner
+            <MudAlert Severity="Severity.Info" Dense="true">
+                Changes take effect immediately after saving.
+            </MudAlert>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelEdit">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="SaveEdit">
+            Save Changes
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+```
 
 **Benefits:**
-- More space for explanations
-- Clearer what's being changed
-- Can show impact of changes
+- More space for dropdowns and explanations
+- Explicit save/cancel actions
+- Can add helper text and warnings
 - Better mobile experience
+- Prevents accidental edits
 
-### 5. Pending Approvals Priority
+### 4. Toolbar with Search and Bulk Actions
 
-**Highlight pending approvals:**
-- Separate section at top (expanded by default)
-- Visual indicator (color, icon, or badge)
-- Quick approve/reject actions (no menu needed)
-- Show timestamp of request if available
-- Empty state message if no pending approvals
+**Add toolbar above the table:**
 
-### 6. Search and Filter
+```razor
+<ToolBarContent>
+    <MudText Typo="Typo.h6">Members (@_memberships.Count)</MudText>
 
-Add search/filter bar:
-- Search by member name (instant filter)
-- Filter by status (dropdown)
-- Filter by permission level (dropdown)
-- Clear filters button
-- Show result count
+    @if (_pendingCount > 0)
+    {
+        <MudBadge Content="_pendingCount" Color="Color.Warning" Overlap="true" Class="ml-2">
+            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" />
+        </MudBadge>
+    }
 
-### 7. Empty States
+    <MudSpacer />
 
-**Graceful empty states for each section:**
-- No pending approvals: "No pending membership requests"
-- No active members: "No active members yet"
-- No rejected members: "No rejected members" (can hide this section)
-- Search returns no results: "No members match your search"
+    <MudTextField @bind-Value="_searchString"
+                  Placeholder="Search members..."
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  IconSize="Size.Small"
+                  Margin="Margin.Dense" />
+
+    @if (_selectedItems?.Count > 0)
+    {
+        <MudButton Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Edit"
+                   OnClick="OpenBulkEditDialog">
+            Bulk Edit (@_selectedItems.Count)
+        </MudButton>
+    }
+</ToolBarContent>
+```
+
+**Features:**
+- Member count display
+- Badge for pending approvals (visual indicator)
+- Quick search (filters as you type)
+- Bulk edit button (appears when items selected)
+
+### 5. Multi-Select for Bulk Operations
+
+**Enable checkbox selection:**
+
+```razor
+<MudDataGrid T="GroupMembershipDto"
+             Items="_memberships"
+             ReadOnly="true"
+             MultiSelection="true"
+             @bind-SelectedItems="_selectedItems"
+             QuickFilter="_quickFilterFunc">
+
+    <Columns>
+        <SelectColumn T="GroupMembershipDto" />
+        <!-- Other columns -->
+    </Columns>
+</MudDataGrid>
+```
+
+**Bulk operations:**
+- Change permission level for multiple users at once
+- Remove multiple members
+- Approve multiple pending requests
+
+### 6. Quick Filter Implementation
+
+**Client-side filtering for instant results:**
+
+```csharp
+private string _searchString = "";
+
+private Func<GroupMembershipDto, bool> _quickFilterFunc => x =>
+{
+    if (string.IsNullOrWhiteSpace(_searchString))
+        return true;
+
+    if (x.UserDisplayName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        return true;
+
+    return false;
+};
+```
+
+### 7. Confirmation for Destructive Actions
+
+**Add confirmation dialog for removing members:**
+
+```csharp
+private async Task RemoveMember(GroupMembershipDto member)
+{
+    bool? result = await DialogService.ShowMessageBox(
+        "Remove Member",
+        $"Are you sure you want to remove {member.UserDisplayName} from the group?",
+        yesText: "Remove",
+        cancelText: "Cancel");
+
+    if (result == true)
+    {
+        await ChangeMembershipStatusAsync(member, MembershipStatus.Rejected);
+    }
+}
+```
 
 ## Acceptance Criteria
 
 ### Layout & Design
-- [ ] Card-based layout replaces DataGrid
-- [ ] Grouped by membership status with expansion panels
+- [ ] MudDataGrid set to ReadOnly="true"
+- [ ] EditMode and EditTrigger removed completely
+- [ ] All data displayed as read-only (chips for status/roles)
+- [ ] Clean, scannable table layout
 - [ ] Fully responsive (mobile, tablet, desktop)
-- [ ] Avatar + name prominently displayed
-- [ ] Profile picture links to user profile
 - [ ] Visual hierarchy clear and scannable
 
 ### Status Display
-- [ ] Status badges use appropriate colors (success, warning, info, error)
-- [ ] Permission and ownership displayed as chips
-- [ ] Pending approval count shown in section header
-- [ ] Each section has appropriate icon
+- [ ] Ownership Level displayed as colored MudChip
+- [ ] Permission Level displayed as colored MudChip
+- [ ] Membership Status displayed as colored MudChip with appropriate colors:
+  - [ ] Pending Approval: Warning (yellow)
+  - [ ] Active: Success (green)
+  - [ ] Rejected: Default (gray)
+  - [ ] Pending from User: Info (blue)
 
-### Actions
-- [ ] Three-dot menu on each card
-- [ ] Menu items change based on status and permissions
+### Actions Column
+- [ ] Kebab menu (three dots) for each row
+- [ ] Menu items are contextual based on membership status
+- [ ] Icons + text labels for all menu items
 - [ ] Cannot edit own membership
-- [ ] Cannot edit/remove owner
-- [ ] Confirmation dialog for destructive actions
+- [ ] Cannot edit/remove owner (menu disabled for these rows)
+- [ ] Confirmation dialog for destructive actions (Remove Member)
 
-### Dialogs
-- [ ] Edit permissions dialog implemented
-- [ ] Edit ownership dialog implemented
-- [ ] Dialogs show current values
-- [ ] Clear Save/Cancel actions
-- [ ] Validation prevents invalid changes
+### Edit Dialog
+- [ ] Modal dialog opens when "Edit Permissions" clicked
+- [ ] Dialog shows current ownership and permission levels
+- [ ] MudSelect dropdowns for both levels
+- [ ] Helper text explains each field
+- [ ] Clear Save/Cancel buttons
+- [ ] Changes saved via existing SaveChangesAsync method
+- [ ] Dialog closes on save/cancel
+- [ ] Optimistic UI updates with rollback on error
 
-### Pending Approvals
-- [ ] Pending section at top, expanded by default
-- [ ] Quick approve/reject buttons (no menu)
-- [ ] Visual highlighting for pending items
-- [ ] Empty state when no pending approvals
+### Toolbar
+- [ ] Member count displayed
+- [ ] Pending approval badge shown if count > 0
+- [ ] Search field filters table instantly (client-side)
+- [ ] Bulk edit button appears when items selected
+- [ ] Toolbar is responsive
 
-### Search & Filter
-- [ ] Search by name (instant client-side filter)
-- [ ] Filter by status dropdown
-- [ ] Filter by permission dropdown
-- [ ] Clear filters button
-- [ ] Result count displayed
+### Multi-Select & Bulk Operations
+- [ ] Checkbox column added (SelectColumn)
+- [ ] MultiSelection="true" enabled
+- [ ] Bulk edit dialog for changing permissions on multiple users
+- [ ] Bulk approve for multiple pending requests
+- [ ] Bulk remove for multiple members
+- [ ] Selected count shown in toolbar
 
-### Empty States
-- [ ] Each section has appropriate empty state
-- [ ] Search no-results state
-- [ ] Empty states are helpful and clear
+### Quick Filter
+- [ ] Search filters by user display name
+- [ ] Case-insensitive filtering
+- [ ] Instant results (no delay)
+- [ ] Works across all membership statuses
 
 ### Functionality
 - [ ] All existing functionality preserved
@@ -213,48 +334,81 @@ Add search/filter bar:
 - [ ] Error handling with rollback
 - [ ] Success/error snackbar messages
 - [ ] Sorting by status maintained (pending first)
+- [ ] No accidental edits possible (explicit actions required)
 
 ## Files to Modify
 
 **Modify:**
-- [Members.razor](src/web/Jordnaer/Pages/Groups/Members.razor) - Complete redesign
+- [Members.razor](src/web/Jordnaer/Pages/Groups/Members.razor) - Major refactor
+
+**Key changes to Members.razor:**
+1. Change `ReadOnly="false"` → `ReadOnly="true"`
+2. Remove `EditMode` and `EditTrigger` attributes
+3. Replace `<PropertyColumn>` edit templates with `<CellTemplate>` showing chips
+4. Add `<TemplateColumn>` for Actions with MudMenu
+5. Add `<ToolBarContent>` with search and bulk actions
+6. Add `<SelectColumn>` for multi-select
+7. Add `MultiSelection="true"` and `QuickFilter` attributes
+8. Add modal dialog for editing permissions
+9. Add confirmation dialog for destructive actions
+10. Update `UpdateOwnershipLevel` and `UpdatePermissionLevel` methods to work with dialog
 
 **May create (optional):**
-- `src/web/Jordnaer/Pages/Groups/Components/MemberCard.razor` - Reusable member card component
-- `src/web/Jordnaer/Pages/Groups/Components/EditPermissionsDialog.razor` - Edit dialog
-- `src/web/Jordnaer/Pages/Groups/Components/EditOwnershipDialog.razor` - Edit dialog
+- `src/web/Jordnaer/Pages/Groups/Components/EditMemberDialog.razor` - Reusable edit dialog component
+- `src/web/Jordnaer/Pages/Groups/Components/BulkEditDialog.razor` - Bulk edit dialog
 
-## Design References
+## MudBlazor Components Used
 
-**Existing good patterns in codebase:**
-- [DashboardCard.razor](src/web/Jordnaer/Features/Dashboard/DashboardCard.razor) - Card layout
-- [GroupCard.razor](src/web/Jordnaer/Features/Groups/GroupCard.razor) - Group cards (if exists)
-- [UserDashboard.razor](src/web/Jordnaer/Features/Dashboard/UserDashboard.razor) - Responsive grid
-
-**MudBlazor components to use:**
-- `MudCard` - Card container
-- `MudExpansionPanels` / `MudExpansionPanel` - Collapsible sections
-- `MudAvatar` + `MudImage` - Profile pictures
-- `MudChip` - Status badges
-- `MudMenu` + `MudMenuItem` - Action menu
-- `MudDialog` - Edit dialogs
-- `MudTextField` - Search input
-- `MudSelect` - Filter dropdowns
+- `MudDataGrid` - Table with filtering, sorting, multi-select
+- `MudChip` - Status/role badges with colors
+- `MudMenu` + `MudMenuItem` - Kebab menu for actions
+- `MudDialog` - Edit and confirmation dialogs
+- `MudTextField` - Search input in toolbar
+- `MudButton` - Action buttons
+- `MudBadge` - Pending count indicator
+- `MudSelect` - Dropdowns in edit dialog
+- `MudAlert` - Info messages in dialog
+- `SelectColumn` - Checkbox column for multi-select
 
 ## Technical Notes
 
 - Preserve existing business logic (validation, permissions checks)
-- Keep the SortOrder dictionary for status sorting
+- Keep the `SortOrder` dictionary for status sorting
 - Maintain GDPR compliance (no changes needed)
-- Client-side filtering for search (avoid unnecessary API calls)
-- Consider virtualization if member lists get very long (MudVirtualize)
-- Animations: Smooth transitions between states (MudBlazor defaults)
+- Client-side filtering for search (QuickFilter)
+- Keep existing `SaveChangesAsync`, `UpdateOwnershipLevel`, `UpdatePermissionLevel` methods
+- Reuse existing `CanEditUser` logic (prevent editing self/owner)
+- Use existing `ChangeMembershipStatusAsync` for approve/reject/remove actions
+- Add `IDialogService` injection for confirmation dialogs
+- Consider virtualization if member lists exceed 100 users
 
 ## User Experience Goals
 
-- **Clarity:** Immediately obvious who is pending, active, or rejected
-- **Efficiency:** Admins can quickly approve/reject pending members
-- **Discoverability:** All actions available through intuitive menu
-- **Safety:** Destructive actions require confirmation
-- **Responsiveness:** Works well on all screen sizes
+- **Scannability:** Clean read-only table is easy to scan without visual clutter
+- **Safety:** Explicit actions prevent accidental edits, confirmation for destructive actions
+- **Efficiency:** Bulk operations for managing many users at once, instant search
+- **Clarity:** Color-coded chips make status immediately obvious
+- **Discoverability:** All actions organized in contextual kebab menu
+- **Responsiveness:** Works well on all screen sizes, modals are mobile-friendly
 - **Performance:** Smooth interactions, no lag on member lists up to 100+ members
+
+## Why This Approach?
+
+**Tables are optimal for admin user management because:**
+1. Comparison: Admins need to scan across users to compare permissions
+2. Bulk operations: Multi-select and batch actions are natural with tables
+3. Sorting/filtering: Column-based operations align with mental model
+4. Scannability: Tabular data is faster to process than cards for structured data
+
+**Modal dialogs are better than inline editing because:**
+1. More space for dropdowns and helper text
+2. Explicit save/cancel prevents accidental changes
+3. Can show warnings and validation messages
+4. Better mobile experience (full-screen on small screens)
+5. Clearer edit state (you're "in" edit mode vs "is this row editable?")
+
+**Read-only display with action column is superior because:**
+1. Visual clarity: No clutter from edit controls
+2. Prevents accidents: Edit-on-click was too error-prone
+3. Consistent state: Always know what you're looking at
+4. Progressive disclosure: Actions hidden until needed (in menu)
