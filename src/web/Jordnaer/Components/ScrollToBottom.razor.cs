@@ -4,6 +4,7 @@ using MudBlazor;
 using MudBlazor.Utilities;
 
 namespace Jordnaer.Components;
+
 public partial class ScrollToBottom : IDisposable
 {
 	private IScrollListener? _scrollListener;
@@ -104,19 +105,15 @@ public partial class ScrollToBottom : IDisposable
 	{
 		await OnScroll.InvokeAsync(e);
 
-		// Calculate distance from bottom
-		// FirstElementChild gives us the viewport height equivalent
-		var distanceFromBottom = e.ScrollHeight - e.ScrollTop - e.FirstElementChild;
+		var distanceFromBottom = e.ScrollHeight - e.ScrollTop;
 
-		// Show button if we've scrolled up from bottom
 		if (distanceFromBottom >= MinimumBottomOffset && Visible != true)
 		{
 			Visible = true;
 			await InvokeAsync(StateHasChanged);
 		}
 
-		// Hide button if we're close to bottom (within 100px)
-		if (distanceFromBottom < 100 && Visible)
+		if (distanceFromBottom < MinimumBottomOffset && Visible)
 		{
 			Visible = false;
 			await InvokeAsync(StateHasChanged);

@@ -19,7 +19,7 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     @if (_isMobile)
     {
-        <MudGrid Style="height: 100svh" Spacing="0">
+        <MudGrid Style="height: 95svh" Spacing="0">
 
             @if ((_activeChat is null && _isMobile) || _isMobile is false)
             {
@@ -29,10 +29,8 @@
 
             @if (_isMobile is false)
             {
-                <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0"
-                    Style="background: rgba(207, 193, 166, 0.15); display: flex; justify-content: center;">
-                    <MudDivider Vertical Style="height: 95%; width: 1.5px; background: var(--color-ro);" Class="mt-3"
-                        FlexItem />
+                <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
+                    <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem />
                 </MudItem>
             }
 
@@ -44,8 +42,7 @@
     {
         <MudMainContent Class="mb-4">
             <MudContainer MaxWidth="MaxWidth.Large">
-                <MudPaper Elevation="3"
-                    Style="border-radius: 16px; overflow: hidden; border: 1px solid rgba(135, 142, 100, 0.2); background: linear-gradient(to bottom, rgba(207, 193, 166, 0.15) 0%, transparent 100%);">
+                <MudPaper Elevation="3">
                     <MudGrid Style="height: 80svh" Spacing="0">
 
                         @if ((_activeChat is null && _isMobile) || _isMobile is false)
@@ -56,8 +53,8 @@
 
                         @if (_isMobile is false)
                         {
-                            <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0" Style="display: flex; justify-content: center;">
-                                <MudDivider Vertical Style="height: 95%; width: 1.5px;" Class="mt-3" FlexItem />
+                            <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
+                                <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem />
                             </MudItem>
                         }
 
