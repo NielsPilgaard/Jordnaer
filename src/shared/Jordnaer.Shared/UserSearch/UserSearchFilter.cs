@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Jordnaer.Shared;
+
 public record UserSearchFilter
 {
 	public string? Name { get; set; }
@@ -10,7 +11,7 @@ public record UserSearchFilter
 	/// <summary>
 	/// Only show user results within this many kilometers of the <see cref="Location"/>.
 	/// </summary>
-	[Range(1, 50, ErrorMessage = "Afstand skal være mellem 1 og 50 km")]
+	[Range(1, 500, ErrorMessage = "Afstand skal være mellem 1 og 500 km")]
 	[LocationRequired]
 	public int? WithinRadiusKilometers { get; set; }
 
@@ -36,7 +37,7 @@ public record UserSearchFilter
 	public Gender? ChildGender { get; set; }
 
 	public int PageNumber { get; set; } = 1;
-	public int PageSize { get; set; } = 10;
+	public int PageSize { get; set; } = 11;
 
 	[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
 	public override int GetHashCode()
@@ -107,7 +108,7 @@ file class LocationRequiredAttribute : ValidationAttribute
 
 		// Valid if either Location string is set OR lat/long coordinates are set
 		var hasLocation = !string.IsNullOrEmpty(userSearchFilter.Location) ||
-		                  (userSearchFilter.Latitude.HasValue && userSearchFilter.Longitude.HasValue);
+						  (userSearchFilter.Latitude.HasValue && userSearchFilter.Longitude.HasValue);
 
 		return !hasLocation
 			? new ValidationResult("Område skal vælges når en radius er valgt.")

@@ -62,30 +62,30 @@
     {
         var items = new List<SearchResultItem>();
 
-        // Calculate how many ads we need based on results
-        // Always show at least 1 ad if there are any results
-        var adCount = SearchResult.Users.Count > 0
-            ? Math.Max(1, (int)Math.Ceiling(SearchResult.Users.Count / 8.0))
-            : 0;
-
+        // Always max 1 ad per page, regardless of result count
+        var adCount = SearchResult.Users.Count > 0 ? 1 : 0;
         var ads = HardcodedAds.GetAdsForUserSearch(adCount);
-        var adIndex = 0;
 
-        // Add users with ads interspersed
-        for (int i = 0; i < SearchResult.Users.Count; i++)
+        if (ads.Count == 0 || SearchResult.Users.Count == 0)
         {
-            items.Add(new SearchResultItem { User = SearchResult.Users[i] });
+            // No ads or no users, just return users
+            items.AddRange(SearchResult.Users.Select(u => new SearchResultItem { User = u }));
+            return items;
+        }
 
-            // Insert ad after every 8th user, or at the end if we have fewer than 8 users
-            var shouldInsertAd = (i + 1) % 8 == 0 || (i == SearchResult.Users.Count - 1 && adIndex < ads.Count);
+        // Random placement for all result counts
+        var adPosition = Random.Shared.Next(0, Math.Min(SearchResult.Users.Count, 12));
 
-            if (shouldInsertAd && adIndex < ads.Count)
+        for (int i = 0; i < SearchResult.Users.Count && i < 12; i++)
+        {
+            if (i == adPosition)
             {
-                items.Add(new SearchResultItem
-                {
-                    IsAd = true,
-                    Ad = ads[adIndex++]
-                });
+                items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
+            }
+
+            if (i < SearchResult.Users.Count)
+            {
+                items.Add(new SearchResultItem { User = SearchResult.Users[i] });
             }
         }
 

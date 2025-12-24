@@ -1,7 +1,8 @@
+@using Jordnaer.Features.Theme
 @inject NavigationManager Navigation
 
 <MudPaper Elevation="3" Class="user-card pa-4" @onclick="NavigateToProfile" Style="cursor: pointer; transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
-    <div class="d-flex flex-column flex-grow-1">
+    <div class="d-flex flex-column">
         @* Avatar and Basic Info *@
         <div class="d-flex gap-3 mb-3">
             @if (!string.IsNullOrEmpty(User.ProfilePictureUrl))
@@ -48,7 +49,7 @@
                 <div class="d-flex flex-wrap gap-2">
                     @foreach (var child in User.Children.OrderBy(c => c.DateOfBirth))
                     {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="@($"background-color: {JordnaerPalette.PaleBlueBackground}; color: {JordnaerPalette.BlueBody};")">
                             @child.FirstName
                             @if (child.Age is not null)
                             {
@@ -64,7 +65,7 @@
         @if (User.Categories.Count > 0)
         {
             <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
-            <div class="flex-grow-1">
+            <div>
                 <div class="d-flex align-center gap-1 mb-2">
                     <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Default" />
                     <MudText Typo="Typo.body2" Style="font-weight: 500;">Interesseret i</MudText>
@@ -72,13 +73,13 @@
                 <div class="d-flex flex-wrap gap-1">
                     @foreach (var category in User.Categories.Take(4))
                     {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Outlined">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
                             @category
                         </MudChip>
                     }
                     @if (User.Categories.Count > 4)
                     {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Outlined">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
                             +@(User.Categories.Count - 4)
                         </MudChip>
                     }

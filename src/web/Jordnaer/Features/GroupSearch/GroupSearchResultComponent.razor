@@ -22,50 +22,7 @@
                 }
                 else if (item.Group is not null)
                 {
-                    <MudNavLink Class="card-link" Href="@($"/groups/{item.Group.Name}")">
-                        <MudCard Class="pa-3 my-3 card-hover" Elevation="3">
-                            <MudCardContent Class="d-flex flex-column align-center">
-                                <MudTextField Label="Navn"
-                                              Adornment="Adornment.Start"
-                                              AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
-                                              ReadOnly
-                                              T="string"
-                                              Text="@item.Group.Name"
-                                              Class="mb-5" />
-
-                                @if (!string.IsNullOrEmpty(item.Group.ProfilePictureUrl))
-                                {
-                                    <MudImage Fluid
-                                              Width="200"
-                                              Style="border-radius: 25%"
-                                              Src="@item.Group.ProfilePictureUrl"
-                                              loading="lazy" />
-                                }
-
-                                <MudTextField Label="Område"
-                                              Adornment="Adornment.Start"
-                                              AdornmentIcon="@Icons.Material.Filled.Place"
-                                              ReadOnly
-                                              T="string"
-                                              Text="@item.Group.DisplayLocation()"
-                                              Class="mb-4" />
-
-                                @if (item.Group.Categories.Length is not 0)
-                                {
-                                    <div class="d-flex align-center">
-                                        <MudIcon Class="mr-1" Icon="@Icons.Material.Filled.Star" />
-                                        <MudText Typo="Typo.h6">Kategorier</MudText>
-                                    </div>
-                                    <MudChipSet ReadOnly Class="d-flex flex-wrap justify-center flex-grow-1" T="MudChip<string>">
-                                        @foreach (var category in item.Group.Categories)
-                                        {
-                                            <MudChip Color="Color.Tertiary">@category</MudChip>
-                                        }
-                                    </MudChipSet>
-                                }
-                            </MudCardContent>
-                        </MudCard>
-                    </MudNavLink>
+                    <GroupCard Group="@item.Group" />
                 }
             </MudItem>
             index++;
@@ -103,30 +60,32 @@
     {
         var items = new List<SearchResultItem>();
 
-        // Calculate how many ads we need based on results
-        // Always show at least 1 ad if there are any results
-        var adCount = SearchResult.Groups.Count > 0
-            ? Math.Max(1, (int)Math.Ceiling(SearchResult.Groups.Count / 8.0))
-            : 0;
-
+        // Always max 1 ad per page, regardless of result count
+        var adCount = SearchResult.Groups.Count > 0 ? 1 : 0;
         var ads = HardcodedAds.GetAdsForUserSearch(adCount);
-        var adIndex = 0;
 
-        // Add groups with ads interspersed
-        for (int i = 0; i < SearchResult.Groups.Count; i++)
+        if (ads.Count == 0 || SearchResult.Groups.Count == 0)
         {
-            items.Add(new SearchResultItem { Group = SearchResult.Groups[i] });
+            // No ads or no groups, just return groups
+            items.AddRange(SearchResult.Groups.Select(g => new SearchResultItem { Group = g }));
+            return items;
+        }
 
-            // Insert ad after every 8th group, or at the end if we have fewer than 8 groups
-            var shouldInsertAd = (i + 1) % 8 == 0 || (i == SearchResult.Groups.Count - 1 && adIndex < ads.Count);
+        // Random placement for the ad among the first 12 items (or fewer if less results)
+        var maxItems = Math.Min(SearchResult.Groups.Count + 1, 12); // +1 to account for the ad
+        var adPosition = Random.Shared.Next(0, maxItems);
 
-            if (shouldInsertAd && adIndex < ads.Count)
+        var groupIndex = 0;
+        for (int i = 0; i < maxItems; i++)
+        {
+            if (i == adPosition)
             {
-                items.Add(new SearchResultItem
-                {
-                    IsAd = true,
-                    Ad = ads[adIndex++]
-                });
+                items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
+            }
+            else if (groupIndex < SearchResult.Groups.Count)
+            {
+                items.Add(new SearchResultItem { Group = SearchResult.Groups[groupIndex] });
+                groupIndex++;
             }
         }
 

@@ -1,53 +1,100 @@
-<MudPaper Elevation="3" Class="pa-4 h-100">
-    <div class="d-flex flex-column align-center">
-        @if (Group.ProfilePictureUrl is not null)
-        {
-            <MudImage Src="@Group.ProfilePictureUrl"
-                Style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;" Class="mb-4 elevation-4"
-                Alt="@Group.Name" />
-        }
-        else
-        {
-            <MudAvatar Style="width: 150px; height: 150px; font-size: 3rem;" Color="Color.Primary" Class="mb-4 elevation-4">
-                @Group.Name.FirstOrDefault()
-            </MudAvatar>
-        }
+@using Jordnaer.Features.Theme
+@inject NavigationManager Navigation
 
-        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-1"><b>@Group.Name</b></MudText>
+<MudPaper Elevation="3" Class="group-card pa-4" @onclick="NavigateToGroup" Style="cursor: pointer; transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
+    <div class="d-flex flex-column">
+        @* Group Image/Avatar and Basic Info *@
+        <div class="d-flex gap-3 mb-3">
+            @if (!string.IsNullOrEmpty(Group.ProfilePictureUrl))
+            {
+                <MudAvatar Size="Size.Large" Style="width: 80px; height: 80px;">
+                    <MudImage Src="@Group.ProfilePictureUrl" Alt="@Group.Name" />
+                </MudAvatar>
+            }
+            else
+            {
+                <MudAvatar Size="Size.Large" Color="Color.Primary" Style="width: 80px; height: 80px; font-size: 2rem;">
+                    @Group.Name?.FirstOrDefault()
+                </MudAvatar>
+            }
 
-        @if (!string.IsNullOrEmpty(Group.ShortDescription))
-        {
-            <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary" Class="mb-4 px-2">
-                @Group.ShortDescription
-            </MudText>
-        }
-
-        <div class="d-flex flex-column gap-2 w-100 mt-2">
-            <div class="d-flex align-center gap-2">
-                <MudIcon Icon="@Icons.Material.Filled.Place" Color="Color.Default" />
-                <MudText>@Group.DisplayLocation()</MudText>
-            </div>
-
-            <div class="d-flex align-center gap-2">
-                <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Default" />
-                <MudText>@Group.MemberCount Medlemmer</MudText>
+            <div class="flex-grow-1" style="min-width: 0;">
+                <MudText Typo="Typo.h6" Style="font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
+                    @Group.Name
+                </MudText>
+                @{
+                    var location = Group.DisplayLocation();
+                }
+                @if (!string.IsNullOrEmpty(location))
+                {
+                    <div class="d-flex align-center gap-1 mt-1">
+                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="color: #5B9BD5;" />
+                        <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
+                            @location
+                        </MudText>
+                    </div>
+                }
+                <div class="d-flex align-center gap-1 mt-1">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Style="color: #5B9BD5;" />
+                    <MudText Typo="Typo.body2" Style="color: #5B9BD5;">
+                        @Group.MemberCount medlemmer
+                    </MudText>
+                </div>
             </div>
         </div>
 
+        @* Short Description *@
+        @if (!string.IsNullOrEmpty(Group.ShortDescription))
+        {
+            <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
+            <div class="mb-3">
+                <MudText Typo="Typo.body2" Style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                    @Group.ShortDescription
+                </MudText>
+            </div>
+        }
+
+        @* Categories *@
         @if (Group.Categories.Length > 0)
         {
-            <MudDivider Class="my-4 w-100" />
-            <div class="d-flex flex-wrap justify-center gap-1">
-                @foreach (var category in Group.Categories)
-                {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Filled">@category</MudChip>
-                }
+            <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
+            <div>
+                <div class="d-flex align-center gap-1 mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Default" />
+                    <MudText Typo="Typo.body2" Style="font-weight: 500;">Kategorier</MudText>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (var category in Group.Categories.Take(4))
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
+                            @category
+                        </MudChip>
+                    }
+                    @if (Group.Categories.Length > 4)
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
+                            +@(Group.Categories.Length - 4)
+                        </MudChip>
+                    }
+                </div>
             </div>
         }
     </div>
 </MudPaper>
 
+<style>
+    .group-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+    }
+</style>
+
 @code {
     [Parameter]
     public required GroupSlim Group { get; set; }
+
+    private void NavigateToGroup()
+    {
+        Navigation.NavigateTo($"/groups/{Group.Name}");
+    }
 }
