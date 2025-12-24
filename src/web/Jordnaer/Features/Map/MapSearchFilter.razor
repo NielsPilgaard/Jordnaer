@@ -78,7 +78,19 @@
         if (firstRender && !_hasAttemptedGeolocation)
         {
             _hasAttemptedGeolocation = true;
-            await TryGetUserLocation();
+
+            // Wait for the map to initialize
+            var attempts = 0;
+            while (_mapComponent?.IsInitialized != true && attempts < 20)
+            {
+                await Task.Delay(50);
+                attempts++;
+            }
+
+            if (_mapComponent?.IsInitialized == true)
+            {
+                await TryGetUserLocation();
+            }
         }
     }
 
@@ -243,7 +255,8 @@
     {
         _addressText = null;
 
-        if (_mapComponent is not null)
+        // Only attempt to clear if map has been initialized by LeafletMap
+        if (_mapComponent?.IsInitialized == true)
         {
             try
             {
@@ -251,10 +264,10 @@
                 await _mapComponent.RemoveSearchRadiusAsync();
                 await _mapComponent.CenterMapAsync(InitialLatitude, InitialLongitude, InitialZoom);
             }
-            catch
+            catch (Exception ex)
             {
-                // Silently ignore errors if map is not initialized yet
-                // This can happen if user clicks clear before map finishes loading
+                // Log but ignore errors - map might not be fully ready
+                Console.WriteLine($"Map clear error: {ex.Message}");
             }
         }
     }

@@ -26,6 +26,11 @@
 	[Parameter]
 	public EventCallback<(double Latitude, double Longitude)> OnLocationSelected { get; set; }
 
+	/// <summary>
+	/// Public property to check if map is initialized
+	/// </summary>
+	public bool IsInitialized => _isInitialized;
+
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)

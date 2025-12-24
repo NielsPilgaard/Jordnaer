@@ -1,7 +1,7 @@
 @inject NavigationManager Navigation
 
-<MudPaper Elevation="3" Class="user-card pa-4 h-100" @onclick="NavigateToProfile" Style="cursor: pointer; transition: all 0.2s ease;">
-    <div class="d-flex flex-column h-100">
+<MudPaper Elevation="3" Class="user-card pa-4" @onclick="NavigateToProfile" Style="cursor: pointer; transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
+    <div class="d-flex flex-column flex-grow-1">
         @* Avatar and Basic Info *@
         <div class="d-flex gap-3 mb-3">
             @if (!string.IsNullOrEmpty(User.ProfilePictureUrl))
@@ -21,7 +21,7 @@
                 <MudText Typo="Typo.h6" Style="font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
                     @User.DisplayName
                 </MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Style="overflow: hidden; text-overflow: ellipsis;">
+                <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
                     @("@" + User.UserName)
                 </MudText>
                 @{
@@ -30,8 +30,8 @@
                 @if (!string.IsNullOrEmpty(location))
                 {
                     <div class="d-flex align-center gap-1 mt-1">
-                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Secondary" />
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Style="overflow: hidden; text-overflow: ellipsis;">
+                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="color: #5B9BD5;" />
+                        <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
                             @location
                         </MudText>
                     </div>
@@ -42,12 +42,9 @@
         @* Children *@
         @if (User.Children.Count > 0)
         {
-            <MudDivider Class="mb-3" />
+            <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
             <div class="mb-3">
-                <div class="d-flex align-center gap-1 mb-2">
-                    <MudIcon Icon="@Icons.Material.Filled.ChildCare" Size="Size.Small" Color="Color.Default" />
-                    <MudText Typo="Typo.body2" Style="font-weight: 500;">Børn</MudText>
-                </div>
+                <MudText Typo="Typo.body2" Style="font-weight: 500;" Class="mb-2">Børn</MudText>
                 <div class="d-flex flex-wrap gap-2">
                     @foreach (var child in User.Children.OrderBy(c => c.DateOfBirth))
                     {
@@ -66,7 +63,7 @@
         @* Categories *@
         @if (User.Categories.Count > 0)
         {
-            <MudDivider Class="mb-3" />
+            <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
             <div class="flex-grow-1">
                 <div class="d-flex align-center gap-1 mb-2">
                     <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Default" />

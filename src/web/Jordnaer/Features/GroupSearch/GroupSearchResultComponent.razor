@@ -5,7 +5,7 @@
 @implements IDisposable
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="px-0">
-    <MudGrid Spacing="3">
+    <MudGrid Spacing="3" Justify="@(SearchResult.Groups.Count <= 3 ? Justify.Center : Justify.FlexStart)">
         @{
             var items = GetItemsWithAds();
             var index = 0;

@@ -28,11 +28,8 @@
             return;
         case not null when IsMobile:
             <div class="mobile-chat-header">
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                               OnClick="BackToList"
-                               Color="Color.Default"
-                               Size="Size.Medium"
-                               Style="color: rgba(65, 85, 107, 0.7);" />
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Default"
+                    Size="Size.Medium" Style="color: rgba(65, 85, 107, 0.7);" />
                 <MudText Typo="Typo.h6" Style="color: rgba(65, 85, 107, 0.7); font-weight: 600;">
                     @ActiveChat.GetDisplayName(CurrentUser.Id!)
                 </MudText>
@@ -47,41 +44,41 @@
         <MudVirtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="10" ItemSize="100">
             <MudListItem T="MudTooltip" Class="@(MudListItemClass(message))">
 
-	            <MudStack Spacing="1" Class="@(IsMessageFromSelf(message) ? "align-end" : "align-start")">
-		            @if (IsMessageFromSelf(message))
-		            {
-			            <MudChip Class="chat-chip" Size="Size.Large" T="MudText">
-				            <MudText Typo="Typo.body1">@message.Text</MudText>
-			            </MudChip>
-		            }
-		            else
-		            {
-			            <MudChip Class="chat-chip" Size="Size.Large">
-				            <AvatarContent>
-					            @if (!NextMessageIsFromSameSender(message))
-					            {
-						            <MudLink Href="@GetRecipientsUserName(message)">
-							            <MudAvatar Size="Size.Small">
-								            <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy" Alt="Avatar"/>
-							            </MudAvatar>
-						            </MudLink>
-					            }
-				            </AvatarContent>
-				            <ChildContent>
-					            <MudText Typo="Typo.body1">@message.Text</MudText>
-				            </ChildContent>
-			            </MudChip>
-		            }
+                <MudStack Spacing="1" Class="@(IsMessageFromSelf(message) ? "align-end" : "align-start")">
+                    @if (IsMessageFromSelf(message))
+                    {
+                        <MudChip Class="chat-chip" Size="Size.Large" T="MudText">
+                            <MudText Typo="Typo.body1">@message.Text</MudText>
+                        </MudChip>
+                    }
+                    else
+                    {
+                        <MudChip Class="chat-chip" Size="Size.Large">
+                            <AvatarContent>
+                                @if (!NextMessageIsFromSameSender(message))
+                                {
+                                    <MudLink Href="@GetRecipientsUserName(message)">
+                                        <MudAvatar Size="Size.Small">
+                                            <MudImage Src="@GetRecipientsProfilePictureUrl(message)" loading="lazy"
+                                                Alt="Avatar" />
+                                        </MudAvatar>
+                                    </MudLink>
+                                }
+                            </AvatarContent>
+                            <ChildContent>
+                                <MudText Typo="Typo.body1">@message.Text</MudText>
+                            </ChildContent>
+                        </MudChip>
+                    }
 
-		            <MudTooltip Placement="@(IsMessageFromSelf(message) ? Placement.Left : Placement.Right)"
-		                        Arrow
-		                        Text="@message.SentUtc.DisplayExactTime()"
-		                        Class="desktop-only-tooltip">
-			            <MudText Typo="Typo.caption" Class="message-timestamp clickable-timestamp" Style="@(IsMessageFromSelf(message) ? "margin-right: 8px;" : "margin-left: 8px;")">
-				            @message.SentUtc.DisplayTimePassed()
-			            </MudText>
-		            </MudTooltip>
-	            </MudStack>
+                    <MudTooltip Placement="@(IsMessageFromSelf(message) ? Placement.Left : Placement.Right)" Arrow
+                        Text="@message.SentUtc.DisplayExactTime()" Class="desktop-only-tooltip">
+                        <MudText Typo="Typo.caption" Class="message-timestamp clickable-timestamp"
+                            Style="@(IsMessageFromSelf(message) ? "margin-right: 8px;" : "margin-left: 8px;")">
+                            @message.SentUtc.DisplayTimePassed()
+                        </MudText>
+                    </MudTooltip>
+                </MudStack>
             </MudListItem>
 
         </MudVirtualize>
@@ -89,39 +86,23 @@
         @if (LastMessageWasSentSuccessfullyByCurrentUser)
         {
             <div title="Din besked er blevet sendt" class="message-sent-successfully-container">
-                <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline"
-                         Class="message-sent-successfully" />
+                <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Class="message-sent-successfully" />
             </div>
         }
 
-        <MudTextField id="chat-message-input"
-                      @ref="_messageInput"
-                      T="string"
-                      FullWidth
-                      Immediate
-                      Clearable
-                      AutoFocus
-                      Adornment="Adornment.End"
-                      OnKeyDown="SendMessageOnEnter"
-                      AdornmentIcon="@Icons.Material.Filled.Send"
-                      AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Primary)"
-                      OnAdornmentClick="SendMessage"
-                      Class="mt-3 p-1"
-                      Lines="2"
-                      IconSize="Size.Large"
-                      Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
+        <MudTextField id="chat-message-input" @ref="_messageInput" T="string" FullWidth Immediate Clearable AutoFocus
+            Adornment="Adornment.End" OnKeyDown="SendMessageOnEnter" AdornmentIcon="@Icons.Material.Filled.Send"
+            AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Primary)"
+            OnAdornmentClick="SendMessage" Class="mt-2 mb-0 p-1" Lines="2" IconSize="Size.Large"
+            Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
 
     </MudList>
 
-    <ScrollToBottom Selector="@ChatMessageWindowClass"
-                    OnClick="async () => await _messageInput.FocusAsync()"
-                    VisibleCssClass="scroll-to-bottom-visible"
-                    HiddenCssClass="scroll-to-bottom-hidden"
-                    MinimumBottomOffset="300"
-                    Visible="false">
-        <MudFab Size="Size.Medium"
-                Style="background: var(--color-ro); color: white;"
-                StartIcon="@Icons.Material.Filled.ArrowDownward" />
+    <ScrollToBottom Selector="@ChatMessageWindowClass" OnClick="async () => await _messageInput.FocusAsync()"
+        VisibleCssClass="scroll-to-bottom-visible" HiddenCssClass="scroll-to-bottom-hidden" MinimumBottomOffset="1000"
+        Visible="false">
+        <MudFab Size="Size.Medium" Style="background: var(--color-ro); color: white;"
+            StartIcon="@Icons.Material.Filled.ArrowDownward" />
     </ScrollToBottom>
 </MudItem>
 
@@ -146,25 +127,25 @@
     private bool IsMessageFromSelf(ChatMessageDto message) => message.SenderId == CurrentUser.Id;
 
     private string MudItemClass => ActiveChat is null
-        ? "chat-message-window d-flex align-center justify-center"
-        : "chat-message-window";
+    ? "chat-message-window d-flex align-center justify-center"
+    : "chat-message-window";
 
     private string MudItemStyle => ActiveChat is null
-        ? "padding: 0"
-        : "";
+    ? "padding: 0"
+    : "";
 
     private string MudListItemClass(ChatMessageDto message) => IsMessageFromSelf(message)
-            ? "message-from-self"
-            : "";
+    ? "message-from-self"
+    : "";
 
     private string GetRecipientsProfilePictureUrl(ChatMessageDto message)
     => ActiveChat?.Recipients
-	       .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
-       ?? ProfileConstants.Default_Profile_Picture;
+    .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.ProfilePictureUrl
+    ?? ProfileConstants.Default_Profile_Picture;
 
     private string? GetRecipientsUserName(ChatMessageDto message)
-        => ActiveChat?.Recipients
-            .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.UserName;
+    => ActiveChat?.Recipients
+    .FirstOrDefault(recipient => recipient.Id == message.SenderId)?.UserName;
 
     private bool NextMessageIsFromSameSender(ChatMessageDto message)
     {
@@ -187,9 +168,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await ScrollManager.ScrollToBottomAsync(ChatMessageWindowClass);
+        if (ActiveChat is null)
+        {
+            return;
+        }
 
-        if (ActiveChat is not null && _messageInput is not null)
+        if (_messageInput is not null)
         {
             await _messageInput.FocusAsync();
         }
@@ -250,7 +234,6 @@
         }
 
         await _messageInput.FocusAsync();
-        await ScrollManager.ScrollToBottomAsync(ChatMessageWindowClass);
     }
 
     private async Task SendMessageOnEnter(KeyboardEventArgs keyboardEventArgs)
@@ -262,5 +245,5 @@
     }
 
     private string CreateTooltip(ChatMessageDto message)
-        => $"{message.SentUtc.DisplayTimePassed()} ({message.SentUtc.DisplayExactTime()})";
+    => $"{message.SentUtc.DisplayTimePassed()} ({message.SentUtc.DisplayExactTime()})";
 }

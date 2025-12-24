@@ -104,15 +104,19 @@ public partial class ScrollToBottom : IDisposable
 	{
 		await OnScroll.InvokeAsync(e);
 
-		var distanceFromBottom = e.ScrollHeight - e.ScrollTop;
+		// Calculate distance from bottom
+		// FirstElementChild gives us the viewport height equivalent
+		var distanceFromBottom = e.ScrollHeight - e.ScrollTop - e.FirstElementChild;
 
+		// Show button if we've scrolled up from bottom
 		if (distanceFromBottom >= MinimumBottomOffset && Visible != true)
 		{
 			Visible = true;
 			await InvokeAsync(StateHasChanged);
 		}
 
-		if (distanceFromBottom < MinimumBottomOffset && Visible)
+		// Hide button if we're close to bottom (within 100px)
+		if (distanceFromBottom < 100 && Visible)
 		{
 			Visible = false;
 			await InvokeAsync(StateHasChanged);
