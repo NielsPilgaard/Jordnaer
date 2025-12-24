@@ -494,11 +494,151 @@ var ads = await AdService.GetActiveAdsAsync(AdPlacement.GroupSearch, adCount);
 - 🔲 Same simplified state management
 - 🔲 Same scroll restoration quality
 
-NEXT:
+## 🔲 OUTSTANDING ISSUES - User Search Polish
 
-1. It's not about error handling, it's a state issue - we cannot get to our map instance for some reason.
-2. Red text is overkill for location and username, we're displaying info here not errors
-3. The kids emoji is awful, visualize that section in a different way
-4. the user result cards ar filled in a weird way, and the blank space is grey for some reason??? (Image attached)
-5. On the AdCard, the annonce "hover" text should be small and muted in the upper right corner, like before, with a light grey background for visibility.
-6. When there's only 1 search result, the results are skewed to the left. Center them.
+These refinements need to be addressed for the user search experience:
+
+### 1. Map Search Radius Configuration
+**Issue:** The radius slider currently goes from 1-50km with a default of 10km.
+
+**Required Changes:**
+- Update [MapSearchFilter.razor](src/web/Jordnaer/Features/Map/MapSearchFilter.razor)
+- Change Min from `1` to `1` (keep same)
+- Change Max from `50` to `500`
+- Change default RadiusKm from `10` to `25`
+- Update the slider step if needed for better UX at higher values
+
+```razor
+<MudSlider Value="@RadiusKm" Min="1" Max="500" Step="5" Color="Color.Primary" ... />
+```
+
+### 2. Card Layout Issues - Missing Data Handling
+**Problem:** When users are missing data (no categories or no children), the cards look messy and unbalanced. The layout becomes inconsistent across the grid.
+
+**Root Cause:**
+- Cards with full data (children + categories) are taller
+- Cards with partial data appear shorter and unbalanced
+- The `flex-grow-1` on categories section causes uneven spacing
+
+**Solution Needed:**
+- Ensure all cards have consistent height regardless of content
+- The MudPaper already uses `height: 100%` - verify this is working
+- Consider adding minimum height constraints
+- Ensure the categories section at the bottom properly fills remaining space
+- Test with various combinations:
+  - User with children + categories
+  - User with only children
+  - User with only categories
+  - User with neither
+
+### 3. Ad Placement Logic - Less Than 8 Results
+**Current Behavior:** When there are fewer than 8 results, the ad is always placed at the end of the list.
+
+**Required Behavior:**
+- If results count < 8, place the ad at a random position within the results
+- Example: With 5 results, ad could appear at position 1, 2, 3, 4, or 5 (randomly chosen)
+- This makes the ad placement less predictable and more natural
+
+**Files to Update:**
+- [UserSearchResultComponent.razor](src/web/Jordnaer/Features/UserSearch/UserSearchResultComponent.razor) - `GetItemsWithAds()` method
+- [GroupSearchResultComponent.razor](src/web/Jordnaer/Features/GroupSearch/GroupSearchResultComponent.razor) - `GetItemsWithAds()` method
+
+**Implementation:**
+```csharp
+private List<SearchResultItem> GetItemsWithAds()
+{
+    var items = new List<SearchResultItem>();
+    var adCount = SearchResult.Users.Count > 0 ? Math.Max(1, (int)Math.Ceiling(SearchResult.Users.Count / 8.0)) : 0;
+    var ads = HardcodedAds.GetAdsForUserSearch(adCount);
+
+    if (SearchResult.Users.Count < 8 && ads.Count > 0)
+    {
+        // Random placement for small result sets
+        var random = new Random();
+        var adPosition = random.Next(0, SearchResult.Users.Count + 1);
+
+        for (int i = 0; i <= SearchResult.Users.Count; i++)
+        {
+            if (i == adPosition)
+            {
+                items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
+            }
+            if (i < SearchResult.Users.Count)
+            {
+                items.Add(new SearchResultItem { User = SearchResult.Users[i] });
+            }
+        }
+    }
+    else
+    {
+        // Regular pattern: every 8 items
+        // ... existing logic
+    }
+
+    return items;
+}
+```
+
+### 4. Single Ad Per Page Limit
+**Current Behavior:** The current logic calculates ads based on total results: `Math.Max(1, (int)Math.Ceiling(SearchResult.Users.Count / 8.0))`. This could show multiple ads on one pagination page.
+
+**Required Behavior:**
+- Never display more than 1 ad per pagination page
+- Even if there are 20+ results on a page, only show 1 ad
+- This keeps the ad-to-content ratio reasonable
+
+**Files to Update:**
+- [UserSearchResultComponent.razor](src/web/Jordnaer/Features/UserSearch/UserSearchResultComponent.razor)
+- [GroupSearchResultComponent.razor](src/web/Jordnaer/Features/GroupSearch/GroupSearchResultComponent.razor)
+
+**Implementation:**
+```csharp
+private List<SearchResultItem> GetItemsWithAds()
+{
+    var items = new List<SearchResultItem>();
+
+    // Always max 1 ad per page, regardless of result count
+    var adCount = SearchResult.Users.Count > 0 ? 1 : 0;
+    var ads = HardcodedAds.GetAdsForUserSearch(adCount);
+
+    // ... rest of logic
+}
+```
+
+### 5. Chip Color Palette - Children & Categories
+**Problem:** The current colors for children (Primary/blue) and categories (Tertiary) don't match the warm, friendly UI of Jordnaer.
+
+**Current Colors:**
+- Children chips: `Color.Primary` (blue)
+- Category chips: `Color.Tertiary` (outlined)
+
+**Required Changes:**
+Check [JordnaerPalette.cs](src/web/Jordnaer/Shared/JordnaerPalette.cs) for the color scheme and update:
+
+**Files to Update:**
+- [UserCard.razor](src/web/Jordnaer/Features/UserSearch/UserCard.razor)
+
+**Suggested Approach:**
+- Use softer, warmer colors from the Jordnaer palette
+- Children chips could use a soft pastel color (not blue)
+- Category chips could use outlined style with the warm theme colors
+- Consider using `Style` parameter with custom colors from JordnaerPalette
+- Example: `Style="background-color: {JordnaerPalette.LightWarmColor};"`
+
+**Test Cases:**
+- Verify colors work in both light and dark themes (if supported)
+- Ensure sufficient contrast for accessibility
+- Check that colors are visually distinct between children and categories
+
+---
+
+## Already Completed Fixes (Don't Redo)
+
+✅ **Map Clear Button** - Fixed JS/Blazor desync by using `LeafletMap.IsInitialized` property
+✅ **Location/Username Colors** - Changed to subtle blue (#5B9BD5) instead of red
+✅ **Children Section Icon** - Removed ChildCare emoji, using clean text label
+✅ **Card Background** - Fixed grey background issue with explicit `background-color: white`
+✅ **AdCard Annonce Label** - Styled as small, muted, upper right corner with grey background
+✅ **Single Result Centering** - Added `Justify.Center` when results count ≤ 3
+✅ **Search Form Spacing** - Added `mt-5` margin between form and results
+✅ **Divider Colors** - Set to `#e0e0e0` with `opacity: 0.5`
