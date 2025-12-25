@@ -4,7 +4,7 @@
     {
         @if (_isQuillLoaded)
         {
-            <TextEditor Toolbar="_toolbar" @ref="@_textEditor" Placeholder="@Placeholder">
+            <TextEditor Toolbar="Toolbar" @ref="@_textEditor" Placeholder="@Placeholder">
             </TextEditor>
         }
         else
@@ -14,8 +14,7 @@
     }
     else
     {
-        <MudTextField @bind-Value="_textAreaContent" Placeholder="@Placeholder" Lines="10" Variant="Variant.Outlined"
-            Color="Color.Info" FullWidth AutoGrow />
+        <MudTextField @bind-Value="_textAreaContent" Placeholder="@Placeholder" Lines="10" Variant="Variant.Outlined" FullWidth AutoGrow />
     }
 </div>
 <style>
@@ -23,7 +22,7 @@
         margin-bottom: 10px !important;
     }
 </style>
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @inject Microsoft.FeatureManagement.IFeatureManager FeatureManager
 
 @code {
@@ -36,12 +35,12 @@
 
     private const int LoadingDelayMillis = 1500;
 
-    private TextEditor _textEditor = default!;
+    private TextEditor _textEditor = null!;
     private bool _isQuillLoaded = false;
     private bool _useWysiwyg = false;
     private string _textAreaContent = string.Empty;
 
-    private static readonly Toolbar _toolbar = new()
+    private static readonly Toolbar Toolbar = new()
     {
         ShowMathControls = false,
         ShowCodeBlockControls = false,
@@ -81,7 +80,7 @@
         if (firstRender)
         {
             // Lazy load Quill dependencies
-            await JSRuntime.InvokeVoidAsync("QuillLoader.ensureLoaded");
+            await JsRuntime.InvokeVoidAsync("QuillLoader.ensureLoaded");
             _isQuillLoaded = true;
             StateHasChanged();
         }
@@ -117,6 +116,7 @@
         }
 
         var text = await _textEditor.GetContent();
+        // ReSharper disable once UseRawString Razor does not support raw string literals
         if (text is @"text=""{\""ops\"":[{\""insert\"":\""\\n\""}]}""")
         {
             return string.Empty;
