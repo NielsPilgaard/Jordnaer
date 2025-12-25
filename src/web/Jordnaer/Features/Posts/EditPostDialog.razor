@@ -105,18 +105,27 @@
 
         _isSaving = true;
 
-        var result = await PostService.UpdatePostAsync(PostId, CurrentUserId, text, _selectedCategories);
-
-        result.Switch(
-        _ =>
+        try
         {
-            Snackbar.Add("Opslaget er opdateret.", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(true));
-        },
-        error => Snackbar.Add(error.Value, Severity.Error)
-        );
+            var result = await PostService.UpdatePostAsync(PostId, CurrentUserId, text, _selectedCategories);
 
-        _isSaving = false;
+            result.Switch(
+            _ =>
+            {
+                Snackbar.Add("Opslaget er opdateret.", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            },
+            error => Snackbar.Add(error.Value, Severity.Error)
+            );
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Der opstod en fejl ved opdatering af opslaget.", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
     }
 
     private void Cancel()

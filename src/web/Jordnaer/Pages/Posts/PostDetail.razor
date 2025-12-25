@@ -28,7 +28,7 @@
 
         <!-- Post Card -->
         <PostCardComponent PostItem="_post" CurrentUserId="@(_currentUserId ?? string.Empty)"
-            OnPostDeleted="@OnPostDeleted" />
+            OnPostDeleted="@OnPostDeleted" OnPostUpdated="@OnPostUpdated" />
     }
 
 </MudLoading>
@@ -59,5 +59,19 @@
     private void OnPostDeleted()
     {
         Navigation.NavigateTo("/posts");
+    }
+
+    private async Task OnPostUpdated()
+    {
+        _isLoading = true;
+
+        var result = await PostService.GetPostAsync(PostId);
+
+        result.Switch(
+        post => _post = post,
+        notFound => Snackbar.Add("Opslaget blev ikke fundet.", Severity.Error)
+        );
+
+        _isLoading = false;
     }
 }
