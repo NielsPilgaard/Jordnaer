@@ -16,11 +16,8 @@
     <MudContainer MaxWidth="MaxWidth.Medium">
 
         @* Back to posts link *@
-        <MudButton Href="/posts"
-                   Variant="Variant.Text"
-                   StartIcon="@Icons.Material.Filled.ArrowBack"
-                   Class="mb-4"
-                   Color="Color.Default">
+        <MudButton Href="/posts" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-4"
+            Color="Color.Default">
             Tilbage til opslag
         </MudButton>
 
@@ -38,9 +35,6 @@
             }
             else
             {
-                <SponsorAd Class="mt-5" ImageAlt="Reklame for Moon Creative" MobileImagePath="images/ads/mooncreative_mobile.png"
-                    DesktopImagePath="images/ads/mooncreative_mobile.png" Link="https://www.mooncreative.dk/" />
-
                 <PostSearchResultComponent Filter="_filter" SearchResult="_searchResult"
                     CurrentUserId="@(_currentUserId ?? string.Empty)" SelectedPageChanged="@OnSelectedPageChanged"
                     OnPostDeleted="@OnPostDeleted" OnPostUpdated="@OnPostUpdated" />

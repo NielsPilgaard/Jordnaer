@@ -1,6 +1,7 @@
 @page "/posts"
 
 @using Jordnaer.Features.Posts
+@using Jordnaer.Features.Ad
 @inject PostSearchService PostSearchService
 @inject CurrentUser CurrentUser
 @inject ISnackbar Snackbar
@@ -20,18 +21,21 @@
         <MudDivider Class="my-4" />
 
         @* Recent Posts Feed *@
-        @if (_recentPosts.Posts.Any())
+        @{
+            var items = GetItemsWithAds();
+        }
+        @if (items.Any())
         {
-            @foreach (var (post, index) in _recentPosts.Posts.Select((p, i) => (p, i)))
+            @foreach (var item in items)
             {
-                <PostCardComponent PostItem="post" CurrentUserId="@(_currentUserId ?? string.Empty)"
-                    OnPostDeleted="@OnRecentPostDeleted" OnPostUpdated="@OnPostUpdated" />
-
-                @* Show ad after 3rd post *@
-                @if (index == 2)
+                @if (item.IsAd && item.Ad is not null)
                 {
-                    <SponsorAd Class="my-5" ImageAlt="Sponsor reklame" MobileImagePath="images/ads/mooncreative_mobile.png"
-                        DesktopImagePath="images/ads/mooncreative_mobile.png" Link="https://www.mooncreative.dk/" />
+                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
+                }
+                else if (item.Post is not null)
+                {
+                    <PostCardComponent PostItem="item.Post" CurrentUserId="@(_currentUserId ?? string.Empty)"
+                        OnPostDeleted="@OnRecentPostDeleted" OnPostUpdated="@OnPostUpdated" />
                 }
             }
 
@@ -80,6 +84,14 @@
     private bool _isLoading = false;
     private bool _isLoadingMore = false;
     private string? _currentUserId;
+    private int _currentAdPosition = -1; // Track ad position across loads
+
+    private record FeedItem
+    {
+        public bool IsAd { get; init; }
+        public PostDto? Post { get; init; }
+        public AdData? Ad { get; init; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -97,8 +109,8 @@
             var result = await PostSearchService.GetRecentPostsAsync(pageSize: 10);
 
             result.Switch(
-                success => _recentPosts = success,
-                error => Snackbar.Add(error.Value, Severity.Error)
+            success => _recentPosts = success,
+            error => Snackbar.Add(error.Value, Severity.Error)
             );
         }
         catch (Exception exception)
@@ -118,17 +130,17 @@
         try
         {
             var result = await PostSearchService.GetRecentPostsAsync(
-                pageSize: 10,
-                cursor: _recentPosts.NextCursor);
+            pageSize: 10,
+            cursor: _recentPosts.NextCursor);
 
             result.Switch(
-                success =>
-                {
-                    _recentPosts.Posts.AddRange(success.Posts);
-                    _recentPosts.NextCursor = success.NextCursor;
-                    // HasMore is computed from NextCursor
-                },
-                error => Snackbar.Add(error.Value, Severity.Error)
+            success =>
+            {
+                _recentPosts.Posts.AddRange(success.Posts);
+                _recentPosts.NextCursor = success.NextCursor;
+                // HasMore is computed from NextCursor
+            },
+            error => Snackbar.Add(error.Value, Severity.Error)
             );
         }
         catch (Exception exception)
@@ -162,5 +174,41 @@
     private async Task OnPostCreated()
     {
         await LoadRecentPosts();
+    }
+
+    private List<FeedItem> GetItemsWithAds()
+    {
+        var items = new List<FeedItem>();
+
+        if (_recentPosts.Posts.Count == 0)
+        {
+            return items;
+        }
+
+        var ads = HardcodedAds.GetAdsForSearch(1);
+        if (ads.Count == 0)
+        {
+            // No ads available, just return posts
+            items.AddRange(_recentPosts.Posts.Select(p => new FeedItem { Post = p }));
+            return items;
+        }
+
+        // Insert an ad every 10 posts at position 3 within each batch
+        // (e.g., positions 3, 13, 23, etc.)
+        var adInterval = 10;
+        var adPositionInBatch = 3;
+
+        for (int i = 0; i < _recentPosts.Posts.Count; i++)
+        {
+            // Check if we should insert an ad before this post
+            if (i > 0 && i % adInterval == adPositionInBatch)
+            {
+                items.Add(new FeedItem { IsAd = true, Ad = ads[0] });
+            }
+
+            items.Add(new FeedItem { Post = _recentPosts.Posts[i] });
+        }
+
+        return items;
     }
 }

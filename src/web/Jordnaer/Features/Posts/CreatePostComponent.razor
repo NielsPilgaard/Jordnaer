@@ -50,8 +50,8 @@
                                     Size="Size.Small" />
                             </MudStack>
 
-                            <Jordnaer.Features.WYSIWYG.TextEditorComponent @ref="_textEditor"
-                                Label="Hvad har du på tankerne?" Placeholder="Del dine tanker..." />
+                            <TextEditorComponent @ref="_textEditor" Label="Hvad har du på tankerne?"
+                                Placeholder="Del dine tanker..." />
 
                             <MudText Typo="Typo.body2" Class="mt-2">Kategorier</MudText>
                             <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection"
@@ -98,7 +98,7 @@
     private bool _isExpanded = false;
     private List<string> _selectedCategoryNames = [];
 
-    private Jordnaer.Features.WYSIWYG.TextEditorComponent _textEditor = null!;
+    private TextEditorComponent _textEditor = null!;
     private string _postText = string.Empty;
 
     private List<Jordnaer.Shared.Category> _postCategories = [];

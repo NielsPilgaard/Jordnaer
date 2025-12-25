@@ -47,6 +47,7 @@ public class UserSearchService(
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
 		var users = context.UserProfiles
+							.AsNoTracking()
 							.Where(user => !string.IsNullOrEmpty(user.UserName))
 							.AsQueryable();
 
@@ -71,6 +72,7 @@ public class UserSearchService(
 		var paginatedUsers = await users
 								   .Skip(usersToSkip)
 								   .Take(filter.PageSize)
+								   .AsSingleQuery()
 								   .Select(user => new UserDto
 								   {
 									   ProfilePictureUrl = user.ProfilePictureUrl,

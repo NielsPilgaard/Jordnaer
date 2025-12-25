@@ -6,8 +6,8 @@
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3">
-            <Jordnaer.Features.WYSIWYG.TextEditorComponent @ref="_textEditor" Label="Tekst"
-                Placeholder="Hvad har du på tankerne?" Text="@InitialText" />
+            <TextEditorComponent @ref="_textEditor" Label="Tekst" Placeholder="Hvad har du på tankerne?"
+                Text="@InitialText" />
 
             <MudText Typo="Typo.body2">Kategorier</MudText>
             <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection" SelectedValues="_selectedCategoryNames"
@@ -56,7 +56,7 @@
     [Parameter]
     public string? CurrentUserId { get; set; }
 
-    private Jordnaer.Features.WYSIWYG.TextEditorComponent _textEditor = null!;
+    private TextEditorComponent _textEditor = null!;
     private bool _isSaving = false;
     private List<string> _selectedCategoryNames = [];
     private List<Category> _selectedCategories = [];
