@@ -8,4 +8,5 @@ public static class FeatureFlags
 	public const string AccountSettings = "AccountSettings";
 	public const string NotificationSettings = "NotificationSettings";
 	public const string MapSearch = "MapSearch";
+	public const string WysiwygEditor = "WysiwygEditor";
 }

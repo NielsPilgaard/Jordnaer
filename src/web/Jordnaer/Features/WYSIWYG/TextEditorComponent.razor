@@ -1,13 +1,21 @@
 <div id="wysiwyg-editor-wrapper" style="margin-bottom: 89px; min-height: 200px;">
     <MudText Class="my-2" Typo="Typo.h6">@Label</MudText>
-    @if (_isQuillLoaded)
+    @if (_useWysiwyg)
     {
-        <TextEditor Toolbar="_toolbar" @ref="@_textEditor" Placeholder="@Placeholder">
-        </TextEditor>
+        @if (_isQuillLoaded)
+        {
+            <TextEditor Toolbar="_toolbar" @ref="@_textEditor" Placeholder="@Placeholder">
+            </TextEditor>
+        }
+        else
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+        }
     }
     else
     {
-        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+        <MudTextField @bind-Value="_textAreaContent" Placeholder="@Placeholder" Lines="10" Variant="Variant.Outlined"
+            FullWidth AutoGrow />
     }
 </div>
 <style>
@@ -16,6 +24,7 @@
     }
 </style>
 @inject IJSRuntime JSRuntime
+@inject Microsoft.FeatureManagement.IFeatureManager FeatureManager
 
 @code {
     [Parameter]
@@ -29,29 +38,46 @@
 
     private TextEditor _textEditor = default!;
     private bool _isQuillLoaded = false;
+    private bool _useWysiwyg = false;
+    private string _textAreaContent = string.Empty;
 
     private static readonly Toolbar _toolbar = new()
+    {
+        ShowMathControls = false,
+        ShowCodeBlockControls = false,
+        ShowFontControls = false,
+        ShowAlignmentControls = true,
+        ShowCleanFormattingControls = true,
+        ShowColorControls = true,
+        ShowDirectionControls = true,
+        ShowEmbedVideoControls = false,
+        ShowHeaderControls = true,
+        ShowHypertextLinkControls = true,
+        ShowIndentationControls = true,
+        ShowInsertImageControls = false,
+        ShowListControls = true,
+        ShowQuotationControls = true,
+        ShowSizeControls = true,
+        ShowStyleControls = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _useWysiwyg = await FeatureManager.IsEnabledAsync(FeatureFlags.WysiwygEditor);
+
+        if (!_useWysiwyg && !string.IsNullOrEmpty(Text))
         {
-            ShowMathControls = false,
-            ShowCodeBlockControls = false,
-            ShowFontControls = false,
-            ShowAlignmentControls = true,
-            ShowCleanFormattingControls = true,
-            ShowColorControls = true,
-            ShowDirectionControls = true,
-            ShowEmbedVideoControls = false,
-            ShowHeaderControls = true,
-            ShowHypertextLinkControls = true,
-            ShowIndentationControls = true,
-            ShowInsertImageControls = false,
-            ShowListControls = true,
-            ShowQuotationControls = true,
-            ShowSizeControls = true,
-            ShowStyleControls = true
-        };
+            _textAreaContent = Text;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!_useWysiwyg)
+        {
+            return;
+        }
+
         if (firstRender)
         {
             // Lazy load Quill dependencies
@@ -74,6 +100,13 @@
 
     public async Task<string> GetHtmlAsync()
     {
+        if (!_useWysiwyg)
+        {
+            return string.IsNullOrWhiteSpace(_textAreaContent)
+            ? string.Empty
+            : _textAreaContent;
+        }
+
         var text = await _textEditor.GetContent();
         if (text is @"text=""{\""ops\"":[{\""insert\"":\""\\n\""}]}""")
         {
