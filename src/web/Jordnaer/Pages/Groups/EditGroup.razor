@@ -7,17 +7,18 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
 
-<MetadataComponent Title="Redigér gruppe"
-                   Image="@_group?.ProfilePictureUrl" />
+<MetadataComponent Title="Redigér gruppe" Image="@_group?.ProfilePictureUrl" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
+
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-5" OnClick="JsRuntime.GoBackAsync"
+        Color="Color.Info" Variant="Variant.Filled" title="Tilbage" />
+
     @if (_group is null)
     {
-        <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
         return;
     }
 
-    <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-5" Color="Color.Primary" OnClick="JsRuntime.GoBackAsync" />
 
     <EditForm Model="@_group" OnValidSubmit="Update">
         <DataAnnotationsValidator />
@@ -27,63 +28,40 @@
 
             <MudGrid>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.Name"
-                                  For="() => _group.Name"
-                                  Label="Gruppenavn"
-                                  Variant="Variant.Filled" />
+                    <MudTextField @bind-Value="_group.Name" For="() => _group.Name" Label="Gruppenavn"
+                        Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="8">
-                    <MudTextField @bind-Value="_group.ShortDescription"
-                                  For="() => _group.ShortDescription"
-                                  Label="Kort beskrivelse"
-                                  Variant="Variant.Filled" />
+                    <MudTextField @bind-Value="_group.ShortDescription" For="() => _group.ShortDescription"
+                        Label="Kort beskrivelse" Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.Address"
-                                  For="() => _group.Address"
-                                  Label="Adresse"
-                                  Variant="Variant.Filled" />
+                    <MudTextField @bind-Value="_group.Address" For="() => _group.Address" Label="Adresse"
+                        Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.ZipCode"
-                                  For="() => _group.ZipCode"
-                                  Label="Postnummer"
-                                  name="zipCode"
-                                  Variant="Variant.Filled" />
+                    <MudTextField @bind-Value="_group.ZipCode" For="() => _group.ZipCode" Label="Postnummer"
+                        name="zipCode" Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.City"
-                                  For="() => _group.City"
-                                  Label="By"
-                                  name="city"
-                                  Variant="Variant.Filled" />
+                    <MudTextField @bind-Value="_group.City" For="() => _group.City" Label="By" name="city"
+                        Variant="Variant.Filled" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-                                       T="string"
-                                       Label="Kategorier"
-                                       MultiSelection="true"
-                                       SelectedValues="_group.Categories.Select(e => e.Name)"
-                                       ValuePresenter="ValuePresenter.Chip"
-                                       Variant="Variant.Filled"
-                                       SelectedValuesChanged="SelectedCategoriesChanged">
+                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()" T="string"
+                        Label="Kategorier" MultiSelection="true" SelectedValues="_group.Categories.Select(e => e.Name)"
+                        ValuePresenter="ValuePresenter.Chip" Variant="Variant.Filled"
+                        SelectedValuesChanged="SelectedCategoriesChanged">
                     </MudSelectExtended>
                 </MudItem>
                 <MudItem xs="12">
-                    <TextEditorComponent Placeholder="Beskriv din gruppe her..."
-                                         Label="Beskrivelse"
-                                         Text="@_group.Description"
-                                         @ref="_textEditorComponent" />
+                    <TextEditorComponent Placeholder="Beskriv din gruppe her..." Label="Beskrivelse"
+                        Text="@_group.Description" @ref="_textEditorComponent" />
                 </MudItem>
             </MudGrid>
         </MudPaper>
-        <MudButton Size="Size.Large"
-                   StartIcon="@Icons.Material.Filled.Save"
-                   Class="my-6"
-                   ButtonType="ButtonType.Submit"
-                   Variant="Variant.Filled"
-                   FullWidth
-                   Color="Color.Success">
+        <MudButton Size="Size.Large" StartIcon="@Icons.Material.Filled.Save" Class="my-6" ButtonType="ButtonType.Submit"
+            Variant="Variant.Filled" FullWidth Color="Color.Success">
             Opdatér
         </MudButton>
     </EditForm>
@@ -104,8 +82,8 @@
     {
         var getGroupResponse = await GroupService.GetGroupByIdAsync(GroupId);
         getGroupResponse.Switch(
-            group => _group = group,
-            _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning));
+        group => _group = group,
+        _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning));
 
         _isLoading = false;
 
@@ -133,8 +111,8 @@
         var updateResult = await GroupService.UpdateGroupAsync(_group);
 
         updateResult.Switch(
-            success => Snackbar.Add("Gruppen blev opdateret.", Severity.Success),
-            error => Snackbar.Add(error.Value, Severity.Error));
+        success => Snackbar.Add("Gruppen blev opdateret.", Severity.Success),
+        error => Snackbar.Add(error.Value, Severity.Error));
 
         _isLoading = false;
     }

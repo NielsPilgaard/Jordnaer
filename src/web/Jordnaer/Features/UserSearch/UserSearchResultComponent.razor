@@ -16,9 +16,7 @@
             <MudItem xs="12" sm="6" md="4" lg="3" id="@itemId">
                 @if (item.IsAd && item.Ad is not null)
                 {
-                    <AdCard Link="@item.Ad.Link"
-                            ImagePath="@item.Ad.ImagePath"
-                            ImageAlt="@item.Ad.Title" />
+                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
                 }
                 else if (item.User is not null)
                 {
@@ -29,14 +27,10 @@
         }
     </MudGrid>
 </MudContainer>
-<MudPagination Class="mt-5 d-flex justify-center"
-               BoundaryCount="0"
-               MiddleCount="3"
-               UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})"
-               SelectedChanged="@SelectedPageChanged"
-               Variant="Variant.Filled"
-               Count="@(SearchResult.TotalCount / Filter.PageSize)"
-               Selected="Filter.PageNumber" />
+<MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3"
+    UserAttributes="@(new Dictionary<string, object> { ["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater." })"
+    SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled"
+    Count="@((int)Math.Ceiling((double)SearchResult.TotalCount / Filter.PageSize))" Selected="Filter.PageNumber" />
 
 @code {
 
@@ -64,7 +58,7 @@
 
         // Always max 1 ad per page, regardless of result count
         var adCount = SearchResult.Users.Count > 0 ? 1 : 0;
-        var ads = HardcodedAds.GetAdsForUserSearch(adCount);
+        var ads = HardcodedAds.GetAdsForSearch(adCount);
 
         if (ads.Count == 0 || SearchResult.Users.Count == 0)
         {
@@ -115,7 +109,7 @@
     protected override void OnInitialized()
     {
         _locationChangingHandler = Navigation
-            .RegisterLocationChangingHandler(async _ => await SaveScrollPosition());
+        .RegisterLocationChangingHandler(async _ => await SaveScrollPosition());
     }
 
     public void Dispose()

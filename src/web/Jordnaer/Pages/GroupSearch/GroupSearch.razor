@@ -3,13 +3,11 @@
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
-@inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
 
 @attribute [Sitemap]
 
-<MetadataComponent Title="Grupper"
-                   Description="Søg efter grupper" />
+<MetadataComponent Title="Grupper" Description="Søg efter grupper" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -22,16 +20,19 @@
 
     @if (_searchResult.TotalCount is 0)
     {
-        <MudPaper Elevation="3" Class="pa-10 mt-5">
-            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-                <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
-            </MudAlert>
-        </MudPaper>
+        <MudContainer MaxWidth="MaxWidth.Small">
+            <MudPaper Elevation="3" Class="pa-10 mt-5">
+                <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
+                </MudAlert>
+            </MudPaper>
+        </MudContainer>
         return;
     }
 
     <div class="mt-5">
-        <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+        <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult"
+            SelectedPageChanged="@OnSelectedPageChanged" />
     </div>
 
 </MudLoading>
@@ -65,25 +66,25 @@
 
         if (_searchResult.TotalCount is 0)
         {
-	        Snackbar.Add(
-		        message: "Ingen grupper matchede søgningen.",
-		        severity: Severity.Info,
-		        options =>
-		        {
-			        options.VisibleStateDuration = 3500;
-			        options.CloseAfterNavigation = true;
-		        });
+            Snackbar.Add(
+            message: "Ingen grupper matchede søgningen.",
+            severity: Severity.Info,
+            options =>
+            {
+                options.VisibleStateDuration = 3500;
+                options.CloseAfterNavigation = true;
+            });
         }
         else
         {
-	        Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
-		        severity: Severity.Success,
-		        options =>
-		        {
-			        options.VisibleStateDuration = 3500;
-			        options.Icon = Icons.Material.Filled.ArrowDownward;
-			        options.CloseAfterNavigation = true;
-		        });
+            Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
+            severity: Severity.Success,
+            options =>
+            {
+                options.VisibleStateDuration = 3500;
+                options.Icon = Icons.Material.Filled.ArrowDownward;
+                options.CloseAfterNavigation = true;
+            });
         }
 
         _hasSearched = true;

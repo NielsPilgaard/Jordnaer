@@ -21,7 +21,7 @@ public static class HardcodedAds
     /// Get ads for user search results.
     /// Returns multiple copies if needed to fill the requested count.
     /// </summary>
-    public static List<AdData> GetAdsForUserSearch(int count)
+    public static List<AdData> GetAdsForSearch(int count)
     {
         if (count <= 0 || _ads.Count == 0)
         {

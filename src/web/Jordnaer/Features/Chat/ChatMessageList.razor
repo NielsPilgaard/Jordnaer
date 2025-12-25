@@ -28,8 +28,9 @@
             return;
         case not null when IsMobile:
             <MudAppBar Dense ToolBarClass="justify-space-between h-100" Color="Color.Primary" Elevation="5">
-                <MudFab StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Info"
-                    Size="Size.Small" />
+
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Info"
+                    Variant="Variant.Filled" title="Tilbage" />
                 <MudText Typo="Typo.h5">@ActiveChat.GetDisplayName(CurrentUser.Id!)</MudText>
             </MudAppBar>
             break;

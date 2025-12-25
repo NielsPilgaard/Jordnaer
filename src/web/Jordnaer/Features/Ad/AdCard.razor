@@ -1,9 +1,9 @@
-@using MudBlazor.Services
-
-<MudLink Href="@Link" Target="_blank" Underline="Underline.None">
+<MudLink Href="@Link" Target="_blank" Underline="Underline.None"
+    UserAttributes="@(new Dictionary<string, object> { { "rel", "noopener" } })">
     <div class="image-ad-wrapper">
         <div class="image-with-label">
-            <MudImage Src="@ImagePath" Alt="@ImageAlt" Class="ad-image" Style="width: 100%; height: auto; border-radius: 8px;" loading="lazy" />
+            <MudImage Src="@ImagePath" Alt="@ImageAlt" Class="ad-image"
+                Style="width: 100%; height: auto; border-radius: 8px;" loading="lazy" />
             <div class="image-ad-label">Annonce</div>
         </div>
     </div>
@@ -21,6 +21,6 @@
 
     protected override void OnInitialized()
     {
-        JordnaerMetrics.SponsorAdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+        JordnaerMetrics.AdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
     }
 }
