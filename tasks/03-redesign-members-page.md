@@ -22,6 +22,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 - Sorts pending approvals to top using custom sort order
 
 **Problems with current design:**
+
 - Edit-on-row-click is too error-prone (accidental edits)
 - Inline editing clutters the table with dropdowns
 - No clear visual distinction between view mode and edit mode
@@ -32,6 +33,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 ## Design Decision: Tables vs Cards
 
 **Tables are the correct choice for this use case** because:
+
 - Admins need to compare permissions across multiple users (tables excel at comparison tasks)
 - Sorting and filtering by columns is natural for permission management
 - Bulk operations are important for admin workflows
@@ -53,6 +55,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 - Keep pending approvals sorted to top (existing behavior)
 
 **Visual improvements:**
+
 - **Ownership Level:** Display as colored chip (Primary color for Owner, Secondary for others)
 - **Permission Level:** Display as colored chip (Success for Admin, Info for Write)
 - **Membership Status:** Display as colored chip:
@@ -102,6 +105,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 ```
 
 **Benefits:**
+
 - Less visual clutter (one menu icon vs multiple buttons)
 - Actions are contextual to status
 - Icons + text make actions clear
@@ -150,7 +154,7 @@ Redesign the group members management page to improve UX, visual design, and mai
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CancelEdit">Cancel</MudButton>
-        <MudButton Color="Color.Primary"
+        <MudButton Color="Color.Info"
                    Variant="Variant.Filled"
                    OnClick="SaveEdit">
             Save Changes
@@ -160,6 +164,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 ```
 
 **Benefits:**
+
 - More space for dropdowns and explanations
 - Explicit save/cancel actions
 - Can add helper text and warnings
@@ -192,7 +197,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 
     @if (_selectedItems?.Count > 0)
     {
-        <MudButton Color="Color.Primary"
+        <MudButton Color="Color.Info"
                    StartIcon="@Icons.Material.Filled.Edit"
                    OnClick="OpenBulkEditDialog">
             Bulk Edit (@_selectedItems.Count)
@@ -202,6 +207,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 ```
 
 **Features:**
+
 - Member count display
 - Badge for pending approvals (visual indicator)
 - Quick search (filters as you type)
@@ -227,6 +233,7 @@ Redesign the group members management page to improve UX, visual design, and mai
 ```
 
 **Bulk operations:**
+
 - Change permission level for multiple users at once
 - Remove multiple members
 - Approve multiple pending requests
@@ -273,6 +280,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 ## Acceptance Criteria
 
 ### Layout & Design
+
 - [ ] MudDataGrid set to ReadOnly="true"
 - [ ] EditMode and EditTrigger removed completely
 - [ ] All data displayed as read-only (chips for status/roles)
@@ -281,6 +289,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 - [ ] Visual hierarchy clear and scannable
 
 ### Status Display
+
 - [ ] Ownership Level displayed as colored MudChip
 - [ ] Permission Level displayed as colored MudChip
 - [ ] Membership Status displayed as colored MudChip with appropriate colors:
@@ -290,6 +299,7 @@ private async Task RemoveMember(GroupMembershipDto member)
   - [ ] Pending from User: Info (blue)
 
 ### Actions Column
+
 - [ ] Kebab menu (three dots) for each row
 - [ ] Menu items are contextual based on membership status
 - [ ] Icons + text labels for all menu items
@@ -298,6 +308,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 - [ ] Confirmation dialog for destructive actions (Remove Member)
 
 ### Edit Dialog
+
 - [ ] Modal dialog opens when "Edit Permissions" clicked
 - [ ] Dialog shows current ownership and permission levels
 - [ ] MudSelect dropdowns for both levels
@@ -308,6 +319,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 - [ ] Optimistic UI updates with rollback on error
 
 ### Toolbar
+
 - [ ] Member count displayed
 - [ ] Pending approval badge shown if count > 0
 - [ ] Search field filters table instantly (client-side)
@@ -315,6 +327,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 - [ ] Toolbar is responsive
 
 ### Multi-Select & Bulk Operations
+
 - [ ] Checkbox column added (SelectColumn)
 - [ ] MultiSelection="true" enabled
 - [ ] Bulk edit dialog for changing permissions on multiple users
@@ -323,12 +336,14 @@ private async Task RemoveMember(GroupMembershipDto member)
 - [ ] Selected count shown in toolbar
 
 ### Quick Filter
+
 - [ ] Search filters by user display name
 - [ ] Case-insensitive filtering
 - [ ] Instant results (no delay)
 - [ ] Works across all membership statuses
 
 ### Functionality
+
 - [ ] All existing functionality preserved
 - [ ] Optimistic updates on changes
 - [ ] Error handling with rollback
@@ -339,9 +354,11 @@ private async Task RemoveMember(GroupMembershipDto member)
 ## Files to Modify
 
 **Modify:**
+
 - [Members.razor](src/web/Jordnaer/Pages/Groups/Members.razor) - Major refactor
 
 **Key changes to Members.razor:**
+
 1. Change `ReadOnly="false"` → `ReadOnly="true"`
 2. Remove `EditMode` and `EditTrigger` attributes
 3. Replace `<PropertyColumn>` edit templates with `<CellTemplate>` showing chips
@@ -354,6 +371,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 10. Update `UpdateOwnershipLevel` and `UpdatePermissionLevel` methods to work with dialog
 
 **May create (optional):**
+
 - `src/web/Jordnaer/Pages/Groups/Components/EditMemberDialog.razor` - Reusable edit dialog component
 - `src/web/Jordnaer/Pages/Groups/Components/BulkEditDialog.razor` - Bulk edit dialog
 
@@ -395,12 +413,14 @@ private async Task RemoveMember(GroupMembershipDto member)
 ## Why This Approach?
 
 **Tables are optimal for admin user management because:**
+
 1. Comparison: Admins need to scan across users to compare permissions
 2. Bulk operations: Multi-select and batch actions are natural with tables
 3. Sorting/filtering: Column-based operations align with mental model
 4. Scannability: Tabular data is faster to process than cards for structured data
 
 **Modal dialogs are better than inline editing because:**
+
 1. More space for dropdowns and helper text
 2. Explicit save/cancel prevents accidental changes
 3. Can show warnings and validation messages
@@ -408,6 +428,7 @@ private async Task RemoveMember(GroupMembershipDto member)
 5. Clearer edit state (you're "in" edit mode vs "is this row editable?")
 
 **Read-only display with action column is superior because:**
+
 1. Visual clarity: No clutter from edit controls
 2. Prevents accidents: Edit-on-click was too error-prone
 3. Consistent state: Always know what you're looking at

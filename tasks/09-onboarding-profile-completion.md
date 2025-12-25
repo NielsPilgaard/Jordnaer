@@ -209,7 +209,7 @@ Make profile setup **required** for best results, but show progress (e.g., "Step
 
                 <MudButton ButtonType="ButtonType.Submit"
                            Variant="Variant.Filled"
-                           Color="Color.Primary"
+                           Color="Color.Info"
                            EndIcon="@Icons.Material.Filled.ArrowForward">
                     Næste
                 </MudButton>
@@ -615,11 +615,13 @@ This heavily impacts implementation. See the constraints document for:
 
 **What's Already Populated:**
 From [ClaimsPrincipalExtensions.cs:7-34](src/shared/Jordnaer.Shared/Extensions/ClaimsPrincipalExtensions.cs#L7-L34):
+
 - ✅ FirstName (from ClaimTypes.GivenName or ClaimTypes.Name)
 - ✅ LastName (from ClaimTypes.Surname or ClaimTypes.Name)
 - ⚠️ UserName (concatenated from first+last, **but NOT checked for uniqueness!**)
 
 **Still Missing:**
+
 - ❌ Location (address/zip code)
 - ❌ DateOfBirth
 - ❌ Categories/interests
@@ -670,6 +672,7 @@ else
 The `ToUserProfile()` extension creates usernames without checking uniqueness. This needs fixing:
 
 **Option A:** Pre-generate username before creating profile
+
 ```csharp
 // In ExternalLogin.razor OnValidSubmitAsync (after line 167)
 var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
@@ -689,6 +692,7 @@ await Context.SaveChangesAsync();
 ```
 
 **Option B:** Let CompleteProfile page handle username generation
+
 - Remove username assignment from ToUserProfile()
 - CompleteProfile page generates username from existing FirstName/LastName
 
@@ -697,6 +701,7 @@ await Context.SaveChangesAsync();
 When external users arrive at CompleteProfile:
 
 **Step 1: Basic Info**
+
 - FirstName: Pre-populated (read-only or editable)
 - LastName: Pre-populated (read-only or editable)
 - Username: Auto-generated from existing FirstName/LastName (shown as preview)
@@ -704,6 +709,7 @@ When external users arrive at CompleteProfile:
 - Location: Empty (user fills in - required)
 
 **Step 2: Interests**
+
 - Categories: Empty (user selects)
 - Description: Empty (user writes)
 
@@ -721,12 +727,14 @@ Add these criteria for external authentication:
 ### Files to Modify (External Auth)
 
 **Registration Flow:**
+
 - `src/web/Jordnaer/Components/Account/Pages/ExternalLogin.razor`
   - Line 189: Redirect new users to CompleteProfile
   - Line 132: (Optional) Check profile completeness for existing users
   - After line 167: Ensure username uniqueness
 
 **Extensions:**
+
 - `src/shared/Jordnaer.Shared/Extensions/ClaimsPrincipalExtensions.cs`
   - Consider removing username assignment (let CompleteProfile handle it)
   - Or keep for backward compatibility, fix in ExternalLogin.razor
@@ -734,7 +742,7 @@ Add these criteria for external authentication:
 ### Testing Checklist (External Auth)
 
 - [ ] New Google user completes profile successfully
-- [ ] New Facebook user completes profile successfully  
+- [ ] New Facebook user completes profile successfully
 - [ ] New Microsoft user completes profile successfully
 - [ ] External users have unique usernames (no duplicates)
 - [ ] External users can skip profile completion (if skip enabled)
@@ -748,13 +756,14 @@ Add these criteria for external authentication:
 
 Different providers send different claims:
 
-| Provider  | First Name Claim      | Last Name Claim     | Full Name Claim     |
-|-----------|-----------------------|---------------------|---------------------|
-| Google    | ClaimTypes.GivenName  | ClaimTypes.Surname  | ClaimTypes.Name     |
-| Microsoft | ClaimTypes.GivenName  | ClaimTypes.Surname  | ClaimTypes.Name     |
-| Facebook  | (custom claim)        | (custom claim)      | ClaimTypes.Name     |
+| Provider  | First Name Claim     | Last Name Claim    | Full Name Claim |
+| --------- | -------------------- | ------------------ | --------------- |
+| Google    | ClaimTypes.GivenName | ClaimTypes.Surname | ClaimTypes.Name |
+| Microsoft | ClaimTypes.GivenName | ClaimTypes.Surname | ClaimTypes.Name |
+| Facebook  | (custom claim)       | (custom claim)     | ClaimTypes.Name |
 
 Current `ToUserProfile()` handles this with fallback logic:
+
 1. Try to get full name, split on space
 2. Fall back to GivenName + Surname claims
 
@@ -763,14 +772,16 @@ This should work for all three providers, but test thoroughly.
 ### Potential Issues
 
 **Issue 1: Duplicate Usernames**
+
 - External users might have same first+last name as existing users
 - **Solution:** Use `GenerateUniqueUsernameAsync` to append numbers
 
 **Issue 2: Missing Claims**
+
 - Some providers might not send name claims
 - **Solution:** CompleteProfile page should allow editing name fields even if pre-populated
 
 **Issue 3: Skip Button**
+
 - External users might skip, leaving incomplete profile
 - **Solution:** Middleware redirects them back until complete (or allow skip with banner reminder)
-
