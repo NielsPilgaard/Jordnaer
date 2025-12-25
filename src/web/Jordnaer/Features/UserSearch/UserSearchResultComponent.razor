@@ -76,8 +76,7 @@
             {
                 items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
             }
-
-            if (i < SearchResult.Users.Count)
+            else if (i < SearchResult.Users.Count)
             {
                 items.Add(new SearchResultItem { User = SearchResult.Users[i] });
             }
