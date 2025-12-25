@@ -1,19 +1,28 @@
-@using Jordnaer.Shared
-@using Jordnaer.Features.Profile
 @inject IDataForsyningenClient DataForsyningenClient
 @inject ILocationService LocationService
+@inject IJSRuntime JsRuntime
 
 <MudStack Spacing="3">
+    @if (_isLoadingLocation)
+    {
+        <MudAlert Severity="Severity.Info" Dense Class="mb-2">
+            <div class="d-flex align-center gap-2">
+                <MudProgressCircular Size="Size.Small" Indeterminate />
+                <MudText Typo="Typo.body2">Henter din placering...</MudText>
+            </div>
+        </MudAlert>
+    }
+
     @* Address search with autocomplete *@
     <MudAutocomplete T="string" Label="Søg efter adresse" Value="@_addressText" SearchFunc="SearchForAddresses"
         DebounceInterval="250" MinCharacters="3" ResetValueOnEmptyText CoerceText="false" CoerceValue="false"
-        Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable ValueChanged="OnAddressSelected"
-        AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+        ProgressIndicatorColor="Color.Info" Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable
+        ValueChanged="OnAddressSelected" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Info" />
 
     @* Radius slider with value display *@
     <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
         <MudText Typo="Typo.body2" Style="min-width: 80px;">Radius:</MudText>
-        <MudSlider Value="@RadiusKm" Min="1" Max="50" Step="1" Color="Color.Primary" Style="flex: 1;"
+        <MudSlider Value="@RadiusKm" Min="0" Max="500" Step="5" Color="Color.Info" Style="flex: 1;"
             ValueChanged="@(async (int newValue) => await OnRadiusChanged(newValue))" />
         <MudText Typo="Typo.body1" Style="min-width: 60px; text-align: right;">
             <strong>@RadiusKm km</strong>
@@ -34,6 +43,8 @@
 @code {
     private LeafletMap? _mapComponent;
     private string? _addressText;
+    private bool _isLoadingLocation = false;
+    private bool _hasAttemptedGeolocation = false;
 
     [Parameter]
     public string MapId { get; set; } = $"map-search-{Guid.NewGuid()}";
@@ -48,7 +59,7 @@
     public int InitialZoom { get; set; } = 7;
 
     [Parameter]
-    public int RadiusKm { get; set; } = 10;
+    public int RadiusKm { get; set; } = 25;
 
     [Parameter]
     public EventCallback<int> RadiusKmChanged { get; set; }
@@ -58,6 +69,69 @@
     {
         get;
         set;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_hasAttemptedGeolocation)
+        {
+            _hasAttemptedGeolocation = true;
+
+            // Wait for the map to initialize
+            var attempts = 0;
+            while (_mapComponent?.IsInitialized != true && attempts < 20)
+            {
+                await Task.Delay(50);
+                attempts++;
+            }
+
+            if (_mapComponent?.IsInitialized == true)
+            {
+                await TryGetUserLocation();
+            }
+        }
+    }
+
+    private async Task TryGetUserLocation()
+    {
+        try
+        {
+            _isLoadingLocation = true;
+            StateHasChanged();
+
+            var position = await JsRuntime.InvokeAsync<GeolocationPosition?>("geolocationService.getCurrentPosition");
+
+            if (position is not null && position.Latitude != 0 && position.Longitude != 0)
+            {
+                // User granted permission, update map to their location
+                if (_mapComponent is not null)
+                {
+                    await _mapComponent.CenterMapAsync(position.Latitude, position.Longitude, 13);
+                    await _mapComponent.UpdateMarkerAsync(position.Latitude, position.Longitude);
+                    await _mapComponent.UpdateSearchRadiusAsync(position.Latitude, position.Longitude, RadiusKm);
+                }
+
+                // Notify parent component
+                await OnLocationSearchChanged.InvokeAsync((position.Latitude, position.Longitude, RadiusKm, null));
+            }
+            // If null or denied, map stays at default Denmark center
+        }
+        catch (Exception ex)
+        {
+            // Geolocation failed or denied - silently fall back to Denmark center
+            Console.WriteLine($"Geolocation error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoadingLocation = false;
+            StateHasChanged();
+        }
+    }
+
+    private class GeolocationPosition
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 
     /// <summary>
@@ -168,6 +242,30 @@
             if (RadiusKm > 0)
             {
                 await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Public method to clear the location and reset the map
+    /// </summary>
+    public async Task ClearLocationAsync()
+    {
+        _addressText = null;
+
+        // Only attempt to clear if map has been initialized by LeafletMap
+        if (_mapComponent?.IsInitialized == true)
+        {
+            try
+            {
+                await _mapComponent.RemoveMarkerAsync();
+                await _mapComponent.RemoveSearchRadiusAsync();
+                await _mapComponent.CenterMapAsync(InitialLatitude, InitialLongitude, InitialZoom);
+            }
+            catch (Exception ex)
+            {
+                // Log but ignore errors - map might not be fully ready
+                Console.WriteLine($"Map clear error: {ex.Message}");
             }
         }
     }

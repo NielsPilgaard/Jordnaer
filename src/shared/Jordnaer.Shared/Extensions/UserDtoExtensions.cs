@@ -14,6 +14,6 @@ public static class UserDtoExtensions
             return userDto.ZipCode.ToString()!;
         }
 
-        return userDto.City ?? "Område ikke angivet";
+        return userDto.City ?? "Ikke angivet";
     }
 }

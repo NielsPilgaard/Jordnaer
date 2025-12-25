@@ -3,13 +3,11 @@
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
-@inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
 
 @attribute [Sitemap]
 
-<MetadataComponent Title="Grupper"
-                   Description="Søg efter grupper" />
+<MetadataComponent Title="Grupper" Description="Søg efter grupper" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -22,42 +20,24 @@
 
     @if (_searchResult.TotalCount is 0)
     {
-        <MudPaper Elevation="3" Class="pa-10 mt-5">
-            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-                <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
-            </MudAlert>
-        </MudPaper>
+        <MudContainer MaxWidth="MaxWidth.Small">
+            <MudPaper Elevation="3" Class="pa-10 mt-5">
+                <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
+                </MudAlert>
+            </MudPaper>
+        </MudContainer>
         return;
     }
 
-    <SponsorAd Class="mt-5"
-               ImageAlt="Reklame for Moon Creative"
-               MobileImagePath="@Assets["images/ads/mooncreative_mobile.png"]"
-               DesktopImagePath="@Assets["images/ads/mooncreative_mobile.png"]"
-               Link="https://www.mooncreative.dk/" />
-
-    <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+    <div class="mt-5">
+        <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult"
+            SelectedPageChanged="@OnSelectedPageChanged" />
+    </div>
 
 </MudLoading>
 
 @code {
-
-    [SupplyParameterFromQuery]
-    public string? Name { get; set; }
-    [SupplyParameterFromQuery]
-    public string[]? Categories { get; set; } = [];
-    [SupplyParameterFromQuery]
-    public int? WithinRadiusKilometers { get; set; }
-    [SupplyParameterFromQuery]
-    public string? Location { get; set; }
-    [SupplyParameterFromQuery]
-    public double? Latitude { get; set; }
-    [SupplyParameterFromQuery]
-    public double? Longitude { get; set; }
-    [SupplyParameterFromQuery]
-    public int? PageNumber { get; set; }
-    [SupplyParameterFromQuery]
-    public int? PageSize { get; set; }
 
     private GroupSearchFilter _filter = new();
     private GroupSearchResult _searchResult = new();
@@ -65,9 +45,15 @@
     private bool _isSearching = false;
     private bool _hasSearched = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadFromQueryString();
+        // Restore from cache if available
+        if (Cache.SearchFilter is not null && Cache.SearchResult is not null)
+        {
+            _filter = Cache.SearchFilter;
+            _searchResult = Cache.SearchResult;
+            _hasSearched = true;
+        }
     }
 
     private async Task Search()
@@ -76,105 +62,37 @@
 
         _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
 
-        await UpdateQueryString();
-
         Snackbar.Clear();
 
         if (_searchResult.TotalCount is 0)
         {
-	        Snackbar.Add(
-		        message: "Ingen grupper matchede søgningen.",
-		        severity: Severity.Info,
-		        options =>
-		        {
-			        options.VisibleStateDuration = 3500;
-			        options.CloseAfterNavigation = true;
-		        });
+            Snackbar.Add(
+            message: "Ingen grupper matchede søgningen.",
+            severity: Severity.Info,
+            options =>
+            {
+                options.VisibleStateDuration = 3500;
+                options.CloseAfterNavigation = true;
+            });
         }
         else
         {
-	        Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
-		        severity: Severity.Success,
-		        options =>
-		        {
-			        options.VisibleStateDuration = 3500;
-			        options.Icon = Icons.Material.Filled.ArrowDownward;
-			        options.CloseAfterNavigation = true;
-		        });
+            Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
+            severity: Severity.Success,
+            options =>
+            {
+                options.VisibleStateDuration = 3500;
+                options.Icon = Icons.Material.Filled.ArrowDownward;
+                options.CloseAfterNavigation = true;
+            });
         }
 
         _hasSearched = true;
-
         _isSearching = false;
 
+        // Save to cache for restoration when navigating back
         Cache.SearchFilter = _filter;
         Cache.SearchResult = _searchResult;
-    }
-
-    private static readonly Dictionary<string, object?> _queryStrings = [];
-    private async Task UpdateQueryString()
-    {
-        _queryStrings[nameof(_filter.Name).ToLower()] = _filter.Name;
-        _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
-        _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
-        _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
-        _queryStrings[nameof(_filter.Latitude).ToLower()] = _filter.Latitude;
-        _queryStrings[nameof(_filter.Longitude).ToLower()] = _filter.Longitude;
-        _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
-        _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
-
-        var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
-
-        await JsRuntime.NavigateTo(newUrl);
-    }
-
-    private async ValueTask LoadFromQueryString()
-    {
-	    var queryStrings = new Uri(Navigation.Uri).Query;
-        if (string.IsNullOrEmpty(queryStrings))
-	    {
-		    return;
-	    }
-        
-        var filter = new GroupSearchFilter
-        {
-            Name = Name,
-            Categories = Categories,
-            WithinRadiusKilometers = WithinRadiusKilometers,
-            Location = Location,
-            Latitude = Latitude,
-            Longitude = Longitude,
-        };
-
-        if (PageNumber is not null)
-        {
-            filter.PageNumber = PageNumber.Value;
-        }
-
-        if (PageSize is not null)
-        {
-            filter.PageSize = PageSize.Value;
-        }
-
-        if (filter.Equals(_filter))
-        {
-            // Filter in query string is the same as the current filter
-            return;
-        }
-
-        _filter = filter;
-
-        if (_filter.Equals(Cache.SearchFilter) && Cache.SearchResult is not null)
-        {
-            _searchResult = Cache.SearchResult;
-
-            _hasSearched = true;
-            _isSearching = false;
-
-            return;
-        }
-
-        await Search();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
