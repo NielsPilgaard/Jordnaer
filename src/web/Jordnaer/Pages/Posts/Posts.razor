@@ -1,6 +1,9 @@
 @page "/posts"
 
+@using Jordnaer.Features.Posts
+@using Jordnaer.Features.Ad
 @inject PostSearchService PostSearchService
+@inject CurrentUser CurrentUser
 @inject ISnackbar Snackbar
 @inject ILogger<Posts> Logger
 @inject NavigationManager Navigation
@@ -8,155 +11,202 @@
 
 @attribute [Sitemap]
 
-<MetadataComponent Title="Opslag"
-                   Description="Læs og skriv opslag om stort og småt her" />
+<MetadataComponent Title="Opslag" Description="Læs og skriv opslag om stort og småt her" />
 
-<MudLoading @bind-Loading="_isSearching" Darken Overlap>
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
-    <CreatePostComponent />
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <CreatePostComponent OnPostCreated="@OnPostCreated" />
 
-    <MudDivider Class="my-4" />
+        <MudDivider Class="my-4" />
 
-    <PostSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+        @* Recent Posts Feed *@
+        @{
+            var items = GetItemsWithAds();
+        }
+        @if (items.Any())
+        {
+            @foreach (var item in items)
+            {
+                @if (item.IsAd && item.Ad is not null)
+                {
+                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
+                }
+                else if (item.Post is not null)
+                {
+                    <PostCardComponent PostItem="item.Post" CurrentUserId="@(_currentUserId ?? string.Empty)"
+                        OnPostDeleted="@OnRecentPostDeleted" OnPostUpdated="@OnPostUpdated" />
+                }
+            }
 
-    @if (!_hasSearched)
-    {
-        return;
-    }
+            @* Load More button *@
+            @if (_recentPosts.HasMore)
+            {
+                <div class="d-flex justify-center my-4">
+                    <MudButton Variant="Variant.Outlined" OnClick="LoadMorePosts" Disabled="@_isLoadingMore">
+                        @if (_isLoadingMore)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate />
+                            <MudText Class="ml-2">Indlæser...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Vis flere opslag</MudText>
+                        }
+                    </MudButton>
+                </div>
+            }
+        }
+        else
+        {
+            <MudPaper Elevation="0" Class="pa-6 text-center">
+                <MudText Typo="Typo.body1" Color="Color.Default">
+                    Ingen opslag endnu. Vær den første til at dele noget!
+                </MudText>
+            </MudPaper>
+        }
 
-    @if (_searchResult.TotalCount == 0)
-    {
-        <MudPaper Elevation="3" Class="pa-10 mt-5">
-            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-                <MudText Align="Align.Center" Typo="Typo.h6">Ingen opslag fundet.</MudText>
-            </MudAlert>
-        </MudPaper>
-        return;
-    }
-
-    <AdCard ImageAlt="Reklame for Moon Creative"
-            ImagePath="images/ads/mooncreative_mobile.png"
-            Link="https://www.mooncreative.dk/" />
-
-    <PostSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
+        @* Subtle link to search *@
+        <MudDivider Class="my-6" />
+        <div class="text-center mb-4">
+            <MudButton Href="/posts/search" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Search"
+                Size="Size.Small" Color="Color.Default">
+                Søg i opslag
+            </MudButton>
+        </div>
+    </MudContainer>
 
 </MudLoading>
 
 @code {
-    [SupplyParameterFromQuery]
-    public string? Contents { get; set; }
-    [SupplyParameterFromQuery]
-    public string[]? Categories { get; set; } = [];
-    [SupplyParameterFromQuery]
-    public int? WithinRadiusKilometers { get; set; }
-    [SupplyParameterFromQuery]
-    public string? Location { get; set; }
-    [SupplyParameterFromQuery]
-    public double? Latitude { get; set; }
-    [SupplyParameterFromQuery]
-    public double? Longitude { get; set; }
-    [SupplyParameterFromQuery]
-    public int? PageNumber { get; set; }
-    [SupplyParameterFromQuery]
-    public int? PageSize { get; set; }
+    private PostSearchResult _recentPosts = new();
 
-    private PostSearchFilter _filter = new();
-    private PostSearchResult _searchResult = new();
+    private bool _isLoading = false;
+    private bool _isLoadingMore = false;
+    private string? _currentUserId;
 
-    private bool _isSearching = false;
-    private bool _hasSearched = false;
+    private record FeedItem
+    {
+        public bool IsAd { get; init; }
+        public PostDto? Post { get; init; }
+        public AdData? Ad { get; init; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadFromQueryString();
+        _currentUserId = CurrentUser?.Id;
+
+        // Load recent posts by default
+        await LoadRecentPosts();
     }
 
-    private async Task Search()
+    private async Task LoadRecentPosts()
     {
-        _isSearching = true;
+        _isLoading = true;
         try
         {
-            var result = await PostSearchService.GetPostsAsync(_filter);
-
-            await UpdateQueryString();
-
-            Snackbar.Clear();
+            var result = await PostSearchService.GetRecentPostsAsync(pageSize: 10);
 
             result.Switch(
-                success =>
-                {
-                    _searchResult = success;
-                    Snackbar.Add($"{_searchResult.TotalCount} opslag fundet.", Severity.Success);
-                },
-                error => Snackbar.Add(error.Value, Severity.Error)
+            success => _recentPosts = success,
+            error => Snackbar.Add(error.Value, Severity.Error)
             );
         }
         catch (Exception exception)
         {
-            Logger.LogError(exception, "Error occurred during post search");
-            Snackbar.Clear();
-            Snackbar.Add("Der opstod en fejl under søgningen.", Severity.Error);
+            Logger.LogError(exception, "Error occurred loading recent posts");
+            Snackbar.Add("Der opstod en fejl ved indlæsning af opslag.", Severity.Error);
         }
         finally
         {
-            _hasSearched = true;
-            _isSearching = false;
+            _isLoading = false;
         }
     }
 
-    private static readonly Dictionary<string, object?> _queryStrings = [];
-    private async Task UpdateQueryString()
+    private async Task LoadMorePosts()
     {
-        _queryStrings[nameof(_filter.Contents).ToLower()] = _filter.Contents;
-        _queryStrings[nameof(_filter.Categories).ToLower()] = _filter.Categories;
-        _queryStrings[nameof(_filter.WithinRadiusKilometers).ToLower()] = _filter.WithinRadiusKilometers;
-        _queryStrings[nameof(_filter.Location).ToLower()] = _filter.Location;
-        _queryStrings[nameof(_filter.Latitude).ToLower()] = _filter.Latitude;
-        _queryStrings[nameof(_filter.Longitude).ToLower()] = _filter.Longitude;
-        _queryStrings[nameof(_filter.PageSize).ToLower()] = _filter.PageSize;
-        _queryStrings[nameof(_filter.PageNumber).ToLower()] = _filter.PageNumber;
+        _isLoadingMore = true;
+        try
+        {
+            var result = await PostSearchService.GetRecentPostsAsync(
+            pageSize: 10,
+            cursor: _recentPosts.NextCursor);
 
-        var newUrl = Navigation.GetUriWithQueryParameters(_queryStrings);
-
-        await JsRuntime.NavigateTo(newUrl);
+            result.Switch(
+            success =>
+            {
+                _recentPosts.Posts.AddRange(success.Posts);
+                _recentPosts.NextCursor = success.NextCursor;
+                // HasMore is computed from NextCursor
+            },
+            error => Snackbar.Add(error.Value, Severity.Error)
+            );
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Error occurred loading more posts");
+            Snackbar.Add("Der opstod en fejl ved indlæsning af flere opslag.", Severity.Error);
+        }
+        finally
+        {
+            _isLoadingMore = false;
+        }
     }
 
-    private async ValueTask LoadFromQueryString()
+    private void OnRecentPostDeleted(Guid deletedPostId)
     {
-        var queryStrings = new Uri(Navigation.Uri).Query;
-        if (string.IsNullOrEmpty(queryStrings))
+        // Remove the deleted post from the in-memory list to preserve pagination
+        var postToRemove = _recentPosts.Posts.FirstOrDefault(p => p.Id == deletedPostId);
+        if (postToRemove is not null)
         {
-            return;
+            _recentPosts.Posts.Remove(postToRemove);
+            StateHasChanged();
         }
-
-        var filter = new PostSearchFilter
-        {
-            Contents = Contents,
-            Categories = Categories,
-            WithinRadiusKilometers = WithinRadiusKilometers,
-            Location = Location,
-            Latitude = Latitude,
-            Longitude = Longitude,
-        };
-
-        if (PageNumber is not null)
-        {
-            filter.PageNumber = PageNumber.Value;
-        }
-
-        if (PageSize is not null)
-        {
-            filter.PageSize = PageSize.Value;
-        }
-
-        _filter = filter;
-
-        await Search();
     }
 
-    private async Task OnSelectedPageChanged(int selectedPage)
+    private async Task OnPostUpdated()
     {
-        _filter.PageNumber = selectedPage;
-        await Search();
+        await LoadRecentPosts();
+    }
+
+    private async Task OnPostCreated()
+    {
+        await LoadRecentPosts();
+    }
+
+    private List<FeedItem> GetItemsWithAds()
+    {
+        var items = new List<FeedItem>();
+
+        if (_recentPosts.Posts.Count == 0)
+        {
+            return items;
+        }
+
+        var ads = HardcodedAds.GetAdsForSearch(1);
+        if (ads.Count == 0)
+        {
+            // No ads available, just return posts
+            items.AddRange(_recentPosts.Posts.Select(p => new FeedItem { Post = p }));
+            return items;
+        }
+
+        // Insert an ad every 10 posts at position 3 within each batch
+        // (e.g., positions 3, 13, 23, etc.)
+        var adInterval = 10;
+        var adPositionInBatch = 3;
+
+        for (int i = 0; i < _recentPosts.Posts.Count; i++)
+        {
+            // Check if we should insert an ad before this post
+            if (i > 0 && i % adInterval == adPositionInBatch)
+            {
+                items.Add(new FeedItem { IsAd = true, Ad = ads[0] });
+            }
+
+            items.Add(new FeedItem { Post = _recentPosts.Posts[i] });
+        }
+
+        return items;
     }
 }

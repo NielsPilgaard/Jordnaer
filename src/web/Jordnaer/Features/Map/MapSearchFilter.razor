@@ -1,3 +1,4 @@
+@using JetBrains.Annotations
 @inject IDataForsyningenClient DataForsyningenClient
 @inject ILocationService LocationService
 @inject IJSRuntime JsRuntime
@@ -128,6 +129,7 @@
         }
     }
 
+    [UsedImplicitly]
     private class GeolocationPosition
     {
         public double Latitude { get; set; }
@@ -146,7 +148,7 @@
 
         var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
 
-        return searchResponse.IsSuccessful && searchResponse.Content is not null
+        return searchResponse is { IsSuccessful: true, Content: not null }
         ? searchResponse.Content.Select(response => response.ToString())
         : [];
     }

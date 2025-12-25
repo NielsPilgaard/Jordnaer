@@ -60,8 +60,8 @@
                             Label="Efternavn" Variant="Variant.Outlined" name="lastname" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudDatePicker AdornmentColor="Color.Primary" @bind-Date="@_userProfile.DateOfBirth"
-                            Color="Color.Primary" For="() => _userProfile.DateOfBirth" Label="Fødselsdato"
+                        <MudDatePicker AdornmentColor="Color.Info" @bind-Date="@_userProfile.DateOfBirth"
+                            Color="Color.Info" For="() => _userProfile.DateOfBirth" Label="Fødselsdato"
                             OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog"
                             Placeholder="@DateTime.Now.ToString("d")" Variant="Variant.Outlined" Rounded name="bday" />
                     </MudItem>

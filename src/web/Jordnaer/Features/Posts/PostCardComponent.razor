@@ -1,25 +1,222 @@
 @using Jordnaer.Shared
+@using Jordnaer.Features.Theme
+@using Humanizer
+@using System.Globalization
+@inject PostService PostService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject ICategoryCache CategoryCache
+@inject IJSRuntime JSRuntime
 
-<MudCard Class="pa-3 my-3" Elevation="3">
-	<MudCardContent>
-		<MudText Typo="Typo.body1">@PostItem.Text.SanitizeAndRenderMarkupString() @string.Join(',', PostItem.Categories)</MudText>
-		<MudText Typo="Typo.caption">@PostItem.CreatedUtc.ToLocalTime().ToString("g")</MudText>
-		@if (PostItem.ZipCode is not null && !string.IsNullOrEmpty(PostItem.City))
-		{
-            <MudText Typo="Typo.caption">@PostItem.ZipCode, @PostItem.City.Sanitize()</MudText>
-		}
-		<MudLink Underline="Underline.Hover"
-                 title="@_title"
-                 Href="@($"/{PostItem.Author.UserName}")">
-            @PostItem.Author.DisplayName.SanitizeAndRenderMarkupString()
-		</MudLink>
-	</MudCardContent>
+<MudCard Class="mb-4 warm-shadow warm-rounded" Elevation="3">
+    @* Header Section - Author Info *@
+    <MudCardHeader Style="@($"border-bottom: 1px solid {JordnaerPalette.BeigeBackground}; padding-bottom: 12px;")">
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Secondary">
+                @if (string.IsNullOrEmpty(PostItem.Author.ProfilePictureUrl))
+                {
+                    @GetAvatarInitial()
+                }
+                else
+                {
+                    <MudImage Src="@PostItem.Author.ProfilePictureUrl" />
+                }
+            </MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.body1" Style="@($"font-weight: 600; color: {JordnaerPalette.BlueBody};")">
+                <MudLink Underline="Underline.Hover" title="@_title" Href="@($"/{PostItem.Author.UserName}")"
+                    Color="Color.Inherit">
+                    @PostItem.Author.DisplayName
+                </MudLink>
+            </MudText>
+            <MudText Typo="Typo.body2" Style="@($"color: {JordnaerPalette.BlueBody}; opacity: 0.7; cursor: pointer;")"
+                @onclick="ToggleTimeDisplay"
+                title="@(_showExactTime ? "Klik for at vise relativ tid" : "Klik for at vise præcis tid")">
+                @GetDisplayTime()
+            </MudText>
+            @if (PostItem.ZipCode is not null && !string.IsNullOrEmpty(PostItem.City))
+            {
+                <MudText Typo="Typo.caption" Style="@($"color: {JordnaerPalette.BlueBody}; opacity: 0.6;")">
+                    📍 @PostItem.ZipCode, @PostItem.City.Sanitize()
+                </MudText>
+            }
+        </CardHeaderContent>
+        <CardHeaderActions>
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomRight" Dense="true">
+                <MudMenuItem Icon="@Icons.Material.Filled.Share" OnClick="SharePostAsync">
+                    Del
+                </MudMenuItem>
+                @if (PostItem.Author.Id == CurrentUserId)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="OpenEditDialog">
+                        Redigér
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Delete" OnClick="DeletePostAsync" IconColor="Color.Error">
+                        Slet
+                    </MudMenuItem>
+                }
+            </MudMenu>
+        </CardHeaderActions>
+    </MudCardHeader>
+
+    @* Content Section *@
+    <MudCardContent Style="padding: 16px; min-height: 60px;">
+        <MudText Typo="Typo.body1"
+            Style="@($"color: {JordnaerPalette.BlueBody}; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;")">
+            @PostItem.Text.SanitizeHtml()
+        </MudText>
+    </MudCardContent>
+
+    @* Categories Section *@
+    @if (PostItem.Categories.Any())
+    {
+        <MudDivider Style="@($"background-color: {JordnaerPalette.BeigeBackground}; opacity: 0.5;")" />
+        <MudCardActions Style="padding: 12px 16px;">
+            <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                @foreach (var (category, index) in PostItem.Categories.Select((c, i) => (c, i)))
+                {
+                    <MudChip T="string" Size="Size.Small" Class="warm-rounded" Style="@GetCategoryChipStyle(index)">
+                        @category
+                    </MudChip>
+                }
+            </MudStack>
+        </MudCardActions>
+    }
 </MudCard>
 
 @code {
     private string _title => $"Gå til {PostItem.Author.UserName.Sanitize()}'s profil";
+    private bool _showExactTime = false;
 
     [Parameter, EditorRequired]
     public required PostDto PostItem { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string CurrentUserId { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnPostDeleted { get; set; }
+
+    [Parameter]
+    public EventCallback OnPostUpdated { get; set; }
+
+    private static readonly CultureInfo DanishCulture = new("da-DK");
+    private static readonly (string bg, string fg)[] CategoryColors =
+    [
+        (JordnaerPalette.YellowBackground.Value, JordnaerPalette.White.Value),
+        (JordnaerPalette.GreenBackground.Value, JordnaerPalette.White.Value),
+        (JordnaerPalette.BeigeBackground.Value, JordnaerPalette.BlueBody.Value)
+    ];
+
+    private void ToggleTimeDisplay()
+    {
+        _showExactTime = !_showExactTime;
+    }
+
+    private string GetDisplayTime()
+    {
+        if (_showExactTime)
+        {
+            return PostItem.CreatedUtc.ToLocalTime().ToString("g");
+        }
+
+        return PostItem.CreatedUtc.Humanize(culture: DanishCulture);
+    }
+
+    private string GetAvatarInitial()
+    {
+        // Try DisplayName first
+        if (!string.IsNullOrEmpty(PostItem.Author.DisplayName))
+        {
+            return PostItem.Author.DisplayName[0].ToString();
+        }
+
+        // Fallback to UserName
+        if (!string.IsNullOrEmpty(PostItem.Author.UserName))
+        {
+            return PostItem.Author.UserName[0].ToString();
+        }
+
+        // Final fallback
+        return "?";
+    }
+
+    private string GetCategoryChipStyle(int index)
+    {
+        var color = CategoryColors[index % CategoryColors.Length];
+        return $"background-color: {color.bg}; color: {color.fg}; font-weight: 500; border: none;";
+    }
+
+    private async Task OpenEditDialog()
+    {
+        var categories = await CategoryCache.GetOrCreateCategoriesAsync();
+
+        var parameters = new DialogParameters
+{
+{ "PostId", PostItem.Id },
+{ "InitialText", PostItem.Text },
+{ "InitialCategories", PostItem.Categories.ToList() },
+{ "AllCategories", categories.ToList() },
+{ "CurrentUserId", CurrentUserId }
+};
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await DialogService.ShowAsync<EditPostDialog>("Redigér opslag", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await OnPostUpdated.InvokeAsync();
+        }
+    }
+
+    private async Task DeletePostAsync()
+    {
+        var result = await DialogService.ShowMessageBox(
+        "Slet opslag?",
+        "Er du sikker på at du vil slette dette opslag?",
+        yesText: "Slet",
+        cancelText: "Annuller");
+
+        if (result != true)
+        {
+            return;
+        }
+
+        var deletionResult = await PostService.DeletePostAsync(PostItem.Id, CurrentUserId);
+        if (deletionResult.IsT0)
+        {
+            Snackbar.Add("Opslaget er slettet", Severity.Success);
+            await OnPostDeleted.InvokeAsync(PostItem.Id);
+        }
+        else
+        {
+            Snackbar.Add(deletionResult.AsT1.Value, Severity.Error);
+        }
+    }
+
+    private async Task SharePostAsync()
+    {
+        var postUrl = Navigation.ToAbsoluteUri($"/posts/{PostItem.Id}").ToString();
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", postUrl);
+            Snackbar.Add("Link kopieret til udklipsholder", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Kunne ikke kopiere link", Severity.Error);
+        }
+    }
 
 }

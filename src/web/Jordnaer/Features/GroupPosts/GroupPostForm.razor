@@ -6,12 +6,11 @@
 @inject ISnackbar Snackbar
 
 <MudPaper Class="pa-4" Elevation="3">
-    <Jordnaer.Features.WYSIWYG.TextEditorComponent @ref="_textEditor" Label="Skriv et opslag"
-        Placeholder="Del noget med gruppen..." />
+    <TextEditorComponent @ref="_textEditor" Label="Skriv et opslag" Placeholder="Del noget med gruppen..." />
 
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
         <MudSpacer />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreatePostAsync" Disabled="@_isSending">
+        <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="CreatePostAsync" Disabled="@_isSending">
             @if (_isSending)
             {
                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
@@ -32,7 +31,7 @@
     [Parameter]
     public EventCallback OnPostCreated { get; set; }
 
-    private Jordnaer.Features.WYSIWYG.TextEditorComponent _textEditor = null!;
+    private TextEditorComponent _textEditor = null!;
     private string _postText = string.Empty;
     private bool _isSending = false;
     private UserProfile? _userProfile;

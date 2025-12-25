@@ -1,23 +1,32 @@
+@using Jordnaer.Features.Ad
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 
 
-<MudGrid Justify="Justify.Center">
-    @foreach (var post in SearchResult.Posts)
+<MudGrid Justify="Justify.Center" Class=mt-5>
+    @{
+        var items = GetItemsWithAds();
+    }
+    @foreach (var item in items)
     {
         <MudItem xs="12">
-	        <PostCardComponent PostItem="post"/>
+            @if (item.IsAd && item.Ad is not null)
+            {
+                <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
+            }
+            else if (item.Post is not null)
+            {
+                <PostCardComponent PostItem="item.Post" CurrentUserId="@CurrentUserId" OnPostDeleted="@OnPostDeleted"
+                    OnPostUpdated="@OnPostUpdated" />
+            }
         </MudItem>
     }
 </MudGrid>
-<MudPagination Class="mt-5 d-flex justify-center"
-               BoundaryCount="0"
-               MiddleCount="3"
-               UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})"
-               SelectedChanged="@SelectedPageChanged"
-               Variant="Variant.Filled"
-               Count="@(SearchResult.TotalCount / Filter.PageSize)"
-               Selected="Filter.PageNumber" />
+<MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3"
+    UserAttributes="@(new Dictionary<string, object> { ["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater." })"
+    SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled"
+    Count="@((int)Math.Ceiling((double)SearchResult.TotalCount / Math.Max(1, Filter.PageSize)))"
+    Selected="Filter.PageNumber" />
 
 @code {
     [Parameter, EditorRequired]
@@ -27,5 +36,57 @@
     public required PostSearchResult SearchResult { get; set; }
 
     [Parameter, EditorRequired]
+    public required string CurrentUserId { get; set; }
+
+    [Parameter, EditorRequired]
     public EventCallback<int> SelectedPageChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnPostDeleted { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnPostUpdated { get; set; }
+
+    private record SearchResultItem
+    {
+        public bool IsAd { get; init; }
+        public PostDto? Post { get; init; }
+        public AdData? Ad { get; init; }
+    }
+
+    private List<SearchResultItem> GetItemsWithAds()
+    {
+        var items = new List<SearchResultItem>();
+
+        // Always max 1 ad per page, regardless of result count
+        var adCount = SearchResult.Posts.Count > 0 ? 1 : 0;
+        var ads = HardcodedAds.GetAdsForSearch(adCount);
+
+        if (ads.Count == 0 || SearchResult.Posts.Count == 0)
+        {
+            // No ads or no posts, just return posts (up to 12)
+            items.AddRange(SearchResult.Posts.Take(12).Select(p => new SearchResultItem { Post = p }));
+            return items;
+        }
+
+        // Random placement for all result counts
+        // With an ad, we want 11 posts + 1 ad = 12 total
+        var adPosition = Random.Shared.Next(0, 12);
+
+        var postIndex = 0;
+        for (int i = 0; i < 12; i++)
+        {
+            if (i == adPosition)
+            {
+                items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
+            }
+            else if (postIndex < SearchResult.Posts.Count)
+            {
+                items.Add(new SearchResultItem { Post = SearchResult.Posts[postIndex] });
+                postIndex++;
+            }
+        }
+
+        return items;
+    }
 }

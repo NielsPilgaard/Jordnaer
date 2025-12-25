@@ -1,0 +1,110 @@
+@page "/posts/search"
+
+@using Jordnaer.Features.Posts
+@inject PostSearchService PostSearchService
+@inject CurrentUser CurrentUser
+@inject ISnackbar Snackbar
+@inject ILogger<PostsSearch> Logger
+@inject NavigationManager Navigation
+
+@attribute [Sitemap]
+
+<MetadataComponent Title="Søg i opslag" Description="Søg efter specifikke opslag" />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+
+    <MudContainer MaxWidth="MaxWidth.Medium">
+
+        @* Back to posts link *@
+        <MudButton Href="/posts" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-4"
+            Color="Color.Default">
+            Tilbage til opslag
+        </MudButton>
+
+        <PostSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+
+        @if (_hasSearched)
+        {
+            @if (_searchResult.TotalCount == 0)
+            {
+                <MudPaper Elevation="3" Class="pa-10 mt-5">
+                    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                        <MudText Align="Align.Center" Typo="Typo.h6">Ingen opslag fundet.</MudText>
+                    </MudAlert>
+                </MudPaper>
+            }
+            else
+            {
+                <PostSearchResultComponent Filter="_filter" SearchResult="_searchResult"
+                    CurrentUserId="@(_currentUserId ?? string.Empty)" SelectedPageChanged="@OnSelectedPageChanged"
+                    OnPostDeleted="@OnPostDeleted" OnPostUpdated="@OnPostUpdated" />
+            }
+        }
+    </MudContainer>
+
+</MudLoading>
+
+@code {
+    private PostSearchFilter _filter = new();
+    private PostSearchResult _searchResult = new();
+
+    private bool _isLoading = false;
+    private bool _hasSearched = false;
+    private bool _isFirstSearch = true;
+    private string? _currentUserId => CurrentUser?.Id;
+
+    private async Task Search()
+    {
+        _isLoading = true;
+        try
+        {
+            var result = await PostSearchService.GetPostsAsync(_filter);
+
+            Snackbar.Clear();
+
+            result.Switch(
+            success =>
+            {
+                _searchResult = success;
+                // Only show toast on first search, not on pagination
+                if (_isFirstSearch)
+                {
+                    Snackbar.Add($"{_searchResult.TotalCount} opslag fundet.", Severity.Success);
+                    _isFirstSearch = false;
+                }
+            },
+            error => Snackbar.Add(error.Value, Severity.Error)
+            );
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Error occurred during post search");
+            Snackbar.Clear();
+            Snackbar.Add("Der opstod en fejl under søgningen.", Severity.Error);
+        }
+        finally
+        {
+            _hasSearched = true;
+            _isLoading = false;
+        }
+    }
+
+    private async Task OnSelectedPageChanged(int selectedPage)
+    {
+        _filter.PageNumber = selectedPage;
+        _isFirstSearch = false; // Don't show toast on pagination
+        await Search();
+    }
+
+    private async Task OnPostDeleted()
+    {
+        _isFirstSearch = false;
+        await Search();
+    }
+
+    private async Task OnPostUpdated()
+    {
+        _isFirstSearch = false;
+        await Search();
+    }
+}

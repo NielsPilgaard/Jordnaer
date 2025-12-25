@@ -27,7 +27,7 @@
             </MudStack>
             return;
         case not null when IsMobile:
-            <MudAppBar Dense ToolBarClass="justify-space-between h-100" Color="Color.Primary" Elevation="5">
+            <MudAppBar Dense ToolBarClass="justify-space-between h-100" Color="Color.Info" Elevation="5">
 
                 <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Info"
                     Variant="Variant.Filled" title="Tilbage" />
@@ -85,14 +85,14 @@
 
         <MudTextField id="chat-message-input" @ref="_messageInput" T="string" FullWidth Immediate Clearable AutoFocus
             Adornment="Adornment.End" OnKeyDown="SendMessageOnEnter" AdornmentIcon="@Icons.Material.Filled.Send"
-            AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Primary)"
+            AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Info)"
             OnAdornmentClick="SendMessage" Class="mt-3 p-1" Lines="2" IconSize="Size.Large"
             Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")" />
 
     </MudList>
 
     <ScrollToBottom Selector="@ChatMessageWindowClass" OnClick="async () => await _messageInput.FocusAsync()">
-        <MudFab Size="Size.Large" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
+        <MudFab Size="Size.Large" Color="Color.Info" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
     </ScrollToBottom>
 </MudItem>
 

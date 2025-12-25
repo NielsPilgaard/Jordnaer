@@ -2,21 +2,12 @@
 
 <MudDialog DefaultFocus="DefaultFocus.FirstChild" Style="width: 500px">
     <DialogContent>
-        <MudTextField
-            Disabled="_startingChat"
-            @bind-Value="_userText"
-            FullWidth
-            AutoGrow
-            Lines="3"
-            AutoFocus
-            TextUpdateSuppression="false"
-            OnKeyDown="StartChatOnEnter"/>
+        <MudTextField Disabled="_startingChat" @bind-Value="_userText" FullWidth AutoGrow Lines="3" AutoFocus
+            TextUpdateSuppression="false" OnKeyDown="StartChatOnEnter" />
     </DialogContent>
     <DialogActions>
-        <MudIconButton
-            Color="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Primary)"
-            Icon="@Icons.Material.Filled.Send"
-            OnClick="StartChat"/>
+        <MudIconButton Color="@(string.IsNullOrEmpty(_userText) ? Color.Default : Color.Info)"
+            Icon="@Icons.Material.Filled.Send" OnClick="StartChat" />
     </DialogActions>
 </MudDialog>
 @code {
@@ -50,25 +41,25 @@
 
         var chatId = NewId.NextGuid();
         await ChatService.StartChatAsync(new StartChat
-            {
-                DisplayName = ChatName,
-                LastMessageSentUtc = DateTime.UtcNow,
-                StartedUtc = DateTime.UtcNow,
-                Id = chatId,
-                InitiatorId = InitiatorId,
-                Recipients = Recipients,
-                Messages =
-                [
-	                new ChatMessageDto
-	                {
-		                ChatId = chatId,
-		                Id = NewId.NextGuid(),
-		                Text = _userText,
-		                SentUtc = DateTime.UtcNow,
-		                SenderId = InitiatorId
-	                }
-                ]
-            });
+        {
+            DisplayName = ChatName,
+            LastMessageSentUtc = DateTime.UtcNow,
+            StartedUtc = DateTime.UtcNow,
+            Id = chatId,
+            InitiatorId = InitiatorId,
+            Recipients = Recipients,
+            Messages =
+            [
+                new ChatMessageDto
+                {
+                    ChatId = chatId,
+                    Id = NewId.NextGuid(),
+                    Text = _userText,
+                    SentUtc = DateTime.UtcNow,
+                    SenderId = InitiatorId
+                }
+            ]
+        });
 
         MudDialog.Close(DialogResult.Ok(true));
     }
