@@ -106,7 +106,6 @@
 
     private void NavigateToProfile()
     {
-        Navigation.NavigateTo($"/{User.UserName}");
         Navigation.NavigateTo($"/{Uri.EscapeDataString(User.UserName)}");
     }
 }

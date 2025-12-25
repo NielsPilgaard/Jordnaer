@@ -29,8 +29,8 @@
 </MudContainer>
 <MudPagination Class="mt-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3"
     UserAttributes="@(new Dictionary<string, object> { ["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater." })"
-    SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled" Count="@(SearchResult.TotalCount / Filter.PageSize)"
-    Selected="Filter.PageNumber" />
+    SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled"
+    Count="@((int)Math.Ceiling((double)SearchResult.TotalCount / Filter.PageSize))" Selected="Filter.PageNumber" />
 @code {
     [Parameter]
     public required GroupSearchFilter Filter { get; set; }

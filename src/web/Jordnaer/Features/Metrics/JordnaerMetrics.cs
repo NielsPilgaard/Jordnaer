@@ -32,19 +32,19 @@ internal static class JordnaerMetrics
 		Meter.CreateCounter<int>("jordnaer_auth_logout_total");
 
 	internal static readonly Counter<int> GroupsCreatedCounter =
-		Meter.CreateCounter<int>("jordnaer_group_groups_created_total");
+		Meter.CreateCounter<int>("jordnaer_groups_created_total");
 
 	internal static readonly Counter<int> GroupSearchesCounter =
-		Meter.CreateCounter<int>("jordnaer_group_group_searches_total");
+		Meter.CreateCounter<int>("jordnaer_group_searches_total");
 
 	internal static readonly Counter<int> UserSearchesCounter =
-		Meter.CreateCounter<int>("jordnaer_user_user_searches_total");
+		Meter.CreateCounter<int>("jordnaer_user_searches_total");
 
 	internal static readonly Counter<int> PostSearchesCounter =
-		Meter.CreateCounter<int>("jordnaer_post_post_searches_total");
+		Meter.CreateCounter<int>("jordnaer_post_searches_total");
 	internal static readonly Counter<int> PostsCreatedCounter =
-		Meter.CreateCounter<int>("jordnaer_post_posts_created_total");
+		Meter.CreateCounter<int>("jordnaer_post_created_total");
 
 	internal static readonly Counter<int> AdViewCounter =
-		Meter.CreateCounter<int>("jordnaer_ad_sponsor_views_total");
+		Meter.CreateCounter<int>("jordnaer_ad_views_total");
 }

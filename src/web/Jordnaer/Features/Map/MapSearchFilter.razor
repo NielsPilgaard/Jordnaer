@@ -1,5 +1,3 @@
-@using Jordnaer.Shared
-@using Jordnaer.Features.Profile
 @inject IDataForsyningenClient DataForsyningenClient
 @inject ILocationService LocationService
 @inject IJSRuntime JsRuntime
@@ -18,13 +16,13 @@
     @* Address search with autocomplete *@
     <MudAutocomplete T="string" Label="Søg efter adresse" Value="@_addressText" SearchFunc="SearchForAddresses"
         DebounceInterval="250" MinCharacters="3" ResetValueOnEmptyText CoerceText="false" CoerceValue="false"
-        Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable ValueChanged="OnAddressSelected"
-        AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
+        ProgressIndicatorColor="Color.Info" Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable
+        ValueChanged="OnAddressSelected" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Info" />
 
     @* Radius slider with value display *@
     <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
         <MudText Typo="Typo.body2" Style="min-width: 80px;">Radius:</MudText>
-        <MudSlider Value="@RadiusKm" Min="0" Max="500" Step="5" Color="Color.Primary" Style="flex: 1;"
+        <MudSlider Value="@RadiusKm" Min="0" Max="500" Step="5" Color="Color.Info" Style="flex: 1;"
             ValueChanged="@(async (int newValue) => await OnRadiusChanged(newValue))" />
         <MudText Typo="Typo.body1" Style="min-width: 60px; text-align: right;">
             <strong>@RadiusKm km</strong>

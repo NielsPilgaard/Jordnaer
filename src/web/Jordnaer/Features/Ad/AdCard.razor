@@ -19,8 +19,11 @@
     [Parameter, EditorRequired]
     public required string ImageAlt { get; set; }
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
-        JordnaerMetrics.AdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+        if (firstRender)
+        {
+            JordnaerMetrics.AdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+        }
     }
 }

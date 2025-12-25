@@ -14,6 +14,6 @@ public static class GroupExtensions
             return groupDto.ZipCode.ToString()!;
         }
 
-        return groupDto.City ?? "Område ikke angivet";
+        return groupDto.City ?? "Ikke angivet";
     }
 }

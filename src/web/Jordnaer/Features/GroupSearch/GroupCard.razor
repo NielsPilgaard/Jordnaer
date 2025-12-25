@@ -29,15 +29,15 @@
                 @if (!string.IsNullOrEmpty(location))
                 {
                     <div class="d-flex align-center gap-1 mt-1">
-                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="color: #5B9BD5;" />
-                        <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
+                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Color="Color.Info" />
+                        <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis;" Color="Color.Info">
                             @location
                         </MudText>
                     </div>
                 }
                 <div class="d-flex align-center gap-1 mt-1">
-                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Style="color: #5B9BD5;" />
-                    <MudText Typo="Typo.body2" Style="color: #5B9BD5;">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Color="Color.Info" />
+                    <MudText Typo="Typo.body2" Color="Color.Info">
                         @Group.MemberCount medlemmer
                     </MudText>
                 </div>
@@ -89,7 +89,7 @@
 <style>
     .group-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
     }
 </style>
 

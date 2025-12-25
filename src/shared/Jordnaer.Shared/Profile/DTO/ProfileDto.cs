@@ -36,7 +36,7 @@ public class ProfileDto
 		? $"{ZipCode}, {City}"
 		: ZipCode is not null
 			? ZipCode.ToString()!
-			: City ?? "Område ikke angivet";
+			: City ?? "Ikke angivet";
 
 	public string DisplayName => FirstName is not null
 		? $"{FirstName} {LastName}"
