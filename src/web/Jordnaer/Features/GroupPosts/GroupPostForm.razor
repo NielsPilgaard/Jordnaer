@@ -11,7 +11,7 @@
 
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
         <MudSpacer />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreatePostAsync" Disabled="@_isSending">
+        <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="CreatePostAsync" Disabled="@_isSending">
             @if (_isSending)
             {
                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />

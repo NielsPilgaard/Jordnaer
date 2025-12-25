@@ -60,25 +60,28 @@
         var adCount = SearchResult.Users.Count > 0 ? 1 : 0;
         var ads = HardcodedAds.GetAdsForSearch(adCount);
 
-        if (ads.Count == 0 || SearchResult.Users.Count == 0)
+        if (ads.Count is 0 || SearchResult.Users.Count is 0)
         {
-            // No ads or no users, just return users
-            items.AddRange(SearchResult.Users.Select(u => new SearchResultItem { User = u }));
+            // No ads or no users, just return users (up to 12)
+            items.AddRange(SearchResult.Users.Take(12).Select(u => new SearchResultItem { User = u }));
             return items;
         }
 
         // Random placement for all result counts
-        var adPosition = Random.Shared.Next(0, Math.Min(SearchResult.Users.Count, 12));
+        // With an ad, we want 11 users + 1 ad = 12 total
+        var adPosition = Random.Shared.Next(0, 12);
 
-        for (int i = 0; i < SearchResult.Users.Count && i < 12; i++)
+        var userIndex = 0;
+        for (int i = 0; i <= 12; i++)
         {
             if (i == adPosition)
             {
                 items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
             }
-            else if (i < SearchResult.Users.Count)
+            else if (userIndex < SearchResult.Users.Count)
             {
-                items.Add(new SearchResultItem { User = SearchResult.Users[i] });
+                items.Add(new SearchResultItem { User = SearchResult.Users[userIndex] });
+                userIndex++;
             }
         }
 

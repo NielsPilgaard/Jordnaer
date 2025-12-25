@@ -10,21 +10,21 @@
     Description="Her kan gruppens administratore godkende nye medlemmer, give medlemmer yderligere adgang og lignende." />
 
 <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
-     <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@($"/groups/{GroupName}")" Color="Color.Primary"
-         Variant="Variant.Filled" title="Tilbage" />
-     <MudText Typo="Typo.h4">Medlems oversigt for gruppen '@GroupName'</MudText>
- </MudStack>
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@($"/groups/{GroupName}")" Color="Color.Info"
+        Variant="Variant.Filled" title="Tilbage" />
+    <MudText Typo="Typo.h4">Medlems oversigt for gruppen '@GroupName'</MudText>
+</MudStack>
 
- <MudDivider Class="mb-5" />
+<MudDivider Class="mb-5" />
 
- <MudDataGrid T="GroupMembershipDto" Items="_memberships" ReadOnly="false" EditMode="DataGridEditMode.Cell"
-     EditTrigger="DataGridEditTrigger.OnRowClick" Bordered="true" Loading="_isLoading">
-     <Columns>
-         <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" HeaderStyle="@HeaderStyles" />
-         <PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau" HeaderStyle="@HeaderStyles">
-             <EditTemplate>
-                 @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
-                OwnershipLevel.Owner)
+<MudDataGrid T="GroupMembershipDto" Items="_memberships" ReadOnly="false" EditMode="DataGridEditMode.Cell"
+    EditTrigger="DataGridEditTrigger.OnRowClick" Bordered="true" Loading="_isLoading">
+    <Columns>
+        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" HeaderStyle="@HeaderStyles" />
+        <PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau" HeaderStyle="@HeaderStyles">
+            <EditTemplate>
+                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
+                                OwnershipLevel.Owner)
                 {
                     <MudText Typo="Typo.body2">@context.Item.OwnershipLevel.ToDisplayName()</MudText>
                 }
@@ -46,7 +46,7 @@
         <PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau" HeaderStyle="@HeaderStyles">
             <EditTemplate>
                 @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
-                OwnershipLevel.Owner)
+                                OwnershipLevel.Owner)
                 {
                     <MudText Typo="Typo.body2">
                         @context.Item.PermissionLevel.ToDisplayName()
@@ -70,7 +70,7 @@
         <PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status" HeaderStyle="@HeaderStyles">
             <EditTemplate>
                 @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
-                OwnershipLevel.Owner)
+                                OwnershipLevel.Owner)
                 {
                     <MudText Typo="Typo.body2">
                         @context.Item.MembershipStatus.ToDisplayName()
@@ -104,7 +104,7 @@
         <TemplateColumn Title="Handlinger" HeaderStyle="@HeaderStyles">
             <EditTemplate>
                 @if (context.Item.UserProfileId != CurrentUser.Id && context.Item.OwnershipLevel is not
-                OwnershipLevel.Owner)
+                                OwnershipLevel.Owner)
                 {
                     @switch (context.Item.MembershipStatus)
                     {
