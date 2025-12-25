@@ -96,6 +96,7 @@
 
     private bool _includeAreaInPost = true;
     private bool _isExpanded = false;
+    private bool _shouldFocusEditor = false;
     private List<string> _selectedCategoryNames = [];
 
     private TextEditorComponent _textEditor = null!;
@@ -116,10 +117,19 @@
         _userProfile = await ProfileCache.GetProfileAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldFocusEditor)
+        {
+            _shouldFocusEditor = false;
+            await _textEditor.FocusAsync();
+        }
+    }
+
     private void ExpandCreateForm()
     {
         _isExpanded = true;
-        StateHasChanged();
+        _shouldFocusEditor = true;
     }
     private void CollapseCreateForm()
     {

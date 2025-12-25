@@ -14,7 +14,7 @@
     }
     else
     {
-        <MudTextField @bind-Value="_textAreaContent" Placeholder="@Placeholder" Lines="10" Variant="Variant.Outlined" FullWidth AutoGrow />
+        <MudTextField @ref="_mudTextField" @bind-Value="_textAreaContent" Placeholder="@Placeholder" Lines="10" Variant="Variant.Outlined" FullWidth AutoGrow />
     }
 </div>
 <style>
@@ -35,11 +35,12 @@
 
     private const int LoadingDelayMillis = 1500;
 
-    private TextEditor _textEditor = null!;
     private bool _isQuillLoaded = false;
     private bool _useWysiwyg = false;
     private string _textAreaContent = string.Empty;
 
+    private TextEditor _textEditor = null!;
+    private MudTextField<string> _mudTextField = null!;
     private static readonly Toolbar Toolbar = new()
     {
         ShowMathControls = false,
@@ -135,5 +136,36 @@
         return html is null or "<p><br></p>"
         ? string.Empty
         : html;
+    }
+
+    public async Task FocusAsync()
+    {
+        if (_useWysiwyg)
+        {
+            if (!_isQuillLoaded)
+            {
+                return;
+            }
+
+            try
+            {
+                await JsRuntime.InvokeVoidAsync("eval", "document.querySelector('.ql-editor')?.focus()");
+            }
+            catch (Exception)
+            {
+                // Editor may not be ready yet
+            }
+        }
+        else
+        {
+            try
+            {
+                await _mudTextField.FocusAsync();
+            }
+            catch (Exception)
+            {
+                // TextField may not be ready yet
+            }
+        }
     }
 }
