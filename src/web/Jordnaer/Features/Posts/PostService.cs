@@ -15,6 +15,7 @@ public class PostService(IDbContextFactory<JordnaerDbContext> contextFactory, Cu
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
 		var post = await context.Posts
+								.AsNoTracking()
 								.Include(x => x.UserProfile)
 								.Include(x => x.Categories)
 								.Where(x => x.Id == postId)

@@ -139,9 +139,6 @@ public class PostSearchService(
 
 			var query = context.Posts
 							   .AsNoTracking()
-							   .Include(x => x.UserProfile)
-							   .Include(x => x.Categories)
-							   .OrderByDescending(x => x.CreatedUtc)
 							   .AsQueryable();
 
 			// Apply cursor filter if provided
@@ -152,9 +149,12 @@ public class PostSearchService(
 
 			// Fetch one extra to determine if there are more results
 			var posts = await query
-				.Take(pageSize + 1)
-				.Select(x => x.ToPostDto())
-				.ToListAsync(cancellationToken);
+							   .Include(x => x.UserProfile)
+							   .Include(x => x.Categories)
+							   .OrderByDescending(x => x.CreatedUtc)
+							   .Take(pageSize + 1)
+							   .Select(x => x.ToPostDto())
+							   .ToListAsync(cancellationToken);
 
 			var hasMore = posts.Count > pageSize;
 			string? nextCursor = null;

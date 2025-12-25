@@ -102,7 +102,7 @@
     [Parameter]
     public EventCallback OnPostUpdated { get; set; }
 
-    private CultureInfo _danishCulture = new CultureInfo("da-DK");
+    private static readonly CultureInfo _danishCulture = new CultureInfo("da-DK");
 
     private void ToggleTimeDisplay()
     {

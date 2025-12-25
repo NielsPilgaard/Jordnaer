@@ -154,14 +154,13 @@
         }
     }
 
-    private async Task OnRecentPostDeleted(Guid deletedPostId)
+    private void OnRecentPostDeleted(Guid deletedPostId)
     {
         // Remove the deleted post from the in-memory list to preserve pagination
         var postToRemove = _recentPosts.Posts.FirstOrDefault(p => p.Id == deletedPostId);
         if (postToRemove is not null)
         {
             _recentPosts.Posts.Remove(postToRemove);
-            _recentPosts.TotalCount--;
             StateHasChanged();
         }
     }
