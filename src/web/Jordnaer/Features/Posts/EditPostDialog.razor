@@ -1,0 +1,126 @@
+@using Jordnaer.Shared
+@using Jordnaer.Features.Theme
+@inject PostService PostService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <Jordnaer.Features.WYSIWYG.TextEditorComponent @ref="_textEditor" Label="Tekst"
+                Placeholder="Hvad har du på tankerne?" Text="@InitialText" />
+
+            <MudText Typo="Typo.body2">Kategorier</MudText>
+            <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection" SelectedValues="_selectedCategoryNames"
+                CheckMark Color="Color.Tertiary" SelectedColor="Color.Success"
+                SelectedValuesChanged="SelectedCategoriesChanged" Variant="Variant.Outlined">
+                @foreach (var category in AllCategories)
+                {
+                    <MudChip Text="@category.Name" Value="@category.Name" />
+                }
+            </MudChipSet>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Annuller</MudButton>
+        <MudButton OnClick="SaveChanges" Variant="Variant.Filled"
+            Style="@($"background-color: {JordnaerPalette.YellowBackground}; color: white;")" Disabled="@_isSaving">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Gemmer...</MudText>
+            }
+            else
+            {
+                <MudText>Gem</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Guid PostId { get; set; }
+
+    [Parameter]
+    public string InitialText { get; set; } = string.Empty;
+
+    [Parameter]
+    public List<string> InitialCategories { get; set; } = [];
+
+    [Parameter]
+    public List<Category> AllCategories { get; set; } = [];
+
+    [Parameter]
+    public string? CurrentUserId { get; set; }
+
+    private Jordnaer.Features.WYSIWYG.TextEditorComponent _textEditor = null!;
+    private bool _isSaving = false;
+    private List<string> _selectedCategoryNames = [];
+    private List<Category> _selectedCategories = [];
+
+    protected override void OnInitialized()
+    {
+        _selectedCategoryNames = InitialCategories.ToList();
+        _selectedCategories = AllCategories.Where(c => InitialCategories.Contains(c.Name)).ToList();
+    }
+
+    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    {
+        if (selectedCategories is null)
+        {
+            _selectedCategories.Clear();
+            _selectedCategoryNames = [];
+            return;
+        }
+
+        _selectedCategoryNames = selectedCategories.Where(x => x != null).Cast<string>().ToList();
+        _selectedCategories = AllCategories.Where(c => _selectedCategoryNames.Contains(c.Name)).ToList();
+    }
+
+    private async Task SaveChanges()
+    {
+        if (CurrentUserId is null)
+        {
+            Snackbar.Add("Du skal være logget ind for at redigere et opslag.", Severity.Error);
+            return;
+        }
+
+        var text = await _textEditor.GetHtmlAsync();
+
+        // Validate character count (database limit is varchar(4000))
+        if (text?.Length > 4000)
+        {
+            Snackbar.Add("Opslaget må højest være 4000 karakterer langt.", Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Snackbar.Add("Opslaget skal indeholde tekst.", Severity.Warning);
+            return;
+        }
+
+        _isSaving = true;
+
+        var result = await PostService.UpdatePostAsync(PostId, CurrentUserId, text, _selectedCategories);
+
+        result.Switch(
+        _ =>
+        {
+            Snackbar.Add("Opslaget er opdateret.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        },
+        error => Snackbar.Add(error.Value, Severity.Error)
+        );
+
+        _isSaving = false;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

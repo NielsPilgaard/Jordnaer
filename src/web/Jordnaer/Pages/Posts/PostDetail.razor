@@ -1,0 +1,69 @@
+@page "/posts/{PostId:guid}"
+
+@using Jordnaer.Shared
+
+@attribute [Sitemap]
+
+@inject PostService PostService
+@inject IProfileCache ProfileCache
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+
+    @if (_post is null && !_isLoading)
+    {
+        <NotFoundComponent Message="Opslaget blev ikke fundet." />
+    }
+    else if (_post is not null)
+    {
+        <MetadataComponent Title="@($"Opslag af {_post.Author.DisplayName}")"
+                           Description="@_post.Text" />
+
+        <!-- Top Action Bar -->
+        <div class="d-flex align-center mb-4">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="@(() => Navigation.NavigateTo("/posts"))"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           title="Tilbage til opslag" />
+            <MudSpacer />
+        </div>
+
+        <!-- Post Card -->
+        <PostCardComponent PostItem="_post"
+                          CurrentUserId="@(_currentUserId ?? string.Empty)"
+                          OnPostDeleted="@OnPostDeleted" />
+    }
+
+</MudLoading>
+
+@code {
+    [Parameter]
+    public Guid PostId { get; set; }
+
+    private PostDto? _post;
+    private string? _currentUserId;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userProfile = await ProfileCache.GetProfileAsync();
+        _currentUserId = userProfile?.Id;
+
+        var result = await PostService.GetPostAsync(PostId);
+
+        result.Switch(
+            post => _post = post,
+            notFound => Snackbar.Add("Opslaget blev ikke fundet.", Severity.Error)
+        );
+
+        _isLoading = false;
+    }
+
+    private void OnPostDeleted()
+    {
+        Navigation.NavigateTo("/posts");
+    }
+}

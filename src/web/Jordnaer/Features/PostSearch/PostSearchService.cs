@@ -128,6 +128,60 @@ public class PostSearchService(
 		return posts;
 	}
 
+	public async Task<OneOf<PostSearchResult, Error<string>>> GetRecentPostsAsync(
+		int pageSize = 10,
+		string? cursor = null,
+		CancellationToken cancellationToken = default)
+	{
+		try
+		{
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+			var query = context.Posts
+							   .AsNoTracking()
+							   .Include(x => x.UserProfile)
+							   .Include(x => x.Categories)
+							   .OrderByDescending(x => x.CreatedUtc)
+							   .AsQueryable();
+
+			// Apply cursor filter if provided
+			if (!string.IsNullOrEmpty(cursor) && DateTimeOffset.TryParse(cursor, out var cursorDate))
+			{
+				query = query.Where(x => x.CreatedUtc < cursorDate);
+			}
+
+			// Fetch one extra to determine if there are more results
+			var posts = await query
+				.Take(pageSize + 1)
+				.Select(x => x.ToPostDto())
+				.ToListAsync(cancellationToken);
+
+			var hasMore = posts.Count > pageSize;
+			string? nextCursor = null;
+
+			if (hasMore)
+			{
+				// Remove the extra post
+				posts.RemoveAt(posts.Count - 1);
+				// Set cursor to the last post's CreatedUtc
+				nextCursor = posts[^1].CreatedUtc.ToString("O");
+			}
+
+			return new PostSearchResult
+			{
+				Posts = posts,
+				TotalCount = 0, // Not meaningful for cursor-based pagination
+				NextCursor = nextCursor // HasMore is computed from NextCursor
+			};
+		}
+		catch (Exception exception)
+		{
+			logger.LogError(exception, "Exception occurred while loading recent posts. " +
+										"Cursor: {Cursor}, PageSize: {PageSize}", cursor, pageSize);
+			return new Error<string>(ErrorMessages.Something_Went_Wrong_Try_Again);
+		}
+	}
+
 	private static ReadOnlySpan<KeyValuePair<string, object?>> MakeTagList(PostSearchFilter filter)
 	{
 		return new KeyValuePair<string, object?>[]

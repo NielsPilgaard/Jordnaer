@@ -6,7 +6,10 @@
     @foreach (var post in SearchResult.Posts)
     {
         <MudItem xs="12">
-	        <PostCardComponent PostItem="post"/>
+	        <PostCardComponent PostItem="post"
+	                          CurrentUserId="@CurrentUserId"
+	                          OnPostDeleted="@OnPostDeleted"
+	                          OnPostUpdated="@OnPostUpdated"/>
         </MudItem>
     }
 </MudGrid>
@@ -16,7 +19,7 @@
                UserAttributes="@(new Dictionary<string, object> {["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater."})"
                SelectedChanged="@SelectedPageChanged"
                Variant="Variant.Filled"
-               Count="@(SearchResult.TotalCount / Filter.PageSize)"
+               Count="@((int)Math.Ceiling((double)SearchResult.TotalCount / Math.Max(1, Filter.PageSize)))"
                Selected="Filter.PageNumber" />
 
 @code {
@@ -27,5 +30,14 @@
     public required PostSearchResult SearchResult { get; set; }
 
     [Parameter, EditorRequired]
+    public required string CurrentUserId { get; set; }
+
+    [Parameter, EditorRequired]
     public EventCallback<int> SelectedPageChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnPostDeleted { get; set; }
+
+    [Parameter]
+    public EventCallback OnPostUpdated { get; set; }
 }

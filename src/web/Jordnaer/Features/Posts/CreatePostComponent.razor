@@ -1,4 +1,5 @@
-﻿@inject IProfileCache ProfileCache
+﻿@using Jordnaer.Features.Theme
+@inject IProfileCache ProfileCache
 @inject ICategoryCache CategoryCache
 @inject PostService PostService
 @inject ISnackbar Snackbar
@@ -6,62 +7,137 @@
 @attribute [StreamRendering]
 
 <MudLoading @bind-Loading="_isLoading" Overlap Darken>
-	<MudPaper Class="pa-4">
 
-	<AuthorizeView>
-		<NotAuthorized>
-			<MudAlert Icon="@Icons.Material.Filled.Lock">Du skal være logget ind for at lave et opslag.</MudAlert>
-            <MudButton Href="/Account/Login" Variant="Variant.Filled" Color="Color.Success">Log ind</MudButton>
-		</NotAuthorized>
-		<Authorized>
+    <AuthorizeView>
+        <NotAuthorized>
+            <MudPaper Class="pa-4">
+                <MudAlert Icon="@Icons.Material.Filled.Lock">Du skal være logget ind for at lave et opslag.</MudAlert>
+                <MudButton Href="/Account/Login" Variant="Variant.Filled" Color="Color.Success">Log ind</MudButton>
+            </MudPaper>
+        </NotAuthorized>
+        <Authorized>
+            @if (!_isExpanded)
+            {
+                <!-- Collapsed State (Default) -->
+                <MudCard Class="mb-4" Style="cursor: pointer;" @onclick="ExpandCreateForm">
+                    <MudCardContent Class="pa-3">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                            <MudAvatar Color="Color.Secondary">
+                                @if (string.IsNullOrEmpty(_userProfile?.ProfilePictureUrl))
+                                {
+                                    @_userProfile?.DisplayName?.FirstOrDefault()
+                                }
+                                else
+                                {
+                                    <MudImage Src="@_userProfile.ProfilePictureUrl" />
+                                }
+                            </MudAvatar>
+                            <MudTextField T="string" Placeholder="Hvad tænker du på?" Variant="Variant.Outlined" ReadOnly
+                                FullWidth Class="warm-rounded" />
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+            else
+            {
+                <!-- Expanded State (On Click) -->
+                <MudCard Class="mb-4">
+                    <MudCardContent Class="pa-4">
+                        <MudStack Spacing="3">
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.h6">Del et opslag</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CollapseCreateForm"
+                                    Size="Size.Small" />
+                            </MudStack>
 
-			<MudText Typo="Typo.h4">Del et opslag</MudText>
-			<MudTextField @bind-Value="_postText" Placeholder="Hvad har du på tankerne?" Lines="4" FullWidth />
+                            <Jordnaer.Features.WYSIWYG.TextEditorComponent @ref="_textEditor"
+                                Label="Hvad har du på tankerne?" Placeholder="Del dine tanker..." />
 
-			<MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()"
-			                   T="string"
-			                   Label="Kategorier"
-			                   MultiSelection="true"
-			                   SelectedValues="_post.Categories.Select(e => e.Name)"
-			                   ValuePresenter="ValuePresenter.Chip"
-			                   Variant="Variant.Filled"
-			                   SelectedValuesChanged="SelectedCategoriesChanged">
-			</MudSelectExtended>
-			<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreatePost">Slå op</MudButton>
-                <MudCheckBox Label="Vis område" title="Gem postnummer og by som en del af opslaget" @bind-Value="_includeAreaInPost" />
-		</Authorized>
-	</AuthorizeView>
-	</MudPaper>
+                            <MudText Typo="Typo.body2" Class="mt-2">Kategorier</MudText>
+                            <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection"
+                                SelectedValues="_selectedCategoryNames" CheckMark Color="Color.Tertiary"
+                                SelectedColor="Color.Success" SelectedValuesChanged="SelectedCategoriesChanged"
+                                Variant="Variant.Outlined">
+                                @foreach (var category in _categories)
+                                {
+                                    <MudChip Text="@category.Name" Value="@category.Name" />
+                                }
+                            </MudChipSet>
+
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudCheckBox Label="Vis område" title="Gem postnummer og by som en del af opslaget"
+                                    @bind-Value="_includeAreaInPost" />
+                                <MudButton Variant="Variant.Filled"
+                                    Style="@($"background-color: {JordnaerPalette.YellowBackground}; color: white;")"
+                                    OnClick="CreatePost" Disabled="@_isSending">
+                                    @if (_isSending)
+                                    {
+                                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                        <MudText Class="ms-2">Sender...</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText>Slå op</MudText>
+                                    }
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+        </Authorized>
+    </AuthorizeView>
 
 </MudLoading>
 
 @code {
+    [Parameter]
+    public EventCallback OnPostCreated { get; set; }
+
     public bool _includeAreaInPost { get; set; } = true;
+    private bool _isExpanded = false;
+    private List<string> _selectedCategoryNames = [];
 
-    private string? _postText;
+    private Jordnaer.Features.WYSIWYG.TextEditorComponent _textEditor = null!;
+    private string _postText = string.Empty;
 
-    private readonly Post _post = new Post
-    {
-        Id = NewId.NextGuid(),
-        Text = string.Empty,
-        UserProfileId = string.Empty
-    };
-    
-    private IEnumerable<Category> _categories = [];
+    private List<Jordnaer.Shared.Category> _postCategories = [];
+
+    private IEnumerable<Jordnaer.Shared.Category> _categories = [];
     private bool _isLoading = true;
+    private bool _isSending = false;
     private UserProfile? _userProfile;
 
     protected override async Task OnInitializedAsync()
     {
-	    _categories = await CategoryCache.GetOrCreateCategoriesAsync();
-	    _isLoading = false;
+        _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+        _isLoading = false;
 
-	    _userProfile = await ProfileCache.GetProfileAsync();
+        _userProfile = await ProfileCache.GetProfileAsync();
+    }
+
+    private void ExpandCreateForm()
+    {
+        _isExpanded = true;
+        StateHasChanged();
+    }
+    private void CollapseCreateForm()
+    {
+        _isExpanded = false;
     }
 
     private async Task CreatePost()
     {
-        if (string.IsNullOrEmpty(_postText))
+        _postText = await _textEditor.GetHtmlAsync();
+
+        // Validate character count (database limit is varchar(4000))
+        if (_postText?.Length > 4000)
+        {
+            Snackbar.Add("Opslaget må højest være 4000 karakterer langt.", Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_postText))
         {
             return;
         }
@@ -72,37 +148,52 @@
             return;
         }
 
-        _post.Text = _postText;
-        _post.CreatedUtc = DateTimeOffset.UtcNow;
-        _post.UserProfileId = _userProfile.Id;
+        _isSending = true;
+
+        var post = new Post
+        {
+            Id = NewId.NextGuid(),
+            Text = _postText,
+            CreatedUtc = DateTimeOffset.UtcNow,
+            UserProfileId = _userProfile.Id,
+            Categories = _postCategories
+        };
 
         if (_includeAreaInPost)
         {
-	        _post.ZipCode = _userProfile.ZipCode;
-	        _post.City = _userProfile.City;
+            post.ZipCode = _userProfile.ZipCode;
+            post.City = _userProfile.City;
         }
 
-        var result = await PostService.CreatePostAsync(_post);
+        var result = await PostService.CreatePostAsync(post);
 
         result.Switch(
-            _ =>
-            {
-                Snackbar.Add("Opslaget blev oprettet.", Severity.Success);
-                _postText = string.Empty;
-            },
-            error => Snackbar.Add(error.Value, Severity.Error)
+        _ =>
+        {
+            Snackbar.Add("Opslaget blev oprettet.", Severity.Success);
+            _postText = string.Empty;
+            _postCategories.Clear();
+            _selectedCategoryNames = [];
+            _isExpanded = false; // Collapse after successful post
+        },
+        error => Snackbar.Add(error.Value, Severity.Error)
         );
+
+        _isSending = false;
+
+        await OnPostCreated.InvokeAsync();
     }
 
-    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    private async Task SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
     {
-	    if (selectedCategories is null)
-	    {
-            _post.Categories.Clear();
+        if (selectedCategories is null)
+        {
+            _postCategories.Clear();
+            _selectedCategoryNames = [];
             return;
-	    }
+        }
 
-	    _post.Categories = _categories.Where(possibleCategory => selectedCategories.Contains(possibleCategory.Name)).ToList();
+        _selectedCategoryNames = selectedCategories.Where(x => x != null).Cast<string>().ToList();
+        _postCategories = _categories.Where(possibleCategory => selectedCategories.Contains(possibleCategory.Name)).ToList();
     }
-
 }
