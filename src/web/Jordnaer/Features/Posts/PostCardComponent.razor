@@ -102,7 +102,13 @@
     [Parameter]
     public EventCallback OnPostUpdated { get; set; }
 
-    private static readonly CultureInfo _danishCulture = new CultureInfo("da-DK");
+    private static readonly CultureInfo DanishCulture = new("da-DK");
+    private static readonly (string bg, string fg)[] CategoryColors =
+    [
+        (JordnaerPalette.YellowBackground, JordnaerPalette.White),
+        (JordnaerPalette.GreenBackground, JordnaerPalette.White),
+        (JordnaerPalette.BeigeBackground, JordnaerPalette.BlueBody)
+    ];
 
     private void ToggleTimeDisplay()
     {
@@ -116,7 +122,7 @@
             return PostItem.CreatedUtc.ToLocalTime().ToString("g");
         }
 
-        return PostItem.CreatedUtc.Humanize(culture: _danishCulture);
+        return PostItem.CreatedUtc.Humanize(culture: DanishCulture);
     }
 
     private string GetAvatarInitial()
@@ -139,15 +145,7 @@
 
     private string GetCategoryChipStyle(int index)
     {
-        // Rotate through brand colors
-        var colors = new[]
-        {
-(bg: JordnaerPalette.YellowBackground, fg: JordnaerPalette.White),
-(bg: JordnaerPalette.GreenBackground, fg: JordnaerPalette.White),
-(bg: JordnaerPalette.BeigeBackground, fg: JordnaerPalette.BlueBody)
-};
-
-        var color = colors[index % colors.Length];
+        var color = CategoryColors[index % CategoryColors.Length];
         return $"background-color: {color.bg}; color: {color.fg}; font-weight: 500; border: none;";
     }
 

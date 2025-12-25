@@ -94,7 +94,7 @@
     [Parameter]
     public EventCallback OnPostCreated { get; set; }
 
-    public bool _includeAreaInPost { get; set; } = true;
+    private bool _includeAreaInPost = true;
     private bool _isExpanded = false;
     private List<string> _selectedCategoryNames = [];
 
@@ -189,7 +189,7 @@
         }
     }
 
-    private async Task SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
     {
         if (selectedCategories is null)
         {

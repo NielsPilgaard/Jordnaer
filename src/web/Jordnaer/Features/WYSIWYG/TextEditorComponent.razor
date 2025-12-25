@@ -91,11 +91,20 @@
             return;
         }
 
-        _ = Task.Run(async () =>
+        _ = LoadInitialContentAsync();
+    }
+
+    private async Task LoadInitialContentAsync()
+    {
+        try
         {
             await Task.Delay(LoadingDelayMillis);
             await _textEditor.LoadHTMLContent(Text);
-        });
+        }
+        catch (Exception)
+        {
+            // Component may have been disposed or editor not ready
+        }
     }
 
     public async Task<string> GetHtmlAsync()

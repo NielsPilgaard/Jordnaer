@@ -44,7 +44,7 @@
     [Parameter, EditorRequired]
     public EventCallback OnPostDeleted { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public EventCallback OnPostUpdated { get; set; }
 
     private record SearchResultItem
