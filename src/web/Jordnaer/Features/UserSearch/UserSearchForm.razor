@@ -23,10 +23,8 @@
                 {
                     @* New map-based search experience *@
                     <MudItem xs="12">
-                        <MapSearchFilter @ref="_mapSearchFilter"
-                                         RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
-                                         RadiusKmChanged="OnRadiusChanged"
-                                         OnLocationSearchChanged="OnLocationSearchChanged" />
+                        <MapSearchFilter @ref="_mapSearchFilter" RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
+                            RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged" />
                     </MudItem>
                 }
                 else
@@ -38,7 +36,7 @@
                     </MudItem>
                     <MudItem xs="4">
                         <MudNumericField For="() => Filter.WithinRadiusKilometers"
-                        @bind-Value="Filter.WithinRadiusKilometers" Label="km" Placeholder="Radius">
+                            @bind-Value="Filter.WithinRadiusKilometers" Label="km" Placeholder="Radius">
                         </MudNumericField>
                     </MudItem>
                 }
@@ -48,34 +46,27 @@
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-4">
-                    <MudButton OnClick="ToggleAdvancedSearch"
-                               FullWidth
-                               Variant="Variant.Text"
-                               Color="Color.Primary"
-                               StartIcon="@(ExpandAdvancedSearch ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
-                               Style="text-transform: none; font-weight: normal;">
-                         @(ExpandAdvancedSearch ? "Luk udvidet søgning" : "Udvidet søgning")
+                    <MudButton OnClick="ToggleAdvancedSearch" FullWidth Variant="Variant.Text" Color="Color.Info"
+                        StartIcon="@(ExpandAdvancedSearch? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                        Style="text-transform: none; font-weight: normal;">
+                        @(ExpandAdvancedSearch ? "Luk udvidet søgning" : "Udvidet søgning")
                     </MudButton>
                 </MudItem>
 
                 <MudItem xs="12">
                     <MudCollapse @bind-Expanded="ExpandAdvancedSearch">
-                        <MudPaper Elevation="0" Class="pa-4 mt-2" Style="@($"background-color: {JordnaerPalette.PaleBlueBackground}40; border-radius: 8px;")">
+                        <MudPaper Elevation="0" Class="pa-4 mt-2"
+                            Style="@($"background-color: {JordnaerPalette.PaleBlueBackground}40; border-radius: 8px;")">
 
                             @* Name search *@
-                            <MudTextField @bind-Value="Filter.Name"
-                                          Label="Søg på navn"
-                                          Placeholder="Fornavn, efternavn eller brugernavn"
-                                          Variant="Variant.Outlined"
-                                          Margin="Margin.Dense"
-                                          Clearable
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Person" />
+                            <MudTextField @bind-Value="Filter.Name" Label="Søg på navn"
+                                Placeholder="Fornavn, efternavn eller brugernavn" Variant="Variant.Outlined"
+                                Margin="Margin.Dense" Clearable Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Person" />
 
                             @* Children filters section *@
-                            <MudText Typo="Typo.subtitle1"
-                                     Class="mt-5 mb-3"
-                                     Style="@($"color: {JordnaerPalette.RedHeader}; font-weight: 500;")">
+                            <MudText Typo="Typo.subtitle1" Class="mt-5 mb-3"
+                                Style="@($"color: {JordnaerPalette.RedHeader}; font-weight: 500;")">
                                 <MudIcon Icon="@Icons.Material.Filled.ChildCare" Size="Size.Small" Class="mr-1" />
                                 Børn
                             </MudText>
@@ -83,33 +74,20 @@
                             <MudGrid Spacing="2">
                                 <MudItem xs="6">
                                     <MudNumericField For="() => Filter.MinimumChildAge"
-                                                     @bind-Value="Filter.MinimumChildAge"
-                                                     Label="Min. alder"
-                                                     Variant="Variant.Outlined"
-                                                     Margin="Margin.Dense"
-                                                     Min="0"
-                                                     Max="18" />
+                                        @bind-Value="Filter.MinimumChildAge" Label="Min. alder"
+                                        Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Max="18" />
                                 </MudItem>
                                 <MudItem xs="6">
                                     <MudNumericField For="() => Filter.MaximumChildAge"
-                                                     @bind-Value="Filter.MaximumChildAge"
-                                                     Label="Max. alder"
-                                                     Variant="Variant.Outlined"
-                                                     Margin="Margin.Dense"
-                                                     Min="0"
-                                                     Max="18" />
+                                        @bind-Value="Filter.MaximumChildAge" Label="Max. alder"
+                                        Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Max="18" />
                                 </MudItem>
                             </MudGrid>
 
-                            <MudSelect @bind-Value="Filter.ChildGender"
-                                       Label="Køn"
-                                       Variant="Variant.Outlined"
-                                       Margin="Margin.Dense"
-                                       Clearable
-                                       Placeholder="Vælg køn"
-                                       AnchorOrigin="Origin.BottomCenter"
-                                       Class="mt-2">
-                                 @foreach (var gender in Enum.GetValues<Gender>())
+                            <MudSelect @bind-Value="Filter.ChildGender" Label="Køn" Variant="Variant.Outlined"
+                                Margin="Margin.Dense" Clearable Placeholder="Vælg køn"
+                                AnchorOrigin="Origin.BottomCenter" Class="mt-2">
+                                @foreach (var gender in Enum.GetValues<Gender>())
                                 {
                                     <MudSelectItem T="Gender?" Value="gender">@gender.GetDisplayName()</MudSelectItem>
                                 }
@@ -124,23 +102,23 @@
 
                     <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
                         <MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
-                             ButtonType="ButtonType.Submit">
-                             <MudIcon Icon="@Icons.Material.Filled.Search" />
-                         </MudButton>
-                         <MudButton OnClick="ClearFilter" Color="Color.Transparent" Variant="Variant.Filled"
-                             ButtonType="ButtonType.Reset">
-                             <MudIcon Icon="@Icons.Material.Filled.Clear" />
-                         </MudButton>
-                     </MudButtonGroup>
+                            ButtonType="ButtonType.Submit">
+                            <MudIcon Icon="@Icons.Material.Filled.Search" />
+                        </MudButton>
+                        <MudButton OnClick="ClearFilter" Color="Color.Transparent" Variant="Variant.Filled"
+                            ButtonType="ButtonType.Reset">
+                            <MudIcon Icon="@Icons.Material.Filled.Clear" />
+                        </MudButton>
+                    </MudButtonGroup>
 
-                 </MudItem>
-             </MudGrid>
-         </EditForm>
-     </MudPaper>
- </MudContainer>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
 
- @code
- {
+@code
+{
     private MapSearchFilter? _mapSearchFilter;
     private bool _mapSearchEnabled = false;
 
@@ -153,8 +131,7 @@
     [Parameter]
     public required EventCallback OnValidSubmit { get; set; }
 
-    [SupplyParameterFromQuery]
-    public bool ExpandAdvancedSearch { get; set; } = false;
+    private bool ExpandAdvancedSearch { get; set; } = false;
 
     private static readonly UserSearchFilter DefaultFilter = new();
 
@@ -174,14 +151,15 @@
             if (Filter.Latitude.HasValue && Filter.Longitude.HasValue && Filter.WithinRadiusKilometers.HasValue)
             {
                 await _mapSearchFilter.SetLocationAsync(
-                    Filter.Latitude.Value,
-                    Filter.Longitude.Value,
-                    13);
+                Filter.Latitude.Value,
+                Filter.Longitude.Value,
+                13);
             }
         }
     }
 
-    private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address) locationSearch)
+    private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address)
+    locationSearch)
     {
         Filter.Latitude = locationSearch.Latitude;
         Filter.Longitude = locationSearch.Longitude;
@@ -199,9 +177,9 @@
         if (_mapSearchFilter is not null && Filter.Latitude.HasValue && Filter.Longitude.HasValue)
         {
             await _mapSearchFilter.UpdateSearchRadiusAsync(
-                Filter.Latitude.Value,
-                Filter.Longitude.Value,
-                newRadius);
+            Filter.Latitude.Value,
+            Filter.Longitude.Value,
+            newRadius);
         }
 
         await FilterChanged.InvokeAsync(Filter);
@@ -212,12 +190,14 @@
         Filter = new UserSearchFilter();
         await FilterChanged.InvokeAsync(Filter);
 
-        var uriWithQuery = new Uri(Navigation.Uri);
-        var uriWithoutQuery = uriWithQuery.GetLeftPart(UriPartial.Path);
+        // Clear the map location if using map search
+        if (_mapSearchEnabled && _mapSearchFilter is not null)
+        {
+            await _mapSearchFilter.ClearLocationAsync();
+        }
 
         _recentlyClearedForm = true;
-
-        await JsRuntime.NavigateTo(uriWithoutQuery);
+        ExpandAdvancedSearch = false;
     }
 
     private void LocationChanged(string location)
@@ -229,11 +209,5 @@
     private void ToggleAdvancedSearch()
     {
         ExpandAdvancedSearch = !ExpandAdvancedSearch;
-
-        var newUri = Navigation.GetUriWithQueryParameter(
-        nameof(ExpandAdvancedSearch).ToLower(),
-        ExpandAdvancedSearch.ToString().ToLower());
-
-        Navigation.NavigateTo(newUri);
     }
 }

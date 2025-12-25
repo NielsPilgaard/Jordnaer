@@ -4,6 +4,7 @@ using MudBlazor;
 using MudBlazor.Utilities;
 
 namespace Jordnaer.Components;
+
 public partial class ScrollToBottom : IDisposable
 {
 	private IScrollListener? _scrollListener;

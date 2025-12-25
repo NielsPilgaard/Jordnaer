@@ -1,0 +1,22 @@
+.image-ad-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-with-label {
+  position: relative;
+}
+
+.image-ad-label {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.7;
+}

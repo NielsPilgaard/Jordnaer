@@ -26,7 +26,7 @@
 
     <!-- Top Action Bar -->
     <div class="d-flex align-center mb-6 gap-2">
-        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="JsRuntime.GoBackAsync" Color="Color.Primary"
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="JsRuntime.GoBackAsync" Color="Color.Info"
             Variant="Variant.Filled" Class="mr-2" title="Tilbage" />
 
         <MudSpacer />
@@ -100,10 +100,9 @@
                 else if (!_isMember && !_isLoading)
                 {
                     <MudPaper Class="pa-8 d-flex flex-column align-center justify-center dashed-border">
-                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Secondary"
-                            Class="mb-2" />
-                        <MudText Typo="Typo.h6" Color="Color.Secondary">Lukket Gruppe</MudText>
-                        <MudText Color="Color.Secondary">Du skal være medlem for at se opslag i denne gruppe.</MudText>
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Info" Class="mb-2" />
+                        <MudText Typo="Typo.h6" Color="Color.Info">Lukket Gruppe</MudText>
+                        <MudText Color="Color.Info">Du skal være medlem for at se opslag i denne gruppe.</MudText>
                     </MudPaper>
                 }
             </MudStack>

@@ -1,0 +1,29 @@
+<MudLink Href="@Link" Target="_blank" Underline="Underline.None"
+    UserAttributes="@(new Dictionary<string, object> { { "rel", "noopener" } })">
+    <div class="image-ad-wrapper">
+        <div class="image-with-label">
+            <MudImage Src="@ImagePath" Alt="@ImageAlt" Class="ad-image"
+                Style="width: 100%; height: auto; border-radius: 8px;" loading="lazy" />
+            <div class="image-ad-label">Annonce</div>
+        </div>
+    </div>
+</MudLink>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Link { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string ImagePath { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string ImageAlt { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JordnaerMetrics.AdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+        }
+    }
+}
