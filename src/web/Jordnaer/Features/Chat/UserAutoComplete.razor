@@ -27,7 +27,9 @@
                  AdornmentIcon="@Icons.Material.Filled.Search"
                  MaxItems="10"
                  ValueChanged="SelectedValueChanged"
-                 MinCharacters="2">
+                 MinCharacters="2"
+                 Variant="Variant.Outlined"
+                 Class="chat-user-search">
 
     <ItemTemplate Context="user">
         <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector-autocomplete" T="RenderFragment">

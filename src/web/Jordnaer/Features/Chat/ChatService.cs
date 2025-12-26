@@ -29,6 +29,14 @@ public interface IChatService
 
 	Task<OneOf<Guid, NotFound>> GetChatByUserIdsAsync(string userId, ICollection<string> userIds,
 		CancellationToken cancellationToken = default);
+
+	event EventHandler<MessagesMarkedAsReadEventArgs>? MessagesMarkedAsRead;
+}
+
+public class MessagesMarkedAsReadEventArgs(Guid chatId, int messageCount) : EventArgs
+{
+	public Guid ChatId { get; } = chatId;
+	public int MessageCount { get; } = messageCount;
 }
 
 public class ChatService(
@@ -37,6 +45,7 @@ public class ChatService(
 	ILogger<ChatService> logger)
 	: IChatService
 {
+	public event EventHandler<MessagesMarkedAsReadEventArgs>? MessagesMarkedAsRead;
 	public async Task<List<ChatDto>> GetChatsAsync(string userId, CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -71,6 +80,7 @@ public class ChatService(
 
 		if (rowsModified > 0)
 		{
+			MessagesMarkedAsRead?.Invoke(this, new MessagesMarkedAsReadEventArgs(chatId, rowsModified));
 			return new Success();
 		}
 

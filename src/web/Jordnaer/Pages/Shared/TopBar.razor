@@ -1,4 +1,10 @@
 @inject NavigationManager Navigation
+@inject UnreadMessageSignalRClient UnreadMessageSignalRClient
+@inject IChatService ChatService
+@inject CurrentUser CurrentUser
+@inject IJSRuntime JsRuntime
+
+@implements IAsyncDisposable
 
 <MudAppBar Fixed="false" Elevation="0" Dense="false"
 	Style="@($"background: {JordnaerTheme.CustomTheme.PaletteLight.BackgroundGray}")">
@@ -27,10 +33,13 @@
 
 		<AuthorizeView>
 			<Authorized>
-				<MudButton Href="/chat" StartIcon="@Icons.Material.Filled.Chat" Variant="Variant.Text"
-					Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
-					Chat
-				</MudButton>
+				<MudBadge Content="@_unreadCount" Visible="@(_unreadCount > 0)" Color="Color.Info" Overlap="true"
+					Class="mx-0" BadgeClass="badge-offset">
+					<MudButton Href="/chat" StartIcon="@Icons.Material.Filled.Chat" Variant="Variant.Text"
+						Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+						Chat
+					</MudButton>
+				</MudBadge>
 			</Authorized>
 		</AuthorizeView>
 	</div>
@@ -42,7 +51,8 @@
 			<MudIcon Icon="@Icons.Material.Filled.Menu" Style="@JordnaerPalette.BlueBody.ToTextColor()" />
 		</label>
 
-		<nav class="mobile-menu-dropdown" aria-label="Mobile navigation" onclick="document.getElementById('mobile-menu-toggle').checked = false;">
+		<nav class="mobile-menu-dropdown" aria-label="Mobile navigation"
+			onclick="document.getElementById('mobile-menu-toggle').checked = false;">
 			<a href="/" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
 				<MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Hjem
@@ -68,6 +78,10 @@
 					<a href="/chat" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" Style="margin-right: 0.75rem;" />
 						Chat
+						@if (_unreadCount > 0)
+						{
+							<MudBadge Content="@_unreadCount" Color="Color.Info" Style="margin-left: 8px;" />
+						}
 					</a>
 				</Authorized>
 			</AuthorizeView>
@@ -81,22 +95,27 @@
 			@* Desktop Profile Dropdown *@
 			<div class="topbar-desktop profile-dropdown">
 				<input type="checkbox" id="profile-menu-toggle" class="profile-menu-toggle" />
-				<label for="profile-menu-toggle" class="profile-menu-button" style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<label for="profile-menu-toggle" class="profile-menu-button"
+					style="@JordnaerPalette.BlueBody.ToTextColor()">
 					<MudIcon Icon="@Icons.Material.Filled.Person" Style="margin-right: 0.25rem;" />
 					<span class="font-open-sans-semibold">Profil</span>
 					<MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Style="margin-left: 0.25rem;" />
 				</label>
-				<nav class="profile-menu-dropdown" aria-label="Profile menu" onclick="document.getElementById('profile-menu-toggle').checked = false;">
+				<nav class="profile-menu-dropdown" aria-label="Profile menu"
+					onclick="document.getElementById('profile-menu-toggle').checked = false;">
 					<a href="/profile" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
-						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
+							Style="margin-right: 0.75rem;" />
 						Profil
 					</a>
 					<a href="/Account/Manage" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
-						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small"
+							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
 					</a>
 					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
-						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
+							Style="margin-right: 0.75rem;" />
 						Log ud
 					</a>
 				</nav>
@@ -105,20 +124,25 @@
 			@* Mobile Profile Dropdown *@
 			<div class="topbar-mobile profile-dropdown">
 				<input type="checkbox" id="profile-menu-toggle-mobile" class="profile-menu-toggle" />
-				<label for="profile-menu-toggle-mobile" class="profile-menu-button" style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<label for="profile-menu-toggle-mobile" class="profile-menu-button"
+					style="@JordnaerPalette.BlueBody.ToTextColor()">
 					<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
 				</label>
-				<nav class="profile-menu-dropdown" aria-label="Profile menu" onclick="document.getElementById('profile-menu-toggle-mobile').checked = false;">
+				<nav class="profile-menu-dropdown" aria-label="Profile menu"
+					onclick="document.getElementById('profile-menu-toggle-mobile').checked = false;">
 					<a href="/profile" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
-						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
+							Style="margin-right: 0.75rem;" />
 						Profil
 					</a>
 					<a href="/Account/Manage" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
-						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small"
+							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
 					</a>
 					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
-						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Style="margin-right: 0.75rem;" />
+						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
+							Style="margin-right: 0.75rem;" />
 						Log ud
 					</a>
 				</nav>
@@ -135,9 +159,88 @@
 			<div class="topbar-mobile">
 				<MudIconButton Href="/Account/Register" Icon="@Icons.Material.Filled.Login" Variant="Variant.Outlined"
 					Style="@($"{JordnaerPalette.BlueBody.ToTextColor()}; border-color: {JordnaerPalette.BlueBody}")"
-					Size="Size.Medium"
-					title="Opret konto" aria-label="Opret konto" />
+					Size="Size.Medium" title="Opret konto" aria-label="Opret konto" />
 			</div>
 		</NotAuthorized>
 	</AuthorizeView>
 </MudAppBar>
+
+@code {
+	private int _unreadCount = 0;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (CurrentUser.Id is null)
+		{
+			return;
+		}
+
+		// Get initial unread count
+		_unreadCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
+
+		// Update page title
+		await UpdatePageTitle();
+
+		// Subscribe to real-time updates
+		UnreadMessageSignalRClient.OnMessageReceived(async message =>
+		{
+			// Only increment if the message is not from the current user
+			if (message.SenderId != CurrentUser.Id)
+			{
+				_unreadCount++;
+				await UpdatePageTitle();
+				await InvokeAsync(StateHasChanged);
+			}
+		});
+
+		UnreadMessageSignalRClient.OnChatStarted(async chat =>
+		{
+			// Only increment if the chat was started by someone else
+			if (chat.InitiatorId != CurrentUser.Id)
+			{
+				// Count the number of initial messages in the new chat
+				_unreadCount += chat.Messages.Count;
+				await UpdatePageTitle();
+				await InvokeAsync(StateHasChanged);
+			}
+		});
+
+		// Subscribe to local messages marked as read event
+		ChatService.MessagesMarkedAsRead += OnMessagesMarkedAsRead;
+
+		await UnreadMessageSignalRClient.StartAsync();
+	}
+
+	private async void OnMessagesMarkedAsRead(object? sender, MessagesMarkedAsReadEventArgs e)
+	{
+		_unreadCount -= e.MessageCount;
+		if (_unreadCount < 0)
+		{
+			_unreadCount = 0;
+		}
+		await UpdatePageTitle();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task UpdatePageTitle()
+	{
+		var title = _unreadCount > 0
+		? $"({_unreadCount}) Jordnær"
+		: "Jordnær";
+
+		await JsRuntime.InvokeVoidAsync("eval", $"document.title = '{title}'");
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		ChatService.MessagesMarkedAsRead -= OnMessagesMarkedAsRead;
+		await UnreadMessageSignalRClient.StopAsync();
+	}
+}
+
+<style>
+	.badge-offset {
+		margin-left: -6px;
+		margin-top: -6px;
+	}
+</style>
