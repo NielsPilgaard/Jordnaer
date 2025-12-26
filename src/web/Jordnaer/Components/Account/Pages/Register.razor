@@ -179,7 +179,17 @@
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
-        RedirectManager.RedirectTo(ReturnUrl);
+        // Redirect to profile completion, passing ReturnUrl through
+        if (!string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            RedirectManager.RedirectTo(
+                "/CompleteProfile",
+                queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+        }
+        else
+        {
+            RedirectManager.RedirectTo("/CompleteProfile");
+        }
     }
 
     private sealed class InputModel

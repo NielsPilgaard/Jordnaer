@@ -147,7 +147,7 @@ Make profile setup **required** for best results, but show progress (e.g., "Step
                 <div class="alert alert-info">
                     <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" />
                     Din profil vil være tilgængelig på:
-                    <strong>jordnaer.dk/@_generatedUsername</strong>
+                    <strong>mini-moeder.dk/@_generatedUsername</strong>
                     <br />
                     <small>Du kan ændre dit brugernavn senere i indstillinger</small>
                 </div>
@@ -457,7 +457,7 @@ public async Task<Result<string>> GenerateUniqueUsernameAsync(string firstName, 
 - [ ] Step 1 page collects: first name, last name, DOB, location
 - [ ] Username is auto-generated from first + last name
 - [ ] Username uniqueness is validated
-- [ ] Username preview shows "jordnaer.dk/{username}"
+- [ ] Username preview shows "mini-moeder.dk/{username}"
 - [ ] Location can be entered as full address or zip code only
 - [ ] Privacy toggle works (address ↔ zip code)
 - [ ] Privacy message displayed ("Your address is never shown publicly")

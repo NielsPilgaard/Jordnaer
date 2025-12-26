@@ -1,0 +1,392 @@
+@page "/CompleteProfile"
+@using Jordnaer.Features.Profile
+@using Jordnaer.Features.Search
+
+@inject IProfileService ProfileService
+@inject IProfileCache ProfileCache
+@inject ILocationService LocationService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject CurrentUser CurrentUser
+
+@attribute [Authorize]
+
+<MetadataComponent Title="Fuldfør din profil - Grundlæggende info" />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Small" Class="my-6">
+        <MudPaper Elevation="3" Class="pa-6">
+            <MudText Typo="Typo.h3" Class="mb-2 text-center"
+                Style="@($"color: {JordnaerPalette.BlueBody}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+                Velkommen til Jordnær!
+            </MudText>
+            <MudText Typo="Typo.body1" Class="text-center mb-4">
+                Lad os oprette din profil, så andre kan finde dig
+            </MudText>
+
+            @* Progress indicator *@
+            <div class="progress-indicator" style="margin-bottom: 2rem;">
+                <div class="progress-step active">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Grundlæggende info</div>
+                </div>
+                <div class="progress-connector"></div>
+                <div class="progress-step">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Interesser</div>
+                </div>
+            </div>
+
+            <EditForm Model="@_input" OnValidSubmit="SaveBasicInfo">
+                <DataAnnotationsValidator />
+
+                <MudGrid Spacing="3">
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_input.FirstName" For="() => _input.FirstName" Label="Fornavn"
+                            Variant="Variant.Outlined" Required AutoComplete="given-name" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_input.LastName" For="() => _input.LastName" Label="Efternavn"
+                            Variant="Variant.Outlined" Required AutoComplete="family-name" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudDatePicker @bind-Date="_input.DateOfBirth" For="() => _input.DateOfBirth"
+                            Label="Fødselsdato (valgfrit)" Variant="Variant.Outlined" OpenTo="OpenTo.Year"
+                            PickerVariant="PickerVariant.Dialog" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Class="mb-2">Hvor bor du?</MudText>
+                        <MudRadioGroup @bind-Value="_useZipCodeOnly">
+                            <MudRadio Value="false" Color="Color.Info">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1" />
+                                Fuld adresse
+                            </MudRadio>
+                            <MudRadio Value="true" Color="Color.Info">
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
+                                Kun postnummer (mere privat)
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        @if (_useZipCodeOnly)
+                        {
+                            <ZipCodeAutoComplete Location="@_zipCodeLocation" LocationChanged="OnZipCodeLocationChanged"
+                                For="() => _zipCodeLocation" DisableSmartCompletion="false" />
+                        }
+                        else
+                        {
+                            <AddressAutoComplete Address="@_addressLocation" AddressChanged="OnAddressLocationChanged"
+                                For="() => _addressLocation" />
+                        }
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense>
+                            Din adresse vises aldrig offentligt. Andre ser kun omtrentlig afstand (f.eks. "5 km væk").
+                        </MudAlert>
+                    </MudItem>
+                </MudGrid>
+
+                <div class="d-flex justify-space-between mt-6" style="gap: 1rem;">
+                    <MudButton Href="/" Variant="Variant.Text" Color="Color.Default">
+                        Spring over (gør det senere)
+                    </MudButton>
+
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info"
+                        EndIcon="@Icons.Material.Filled.ArrowForward">
+                        Næste
+                    </MudButton>
+                </div>
+            </EditForm>
+        </MudPaper>
+    </MudContainer>
+</MudLoading>
+
+@code {
+    private bool _isLoading = true;
+    private UserProfile? _userProfile;
+    private string? _generatedUsername;
+
+    private bool _useZipCodeOnly = true; // Default to more private
+    private string _zipCodeLocation = string.Empty;
+    private string _addressLocation = string.Empty;
+
+    private InputModel _input = new();
+    private static DateTime _defaultPickerDate = DateTime.Today.AddYears(-30);
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        _userProfile = await ProfileCache.GetProfileAsync();
+        if (_userProfile is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+            _isLoading = false;
+            return;
+        }
+
+        // Pre-populate from existing profile data (from external claims or previous submission)
+        _input.FirstName = _userProfile.FirstName ?? "";
+        _input.LastName = _userProfile.LastName ?? "";
+        _input.DateOfBirth = _userProfile.DateOfBirth ?? _defaultPickerDate;
+
+        // Initialize location fields
+        if (_userProfile.Address is not null)
+        {
+            _addressLocation = _userProfile.Address;
+            _useZipCodeOnly = false;
+        }
+        else if (_userProfile.ZipCode is not null && _userProfile.City is not null)
+        {
+            _zipCodeLocation = $"{_userProfile.ZipCode} {_userProfile.City}";
+            _useZipCodeOnly = true;
+        }
+
+        // Generate username preview if we have name
+        if (!string.IsNullOrWhiteSpace(_input.FirstName) && !string.IsNullOrWhiteSpace(_input.LastName))
+        {
+            await UpdateUsernamePreview();
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task UpdateUsernamePreview()
+    {
+        var usernameResult = await ProfileService.GenerateUniqueUsernameAsync(
+        _input.FirstName,
+        _input.LastName);
+
+        usernameResult.Switch(
+        success => _generatedUsername = success.Value,
+        error => { /* Ignore error for preview */ });
+    }
+
+    private async Task OnAddressLocationChanged(string address)
+    {
+        _addressLocation = address;
+
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromAddressAsync(address);
+        if (result is null)
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+            Severity.Warning);
+        }
+    }
+
+    private async Task OnZipCodeLocationChanged(string zipCode)
+    {
+        _zipCodeLocation = zipCode;
+
+        if (string.IsNullOrWhiteSpace(zipCode))
+        {
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromZipCodeAsync(zipCode);
+        if (result is null)
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+            Severity.Warning);
+        }
+    }
+
+    private async Task SaveBasicInfo()
+    {
+        _isLoading = true;
+
+        if (_userProfile is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        // Generate unique username
+        var usernameResult = await ProfileService.GenerateUniqueUsernameAsync(
+        _input.FirstName,
+        _input.LastName);
+
+        if (usernameResult.IsT1)
+        {
+            Snackbar.Add(usernameResult.AsT1.Value, Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        var username = usernameResult.AsT0.Value;
+
+        // Get location data
+        LocationResult? locationResult = null;
+        if (!_useZipCodeOnly && !string.IsNullOrWhiteSpace(_addressLocation))
+        {
+            locationResult = await LocationService.GetLocationFromAddressAsync(_addressLocation);
+            if (locationResult is null)
+            {
+                Snackbar.Add("Kunne ikke finde den angivne adresse. Prøv venligst igen.", Severity.Error);
+                _isLoading = false;
+                return;
+            }
+        }
+        else if (_useZipCodeOnly && !string.IsNullOrWhiteSpace(_zipCodeLocation))
+        {
+            locationResult = await LocationService.GetLocationFromZipCodeAsync(_zipCodeLocation);
+            if (locationResult is null)
+            {
+                Snackbar.Add("Kunne ikke finde det angivne postnummer. Prøv venligst igen.", Severity.Error);
+                _isLoading = false;
+                return;
+            }
+        }
+        else
+        {
+            Snackbar.Add("Du skal angive enten en adresse eller et postnummer.", Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        // Update profile
+        _userProfile.FirstName = _input.FirstName;
+        _userProfile.LastName = _input.LastName;
+        _userProfile.UserName = username;
+
+        // Only update date of birth if it's changed from default
+        if (_input.DateOfBirth.HasValue && _input.DateOfBirth.Value.Date != _defaultPickerDate.Date)
+        {
+            _userProfile.DateOfBirth = _input.DateOfBirth;
+        }
+
+        if (!_useZipCodeOnly)
+        {
+            _userProfile.Address = _addressLocation;
+        }
+        else
+        {
+            _userProfile.Address = null;
+        }
+
+        _userProfile.Location = locationResult.Location;
+        _userProfile.ZipCode = locationResult.ZipCode;
+        _userProfile.City = locationResult.City;
+
+        // Save to database
+        var result = await ProfileService.UpdateUserProfile(_userProfile);
+
+        if (result.IsT1)
+        {
+            Snackbar.Add("Kunne ikke gemme profil. Prøv venligst igen.", Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        // Update cache
+        ProfileCache.SetProfile(result.AsT0.Value);
+
+        // Redirect to step 2
+        var url = string.IsNullOrWhiteSpace(ReturnUrl)
+        ? "/CompleteProfileInterests"
+        : $"/CompleteProfileInterests?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+
+        NavigationManager.NavigateTo(url);
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "Fornavn er påkrævet.")]
+        [MaxLength(100, ErrorMessage = "Fornavn må højest være 100 karakterer langt.")]
+        public string FirstName { get; set; } = "";
+
+        [Required(ErrorMessage = "Efternavn er påkrævet.")]
+        [MaxLength(250, ErrorMessage = "Efternavn må højest være 250 karakterer langt.")]
+        public string LastName { get; set; } = "";
+
+        public DateTime? DateOfBirth { get; set; } = _defaultPickerDate;
+    }
+}
+
+<style>
+    .progress-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .step-number {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: #e0e0e0;
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .progress-step.active .step-number {
+        background-color: var(--mud-palette-info);
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.875rem;
+        color: #666;
+        text-align: center;
+    }
+
+    .progress-step.active .step-label {
+        color: var(--mud-palette-info);
+        font-weight: 600;
+    }
+
+    .progress-connector {
+        width: 3rem;
+        height: 2px;
+        background-color: #e0e0e0;
+        margin-bottom: 2rem;
+    }
+
+    @@media (max-width: 600px) {
+        .progress-indicator {
+            font-size: 0.8rem;
+        }
+
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-connector {
+            width: 2rem;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+        }
+    }
+</style>

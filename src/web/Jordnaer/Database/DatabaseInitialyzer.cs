@@ -67,6 +67,8 @@ public static class SeedDatabase
 
 		var users = userFaker.Generate(usersToGenerate);
 
+		users = users.DistinctBy(u => u.UserName).ToList();
+
 		context.AddRange(users);
 	}
 
@@ -74,7 +76,7 @@ public static class SeedDatabase
 	{
 		if (await context.Categories.AnyAsync())
 		{
-			return [];
+			return await context.Categories.ToListAsync();
 		}
 
 		var categories = new List<Category>

@@ -2,9 +2,11 @@
 
 @using System.Text
 @using Microsoft.AspNetCore.WebUtilities
+@using Jordnaer.Features.Profile
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IProfileService ProfileService
 @inject IdentityRedirectManager RedirectManager
 
 <MetadataComponent Title="Bekræft email" />
@@ -54,9 +56,17 @@
 
                 await SignInManager.SignInAsync(user, isPersistent: true);
 
-                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-
-                RedirectManager.RedirectTo(returnUrl, forceLoad: true);
+                // Check if profile is complete and redirect accordingly
+                var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+                if (!isProfileComplete)
+                {
+                    RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
+                }
+                else
+                {
+                    var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                    RedirectManager.RedirectTo(returnUrl, forceLoad: true);
+                }
             }
             else
             {

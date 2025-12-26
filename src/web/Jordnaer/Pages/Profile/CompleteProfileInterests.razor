@@ -1,0 +1,249 @@
+@page "/CompleteProfileInterests"
+@using Jordnaer.Features.Profile
+@using Jordnaer.Features.Category
+
+@inject IProfileService ProfileService
+@inject IProfileCache ProfileCache
+@inject ICategoryCache CategoryCache
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject CurrentUser CurrentUser
+
+@attribute [Authorize]
+
+<MetadataComponent Title="Fuldfør din profil - Interesser" />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Small" Class="my-6">
+        <MudPaper Elevation="3" Class="pa-6">
+            <MudText Typo="Typo.h3" Class="mb-2 text-center"
+                Style="@($"color: {JordnaerPalette.BlueBody}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+                Hvad er du interesseret i?
+            </MudText>
+            @* Progress indicator *@
+            <div class="progress-indicator" style="margin-bottom: 2rem;">
+                <div class="progress-step completed">
+                    <div class="step-number">
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                    </div>
+                    <div class="step-label">Grundlæggende info</div>
+                </div>
+                <div class="progress-connector completed"></div>
+                <div class="progress-step active">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Interesser</div>
+                </div>
+            </div>
+
+            <EditForm Model="@_input" OnValidSubmit="SaveInterests">
+                <DataAnnotationsValidator />
+
+                <MudGrid Spacing="3">
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Class="mb-2">Vælg kategorier</MudText>
+                        <CategorySelector @bind-Categories="_selectedCategoryNames" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <TextEditorComponent
+                            Placeholder="Du kan f.eks. fortælle om dine interesser, familie, værdier og hvad du søger i forbindelser..."
+                            Label="Fortæl lidt om dig selv (valgfrit)" Text="@_userProfile?.Description"
+                            @ref="_textEditorComponent" />
+                    </MudItem>
+                </MudGrid>
+
+                <div class="d-flex justify-space-between mt-6" style="gap: 1rem;">
+                    <MudButton Href="@GetBackUrl()" Variant="Variant.Text" Color="Color.Default"
+                        StartIcon="@Icons.Material.Filled.ArrowBack">
+                        Tilbage
+                    </MudButton>
+
+                    <div class="d-flex" style="gap: 1rem;">
+                        <MudButton Href="/" Variant="Variant.Text" Color="Color.Default">
+                            Spring over
+                        </MudButton>
+
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Success"
+                            EndIcon="@Icons.Material.Filled.Check">
+                            Fuldfør profil
+                        </MudButton>
+                    </div>
+                </div>
+            </EditForm>
+        </MudPaper>
+    </MudContainer>
+</MudLoading>
+
+@code {
+    private bool _isLoading = true;
+    private UserProfile? _userProfile;
+    private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
+    private string[]? _selectedCategoryNames;
+
+    private TextEditorComponent _textEditorComponent = default!;
+    private InputModel _input = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        _userProfile = await ProfileCache.GetProfileAsync();
+        if (_userProfile is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Refresh, Severity.Warning);
+            _isLoading = false;
+            return;
+        }
+
+        _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+
+        // Pre-populate selected categories
+        _selectedCategoryNames = _userProfile.Categories.Select(c => c.Name).ToArray();
+
+        _isLoading = false;
+    }
+
+    private string GetBackUrl()
+    {
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            return "/CompleteProfile";
+        }
+        return $"/CompleteProfile?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+    }
+
+    private async Task SaveInterests()
+    {
+        _isLoading = true;
+
+        if (_userProfile is null)
+        {
+            Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        // Update description
+        _userProfile.Description = await _textEditorComponent.GetHtmlAsync();
+
+        // Sync selected categories back to user profile
+        _userProfile.Categories = _categories
+        .Where(c => _selectedCategoryNames != null && _selectedCategoryNames.Contains(c.Name))
+        .ToList();
+
+        // Save to database
+        var result = await ProfileService.UpdateUserProfile(_userProfile);
+
+        if (result.IsT1)
+        {
+            Snackbar.Add("Kunne ikke gemme profil. Prøv venligst igen.", Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        // Update cache
+        ProfileCache.SetProfile(result.AsT0.Value);
+
+        Snackbar.Add("Din profil er nu komplet! Velkommen til Jordnær!", Severity.Success);
+
+        // Redirect to ReturnUrl or home - profile complete!
+        var redirectUrl = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
+        NavigationManager.NavigateTo(redirectUrl);
+    }
+
+    private sealed class InputModel
+    {
+        // Used for validation if needed in the future
+    }
+}
+
+<style>
+    .progress-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .step-number {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: #e0e0e0;
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .progress-step.active .step-number {
+        background-color: var(--mud-palette-info);
+        color: white;
+    }
+
+    .progress-step.completed .step-number {
+        background-color: var(--mud-palette-success);
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.875rem;
+        color: #666;
+        text-align: center;
+    }
+
+    .progress-step.active .step-label {
+        color: var(--mud-palette-info);
+        font-weight: 600;
+    }
+
+    .progress-step.completed .step-label {
+        color: var(--mud-palette-success);
+    }
+
+    .progress-connector {
+        width: 3rem;
+        height: 2px;
+        background-color: #e0e0e0;
+        margin-bottom: 2rem;
+    }
+
+    .progress-connector.completed {
+        background-color: var(--mud-palette-success);
+    }
+
+    @@media (max-width: 600px) {
+        .progress-indicator {
+            font-size: 0.8rem;
+        }
+
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-connector {
+            width: 2rem;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+        }
+    }
+</style>
