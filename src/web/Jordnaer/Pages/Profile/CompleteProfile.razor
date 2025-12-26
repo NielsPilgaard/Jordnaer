@@ -41,19 +41,26 @@
                 <DataAnnotationsValidator />
 
                 <MudGrid Spacing="3">
+                    <MudItem xs="12" Class="d-flex justify-center mb-4">
+                        @if (_userProfile is not null)
+                        {
+                            <UserProfilePicture @bind-UserProfile="_userProfile" />
+                        }
+                    </MudItem>
+
                     <MudItem xs="12">
                         <MudTextField @bind-Value="_input.FirstName" For="() => _input.FirstName" Label="Fornavn"
-                            Variant="Variant.Outlined" Required AutoComplete="given-name" />
+                            Variant="Variant.Outlined" Required autocomplete="given-name" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudTextField @bind-Value="_input.LastName" For="() => _input.LastName" Label="Efternavn"
-                            Variant="Variant.Outlined" Required AutoComplete="family-name" />
+                            Variant="Variant.Outlined" Required autocomplete="family-name" />
                     </MudItem>
 
                     <MudItem xs="12">
                         <MudDatePicker @bind-Date="_input.DateOfBirth" For="() => _input.DateOfBirth"
                             Label="Fødselsdato (valgfrit)" Variant="Variant.Outlined" OpenTo="OpenTo.Year"
-                            PickerVariant="PickerVariant.Dialog" />
+                            PickerVariant="PickerVariant.Dialog" autocomplete="bday" />
                     </MudItem>
 
                     <MudItem xs="12">

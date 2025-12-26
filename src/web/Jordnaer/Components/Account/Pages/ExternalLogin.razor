@@ -3,6 +3,7 @@
 @using System.Text.Encodings.Web
 @using Mediator
 @using Microsoft.AspNetCore.WebUtilities
+@using Jordnaer.Features.Profile
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -13,6 +14,7 @@
 @inject ILogger<ExternalLogin> Logger
 @inject JordnaerDbContext Context
 @inject IMediator Mediator
+@inject IProfileService ProfileService
 
 <MetadataComponent Title="Registrér" />
 
@@ -129,7 +131,16 @@
                 _externalLoginInfo.Principal.Identity?.Name,
                 _externalLoginInfo.LoginProvider);
 
-            RedirectManager.RedirectTo(FirstLoginReturnUrl);
+            // Check if profile is complete and redirect accordingly
+            var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+            if (!isProfileComplete)
+            {
+                RedirectManager.RedirectTo("/CompleteProfile");
+            }
+            else
+            {
+                RedirectManager.RedirectTo(FirstLoginReturnUrl);
+            }
         }
         else if (result.IsLockedOut)
         {
@@ -186,7 +197,9 @@
             JordnaerMetrics.ExternalLoginCounter.Add(1, new KeyValuePair<string, object?>("provider", _externalLoginInfo.LoginProvider));
 
             await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
-            RedirectManager.RedirectTo(FirstLoginReturnUrl);
+
+            // Redirect new external users to profile completion
+            RedirectManager.RedirectTo("/CompleteProfile");
         }
     }
 
