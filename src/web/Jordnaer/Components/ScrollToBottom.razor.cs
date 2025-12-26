@@ -107,8 +107,9 @@ public partial class ScrollToBottom : IDisposable
 		await OnScroll.InvokeAsync(e);
 
 		// Calculate distance from bottom
-		// When scrolling up from bottom, ScrollTop decreases
-		// distanceFromBottom = how many pixels we've scrolled up from the bottom
+		// scrollHeight: total height of content
+		// scrollTop: how far we've scrolled from top
+		// distanceFromBottom: how far we are from the absolute bottom
 		var distanceFromBottom = e.ScrollHeight - e.ScrollTop;
 
 		// Detect scroll direction: if scrollTop is increasing, we're scrolling down
@@ -124,7 +125,7 @@ public partial class ScrollToBottom : IDisposable
 
 		// Only show the button when scrolling up (away from bottom)
 		// Don't show it when scrolling down (towards bottom) to prevent it from reappearing during scroll-to-bottom animation
-		if (distanceFromBottom >= MinimumBottomOffset && Visible != true && !isScrollingDown)
+		if (distanceFromBottom >= MinimumBottomOffset && !Visible && !isScrollingDown)
 		{
 			Visible = true;
 			await InvokeAsync(StateHasChanged);

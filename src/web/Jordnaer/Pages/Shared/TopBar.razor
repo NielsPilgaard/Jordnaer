@@ -167,6 +167,8 @@
 
 @code {
 	private int _unreadCount = 0;
+	private bool _isJsAvailable = false;
+	private string? _baseTitle = null;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -177,9 +179,6 @@
 
 		// Get initial unread count
 		_unreadCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
-
-		// Update page title
-		await UpdatePageTitle();
 
 		// Subscribe to real-time updates
 		UnreadMessageSignalRClient.OnMessageReceived(async message =>
@@ -211,6 +210,20 @@
 		await UnreadMessageSignalRClient.StartAsync();
 	}
 
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_isJsAvailable = true;
+
+			// Get the current page title from the document
+			_baseTitle = await JsRuntime.InvokeAsync<string>("eval", "document.title");
+
+			// Update page title with unread count if needed
+			await UpdatePageTitle();
+		}
+	}
+
 	private async void OnMessagesMarkedAsRead(object? sender, MessagesMarkedAsReadEventArgs e)
 	{
 		_unreadCount -= e.MessageCount;
@@ -224,9 +237,22 @@
 
 	private async Task UpdatePageTitle()
 	{
+		if (!_isJsAvailable || _baseTitle is null)
+		{
+			return;
+		}
+
+		// Remove any existing unread count prefix from the base title
+		var cleanTitle = _baseTitle;
+		if (cleanTitle.StartsWith('(') && cleanTitle.Contains(") "))
+		{
+			var closingParenIndex = cleanTitle.IndexOf(") ");
+			cleanTitle = cleanTitle.Substring(closingParenIndex + 2);
+		}
+
 		var title = _unreadCount > 0
-		? $"({_unreadCount}) Jordnær"
-		: "Jordnær";
+			? $"({_unreadCount}) {cleanTitle}"
+			: cleanTitle;
 
 		await JsRuntime.InvokeVoidAsync("eval", $"document.title = '{title}'");
 	}

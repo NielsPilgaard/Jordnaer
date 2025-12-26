@@ -28,7 +28,7 @@
             return;
         case not null when IsMobile:
             <MudAppBar Dense ToolBarClass="justify-space-between h-100"
-                Style="@($"background-color: {JordnaerPalette.BeigeBackground};")" Elevation="5">
+                Style="@($"background-color: {JordnaerPalette.BeigeBackground}; padding: 10px;")" Elevation="5">
 
                 <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Info"
                     Variant="Variant.Filled" title="Tilbage" />
@@ -41,7 +41,7 @@
     <MudList Class="chat-message-list" Padding="false" Dense T="RenderFragment">
         <MudSpacer />
         <MudVirtualize Items="ActiveChat?.Messages" Context="message" OverscanCount="8" ItemSize="80">
-            <MudListItem T="MudTooltip" Class="@(MudListItemClass(message))">
+            <MudListItem T="RenderFragment" Class="@(MudListItemClass(message))">
 
                 @if (IsMessageFromSelf(message))
                 {
@@ -96,14 +96,15 @@
 
         <MudTextField id="chat-message-input" @ref="_messageInput" T="string" FullWidth Immediate Clearable AutoFocus
             Adornment="Adornment.End" OnKeyDown="SendMessageOnEnter" AdornmentIcon="@Icons.Material.Filled.Send"
-            AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Success)"
+            AdornmentColor="@(string.IsNullOrWhiteSpace(_messageInput.Value) ? Color.Default : Color.Info)"
             OnAdornmentClick="SendMessage" Class="mt-3 p-1 chat-input-field" Lines="2" IconSize="Size.Large"
             Style="@($"background: {JordnaerPalette.WarmWhite};")" />
 
     </MudList>
 
-    <ScrollToBottom Selector="@ChatMessageWindowClass" Visible="false" MinimumBottomOffset="200" OnClick="async () => await _messageInput.FocusAsync()">
-        <MudFab Size="Size.Large" Color="Color.Success" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
+    <ScrollToBottom Selector="@ChatMessageWindowClass" Visible="false" MinimumBottomOffset="200"
+        OnClick="async () => await _messageInput.FocusAsync()">
+        <MudFab Size="Size.Large" Color="Color.Info" StartIcon="@Icons.Material.Filled.ArrowCircleDown" />
     </ScrollToBottom>
 </MudItem>
 
