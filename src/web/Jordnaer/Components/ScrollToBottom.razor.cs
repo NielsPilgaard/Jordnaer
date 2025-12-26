@@ -8,6 +8,8 @@ namespace Jordnaer.Components;
 public partial class ScrollToBottom : IDisposable
 {
 	private IScrollListener? _scrollListener;
+	private double _lastScrollTop = double.MaxValue;
+	private bool _isFirstScroll = true;
 
 	protected string Classname =>
 		new CssBuilder("mud-scroll-to-top")
@@ -84,7 +86,6 @@ public partial class ScrollToBottom : IDisposable
 	{
 		if (firstRender)
 		{
-
 			var selector = !string.IsNullOrWhiteSpace(Selector)
 							   ? Selector
 							   : null; // null is defaulted to document element in JS function
@@ -105,9 +106,26 @@ public partial class ScrollToBottom : IDisposable
 	{
 		await OnScroll.InvokeAsync(e);
 
+		// Calculate distance from bottom
+		// scrollHeight: total height of content
+		// scrollTop: how far we've scrolled from top
+		// distanceFromBottom: how far we are from the absolute bottom
 		var distanceFromBottom = e.ScrollHeight - e.ScrollTop;
 
-		if (distanceFromBottom >= MinimumBottomOffset && Visible != true)
+		// Detect scroll direction: if scrollTop is increasing, we're scrolling down
+		var isScrollingDown = e.ScrollTop > _lastScrollTop;
+		_lastScrollTop = e.ScrollTop;
+
+		// Skip showing button on first scroll event (when user just navigated to chat)
+		if (_isFirstScroll)
+		{
+			_isFirstScroll = false;
+			return;
+		}
+
+		// Only show the button when scrolling up (away from bottom)
+		// Don't show it when scrolling down (towards bottom) to prevent it from reappearing during scroll-to-bottom animation
+		if (distanceFromBottom >= MinimumBottomOffset && !Visible && !isScrollingDown)
 		{
 			Visible = true;
 			await InvokeAsync(StateHasChanged);
@@ -121,10 +139,14 @@ public partial class ScrollToBottom : IDisposable
 	}
 
 	/// <summary>
-	/// Scrolls to top when clicked and invokes OnClick
+	/// Scrolls to bottom when clicked and invokes OnClick
 	/// </summary>
 	private async Task OnButtonClick(MouseEventArgs args)
 	{
+		// Hide the button immediately when clicked
+		Visible = false;
+		await InvokeAsync(StateHasChanged);
+
 		if (_scrollListener?.Selector is not null)
 		{
 			await ScrollManager.ScrollToBottomAsync(_scrollListener.Selector, ScrollBehavior);

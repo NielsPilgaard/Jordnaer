@@ -63,7 +63,8 @@
                         <MudDatePicker AdornmentColor="Color.Info" @bind-Date="@_userProfile.DateOfBirth"
                             Color="Color.Info" For="() => _userProfile.DateOfBirth" Label="Fødselsdato"
                             OpenTo="OpenTo.Year" PickerVariant="PickerVariant.Dialog"
-                            Placeholder="@DateTime.Now.ToString("d")" Variant="Variant.Outlined" Rounded name="bday" />
+                            Placeholder="@DateTime.Now.ToString("d")" Variant="Variant.Outlined" Rounded
+                            autocomplete="bday" />
                     </MudItem>
                 </MudGrid>
             </MudPaper>

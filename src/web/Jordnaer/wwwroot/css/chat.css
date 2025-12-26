@@ -66,11 +66,42 @@
     font-size: 1.25rem;
 }
 
+/* Green-ish tint for focus instead of purple */
+.chat-input-field .mud-input-control-input-container:after {
+    border-color: #878e64 !important;
+}
+
+.chat-input-field .mud-input:focus {
+    border-color: #878e64 !important;
+}
+
+.chat-input-field.mud-input-focused .mud-input-control-input-container:after {
+    border-color: #878e64 !important;
+}
+
 .mud-icon-button-edge-end {
     margin-right: 0;
     margin-inline-end: 0;
 }
 
 .active-chat {
-    background-color: var(--mud-palette-action-default-hover);
+    background-color: rgba(135, 142, 100, 0.15);
+    border-left: 4px solid #878e64;
+}
+
+/* User search input improvements */
+.chat-user-search {
+    margin: 8px;
+}
+
+.chat-user-search .mud-input-control-input-container:after {
+    border-color: #878e64 !important;
+}
+
+.chat-user-search.mud-input-focused .mud-input-control-input-container:after {
+    border-color: #878e64 !important;
+}
+
+.chat-selector-autocomplete:hover {
+    background-color: rgba(207, 193, 166, 0.2);
 }
