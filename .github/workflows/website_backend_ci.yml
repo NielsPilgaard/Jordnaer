@@ -9,9 +9,10 @@ on:
 
 env:
   WORKING_DIRECTORY: tests/web/Jordnaer.Tests
+
 jobs:
   test:
-    # Don't run the action if it was triggered by a tag push  
+    # Don't run the action if it was triggered by a tag push
     if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
@@ -21,13 +22,13 @@ jobs:
       - name: Set up dotnet
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.x"
+          dotnet-version: "10.x"
 
       - name: Test
         # Dependabot cannot access secrets, so we disable this step for Dependabot
         if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
         run: >
-          dotnet test "${{ env.WORKING_DIRECTORY }}" 
-          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
+          dotnet test "${{ env.WORKING_DIRECTORY }}"
+          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
           -p:InformationalVersion=${{ github.ref_name }}
