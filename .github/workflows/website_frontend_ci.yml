@@ -17,7 +17,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright/dotnet:v1.54.0-jammy
+      image: mcr.microsoft.com/playwright/dotnet:v1.57.0-jammy
       options: --user 1001
     steps:
       - name: Checkout
