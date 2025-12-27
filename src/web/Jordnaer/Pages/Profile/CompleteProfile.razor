@@ -115,14 +115,13 @@
 @code {
     private bool _isLoading = true;
     private UserProfile? _userProfile;
-    private string? _generatedUsername;
 
     private bool _useZipCodeOnly = true; // Default to more private
     private string _zipCodeLocation = string.Empty;
     private string _addressLocation = string.Empty;
 
     private InputModel _input = new();
-    private static DateTime _defaultPickerDate = DateTime.Today.AddYears(-30);
+    private static DateTime DefaultPickerDate => DateTime.Today.AddYears(-30);
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
@@ -145,7 +144,7 @@
         // Pre-populate from existing profile data (from external claims or previous submission)
         _input.FirstName = _userProfile.FirstName ?? "";
         _input.LastName = _userProfile.LastName ?? "";
-        _input.DateOfBirth = _userProfile.DateOfBirth ?? _defaultPickerDate;
+        _input.DateOfBirth = _userProfile.DateOfBirth ?? DefaultPickerDate;
 
         // Initialize location fields
         if (_userProfile.Address is not null)
@@ -159,24 +158,7 @@
             _useZipCodeOnly = true;
         }
 
-        // Generate username preview if we have name
-        if (!string.IsNullOrWhiteSpace(_input.FirstName) && !string.IsNullOrWhiteSpace(_input.LastName))
-        {
-            await UpdateUsernamePreview();
-        }
-
         _isLoading = false;
-    }
-
-    private async Task UpdateUsernamePreview()
-    {
-        var usernameResult = await ProfileService.GenerateUniqueUsernameAsync(
-        _input.FirstName,
-        _input.LastName);
-
-        usernameResult.Switch(
-        success => _generatedUsername = success.Value,
-        error => { /* Ignore error for preview */ });
     }
 
     private async Task OnAddressLocationChanged(string address)
@@ -273,7 +255,7 @@
         _userProfile.UserName = username;
 
         // Only update date of birth if it's changed from default
-        if (_input.DateOfBirth.HasValue && _input.DateOfBirth.Value.Date != _defaultPickerDate.Date)
+        if (_input.DateOfBirth.HasValue && _input.DateOfBirth.Value.Date != DefaultPickerDate.Date)
         {
             _userProfile.DateOfBirth = _input.DateOfBirth;
         }
@@ -322,7 +304,7 @@
         [MaxLength(250, ErrorMessage = "Efternavn må højest være 250 karakterer langt.")]
         public string LastName { get; set; } = "";
 
-        public DateTime? DateOfBirth { get; set; } = _defaultPickerDate;
+        public DateTime? DateOfBirth { get; set; } = DefaultPickerDate;
     }
 }
 

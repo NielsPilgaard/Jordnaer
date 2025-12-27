@@ -191,11 +191,17 @@
                 userProfile.FirstName ?? "",
                 userProfile.LastName ?? "");
 
-            if (usernameResult.IsT0)
+            if (usernameResult.IsT1)
             {
-                userProfile.UserName = usernameResult.AsT0.Value;
+                Logger.LogWarning("Failed to generate unique username for user {Email}: {Error}",
+                    Input.Email, usernameResult.AsT1.Value);
+                _message = new AlertMessage(
+                    "Kunne ikke generere brugernavn. Du skal fuldføre din profil for at fortsætte.",
+                    true);
+                return;
             }
-            // If username generation fails, keep the one from ToUserProfile() - it will be updated during profile completion
+
+            userProfile.UserName = usernameResult.AsT0.Value;
 
             Context.UserProfiles.Add(userProfile);
             await Context.SaveChangesAsync();

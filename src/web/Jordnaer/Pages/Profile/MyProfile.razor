@@ -189,6 +189,8 @@
     private string _addressLocation = string.Empty;
     private string[]? _selectedCategoryNames;
 
+    private static DateTime DefaultPickerDate => DateTime.Today.AddYears(-30);
+
     protected override async Task OnInitializedAsync()
     {
         if (!RendererInfo.IsInteractive)
@@ -206,6 +208,12 @@
         }
 
         _userProfile = userProfile;
+
+        // Initialize DateOfBirth to default if not set
+        if (_userProfile.DateOfBirth is null)
+        {
+            _userProfile.DateOfBirth = DefaultPickerDate;
+        }
 
         // Initialize location fields from existing data
         if (_userProfile.Address is not null)
@@ -301,6 +309,12 @@
 
         _userProfile.Description = await _textEditorComponent.GetHtmlAsync();
         await _editChildProfileTabsComponent.UpdateChildProfileDescriptions();
+
+        // Only update date of birth if it's changed from default
+        if (_userProfile.DateOfBirth.HasValue && _userProfile.DateOfBirth.Value.Date == DefaultPickerDate.Date)
+        {
+            _userProfile.DateOfBirth = null;
+        }
 
         var updateProfileResult = await ProfileService.UpdateUserProfile(_userProfile);
         updateProfileResult.Switch(

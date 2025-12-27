@@ -161,7 +161,6 @@ public class AdvertisementService : IAdvertisementService
                 (ad.StartDate == null || ad.StartDate <= now) &&
                 (ad.EndDate == null || ad.EndDate > now))
             .OrderByDescending(ad => ad.Priority)
-            .ThenBy(_ => Guid.NewGuid())  // Random within same priority
             .Take(count)
             .Select(ad => new AdvertisementDto
             {
@@ -172,6 +171,7 @@ public class AdvertisementService : IAdvertisementService
                 Link = ad.Link
             })
             .ToListAsync(cancellationToken);
+        // Order by Guid.NewGuid() or use .Shuffle() client side to randomize
     }
 
     public async Task RecordViewAsync(int advertisementId)
