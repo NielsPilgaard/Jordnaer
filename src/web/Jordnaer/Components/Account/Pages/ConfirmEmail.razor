@@ -2,10 +2,13 @@
 
 @using System.Text
 @using Microsoft.AspNetCore.WebUtilities
+@using Jordnaer.Features.Profile
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IProfileService ProfileService
 @inject IdentityRedirectManager RedirectManager
+@inject ILogger<ConfirmEmail> Logger
 
 <MetadataComponent Title="Bekræft email" />
 
@@ -54,9 +57,26 @@
 
                 await SignInManager.SignInAsync(user, isPersistent: true);
 
-                var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-
-                RedirectManager.RedirectTo(returnUrl, forceLoad: true);
+                // Check if profile is complete and redirect accordingly
+                try
+                {
+                    var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+                    if (!isProfileComplete)
+                    {
+                        RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
+                    }
+                    else
+                    {
+                        var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                        RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to check profile completeness for user {UserId} during email confirmation", user.Id);
+                    // Fall back to home page if profile check fails
+                    RedirectManager.RedirectTo("/", forceLoad: true);
+                }
             }
             else
             {

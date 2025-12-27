@@ -6,7 +6,7 @@ using NetTopologySuite.Geometries;
 namespace Jordnaer.Shared;
 
 [Index(nameof(ZipCode))]
-[Index(nameof(UserName))]
+[Index(nameof(UserName), IsUnique = true)]
 [Index(nameof(SearchableName))]
 public class UserProfile
 {

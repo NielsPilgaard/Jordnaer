@@ -33,6 +33,11 @@ public class DataForsyningenHealthCheck(
 			logger.LogDebug("Internal healthcheck rate limit has been reached.");
 			return HealthCheckResult.Degraded(exception.Message);
 		}
+		catch (Exception exception)
+		{
+			logger.LogError(exception, "An error occurred while pinging DataForsyningen.");
+			return HealthCheckResult.Unhealthy(exception.Message, exception);
+		}
 
 		if (pingResult.IsSuccessful)
 		{

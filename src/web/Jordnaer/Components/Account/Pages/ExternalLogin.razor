@@ -3,6 +3,7 @@
 @using System.Text.Encodings.Web
 @using Mediator
 @using Microsoft.AspNetCore.WebUtilities
+@using Jordnaer.Features.Profile
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -13,6 +14,7 @@
 @inject ILogger<ExternalLogin> Logger
 @inject JordnaerDbContext Context
 @inject IMediator Mediator
+@inject IProfileService ProfileService
 
 <MetadataComponent Title="Registrér" />
 
@@ -129,7 +131,43 @@
                 _externalLoginInfo.Principal.Identity?.Name,
                 _externalLoginInfo.LoginProvider);
 
-            RedirectManager.RedirectTo(FirstLoginReturnUrl);
+            // Check if profile is complete and redirect accordingly
+            try
+            {
+                var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+                if (!isProfileComplete)
+                {
+                    if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                    {
+                        RedirectManager.RedirectTo(
+                            "/CompleteProfile",
+                            queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+                    }
+                    else
+                    {
+                        RedirectManager.RedirectTo("/CompleteProfile");
+                    }
+                }
+                else
+                {
+                    RedirectManager.RedirectTo(FirstLoginReturnUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to check profile completeness for user {UserId} during external login", user.Id);
+                // Fall back to profile completion on error
+                if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                {
+                    RedirectManager.RedirectTo(
+                        "/CompleteProfile",
+                        queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+                }
+                else
+                {
+                    RedirectManager.RedirectTo("/CompleteProfile");
+                }
+            }
         }
         else if (result.IsLockedOut)
         {
@@ -165,6 +203,24 @@
             Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
 
             var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
+
+            // Generate unique username
+            var usernameResult = await ProfileService.GenerateUniqueUsernameAsync(
+                userProfile.FirstName ?? "",
+                userProfile.LastName ?? "");
+
+            if (usernameResult.IsT1)
+            {
+                Logger.LogWarning("Failed to generate unique username for user {Email}: {Error}",
+                    Input.Email, usernameResult.AsT1.Value);
+                _message = new AlertMessage(
+                    "Kunne ikke generere brugernavn. Du skal fuldføre din profil for at fortsætte.",
+                    true);
+                return;
+            }
+
+            userProfile.UserName = usernameResult.AsT0.Value;
+
             Context.UserProfiles.Add(userProfile);
             await Context.SaveChangesAsync();
 
@@ -186,7 +242,18 @@
             JordnaerMetrics.ExternalLoginCounter.Add(1, new KeyValuePair<string, object?>("provider", _externalLoginInfo.LoginProvider));
 
             await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
-            RedirectManager.RedirectTo(FirstLoginReturnUrl);
+
+            // Redirect new external users to profile completion
+            if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                RedirectManager.RedirectTo(
+                    "/CompleteProfile",
+                    queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+            }
+            else
+            {
+                RedirectManager.RedirectTo("/CompleteProfile");
+            }
         }
     }
 

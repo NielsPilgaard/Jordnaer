@@ -27,7 +27,6 @@ public class LandingPageTests : BrowserTest
 	}
 
 	[Test]
-	[Ignore("The Posts navlink is currently hidden")]
 	public async Task When_User_Clicks_Posts_User_Should_Be_Redirected_To_Posts()
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync();

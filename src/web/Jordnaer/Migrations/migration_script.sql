@@ -757,6 +757,31 @@ BEGIN
     VALUES (N'20251222211350_Add_Location_Geography_Column', N'9.0.8');
 END;
 
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251226115122_Unique_Username'
+)
+BEGIN
+    DROP INDEX [IX_UserProfiles_UserName] ON [UserProfiles];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251226115122_Unique_Username'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_UserProfiles_UserName] ON [UserProfiles] ([UserName]) WHERE [UserName] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20251226115122_Unique_Username'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20251226115122_Unique_Username', N'9.0.8');
+END;
+
 COMMIT;
 GO
 

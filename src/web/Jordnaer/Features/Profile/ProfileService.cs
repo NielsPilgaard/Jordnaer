@@ -27,6 +27,23 @@ public interface IProfileService
 	/// <param name="updatedUserProfile">The user profile.</param>
 	/// <param name="cancellationToken"></param>
 	ValueTask<OneOf<Success<UserProfile>, Error>> UpdateUserProfile(UserProfile updatedUserProfile, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Checks if the user profile is complete (has required fields).
+	/// </summary>
+	/// <param name="userId">The user ID to check.</param>
+	/// <param name="cancellationToken"></param>
+	/// <returns>True if profile is complete, false otherwise.</returns>
+	Task<bool> IsProfileCompleteAsync(string userId, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Generates a unique username from first and last name.
+	/// </summary>
+	/// <param name="firstName">First name.</param>
+	/// <param name="lastName">Last name.</param>
+	/// <param name="cancellationToken"></param>
+	/// <returns>A unique username or error message.</returns>
+	Task<OneOf<Success<string>, Error<string>>> GenerateUniqueUsernameAsync(string firstName, string lastName, CancellationToken cancellationToken = default);
 }
 
 public sealed class ProfileService(
@@ -133,5 +150,69 @@ public sealed class ProfileService(
 				context.Entry(childProfile).State = EntityState.Modified;
 			}
 		}
+	}
+
+	public async Task<bool> IsProfileCompleteAsync(string userId, CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var profile = await context.UserProfiles
+									.AsNoTracking()
+									.FirstOrDefaultAsync(user => user.Id == userId, cancellationToken);
+
+		if (profile is null)
+		{
+			return false;
+		}
+
+		// Basic completeness check
+		return !string.IsNullOrWhiteSpace(profile.FirstName) &&
+			   !string.IsNullOrWhiteSpace(profile.LastName) &&
+			   profile.Location is not null &&
+			   (profile.ZipCode.HasValue || !string.IsNullOrWhiteSpace(profile.Address));
+	}
+
+	public async Task<OneOf<Success<string>, Error<string>>> GenerateUniqueUsernameAsync(string firstName, string lastName, CancellationToken cancellationToken = default)
+	{
+		var baseUsername = $"{firstName}{lastName}".ToLowerInvariant()
+			.Replace(" ", "")
+			.Replace("æ", "ae")
+			.Replace("ø", "oe")
+			.Replace("å", "aa");
+
+		// Remove non-alphanumeric characters
+		baseUsername = new string(baseUsername.Where(c => char.IsLetterOrDigit(c)).ToArray());
+
+		if (string.IsNullOrWhiteSpace(baseUsername))
+		{
+			return new Error<string>("Kunne ikke generere brugernavn");
+		}
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		// Fetch all existing usernames that start with baseUsername in one query (case-insensitive)
+		var pattern = $"{baseUsername}%";
+		var existingUsernames = await context.UserProfiles
+			.AsNoTracking()
+			.Where(p => p.UserName != null && EF.Functions.Like(p.UserName, pattern))
+			.Select(p => p.UserName)
+			.ToHashSetAsync(cancellationToken);
+
+		var username = baseUsername;
+		if (!existingUsernames.Any(u => string.Equals(u, username, StringComparison.OrdinalIgnoreCase)))
+		{
+			return new Success<string>(username);
+		}
+
+		// Find first available counter
+		for (var counter = 2; counter <= 1000; counter++)
+		{
+			username = $"{baseUsername}{counter}";
+			if (!existingUsernames.Contains(username, StringComparer.OrdinalIgnoreCase))
+			{
+				return new Success<string>(username);
+			}
+		}
+
+		return new Error<string>("Kunne ikke finde et unikt brugernavn");
 	}
 }

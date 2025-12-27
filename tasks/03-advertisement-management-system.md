@@ -6,6 +6,7 @@
 **Area:** Advertisement Management & Display
 **Priority:** High
 **Related:**
+
 - Task 01 (Sponsor Dashboard) - Sponsors will eventually manage their own ads
 - Task 02 (Backoffice Claims) - Admin access required for ad management
 
@@ -70,6 +71,7 @@ CREATE TABLE Advertisements (
 ### 2. Entity Model & DTOs
 
 **Entity:**
+
 ```csharp
 // src/web/Jordnaer/Features/Ads/Advertisement.cs
 public class Advertisement
@@ -97,6 +99,7 @@ public class Advertisement
 ```
 
 **Constants:**
+
 ```csharp
 // src/shared/Jordnaer.Shared/Ads/AdPlacement.cs
 public static class AdPlacement
@@ -109,6 +112,7 @@ public static class AdPlacement
 ```
 
 **DTO:**
+
 ```csharp
 // src/shared/Jordnaer.Shared/Ads/AdvertisementDto.cs
 public record AdvertisementDto
@@ -157,7 +161,6 @@ public class AdvertisementService : IAdvertisementService
                 (ad.StartDate == null || ad.StartDate <= now) &&
                 (ad.EndDate == null || ad.EndDate > now))
             .OrderByDescending(ad => ad.Priority)
-            .ThenBy(_ => Guid.NewGuid())  // Random within same priority
             .Take(count)
             .Select(ad => new AdvertisementDto
             {
@@ -168,6 +171,7 @@ public class AdvertisementService : IAdvertisementService
                 Link = ad.Link
             })
             .ToListAsync(cancellationToken);
+        // Order by Guid.NewGuid() or use .Shuffle() client side to randomize
     }
 
     public async Task RecordViewAsync(int advertisementId)
@@ -239,6 +243,7 @@ private List<SearchResultItem> GetItemsWithAds()
 ```
 
 Update rendering:
+
 ```razor
 @if (item.IsAd && item.Ad is not null)
 {
@@ -279,8 +284,9 @@ private async Task OnClick()
 ```
 
 Update link in template:
+
 ```razor
-<MudLink Href="@Link" Target="_blank" @onclick="OnClick" @onclick:stopPropagation="true">
+<MudLink Href="@Link" Target="_blank" @onclick="OnClick">
 ```
 
 ### 6. Seed Data
@@ -308,6 +314,7 @@ migrationBuilder.InsertData(
 Create minimal CRUD at `/backoffice/advertisements`:
 
 **Features:**
+
 - List all ads with status (active/scheduled/expired)
 - Create new ad (form with title, description, image, link, placement, dates, priority)
 - Edit existing ads
@@ -316,10 +323,12 @@ Create minimal CRUD at `/backoffice/advertisements`:
 - Delete ads
 
 **Authorization:**
+
 - Require admin claim (from Task 02)
 - Use `[Authorize(Policy = "AdminOnly")]`
 
 **UI Components:**
+
 - MudTable for listing ads
 - MudDialog for create/edit forms
 - File upload using existing [ImageService.cs](src/web/Jordnaer/Features/Images/ImageService.cs)
@@ -328,6 +337,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 ## Acceptance Criteria
 
 ### Database & Models
+
 - [ ] Advertisement table created with migration
 - [ ] Advertisement entity created
 - [ ] AdvertisementDto created
@@ -336,6 +346,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 - [ ] Seed data for Moon Creative ad
 
 ### Service Layer
+
 - [ ] IAdvertisementService interface created
 - [ ] AdvertisementService implemented
 - [ ] GetActiveAdsAsync respects scheduling and priority
@@ -344,6 +355,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 - [ ] Service registered in Program.cs DI
 
 ### Integration
+
 - [ ] UserSearchResultComponent uses service instead of hardcoded ad
 - [ ] AdCard tracks views on render
 - [ ] AdCard tracks clicks on link click
@@ -352,6 +364,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 - [ ] No ads shown if none are active
 
 ### Backoffice Admin UI
+
 - [ ] Page at `/backoffice/advertisements` with admin-only access
 - [ ] List all advertisements
 - [ ] Create new advertisement form
@@ -363,14 +376,16 @@ Create minimal CRUD at `/backoffice/advertisements`:
 - [ ] Validation for required fields
 
 ### Analytics
+
 - [ ] View count increments when ad displayed
 - [ ] Click count increments when ad clicked
 - [ ] Analytics visible in backoffice
-- [ ] CTR calculated correctly (clicks/views * 100)
+- [ ] CTR calculated correctly (clicks/views \* 100)
 
 ## Files to Create
 
 **New Files:**
+
 - `src/web/Jordnaer/Features/Ads/Advertisement.cs` - Entity
 - `src/shared/Jordnaer.Shared/Ads/AdvertisementDto.cs` - DTO
 - `src/shared/Jordnaer.Shared/Ads/AdPlacement.cs` - Constants
@@ -380,6 +395,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 - `src/web/Jordnaer/Database/Migrations/YYYYMMDD_AddAdvertisements.cs` - Migration
 
 **Modify:**
+
 - [UserSearchResultComponent.razor](src/web/Jordnaer/Features/UserSearch/UserSearchResultComponent.razor) - Use service
 - [AdCard.razor](src/web/Jordnaer/Features/Ad/AdCard.razor) - Add analytics tracking
 - [JordnaerDbContext.cs](src/web/Jordnaer/Database/JordnaerDbContext.cs) - Add DbSet
@@ -400,6 +416,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 ## Future Enhancements (NOT in this task)
 
 These can be added later when needed:
+
 - Geographic targeting (zip codes, cities)
 - Category/interest targeting
 - A/B testing variants

@@ -514,7 +514,9 @@ namespace Jordnaer.Server.Migrations
 
                     b.HasIndex("SearchableName");
 
-                    b.HasIndex("UserName");
+                    b.HasIndex("UserName")
+                        .IsUnique()
+                        .HasFilter("[UserName] IS NOT NULL");
 
                     b.HasIndex("ZipCode");
 
