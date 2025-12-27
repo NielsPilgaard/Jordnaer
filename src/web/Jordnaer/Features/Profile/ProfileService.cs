@@ -189,15 +189,16 @@ public sealed class ProfileService(
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-		// Fetch all existing usernames that start with baseUsername in one query
+		// Fetch all existing usernames that start with baseUsername in one query (case-insensitive)
+		var pattern = $"{baseUsername}%";
 		var existingUsernames = await context.UserProfiles
 			.AsNoTracking()
-			.Where(p => p.UserName != null && p.UserName.StartsWith(baseUsername))
+			.Where(p => p.UserName != null && EF.Functions.Like(p.UserName, pattern))
 			.Select(p => p.UserName)
-			.ToListAsync(cancellationToken);
+			.ToHashSetAsync(cancellationToken);
 
 		var username = baseUsername;
-		if (!existingUsernames.Contains(username))
+		if (!existingUsernames.Any(u => string.Equals(u, username, StringComparison.OrdinalIgnoreCase)))
 		{
 			return new Success<string>(username);
 		}
@@ -206,7 +207,7 @@ public sealed class ProfileService(
 		for (var counter = 2; counter <= 1000; counter++)
 		{
 			username = $"{baseUsername}{counter}";
-			if (!existingUsernames.Contains(username))
+			if (!existingUsernames.Contains(username, StringComparer.OrdinalIgnoreCase))
 			{
 				return new Success<string>(username);
 			}

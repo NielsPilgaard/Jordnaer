@@ -1,4 +1,4 @@
-﻿@page "/Account/ConfirmEmail"
+﻿﻿@page "/Account/ConfirmEmail"
 
 @using System.Text
 @using Microsoft.AspNetCore.WebUtilities
@@ -57,15 +57,23 @@
                 await SignInManager.SignInAsync(user, isPersistent: true);
 
                 // Check if profile is complete and redirect accordingly
-                var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
-                if (!isProfileComplete)
+                try
                 {
-                    RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
+                    var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+                    if (!isProfileComplete)
+                    {
+                        RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
+                    }
+                    else
+                    {
+                        var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                        RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
+                    }
                 }
-                else
+                catch
                 {
-                    var returnUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-                    RedirectManager.RedirectTo(returnUrl, forceLoad: true);
+                    // Fall back to home page if profile check fails
+                    RedirectManager.RedirectTo("/", forceLoad: true);
                 }
             }
             else

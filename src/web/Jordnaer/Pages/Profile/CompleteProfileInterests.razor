@@ -153,7 +153,11 @@
         Snackbar.Add("Din profil er nu komplet! Velkommen til Jordnær!", Severity.Success);
 
         // Redirect to ReturnUrl or home - profile complete!
-        var redirectUrl = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
+        var redirectUrl = "/";
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative))
+        {
+            redirectUrl = ReturnUrl;
+        }
         NavigationManager.NavigateTo(redirectUrl);
     }
 

@@ -76,7 +76,7 @@ public static class SeedDatabase
 	{
 		if (await context.Categories.AnyAsync())
 		{
-			return await context.Categories.ToListAsync();
+			return await context.Categories.AsNoTracking().ToListAsync();
 		}
 
 		var categories = new List<Category>
