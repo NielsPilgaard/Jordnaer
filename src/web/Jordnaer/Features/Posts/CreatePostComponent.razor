@@ -10,10 +10,23 @@
 
     <AuthorizeView>
         <NotAuthorized>
-            <MudPaper Class="pa-4">
-                <MudAlert Icon="@Icons.Material.Filled.Lock">Du skal være logget ind for at lave et opslag.</MudAlert>
-                <MudButton Href="/Account/Login" Variant="Variant.Filled" Color="Color.Success">Log ind</MudButton>
-            </MudPaper>
+            <MudCard Class="mb-4 warm-shadow warm-rounded" Elevation="3">
+                <MudCardContent Class="pa-4">
+                    <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large"
+                            Style="@($"color: {JordnaerPalette.YellowBackground};")" />
+                        <MudText Typo="Typo.body1" Align="Align.Center"
+                            Style="@($"color: {JordnaerPalette.BlueBody};")">
+                            Du skal være logget ind for at lave et opslag.
+                        </MudText>
+                        <MudButton Href="/Account/Login" Variant="Variant.Filled"
+                            Style="@($"background-color: {JordnaerPalette.YellowBackground}; color: white;")"
+                            Class="warm-rounded">
+                            Log ind
+                        </MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
         </NotAuthorized>
         <Authorized>
             @if (!_isExpanded)
