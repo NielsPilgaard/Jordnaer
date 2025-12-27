@@ -41,8 +41,8 @@
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
-		<PackageReference Include="MudBlazor" Version="8.11.0" />
-		<PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="8.2.4" />
+		<PackageReference Include="MudBlazor" Version="8.15.0" />
+		<PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="8.3.0" />
 		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
 		<PackageReference Include="Blazored.SessionStorage" Version="2.4.0" />
