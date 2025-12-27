@@ -98,7 +98,7 @@
                 </MudGrid>
 
                 <div class="d-flex justify-space-between mt-6" style="gap: 1rem;">
-                    <MudButton Href="/" Variant="Variant.Text" Color="Color.Default">
+                    <MudButton Href="@GetSkipUrl()" Variant="Variant.Text" Color="Color.Default">
                         Spring over (gør det senere)
                     </MudButton>
 
@@ -159,6 +159,15 @@
         }
 
         _isLoading = false;
+    }
+
+    private string GetSkipUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative))
+        {
+            return ReturnUrl;
+        }
+        return "/";
     }
 
     private async Task OnAddressLocationChanged(string address)

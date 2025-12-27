@@ -59,7 +59,7 @@
                     </MudButton>
 
                     <div class="d-flex" style="gap: 1rem;">
-                        <MudButton Href="/" Variant="Variant.Text" Color="Color.Default">
+                        <MudButton Href="@GetSkipUrl()" Variant="Variant.Text" Color="Color.Default">
                             Spring over
                         </MudButton>
 
@@ -116,6 +116,15 @@
             return "/CompleteProfile";
         }
         return $"/CompleteProfile?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+    }
+
+    private string GetSkipUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative))
+        {
+            return ReturnUrl;
+        }
+        return "/";
     }
 
     private async Task SaveInterests()
