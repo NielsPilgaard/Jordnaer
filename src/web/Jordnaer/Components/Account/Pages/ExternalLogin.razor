@@ -132,9 +132,31 @@
                 _externalLoginInfo.LoginProvider);
 
             // Check if profile is complete and redirect accordingly
-            var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
-            if (!isProfileComplete)
+            try
             {
+                var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+                if (!isProfileComplete)
+                {
+                    if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                    {
+                        RedirectManager.RedirectTo(
+                            "/CompleteProfile",
+                            queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+                    }
+                    else
+                    {
+                        RedirectManager.RedirectTo("/CompleteProfile");
+                    }
+                }
+                else
+                {
+                    RedirectManager.RedirectTo(FirstLoginReturnUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to check profile completeness for user {UserId} during external login", user.Id);
+                // Fall back to profile completion on error
                 if (!string.IsNullOrWhiteSpace(ReturnUrl))
                 {
                     RedirectManager.RedirectTo(
@@ -145,10 +167,6 @@
                 {
                     RedirectManager.RedirectTo("/CompleteProfile");
                 }
-            }
-            else
-            {
-                RedirectManager.RedirectTo(FirstLoginReturnUrl);
             }
         }
         else if (result.IsLockedOut)

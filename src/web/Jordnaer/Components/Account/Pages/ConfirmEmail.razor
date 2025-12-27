@@ -8,6 +8,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IProfileService ProfileService
 @inject IdentityRedirectManager RedirectManager
+@inject ILogger<ConfirmEmail> Logger
 
 <MetadataComponent Title="Bekræft email" />
 
@@ -70,8 +71,9 @@
                         RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.LogError(ex, "Failed to check profile completeness for user {UserId} during email confirmation", user.Id);
                     // Fall back to home page if profile check fails
                     RedirectManager.RedirectTo("/", forceLoad: true);
                 }
