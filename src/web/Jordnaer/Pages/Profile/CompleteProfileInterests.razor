@@ -104,7 +104,7 @@
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
 
         // Pre-populate selected categories
-        _selectedCategoryNames = _userProfile.Categories.Select(c => c.Name).ToArray();
+        _selectedCategoryNames = _userProfile.Categories?.Select(c => c.Name).ToArray() ?? [];
 
         _isLoading = false;
     }
