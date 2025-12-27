@@ -58,24 +58,15 @@
                 await SignInManager.SignInAsync(user, isPersistent: true);
 
                 // Check if profile is complete and redirect accordingly
-                try
+                var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+                if (!isProfileComplete)
                 {
-                    var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
-                    if (!isProfileComplete)
-                    {
-                        RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
-                    }
-                    else
-                    {
-                        var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-                        RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
-                    }
+                    RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.LogError(ex, "Failed to check profile completeness for user {UserId} during email confirmation", user.Id);
-                    // Fall back to home page if profile check fails
-                    RedirectManager.RedirectTo("/", forceLoad: true);
+                    var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                    RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
                 }
             }
             else
