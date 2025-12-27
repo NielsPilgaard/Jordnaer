@@ -63,11 +63,11 @@ public static class SeedDatabase
 			.RuleFor(u => u.DateOfBirth, f => f.Date.Between(DateTime.UtcNow.AddYears(-70), DateTime.UtcNow.AddYears(-16)))
 			.RuleFor(u => u.ProfilePictureUrl, f => f.Internet.Avatar());
 
-		Console.WriteLine("Generated {0} UserProfiles for testing.", usersToGenerate);
-
 		var users = userFaker.Generate(usersToGenerate);
 
 		users = users.DistinctBy(u => u.UserName).ToList();
+
+		Console.WriteLine("Generated {0} UserProfiles for testing.", users.Count);
 
 		context.AddRange(users);
 	}

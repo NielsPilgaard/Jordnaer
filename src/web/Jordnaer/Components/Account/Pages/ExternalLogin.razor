@@ -135,7 +135,16 @@
             var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
             if (!isProfileComplete)
             {
-                RedirectManager.RedirectTo("/CompleteProfile");
+                if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                {
+                    RedirectManager.RedirectTo(
+                        "/CompleteProfile",
+                        queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+                }
+                else
+                {
+                    RedirectManager.RedirectTo("/CompleteProfile");
+                }
             }
             else
             {
@@ -176,6 +185,18 @@
             Logger.LogInformation("User created an account using {Name} provider.", _externalLoginInfo!.LoginProvider);
 
             var userProfile = _externalLoginInfo!.Principal.ToUserProfile(user.Id);
+
+            // Generate unique username
+            var usernameResult = await ProfileService.GenerateUniqueUsernameAsync(
+                userProfile.FirstName ?? "",
+                userProfile.LastName ?? "");
+
+            if (usernameResult.IsT0)
+            {
+                userProfile.UserName = usernameResult.AsT0.Value;
+            }
+            // If username generation fails, keep the one from ToUserProfile() - it will be updated during profile completion
+
             Context.UserProfiles.Add(userProfile);
             await Context.SaveChangesAsync();
 
@@ -199,7 +220,16 @@
             await SignInManager.SignInAsync(user, isPersistent: false, _externalLoginInfo.LoginProvider);
 
             // Redirect new external users to profile completion
-            RedirectManager.RedirectTo("/CompleteProfile");
+            if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                RedirectManager.RedirectTo(
+                    "/CompleteProfile",
+                    queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+            }
+            else
+            {
+                RedirectManager.RedirectTo("/CompleteProfile");
+            }
         }
     }
 

@@ -168,7 +168,7 @@ public sealed class ProfileService(
 		return !string.IsNullOrWhiteSpace(profile.FirstName) &&
 			   !string.IsNullOrWhiteSpace(profile.LastName) &&
 			   profile.Location is not null &&
-			   (!string.IsNullOrWhiteSpace(profile.ZipCode?.ToString()) || !string.IsNullOrWhiteSpace(profile.Address));
+			   (profile.ZipCode.HasValue || !string.IsNullOrWhiteSpace(profile.Address));
 	}
 
 	public async Task<OneOf<Success<string>, Error<string>>> GenerateUniqueUsernameAsync(string firstName, string lastName, CancellationToken cancellationToken = default)
@@ -192,7 +192,7 @@ public sealed class ProfileService(
 		// Fetch all existing usernames that start with baseUsername in one query
 		var existingUsernames = await context.UserProfiles
 			.AsNoTracking()
-			.Where(p => p.UserName!.StartsWith(baseUsername))
+			.Where(p => p.UserName != null && p.UserName.StartsWith(baseUsername))
 			.Select(p => p.UserName)
 			.ToListAsync(cancellationToken);
 
