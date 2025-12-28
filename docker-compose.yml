@@ -1,0 +1,46 @@
+services:
+  sqlserver:
+    build:
+      context: ./infrastructure/sqlserver
+      dockerfile: ./Dockerfile
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "yourStrong(!)Password"
+    networks:
+      - jordnaer-network
+    restart: unless-stopped
+
+  azure-blob-storage:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    command: "azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck"
+    ports:
+      - "10000:10000"
+    networks:
+      - jordnaer-network
+    restart: unless-stopped
+
+  jordnaer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE__ENVIRONMENT=Development
+      - ASPNETCORE__URLS=http://+:8080
+      - ConnectionStrings__JordnaerDbContext=Server=sqlserver;Database=JordnaerDb;User Id=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;
+      - ConnectionStrings__AzureBlobStorage=UseDevelopmentStorage=true;
+    depends_on:
+      - sqlserver
+      - azure-blob-storage
+    networks:
+      - jordnaer-network
+    restart: unless-stopped
+
+networks:
+  jordnaer-network:
+    driver: bridge
