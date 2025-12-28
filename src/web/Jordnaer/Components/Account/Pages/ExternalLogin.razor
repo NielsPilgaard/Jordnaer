@@ -55,7 +55,7 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
+    private InputModel Input { get; set; } = new();
 
     [SupplyParameterFromQuery]
     private string? RemoteError { get; set; }
@@ -182,12 +182,6 @@
 
     private async Task OnValidSubmitAsync()
     {
-        if (Input is null)
-        {
-            _message = new AlertMessage("Formularen blev ikke udfyldt korrekt.", true);
-            return;
-        }
-
         var emailStore = GetEmailStore();
         var user = new ApplicationUser();
 
