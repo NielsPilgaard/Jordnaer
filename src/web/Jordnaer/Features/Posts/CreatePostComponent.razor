@@ -1,8 +1,9 @@
-﻿@using Jordnaer.Features.Theme
+@using Jordnaer.Features.Theme
 @inject IProfileCache ProfileCache
 @inject ICategoryCache CategoryCache
 @inject PostService PostService
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 @attribute [StreamRendering]
 
@@ -19,7 +20,7 @@
                             Style="@($"color: {JordnaerPalette.BlueBody};")">
                             Du skal være logget ind for at lave et opslag.
                         </MudText>
-                        <MudButton Href="/Account/Login" Variant="Variant.Filled"
+                        <MudButton Href="@GetLoginUrl()" Variant="Variant.Filled"
                             Style="@($"background-color: {JordnaerPalette.YellowBackground}; color: white;")"
                             Class="warm-rounded">
                             Log ind
@@ -223,5 +224,11 @@
 
         _selectedCategoryNames = selectedCategories.Where(x => x != null).Cast<string>().ToList();
         _postCategories = _categories.Where(possibleCategory => selectedCategories.Contains(possibleCategory.Name)).ToList();
+    }
+
+    private string GetLoginUrl()
+    {
+        var returnUrl = Uri.EscapeDataString(NavigationManager.Uri);
+        return $"/Account/Login?returnUrl={returnUrl}";
     }
 }
