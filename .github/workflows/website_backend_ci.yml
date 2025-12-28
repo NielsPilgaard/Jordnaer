@@ -39,7 +39,7 @@ jobs:
           dotnet test "${{ env.TESTS_DIRECTORY }}"
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
-          -p:InformationalVersion=${{ github.ref_name }}
+          -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
 
   build-and-push:
     # Only build and push the image on pushes to main branch, not tags
@@ -79,4 +79,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.sha }}
+            VERSION=0.0.0-dev+${{ github.sha }}

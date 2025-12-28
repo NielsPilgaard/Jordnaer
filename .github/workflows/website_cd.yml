@@ -28,11 +28,15 @@ jobs:
         with:
           dotnet-version: "10.x"
 
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#release-website-v}" >> $GITHUB_OUTPUT
+
       - name: Restore
         run: dotnet restore "${{ env.TESTS_DIRECTORY }}"
 
       - name: Build
-        run: dotnet build "${{ env.TESTS_DIRECTORY }}" --configuration Release --no-restore -p:InformationalVersion=${{ github.ref_name }}
+        run: dotnet build "${{ env.TESTS_DIRECTORY }}" --configuration Release --no-restore -p:InformationalVersion=${{ steps.version.outputs.VERSION }}
 
       - name: Test
         run: >
@@ -41,7 +45,7 @@ jobs:
           --no-build
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
-          -p:InformationalVersion=${{ github.ref_name }}
+          -p:InformationalVersion=${{ steps.version.outputs.VERSION }}
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -70,7 +74,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.ref_name }}
+            VERSION=${{ steps.version.outputs.VERSION }}
 
       - name: Login to Azure
         uses: azure/login@v2
