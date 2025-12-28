@@ -48,7 +48,8 @@ public interface IProfileService
 
 public sealed class ProfileService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	CurrentUser currentUser) : IProfileService
+	CurrentUser currentUser,
+	ILogger<ProfileService> logger) : IProfileService
 {
 	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName,
 		CancellationToken cancellationToken = default)
@@ -176,7 +177,8 @@ public sealed class ProfileService(
 		}
 		catch (Exception ex)
 		{
-			return new Error<string>($"Error when checking Profile completeness: {ex.Message}");
+			logger.LogError(ex, "Error checking profile completeness for user {UserId}", userId);
+			return new Error<string>($"Error when checking Profile completeness");
 		}
 	}
 
