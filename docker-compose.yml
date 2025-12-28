@@ -30,10 +30,10 @@ services:
     env_file:
       - .env
     environment:
-      - ASPNETCORE__ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE__URLS=http://+:8080
       - ConnectionStrings__JordnaerDbContext=Server=sqlserver;Database=JordnaerDb;User Id=sa;Password=yourStrong(!)Password;TrustServerCertificate=True;
-      - ConnectionStrings__AzureBlobStorage=UseDevelopmentStorage=true;
+      - ConnectionStrings__AzureBlobStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azure-blob-storage:10000/devstoreaccount1;
     depends_on:
       - sqlserver
       - azure-blob-storage
