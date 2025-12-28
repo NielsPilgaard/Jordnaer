@@ -7,6 +7,7 @@ on:
     paths:
       - "src/web/Jordnaer/**"
       - "src/shared/Jordnaer.Shared/**"
+      - "tests/web/Jordnaer.Tests/**"
       - "Dockerfile"
       - ".github/workflows/container_ci.yml"
 
