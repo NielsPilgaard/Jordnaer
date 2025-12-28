@@ -9,7 +9,7 @@ on:
 env:
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests
   REGISTRY: ghcr.io
-  IMAGE_NAME: minimoeder-website
+  IMAGE_NAME: nielspilgaard/minimoeder-website
   AZURE_WEBAPP_NAME: mini-moeder
   AZURE_RESOURCE_GROUP: Jordnaer
 
