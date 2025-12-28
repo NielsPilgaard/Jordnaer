@@ -1,4 +1,4 @@
-name: Deploy Website (Azure Web App)
+name: Deploy Container (Azure Web Apps for Containers)
 
 on:
   push:
@@ -7,14 +7,18 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_PACKAGE_PATH: src/web/Jordnaer/publish
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests
-  AZURE_WEBAPP_NAME: jordnaer
-  WORKING_DIRECTORY: src/web/Jordnaer
+  REGISTRY: ghcr.io
+  IMAGE_NAME: nielspilgaard/minimoeder-website
+  AZURE_WEBAPP_NAME: mini-moeder
+  AZURE_RESOURCE_GROUP: Jordnaer
 
 jobs:
-  deploy:
+  test-build-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -39,15 +43,43 @@ jobs:
           --filter Category!=SkipInCi
           -p:InformationalVersion=${{ github.ref_name }}
 
-      - name: Publish
-        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" -c Release --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to Azure App Service
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=production
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App for Containers
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE}}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
 
       - name: Create Deployment on elmah.io
         uses: elmahio/github-create-deployment-action@v1
@@ -56,4 +88,4 @@ jobs:
           version: ${{ github.ref_name }}
           logId: ${{ secrets.ELMAH_IO_LOG_ID }}
           userName: ${{ github.actor }}
-          description: ${{ github.event.head_commit.message }}
+          description: ${{ github.event.head_commit.message || format('Release {0}', github.ref_name) }}
