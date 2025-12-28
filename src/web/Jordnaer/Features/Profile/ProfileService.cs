@@ -33,8 +33,8 @@ public interface IProfileService
 	/// </summary>
 	/// <param name="userId">The user ID to check.</param>
 	/// <param name="cancellationToken"></param>
-	/// <returns>True if profile is complete, false otherwise.</returns>
-	Task<bool> IsProfileCompleteAsync(string userId, CancellationToken cancellationToken = default);
+	/// <returns>Success with true/false if check succeeded, Error if database operation failed.</returns>
+	Task<OneOf<Success<bool>, Error<string>>> IsProfileCompleteAsync(string userId, CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Generates a unique username from first and last name.
@@ -152,23 +152,32 @@ public sealed class ProfileService(
 		}
 	}
 
-	public async Task<bool> IsProfileCompleteAsync(string userId, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success<bool>, Error<string>>> IsProfileCompleteAsync(string userId, CancellationToken cancellationToken = default)
 	{
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		var profile = await context.UserProfiles
-									.AsNoTracking()
-									.FirstOrDefaultAsync(user => user.Id == userId, cancellationToken);
-
-		if (profile is null)
+		try
 		{
-			return false;
-		}
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+			var profile = await context.UserProfiles
+										.AsNoTracking()
+										.FirstOrDefaultAsync(user => user.Id == userId, cancellationToken);
 
-		// Basic completeness check
-		return !string.IsNullOrWhiteSpace(profile.FirstName) &&
-			   !string.IsNullOrWhiteSpace(profile.LastName) &&
-			   profile.Location is not null &&
-			   (profile.ZipCode.HasValue || !string.IsNullOrWhiteSpace(profile.Address));
+			if (profile is null)
+			{
+				return new Success<bool>(false);
+			}
+
+			// Basic completeness check
+			var isComplete = !string.IsNullOrWhiteSpace(profile.FirstName) &&
+				   !string.IsNullOrWhiteSpace(profile.LastName) &&
+				   profile.Location is not null &&
+				   (profile.ZipCode.HasValue || !string.IsNullOrWhiteSpace(profile.Address));
+
+			return new Success<bool>(isComplete);
+		}
+		catch (Exception ex)
+		{
+			return new Error<string>($"Error when checking Profile completeness: {ex.Message}");
+		}
 	}
 
 	public async Task<OneOf<Success<string>, Error<string>>> GenerateUniqueUsernameAsync(string firstName, string lastName, CancellationToken cancellationToken = default)

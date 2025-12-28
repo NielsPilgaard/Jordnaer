@@ -132,7 +132,18 @@
                 _externalLoginInfo.LoginProvider);
 
             // Check if profile is complete and redirect accordingly
-            var isProfileComplete = await ProfileService.IsProfileCompleteAsync(user.Id);
+            var profileCheckResult = await ProfileService.IsProfileCompleteAsync(user.Id);
+            if (profileCheckResult.IsT1)
+            {
+                Logger.LogError("Failed to check profile completeness for user {UserId}: {Error}",
+                    user.Id, profileCheckResult.AsT1.Value);
+                RedirectManager.RedirectToWithStatus(
+                    "Account/Login",
+                    "Der opstod en fejl ved kontrol af din profil. Prøv venligst igen.",
+                    HttpContext);
+            }
+
+            var isProfileComplete = profileCheckResult.AsT0.Value;
             if (!isProfileComplete)
             {
                 if (!string.IsNullOrWhiteSpace(ReturnUrl))
