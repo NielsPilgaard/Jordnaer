@@ -3,7 +3,7 @@ name: Deploy Container (Azure Web Apps for Containers)
 on:
   push:
     tags:
-      - "release-website-v*.*.*"
+      - "release-website-container-v*.*.*"
   workflow_dispatch:
 
 env:
