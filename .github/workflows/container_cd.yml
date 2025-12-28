@@ -10,7 +10,7 @@ env:
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests
   REGISTRY: ghcr.io
   IMAGE_NAME: minimoeder-website
-  AZURE_CONTAINER_APP_NAME: jordnaer
+  AZURE_WEBAPP_NAME: jordnaer
   AZURE_RESOURCE_GROUP: Jordnaer
 
 jobs:
@@ -75,13 +75,11 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
+      - name: Deploy to Azure Web App for Containers
+        uses: azure/webapps-deploy@v3
         with:
-          acrName: ${{ env.REGISTRY }}
-          containerAppName: ${{ env.AZURE_CONTAINER_APP_NAME }}
-          resourceGroup: ${{ env.AZURE_RESOURCE_GROUP }}
-          imageToDeploy: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
 
       - name: Create Deployment on elmah.io
         uses: elmahio/github-create-deployment-action@v1
