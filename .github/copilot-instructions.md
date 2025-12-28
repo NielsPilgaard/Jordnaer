@@ -3,7 +3,8 @@
 ## Architecture
 
 Blazor social platform for parents to find playgroups. Stack:
-- **Frontend**: Razor components + MudBlazor (v8.11.0)
+
+- **Frontend**: Razor components + MudBlazor
 - **Backend**: ASP.NET Core, feature-based structure
 - **Messaging**: MassTransit (in-memory, outbox pattern)
 - **Real-time**: SignalR for chat/notifications
@@ -34,7 +35,9 @@ tests/web/
 ## Core Patterns
 
 ### 1. Feature Module Setup
+
 Each feature has `WebApplicationBuilderExtensions.cs` for DI registration:
+
 ```csharp
 public static WebApplicationBuilder AddGroupServices(this WebApplicationBuilder builder)
 {
@@ -42,12 +45,15 @@ public static WebApplicationBuilder AddGroupServices(this WebApplicationBuilder 
     return builder;
 }
 ```
+
 **Rule**: All DI setup in extension methods called from `Program.cs`.
 
 ### 2. Data Access
+
 Use `IDbContextFactory<JordnaerDbContext>` for scoped contexts:
+
 ```csharp
-public class GroupService(IDbContextFactory<JordnaerDbContext> contextFactory) 
+public class GroupService(IDbContextFactory<JordnaerDbContext> contextFactory)
 {
     public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id)
     {
@@ -57,12 +63,16 @@ public class GroupService(IDbContextFactory<JordnaerDbContext> contextFactory)
     }
 }
 ```
-**Rules**: 
+
+**Rules**:
+
 - Always `await using var context`
 - Use `AsNoTracking()` for read-only queries
 
 ### 3. Result Types
+
 Use OneOf for explicit error handling:
+
 ```csharp
 public async Task<OneOf<Group, NotFound>> GetGroupAsync(Guid id) { /* ... */ }
 
@@ -75,7 +85,9 @@ return result.Match(
 ```
 
 ### 4. MassTransit Consumers
+
 Background tasks via consumers:
+
 ```csharp
 public class SendEmailConsumer(ILogger<SendEmailConsumer> logger, EmailClient client)
     : IConsumer<SendEmail>
@@ -86,11 +98,14 @@ public class SendEmailConsumer(ILogger<SendEmailConsumer> logger, EmailClient cl
     }
 }
 ```
+
 **Auto-discovery**: Consumers in `Jordnaer.Consumers` namespace auto-registered.
 **Future**: Migrate chat to Azure Container Apps at 100+ msg/hour.
 
 ### 5. SignalR
+
 Hub interface + `IHubContext` for broadcasting:
+
 ```csharp
 public interface IChatHub
 {
@@ -104,29 +119,15 @@ await chatHub.Clients.Users(recipientIds).ReceiveChatMessage(message);
 ## Development
 
 ### Build & Test
+
 ```powershell
 dotnet build
 dotnet test tests/web/Jordnaer.Tests --filter Category!=SkipInCi  # Unit tests
 dotnet test tests/web  # All tests including E2E
 ```
 
-### Migrations
-```powershell
-cd src/web/Jordnaer
-dotnet ef migrations add MigrationName
-dotnet ef database update
-```
-
-### Logging
-```csharp
-logger.LogFunctionBegan();  // Custom extension
-logger.LogError(ex, "Error with {Variable}", variable);
-diagnosticContext.Set("GroupId", groupId);
-JordnaerMetrics.ChatMessagesSentCounter.Add(1);
-```
-**Dev**: Aspire dashboard at `http://localhost:4318`
-
 ## External Services
+
 - **Azure Communication Email**: Email sending
 - **Azure Blob Storage**: Profile pics, attachments
 - **DSFAPI**: Danish civil registry search
@@ -135,6 +136,7 @@ JordnaerMetrics.ChatMessagesSentCounter.Add(1);
 ## Common Tasks
 
 ### Add Feature
+
 1. Create `Features/YourFeature/` folder
 2. Add service with `IDbContextFactory<JordnaerDbContext>`
 3. Create `WebApplicationBuilderExtensions.cs` with `AddYourFeatureServices()`
@@ -142,27 +144,8 @@ JordnaerMetrics.ChatMessagesSentCounter.Add(1);
 5. Add components in `Components/`
 6. Write tests
 
-### Publish Messages
-```csharp
-await publishEndpoint.Publish<SendEmail>(/* ... */, cancellationToken);
-```
-
-## Libraries
-- **Validation**: FluentValidation
-- **Feature Flags**: IFeatureManager
-- **Rate Limiting**: Custom RateLimitExtensions
-- **Security**: NetEscapades.AspNetCore.SecurityHeaders
-- **Images**: SixLabors.ImageSharp
-- **Markdown**: Markdig
-- **Testing**: NSubstitute for mocking
-
 ## Critical Rules
-1. **Always dispose DbContext**: `await using var context = await contextFactory.CreateDbContextAsync()`
-2. **Consumers**: Must be in `Jordnaer.Consumers` namespace for auto-discovery
-3. **DO NOT**: Reformat unchanged code
-4. **SignalR**: `UserCircuitHandler` manages circuit state (see `Features/Authentication/`)
-5. **Health**: Endpoint at `/health`
 
-## Known Issues
-- `SendEmailConsumerTests.Consume_ShouldSendEmailSuccessfully` skipped (35min execution)
-- Monitor chat volume for Container Apps migration at 100+ msg/hour
+1. **Always dispose DbContext**: `await using var context = await contextFactory.CreateDbContextAsync()`
+2. **DO NOT**: Reformat unchanged code
+3. **SignalR**: `UserCircuitHandler` manages circuit state (see `Features/Authentication/`)
