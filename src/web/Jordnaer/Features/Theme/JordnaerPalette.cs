@@ -24,6 +24,31 @@ public static class JordnaerTheme
 				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
 				FontSize = "1rem"
 			}
+		},
+		PaletteLight = new PaletteLight
+		{
+			Primary = "#dbab45",        // GLÆDE - warm yellow-orange for primary actions
+			Secondary = "#878e64",      // RO - calm green for secondary actions
+			Tertiary = "#a9c0cf",       // LEG - playful light blue
+			Info = "#41556b",           // MØDE - informative blue
+			Success = "#878e64",        // RO - green is perfect for success
+			Warning = "#dbab45",        // GLÆDE - yellow-orange for warnings
+			Error = "#673417",          // MØDE Red - red-brown for errors
+			Dark = "#41556b",           // MØDE - body text blue
+			TextPrimary = "#41556b",    // MØDE - main text color
+			TextSecondary = "#673417",  // MØDE Red - secondary text
+			Background = "#FFFFFF",     // Pure white
+			Surface = "#FFFFFF",        // Pure white for better contrast with text
+			AppbarBackground = "#dbab45", // GLÆDE - warm yellow header
+
+			// Text on colored buttons
+			PrimaryContrastText = "#FFFFFF",
+			SecondaryContrastText = "#FFFFFF",
+			TertiaryContrastText = "#41556b",  // Dark text on light blue
+			InfoContrastText = "#FFFFFF",
+			SuccessContrastText = "#FFFFFF",
+			WarningContrastText = "#FFFFFF",
+			ErrorContrastText = "#FFFFFF"
 		}
 	};
 }

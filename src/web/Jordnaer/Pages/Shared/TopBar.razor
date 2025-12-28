@@ -98,7 +98,7 @@
 				<label for="profile-menu-toggle" class="profile-menu-button"
 					style="@JordnaerPalette.BlueBody.ToTextColor()">
 					<MudIcon Icon="@Icons.Material.Filled.Person" Style="margin-right: 0.25rem;" />
-					<span class="font-open-sans-semibold">Profil</span>
+					<span class="font-open-sans-medium">Profil</span>
 					<MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Style="margin-left: 0.25rem;" />
 				</label>
 				<nav class="profile-menu-dropdown" aria-label="Profile menu"
@@ -251,8 +251,8 @@
 		}
 
 		var title = _unreadCount > 0
-			? $"({_unreadCount}) {cleanTitle}"
-			: cleanTitle;
+		? $"({_unreadCount}) {cleanTitle}"
+		: cleanTitle;
 
 		await JsRuntime.InvokeVoidAsync("eval", $"document.title = '{title}'");
 	}

@@ -26,26 +26,24 @@
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
     <meta name="facebook-domain-verification" content="ispr6bue0cvuoatohe859eubl32ujh" />
 
-    <link rel="stylesheet" href="@Assets["css/landing-page.css"]" />
+    @* Font preloading - reduces FOUT *@
+    <link rel="preload" href="@Assets["fonts/OpenSans-Light.ttf"]" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="@Assets["fonts/OpenSans-Medium.ttf"]" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="@Assets["fonts/OpenSans-Bold.ttf"]" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="@Assets["fonts/CherryBombOne-Regular.ttf"]" as="font" type="font/ttf" crossorigin />
+
+    @* Framework CSS - loaded first *@
+    <link rel="stylesheet" href="@Assets["bootstrap/bootstrap.min.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css"]" />
+
+    @* Custom CSS - loaded after frameworks for proper override cascade *@
     <link rel="stylesheet" href="@Assets["css/fonts.css"]" />
     <link rel="stylesheet" href="@Assets["css/app.css"]" />
+    <link rel="stylesheet" href="@Assets["css/landing-page.css"]" />
     <link rel="stylesheet" href="@Assets["css/account-forms.css"]" />
-
-    @*Fancy stuff to speed up loading*@
-    <link rel="preload" href="@Assets["bootstrap/bootstrap.min.css"]" as="style"
-        onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="@Assets["bootstrap/bootstrap.min.css"]"></noscript>
-    <link rel="preload" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" as="style"
-        onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]"></noscript>
-
-    @*Fancy CSS speed hacks https://pagespeedchecklist.com/asynchronous-css*@
-    <link rel="stylesheet" href="@Assets["_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css"]" media="print"
-        onload="this.onload=null;this.removeAttribute('media');">
-    <link rel="stylesheet" href="@Assets["css/chat.css"]" media="print"
-        onload="this.onload=null;this.removeAttribute('media');">
-    <link rel="stylesheet" href="@Assets["Jordnaer.styles.css"]" media="print"
-        onload="this.onload=null;this.removeAttribute('media');">
+    <link rel="stylesheet" href="@Assets["css/chat.css"]" />
+    <link rel="stylesheet" href="@Assets["Jordnaer.styles.css"]" />
 
     @* Leaflet.js for map search functionality *@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"

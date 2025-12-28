@@ -1,24 +1,29 @@
 @namespace Jordnaer.Features.Dashboard
 
-<MudCard Class="dashboard-card h-100" Style="@($"{Style}; {BackgroundColor.ToBackgroundColor()}; border-radius: 16px; transition: transform 0.2s ease, box-shadow 0.2s ease;")" Elevation="2">
-	<MudCardContent>
-		<MudStack AlignItems="AlignItems.Center" Spacing="3">
-			<MudIcon Icon="@Icon" Size="Size.Large" Style="@(TextColor.ToTextColor())" />
-			<MudText Align="Align.Center" Class="font-cherry-bomb-one"
-				Style="@($"{TextColor.ToTextColor()}; font-size: 24px;")">
-				@Title
-			</MudText>
-			<MudText Align="Align.Center" Class="font-open-sans-light" Style="@($"{TextColor.ToTextColor()}; font-size: 1rem;")">
-				@Description
-			</MudText>
-			<MudButton Href="@Href" Variant="Variant.Filled"
-				Style="@($"{ButtonBackgroundColor.ToBackgroundColor()}; {ButtonTextColor.ToTextColor()}; font-weight: bold;")"
-				Class="rounded-pill px-6 mt-2" Size="Size.Medium">
-				@ButtonText
-			</MudButton>
-		</MudStack>
-	</MudCardContent>
-</MudCard>
+<a href="@Href" style="text-decoration: none; color: inherit; display: block; height: 100%;">
+	<MudCard Class="dashboard-card h-100"
+		Style="@($"{Style}; {BackgroundColor.ToBackgroundColor()}; border-radius: 16px; transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer;")"
+		Elevation="2">
+		<MudCardContent>
+			<MudStack AlignItems="AlignItems.Center" Spacing="3">
+				<MudIcon Icon="@Icon" Size="Size.Large" Style="@(TextColor.ToTextColor())" />
+				<MudText Align="Align.Center" Class="font-open-sans-medium"
+					Style="@($"{TextColor.ToTextColor()}; font-size: 24px;")">
+					@Title
+				</MudText>
+				<MudText Align="Align.Center" Class="font-open-sans-light"
+					Style="@($"{TextColor.ToTextColor()}; font-size: 1rem;")">
+					@Description
+				</MudText>
+				<MudButton Variant="Variant.Filled"
+					Style="@($"{ButtonBackgroundColor.ToBackgroundColor()}; {ButtonTextColor.ToTextColor()}; font-weight: bold; pointer-events: none;")"
+					Class="rounded-pill px-6 mt-2" Size="Size.Medium">
+					@ButtonText
+				</MudButton>
+			</MudStack>
+		</MudCardContent>
+	</MudCard>
+</a>
 
 @code {
 	[Parameter] public string Icon { get; set; } = string.Empty;
