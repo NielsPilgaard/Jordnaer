@@ -1,4 +1,4 @@
-name: Deploy Website
+name: Deploy Website (Azure Web App)
 
 on:
   push:
@@ -11,6 +11,7 @@ env:
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests
   AZURE_WEBAPP_NAME: jordnaer
   WORKING_DIRECTORY: src/web/Jordnaer
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,7 +22,7 @@ jobs:
       - name: Set up dotnet
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.x"
+          dotnet-version: "10.x"
 
       - name: Restore
         run: dotnet restore "${{ env.TESTS_DIRECTORY }}"
