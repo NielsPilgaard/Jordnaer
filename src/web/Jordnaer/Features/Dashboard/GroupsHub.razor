@@ -9,155 +9,152 @@
 <MetadataComponent Title="Grupper" Description="Opdag og administrer dine grupper" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
-    <MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
 
-        @* Page Header *@
-        <MudText Typo="Typo.h3" Class="mb-6 text-center font-cherry-bomb-one"
-            Style="@($"color: {JordnaerPalette.RedHeader};")">
-            Grupper
-        </MudText>
+    @* Page Header *@
+    <MudText Typo="Typo.h3" Class="mb-6 text-center font-cherry-bomb-one"
+        Style="@($"color: {JordnaerPalette.RedHeader};")">
+        Grupper
+    </MudText>
 
-        @* Main Hub Cards *@
-        <MudGrid Spacing="4" Class="mb-6">
+    @* Main Hub Cards *@
+    <MudGrid Spacing="4" Class="mb-6">
 
-            @* Discover Groups Card *@
-            <MudItem xs="12" md="6">
-                <MudCard Elevation="3" Class="pa-6 hub-card"
-                    Style="height: 100%; cursor: pointer; transition: all 0.3s ease;"
-                    @onclick="@(() => Navigation.NavigateTo("/groups/discover"))">
-                    <MudCardContent Class="d-flex flex-column align-center justify-center" Style="min-height: 250px;">
-                        <MudIcon Icon="@Icons.Material.Filled.Search"
-                            Style="@($"font-size: 4rem; color: {JordnaerPalette.BlueBody}; margin-bottom: 1rem;")" />
+        @* Discover Groups Card *@
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Class="pa-6 hub-card"
+                Style="height: 100%; cursor: pointer; transition: all 0.3s ease;"
+                @onclick="@(() => Navigation.NavigateTo("/groups/discover"))">
+                <MudCardContent Class="d-flex flex-column align-center justify-center" Style="min-height: 250px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Search"
+                        Style="@($"font-size: 4rem; color: {JordnaerPalette.BlueBody}; margin-bottom: 1rem;")" />
 
-                        <MudText Typo="Typo.h5" Class="mb-3 text-center"
-                            Style="@($"color: {JordnaerPalette.BlueBody};")">
-                            Opdag Grupper
-                        </MudText>
-
-                        <MudText Typo="Typo.body1" Class="mb-4 text-center" Style="color: #666;">
-                            Søg og find nye grupper at blive en del af
-                        </MudText>
-
-                        <MudButton Variant="Variant.Filled" Href="/groups/discover"
-                            Style="@($"background-color: {JordnaerPalette.BlueBody}; color: white;")"
-                            EndIcon="@Icons.Material.Filled.ArrowForward">
-                            Udforsk
-                        </MudButton>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-
-            @* My Groups Card *@
-            <MudItem xs="12" md="6">
-                <MudCard Elevation="3" Class="pa-6 hub-card"
-                    Style="height: 100%; cursor: pointer; transition: all 0.3s ease;"
-                    @onclick="@(() => Navigation.NavigateTo("/groups/my-groups"))">
-                    <MudCardContent Class="d-flex flex-column align-center justify-center" Style="min-height: 250px;">
-                        <MudIcon Icon="@Icons.Material.Filled.Groups"
-                            Style="@($"font-size: 4rem; color: {JordnaerPalette.GreenBackground}; margin-bottom: 1rem;")" />
-
-                        <MudText Typo="Typo.h5" Class="mb-3 text-center"
-                            Style="@($"color: {JordnaerPalette.GreenBackground};")">
-                            Mine Grupper
-                        </MudText>
-
-                        <MudText Typo="Typo.body1" Class="mb-4 text-center" Style="color: #666;">
-                            Grupper du ejer eller er medlem af
-                        </MudText>
-
-                        <MudButton Variant="Variant.Filled" Href="/groups/my-groups"
-                            Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")"
-                            EndIcon="@Icons.Material.Filled.ArrowForward">
-                            Se Mine
-                        </MudButton>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-        </MudGrid>
-
-        <MiniDivider Color="MiniDividerColor.Red" Center Class="my-6" />
-
-        @* Quick Access Section *@
-        @if (_recentGroups.Any())
-        {
-            <MudPaper Elevation="2" Class="pa-6">
-                <MudText Typo="Typo.h5" Class="mb-4" Style="@($"color: {JordnaerPalette.RedHeader};")">
-                    Seneste Grupper
-                </MudText>
-
-                <MudList T="string">
-                    @foreach (var groupAccess in _recentGroups.Take(5))
-                    {
-                        var group = groupAccess.Group;
-                        <MudListItem T="string" Href="@($"/groups/{group.Name}")" Style="cursor: pointer;">
-                            <div class="d-flex align-center justify-space-between" style="width: 100%;">
-                                <div class="d-flex align-center" style="flex: 1; min-width: 0;">
-                                    @* Group Avatar *@
-                                    <MudAvatar Size="Size.Medium" Class="mr-3"
-                                        Style="@($"background-color: {JordnaerPalette.BlueBody};")">
-                                        @if (!string.IsNullOrEmpty(group.ProfilePictureUrl))
-                                        {
-                                            <MudImage Src="@group.ProfilePictureUrl" Alt="@group.Name" />
-                                        }
-                                        else
-                                        {
-                                            <MudText Typo="Typo.h6" Style="color: white;">
-                                                @group.Name.FirstOrDefault()
-                                            </MudText>
-                                        }
-                                    </MudAvatar>
-
-                                    @* Group Info *@
-                                    <div style="flex: 1; min-width: 0;">
-                                        <MudText Typo="Typo.body1"
-                                            Style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            @group.Name
-                                        </MudText>
-                                        <MudText Typo="Typo.body2"
-                                            Style="color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            @group.City
-                                        </MudText>
-                                    </div>
-                                </div>
-
-                                @* Action Icon *@
-                                <MudIcon Icon="@Icons.Material.Filled.ChevronRight"
-                                    Style="@($"color: {JordnaerPalette.BlueBody};")" />
-                            </div>
-                        </MudListItem>
-                        <MudDivider />
-                    }
-                </MudList>
-            </MudPaper>
-        }
-        else
-        {
-            <MudPaper Elevation="2" Class="pa-6">
-                <MudText Typo="Typo.h5" Class="mb-4" Style="@($"color: {JordnaerPalette.RedHeader};")">
-                    Kom I Gang
-                </MudText>
-
-                <MudText Typo="Typo.body1" Class="mb-4" Style="color: #666;">
-                    Du er endnu ikke medlem af nogen grupper. Udforsk vores grupper eller opret din egen!
-                </MudText>
-
-                <div class="d-flex gap-3 flex-wrap">
-                    <MudButton Variant="Variant.Filled"
-                        Style="@($"background-color: {JordnaerPalette.BlueBody}; color: white;")"
-                        StartIcon="@Icons.Material.Filled.Search" Href="/groups/discover">
+                    <MudText Typo="Typo.h5" Class="mb-3 text-center" Style="@($"color: {JordnaerPalette.BlueBody};")">
                         Opdag Grupper
-                    </MudButton>
+                    </MudText>
 
-                    <MudButton Variant="Variant.Outlined"
-                        Style="@($"color: {JordnaerPalette.GreenBackground}; border-color: {JordnaerPalette.GreenBackground};")"
-                        StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Navigation.NavigateTo("/groups/create"))">
-                        Opret Gruppe
-                    </MudButton>
-                </div>
-            </MudPaper>
-        }
+                    <MudText Typo="Typo.body1" Class="mb-4 text-center" Style="color: #666;">
+                        Søg og find nye grupper at blive en del af
+                    </MudText>
 
-    </MudContainer>
+                    <MudButton Variant="Variant.Filled" Href="/groups/discover"
+                        Style="@($"background-color: {JordnaerPalette.BlueBody}; color: white;")"
+                        EndIcon="@Icons.Material.Filled.ArrowForward">
+                        Udforsk
+                    </MudButton>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        @* My Groups Card *@
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Class="pa-6 hub-card"
+                Style="height: 100%; cursor: pointer; transition: all 0.3s ease;"
+                @onclick="@(() => Navigation.NavigateTo("/groups/my-groups"))">
+                <MudCardContent Class="d-flex flex-column align-center justify-center" Style="min-height: 250px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Groups"
+                        Style="@($"font-size: 4rem; color: {JordnaerPalette.GreenBackground}; margin-bottom: 1rem;")" />
+
+                    <MudText Typo="Typo.h5" Class="mb-3 text-center"
+                        Style="@($"color: {JordnaerPalette.GreenBackground};")">
+                        Mine Grupper
+                    </MudText>
+
+                    <MudText Typo="Typo.body1" Class="mb-4 text-center" Style="color: #666;">
+                        Grupper du ejer eller er medlem af
+                    </MudText>
+
+                    <MudButton Variant="Variant.Filled" Href="/groups/my-groups"
+                        Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")"
+                        EndIcon="@Icons.Material.Filled.ArrowForward">
+                        Se Mine
+                    </MudButton>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <MiniDivider Color="MiniDividerColor.Red" Center Class="my-6" />
+
+    @* Quick Access Section *@
+    @if (_recentGroups.Any())
+    {
+        <MudPaper Elevation="2" Class="pa-6">
+            <MudText Typo="Typo.h5" Class="mb-4" Style="@($"color: {JordnaerPalette.RedHeader};")">
+                Seneste Grupper
+            </MudText>
+
+            <MudList T="string">
+                @foreach (var groupAccess in _recentGroups.Take(5))
+                {
+                    var group = groupAccess.Group;
+                    <MudListItem T="string" Href="@($"/groups/{group.Name}")" Style="cursor: pointer;">
+                        <div class="d-flex align-center justify-space-between" style="width: 100%;">
+                            <div class="d-flex align-center" style="flex: 1; min-width: 0;">
+                                @* Group Avatar *@
+                                <MudAvatar Size="Size.Medium" Class="mr-3"
+                                    Style="@($"background-color: {JordnaerPalette.BlueBody};")">
+                                    @if (!string.IsNullOrEmpty(group.ProfilePictureUrl))
+                                    {
+                                        <MudImage Src="@group.ProfilePictureUrl" Alt="@group.Name" />
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.h6" Style="color: white;">
+                                            @group.Name.FirstOrDefault()
+                                        </MudText>
+                                    }
+                                </MudAvatar>
+
+                                @* Group Info *@
+                                <div style="flex: 1; min-width: 0;">
+                                    <MudText Typo="Typo.body1"
+                                        Style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @group.Name
+                                    </MudText>
+                                    <MudText Typo="Typo.body2"
+                                        Style="color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @group.City
+                                    </MudText>
+                                </div>
+                            </div>
+
+                            @* Action Icon *@
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronRight"
+                                Style="@($"color: {JordnaerPalette.BlueBody};")" />
+                        </div>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Elevation="2" Class="pa-6">
+            <MudText Typo="Typo.h5" Class="mb-4" Style="@($"color: {JordnaerPalette.RedHeader};")">
+                Kom I Gang
+            </MudText>
+
+            <MudText Typo="Typo.body1" Class="mb-4" Style="color: #666;">
+                Du er endnu ikke medlem af nogen grupper. Udforsk vores grupper eller opret din egen!
+            </MudText>
+
+            <div class="d-flex gap-3 flex-wrap">
+                <MudButton Variant="Variant.Filled"
+                    Style="@($"background-color: {JordnaerPalette.BlueBody}; color: white;")"
+                    StartIcon="@Icons.Material.Filled.Search" Href="/groups/discover">
+                    Opdag Grupper
+                </MudButton>
+
+                <MudButton Variant="Variant.Outlined"
+                    Style="@($"color: {JordnaerPalette.GreenBackground}; border-color: {JordnaerPalette.GreenBackground};")"
+                    StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Navigation.NavigateTo("/groups/create"))">
+                    Opret Gruppe
+                </MudButton>
+            </div>
+        </MudPaper>
+    }
+
 </MudLoading>
 
 <style>
