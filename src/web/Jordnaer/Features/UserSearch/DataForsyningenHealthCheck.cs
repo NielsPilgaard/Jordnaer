@@ -35,8 +35,8 @@ public class DataForsyningenHealthCheck(
 		}
 		catch (Exception exception)
 		{
-			logger.LogError(exception, "An error occurred while pinging DataForsyningen.");
-			return HealthCheckResult.Unhealthy(exception.Message, exception);
+			logger.LogWarning(exception, "An error occurred while pinging DataForsyningen.");
+			return HealthCheckResult.Degraded(exception.Message, exception);
 		}
 
 		if (pingResult.IsSuccessful)
