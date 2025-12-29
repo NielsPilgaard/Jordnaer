@@ -88,11 +88,13 @@ public class UserSearchServiceTests
 	public async Task Return_UserSearchResult_With_LastName_Filter()
 	{
 		// Arrange
-		var lastName = _faker.Name.LastName();
+		// Use a unique last name to prevent collisions with randomly generated names
+		var lastName = $"UniqueSurname{Guid.NewGuid():N}";
 		var filter = new UserSearchFilter { Name = lastName };
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
 		users[0].LastName = lastName;
+		users[0].SearchableName = $"{users[0].FirstName}{lastName}{users[0].UserName}";
 		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
