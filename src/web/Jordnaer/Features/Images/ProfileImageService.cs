@@ -48,7 +48,7 @@ public class ProfileImageService(IDbContextFactory<JordnaerDbContext> contextFac
 		// Only update the database if the group already exists
 		// For new groups, the ProfilePictureUrl will be saved when the group is created
 		await using var context = await contextFactory.CreateDbContextAsync();
-		var groupExists = await context.Groups.AnyAsync(g => g.Id == dto.Group.Id);
+		var groupExists = await context.Groups.AsNoTracking().AnyAsync(g => g.Id == dto.Group.Id);
 		if (groupExists)
 		{
 			await UpdateGroupProfilePictureAsync(dto, uri);
