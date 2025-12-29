@@ -13,8 +13,7 @@
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
-    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-5" OnClick="JsRuntime.GoBackAsync"
-        Color="Color.Info" Variant="Variant.Filled" title="Tilbage" />
+    <BackButton Class="mb-5" />
 
     @if (_group is null)
     {
@@ -31,11 +30,11 @@
             <MudGrid>
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_group.Name" For="() => _group.Name" Label="Gruppenavn"
-                        Variant="Variant.Filled" />
+                        Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12" sm="8">
                     <MudTextField @bind-Value="_group.ShortDescription" For="() => _group.ShortDescription"
-                        Label="Kort beskrivelse" Variant="Variant.Filled" />
+                        Label="Kort beskrivelse" Variant="Variant.Outlined" />
                 </MudItem>
                 @* Location Section *@
                 <MudItem xs="12">
