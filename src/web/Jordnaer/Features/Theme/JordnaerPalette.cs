@@ -44,7 +44,7 @@ public static class JordnaerTheme
 			// Text on colored buttons
 			PrimaryContrastText = JordnaerPalette.White.Value,
 			SecondaryContrastText = JordnaerPalette.White.Value,
-			TertiaryContrastText = JordnaerPalette.BlueBody.Value,  // Dark text on light blue
+			TertiaryContrastText = JordnaerPalette.BlueBodyDark.Value,  // WCAG AA compliant (~5.4:1) on light blue
 			InfoContrastText = JordnaerPalette.White.Value,
 			SuccessContrastText = JordnaerPalette.White.Value,
 			WarningContrastText = JordnaerPalette.White.Value,
@@ -69,6 +69,12 @@ public static class JordnaerPalette
 	/// Dark Blue. Used for body text (MØDE)
 	/// </summary>
 	public static readonly MudColor BlueBody = "#41556b";
+
+	/// <summary>
+	/// Darker Blue. Used for text on light blue backgrounds to meet WCAG AA contrast requirements.
+	/// Provides ~5.4:1 contrast ratio against <see cref="PaleBlueBackground"/> (#a9c0cf).
+	/// </summary>
+	public static readonly MudColor BlueBodyDark = "#2d4456";
 
 	/// <summary>
 	/// Dark Red. Used for small texts, payoffs, quotes (MØDE Red)

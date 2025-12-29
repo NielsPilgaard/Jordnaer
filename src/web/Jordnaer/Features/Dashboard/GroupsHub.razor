@@ -83,7 +83,7 @@
             </MudText>
 
             <MudList T="string">
-                @foreach (var groupAccess in _recentGroups.Take(5))
+                @foreach (var groupAccess in _recentGroups)
                 {
                     var group = groupAccess.Group;
                     <MudListItem T="string" Href="@($"/groups/{group.Name}")" Style="cursor: pointer;">
@@ -186,6 +186,7 @@
         _recentGroups = groups
         .Where(g => g.MembershipStatus == MembershipStatus.Active)
         .OrderByDescending(g => g.LastUpdatedUtc)
+        .Take(5)
         .ToList();
     }
 }
