@@ -10,8 +10,7 @@
     Description="Her kan gruppens administratore godkende nye medlemmer, give medlemmer yderligere adgang og lignende." />
 
 <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
-    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@($"/groups/{GroupName}")" Color="Color.Info"
-        Variant="Variant.Filled" title="Tilbage" />
+    <BackButton Href="@($"/groups/{GroupName}")" />
     <MudText Typo="Typo.h4">Medlems oversigt for gruppen '@GroupName'</MudText>
 </MudStack>
 
