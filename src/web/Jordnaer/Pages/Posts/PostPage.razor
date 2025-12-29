@@ -27,8 +27,9 @@
         @* Recent Posts Feed *@
         @{
             var items = GetItemsWithAds();
+            var noPosts = items.Count is 0;
         }
-        @if (items.Any())
+        @if (noPosts is false)
         {
             @foreach (var item in items)
             {
@@ -63,21 +64,22 @@
         }
         else
         {
-            <MudPaper Elevation="0" Class="pa-6 text-center">
-                <MudText Typo="Typo.body1" Color="Color.Default">
-                    Ingen opslag endnu. Vær den første til at dele noget!
-                </MudText>
-            </MudPaper>
+            <MudAlert>
+                Ingen opslag endnu. Vær den første til at dele noget!
+            </MudAlert>
         }
 
         @* Subtle link to search *@
-        <MudDivider Class="my-6" />
-        <div class="text-center mb-4">
-            <MudButton Href="/posts/search" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Search"
-                Size="Size.Small" Color="Color.Default">
-                Find opslag
-            </MudButton>
-        </div>
+        @if (noPosts is false)
+        {
+            <MudDivider Class="my-6" />
+            <div class="text-center mb-4">
+                <MudButton Href="/posts/search" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Search"
+                    Size="Size.Small" Color="Color.Default">
+                    Find opslag
+                </MudButton>
+            </div>
+        }
     </MudContainer>
 
 </MudLoading>

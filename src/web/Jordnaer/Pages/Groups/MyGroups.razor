@@ -8,7 +8,7 @@
 
 <MetadataComponent Title="Mine Grupper" Description="Oversigt over dine grupper, og dine afventende anmodninger" />
 
-<MudContainer MaxWidth="MaxWidth.Large" >
+<MudContainer MaxWidth="MaxWidth.Large">
 
     <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
@@ -78,10 +78,6 @@
                     {
                         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                             Du er ikke medlem af nogen grupper endnu.
-                            <MudButton Href="/groups/discover" Style="@($"color: {JordnaerPalette.BlueBody};")"
-                                Variant="Variant.Text" Class="ml-2">
-                                Opdag grupper
-                            </MudButton>
                         </MudAlert>
                     }
                 </MudTabPanel>

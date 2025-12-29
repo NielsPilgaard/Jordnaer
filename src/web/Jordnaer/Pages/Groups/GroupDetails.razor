@@ -33,17 +33,20 @@
         <AuthorizeView>
             <Authorized>
                 <div class="d-flex gap-2 flex-wrap justify-end">
-                    <OpenChat Disabled="_isMember" Recipients="_recipients"
-                        ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
+                    @if (_isMember is false)
+                    {
+                        <OpenChat Disabled="_isMember" Recipients="_recipients"
+                            ChatName="@($"{GroupName} & {_currentUser?.DisplayName}")" />
 
-                    <MudButton Disabled="_hasPendingMembershipRequest || _isMember" Variant="Variant.Filled"
-                        Color="Color.Tertiary" OnClick="RequestMembership" StartIcon="@Icons.Material.Filled.GroupAdd">
-                        Anmod om Medlemskab
-                    </MudButton>
+                        <MudButton Disabled="_hasPendingMembershipRequest || _isMember" Variant="Variant.Filled"
+                            Color="Color.Tertiary" OnClick="RequestMembership" StartIcon="@Icons.Material.Filled.GroupAdd">
+                            Anmod om Medlemskab
+                        </MudButton>
+                    }
 
                     @if (_currentUserIsAdmin && _group is not null)
                     {
-                        <MudButton Href="@($"/groups/{_group?.Id}/edit")" Variant="Variant.Outlined" Color="Color.Warning"
+                        <MudButton Href="@($"/groups/{_group?.Id}/edit")" Variant="Variant.Outlined" Color="Color.Info"
                             StartIcon="@Icons.Material.Filled.Edit">
                             Redigér
                         </MudButton>
