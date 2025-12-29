@@ -99,14 +99,6 @@
                                 InitialZoom="12"
                                 MapStyle="height: 200px; width: 100%; border-radius: 8px;"
                                 @ref="_leafletMap" />
-                            <MudButton Href="@GetGoogleMapsUrl(_group.Latitude.Value, _group.Longitude.Value)"
-                                Target="_blank"
-                                Variant="Variant.Text"
-                                Size="Size.Small"
-                                StartIcon="@Icons.Material.Filled.Directions"
-                                Class="mt-2">
-                                Få rutevejledning
-                            </MudButton>
                         }
                     }
                     else
@@ -157,14 +149,6 @@
                                     InitialZoom="12"
                                     MapStyle="height: 200px; width: 100%; border-radius: 8px;"
                                     @ref="_leafletMap" />
-                                <MudButton Href="@GetGoogleMapsUrl(_group.ZipCodeLatitude.Value, _group.ZipCodeLongitude.Value)"
-                                    Target="_blank"
-                                    Variant="Variant.Text"
-                                    Size="Size.Small"
-                                    StartIcon="@Icons.Material.Filled.Directions"
-                                    Class="mt-2">
-                                    Få rutevejledning
-                                </MudButton>
                             }
                         }
                     }
