@@ -20,15 +20,12 @@
     {
         <MetadataComponent Title="@($"Opslag af {_post.Author.DisplayName}")" Description="@_post.Text" />
 
-        <!-- Top Action Bar -->
         <div class="d-flex align-center mb-4">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="@(() => Navigation.NavigateTo("/posts"))"
-                Color="Color.Info" Variant="Variant.Filled" title="Tilbage til opslag" />
+            <BackButton Href="/posts" Title="Tilbage til opslag" />
         </div>
 
-        <!-- Post Card -->
-        <PostCardComponent PostItem="_post" CurrentUserId="@(_currentUserId ?? string.Empty)"
-            OnPostDeleted="@OnPostDeleted" OnPostUpdated="@OnPostUpdated" />
+        <PostCardComponent PostItem="_post" CurrentUserId="@(_currentUserId ?? string.Empty)" OnPostDeleted="@OnPostDeleted"
+            OnPostUpdated="@OnPostUpdated" />
     }
 
 </MudLoading>

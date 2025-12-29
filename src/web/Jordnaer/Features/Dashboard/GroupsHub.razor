@@ -89,7 +89,7 @@
                     @foreach (var groupAccess in _recentGroups.Take(5))
                     {
                         var group = groupAccess.Group;
-                        <MudListItem T="string">
+                        <MudListItem T="string" Href="@($"/groups/{group.Name}")" Style="cursor: pointer;">
                             <div class="d-flex align-center justify-space-between" style="width: 100%;">
                                 <div class="d-flex align-center" style="flex: 1; min-width: 0;">
                                     @* Group Avatar *@
@@ -120,12 +120,9 @@
                                     </div>
                                 </div>
 
-                                @* Action Button *@
-                                <MudButton Size="Size.Small" Variant="Variant.Outlined"
-                                    Style="@($"color: {JordnaerPalette.BlueBody}; border-color: {JordnaerPalette.BlueBody};")"
-                                    OnClick="@(() => Navigation.NavigateTo($"/groups/{group.Name}"))">
-                                    Se
-                                </MudButton>
+                                @* Action Icon *@
+                                <MudIcon Icon="@Icons.Material.Filled.ChevronRight"
+                                    Style="@($"color: {JordnaerPalette.BlueBody};")" />
                             </div>
                         </MudListItem>
                         <MudDivider />
@@ -147,8 +144,7 @@
                 <div class="d-flex gap-3 flex-wrap">
                     <MudButton Variant="Variant.Filled"
                         Style="@($"background-color: {JordnaerPalette.BlueBody}; color: white;")"
-                        StartIcon="@Icons.Material.Filled.Search"
-                        OnClick="@(() => Navigation.NavigateTo("/groups/discover"))">
+                        StartIcon="@Icons.Material.Filled.Search" Href="/groups/discover">
                         Opdag Grupper
                     </MudButton>
 

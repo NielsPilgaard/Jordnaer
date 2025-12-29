@@ -1,14 +1,14 @@
 @inject ICategoryCache CategoryCache
 
-<MudChipSet T="string" 
+<MudChipSet T="string"
             Style="display: flex; flex-wrap: wrap; justify-content: center;"
             SelectionMode="SelectionMode.MultiSelection"
             SelectedValues="Categories"
             CheckMark
-            Color="Color.Tertiary"
-            SelectedColor="Color.Success"
+            Color="Color.Default"
+            SelectedColor="Color.Info"
             SelectedValuesChanged="SelectedCategoriesChanged"
-            Variant="Variant.Outlined">
+            Variant="Variant.Filled">
 	@foreach (var category in _allCategories)
 	{
 		<MudChip Text="@category" Value="@category" />

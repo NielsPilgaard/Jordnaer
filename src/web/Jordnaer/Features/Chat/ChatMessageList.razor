@@ -30,8 +30,7 @@
             <MudAppBar Dense ToolBarClass="justify-space-between h-100"
                 Style="@($"background-color: {JordnaerPalette.BeigeBackground}; padding: 10px;")" Elevation="5">
 
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="BackToList" Color="Color.Info"
-                    Variant="Variant.Filled" title="Tilbage" />
+                <BackButton OnClick="BackToList" />
                 <MudText Typo="Typo.h5">@ActiveChat.GetDisplayName(CurrentUser.Id!)</MudText>
             </MudAppBar>
             break;

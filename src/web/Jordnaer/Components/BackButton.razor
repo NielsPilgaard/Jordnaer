@@ -1,0 +1,42 @@
+<MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+    Href="@Href"
+    Color="Color.Info"
+    Variant="Variant.Filled"
+    Class="@Class"
+    Style="@Style"
+    title="@Title"
+    OnClick="OnClickHandler" />
+
+@inject IJSRuntime JsRuntime
+
+@code
+{
+    [Parameter]
+    public string? Href { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Tilbage";
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private bool UseBrowserHistory => string.IsNullOrWhiteSpace(Href);
+
+    private async Task OnClickHandler()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+        else if (UseBrowserHistory)
+        {
+            await JsRuntime.GoBackAsync();
+        }
+    }
+}
