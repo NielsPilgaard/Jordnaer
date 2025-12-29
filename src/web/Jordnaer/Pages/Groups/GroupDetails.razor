@@ -1,6 +1,7 @@
 @page "/groups/{GroupName}"
 
 @using Jordnaer.Features.GroupPosts
+@using Jordnaer.Features.Map
 
 @attribute [Sitemap]
 
@@ -70,30 +71,104 @@
                 }
 
                 @* Location Info *@
-                @if (!string.IsNullOrEmpty(_group?.City) || _group?.ZipCode is not null)
-                {
-                    <MudPaper Elevation="3" Class="pa-4">
-                        <MudText Typo="Typo.h6" Class="mb-2">Lokation</MudText>
+                <MudPaper Elevation="3" Class="pa-4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Lokation</MudText>
+                    @if (_group is null || (_group.ZipCode is null && string.IsNullOrEmpty(_group.City)))
+                    {
+                        @* State 1: No location info *@
                         <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOff" Size="Size.Small" Class="mr-2"
+                                Color="Color.Default" />
+                            <MudText Typo="Typo.body1" Color="Color.Default">Ikke angivet</MudText>
+                        </div>
+                    }
+                    else if (string.IsNullOrEmpty(_group.Address))
+                    {
+                        @* State 2: Zip code only - show map at zip code center for everyone *@
+                        <div class="d-flex align-center mb-3">
                             <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-2"
                                 Style="@($"color: {JordnaerPalette.BlueBody};")" />
                             <MudText Typo="Typo.body1">
-                                @if (!string.IsNullOrEmpty(_group.City))
-                                {
-                                    <span>@_group.City</span>
-                                }
-                                @if (_group.ZipCode is not null)
-                                {
-                                    @if (!string.IsNullOrEmpty(_group.City))
-                                    {
-                                        <span>, </span>
-                                    }
-                                    <span>@_group.ZipCode</span>
-                                }
+                                @FormatLocation(_group.City, _group.ZipCode)
                             </MudText>
                         </div>
-                    </MudPaper>
-                }
+                        @if (_group.Latitude.HasValue && _group.Longitude.HasValue)
+                        {
+                            <LeafletMap InitialLatitude="_group.Latitude.Value"
+                                InitialLongitude="_group.Longitude.Value"
+                                InitialZoom="12"
+                                MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                @ref="_leafletMap" />
+                            <MudButton Href="@GetGoogleMapsUrl(_group.Latitude.Value, _group.Longitude.Value)"
+                                Target="_blank"
+                                Variant="Variant.Text"
+                                Size="Size.Small"
+                                StartIcon="@Icons.Material.Filled.Directions"
+                                Class="mt-2">
+                                Få rutevejledning
+                            </MudButton>
+                        }
+                    }
+                    else
+                    {
+                        @* State 3: Full address - members see exact location, non-members see zip code area *@
+                        @if (_isMember)
+                        {
+                            @* Member view: Show full address and exact location *@
+                            <div class="d-flex align-center mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-2"
+                                    Style="@($"color: {JordnaerPalette.BlueBody};")" />
+                                <MudText Typo="Typo.body1">@_group.Address</MudText>
+                            </div>
+                            @if (_group.Latitude.HasValue && _group.Longitude.HasValue)
+                            {
+                                <LeafletMap InitialLatitude="_group.Latitude.Value"
+                                    InitialLongitude="_group.Longitude.Value"
+                                    InitialZoom="15"
+                                    MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                    @ref="_leafletMap" />
+                                <MudButton Href="@GetGoogleMapsUrl(_group.Latitude.Value, _group.Longitude.Value)"
+                                    Target="_blank"
+                                    Variant="Variant.Text"
+                                    Size="Size.Small"
+                                    StartIcon="@Icons.Material.Filled.Directions"
+                                    Class="mt-2">
+                                    Få rutevejledning
+                                </MudButton>
+                            }
+                        }
+                        else
+                        {
+                            @* Non-member view: Show only zip code area *@
+                            <div class="d-flex align-center mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-2"
+                                    Style="@($"color: {JordnaerPalette.BlueBody};")" />
+                                <MudText Typo="Typo.body1">
+                                    @FormatLocation(_group.City, _group.ZipCode)
+                                </MudText>
+                            </div>
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="mb-3">
+                                Den præcise adresse vises kun for medlemmer.
+                            </MudAlert>
+                            @if (_group.ZipCodeLatitude.HasValue && _group.ZipCodeLongitude.HasValue)
+                            {
+                                <LeafletMap InitialLatitude="_group.ZipCodeLatitude.Value"
+                                    InitialLongitude="_group.ZipCodeLongitude.Value"
+                                    InitialZoom="12"
+                                    MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                    @ref="_leafletMap" />
+                                <MudButton Href="@GetGoogleMapsUrl(_group.ZipCodeLatitude.Value, _group.ZipCodeLongitude.Value)"
+                                    Target="_blank"
+                                    Variant="Variant.Text"
+                                    Size="Size.Small"
+                                    StartIcon="@Icons.Material.Filled.Directions"
+                                    Class="mt-2">
+                                    Få rutevejledning
+                                </MudButton>
+                            }
+                        }
+                    }
+                </MudPaper>
 
                 <MudPaper Elevation="3" Class="overflow-hidden" Style="max-height: 500px; overflow-y: auto;">
                     <GroupMemberListComponent CurrentUserIsAdmin="_currentUserIsAdmin" GroupMembers="_groupMembers"
@@ -160,6 +235,8 @@
     private List<UserSlim>? _groupMembers;
     private List<UserSlim> _admins = [];
     private GroupPostList? _groupPostList;
+    private LeafletMap? _leafletMap;
+    private bool _markerAdded;
 
     protected override async Task OnInitializedAsync()
     {
@@ -214,5 +291,76 @@
         existingMembershipError => Snackbar.Add($"Nuværende medlems status: {existingMembershipError.Value}",
         Severity.Warning),
         error => Snackbar.Add(error.Value, Severity.Warning));
+    }
+
+    private static string FormatLocation(string? city, int? zipCode)
+    {
+        if (!string.IsNullOrEmpty(city) && zipCode.HasValue)
+        {
+            return $"{city}, {zipCode}";
+        }
+        if (!string.IsNullOrEmpty(city))
+        {
+            return city;
+        }
+        if (zipCode.HasValue)
+        {
+            return zipCode.Value.ToString();
+        }
+        return "Ikke angivet";
+    }
+
+    private static string GetGoogleMapsUrl(double latitude, double longitude)
+    {
+        return $"https://www.google.com/maps/dir/?api=1&destination={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Skip if marker already added, no map, or no group data
+        if (_markerAdded || _leafletMap is null || _group is null)
+        {
+            return;
+        }
+
+        // Wait for the map to be fully initialized (with timeout)
+        var timeout = DateTime.UtcNow.AddSeconds(5);
+        while (!_leafletMap.IsInitialized && DateTime.UtcNow < timeout)
+        {
+            await Task.Delay(50);
+        }
+
+        if (!_leafletMap.IsInitialized)
+        {
+            return;
+        }
+
+        _markerAdded = true;
+
+        // Add marker to the map based on the current state
+        if (string.IsNullOrEmpty(_group.Address))
+        {
+            // State 2: Zip code only
+            if (_group.Latitude.HasValue && _group.Longitude.HasValue)
+            {
+                await _leafletMap.UpdateMarkerAsync(_group.Latitude.Value, _group.Longitude.Value);
+            }
+        }
+        else if (_isMember)
+        {
+            // State 3 - Member: Show exact location
+            if (_group.Latitude.HasValue && _group.Longitude.HasValue)
+            {
+                await _leafletMap.UpdateMarkerAsync(_group.Latitude.Value, _group.Longitude.Value);
+            }
+        }
+        else
+        {
+            // State 3 - Non-member: Show zip code center
+            if (_group.ZipCodeLatitude.HasValue && _group.ZipCodeLongitude.HasValue)
+            {
+                await _leafletMap.UpdateMarkerAsync(_group.ZipCodeLatitude.Value, _group.ZipCodeLongitude.Value);
+            }
+        }
     }
 }
