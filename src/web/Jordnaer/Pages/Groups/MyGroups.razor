@@ -8,25 +8,7 @@
 
 <MetadataComponent Title="Mine Grupper" Description="Oversigt over dine grupper, og dine afventende anmodninger" />
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
-
-    @* Header with back button *@
-    <div class="d-flex align-center justify-space-between mb-4">
-        <div class="d-flex align-center">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                Style="@($"color: {JordnaerPalette.GreenBackground};")"
-                OnClick="@(() => Navigation.NavigateTo("/groups"))" />
-            <MudText Typo="Typo.h4" Class="ml-2" Style="@($"color: {JordnaerPalette.GreenBackground};")">
-                Mine Grupper
-            </MudText>
-        </div>
-
-        <MudButton Href="/groups/create" Variant="Variant.Filled"
-            Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")"
-            StartIcon="@Icons.Material.Filled.Add">
-            Opret Gruppe
-        </MudButton>
-    </div>
+<MudContainer MaxWidth="MaxWidth.Large" >
 
     <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
@@ -37,9 +19,20 @@
                 Du har @_pendingAccess.Length afventende anmodning@(_pendingAccess.Length > 1 ? "er" : "").
             </MudAlert>
         }
+        @* Header with back button *@
+        <div class="d-flex align-center justify-space-between mb-4">
+            <BackButton Href="/groups" />
+
+            <MudButton Href="/groups/create" Variant="Variant.Filled"
+                Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")"
+                StartIcon="@Icons.Material.Filled.Add">
+                Opret Gruppe
+            </MudButton>
+        </div>
 
         @* Tabs for Owned vs Member Groups *@
         <MudPaper Elevation="2" Class="mb-4">
+
             <MudTabs Elevation="0" Rounded ApplyEffectsToContainer PanelClass="pa-6"
                 Style="@($"--mud-palette-primary: {JordnaerPalette.GreenBackground};")">
 
