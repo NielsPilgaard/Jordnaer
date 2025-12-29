@@ -7,22 +7,14 @@
 @inject IFeatureManager FeatureManager
 
 <MudContainer MaxWidth="MaxWidth.Small">
-
-	<MudButton Href="/personal/groups"
-	           Color="Color.Info"
-	           Class="d-xs-flex justify-content"
-	           Variant="Variant.Filled"
-	           StartIcon="@Icons.Material.Filled.ArrowLeft"
-	           EndIcon="@Icons.Material.Filled.GroupAdd">
-		Gå til mine grupper
-	</MudButton>
+	<BackButton Href="/groups" />
 
 	<MudPaper Elevation="3" Class="pa-10 mt-5">
 		<p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
 			Find Grupper nær dig
 		</p>
 
-		<MudDivider Class="mb-5 mt-1"/>
+		<MudDivider Class="mb-5 mt-1" />
 
 		<EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
 			<DataAnnotationsValidator />
@@ -33,52 +25,42 @@
 				{
 					@* New map-based search experience *@
 					<MudItem xs="12">
-						<MapSearchFilter @ref="_mapSearchFilter"
-										 RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
-										 RadiusKmChanged="OnRadiusChanged"
-										 OnLocationSearchChanged="OnLocationSearchChanged" />
+						<MapSearchFilter @ref="_mapSearchFilter" RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
+							RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged" />
 					</MudItem>
 				}
 				else
 				{
 					@* Existing zip code search *@
 					<MudItem xs="8">
-						<ZipCodeAutoComplete For="() => Filter.Location"
-											 Location="@Filter.Location"
-											 LocationChanged="LocationChanged"
-											 DisableSmartCompletion="_disableSmartCompletionForZipCode"/>
+						<ZipCodeAutoComplete For="() => Filter.Location" Location="@Filter.Location"
+							LocationChanged="LocationChanged" DisableSmartCompletion="_disableSmartCompletionForZipCode" />
 					</MudItem>
 					<MudItem xs="4">
 						<MudNumericField For="() => Filter.WithinRadiusKilometers"
-										 @bind-Value="Filter.WithinRadiusKilometers"
-										 Label="km"
-										 Placeholder="Radius">
+							@bind-Value="Filter.WithinRadiusKilometers" Label="km" Placeholder="Radius">
 						</MudNumericField>
 					</MudItem>
 				}
 
 				<MudItem xs="12">
-					<CategorySelector @bind-Categories="Filter.Categories"/>
+					<CategorySelector @bind-Categories="Filter.Categories" />
 				</MudItem>
 
 				<MudItem xs="12">
-					<MudTextField @bind-Value="Filter.Name" Placeholder="Gruppenavn" Label="Søg på navn" Clearable/>
+					<MudTextField @bind-Value="Filter.Name" Placeholder="Gruppenavn" Label="Søg på navn" Clearable />
 				</MudItem>
 
 				<MudItem xs="12" sm="11" md="10" lg="9" xl="8" Class="mt-6">
 
 					<MudButtonGroup OverrideStyles="false" Style="width: 100%;">
-						<MudButton FullWidth
-						           Variant="Variant.Filled"
-						           Color="Color.Success"
-						           ButtonType="ButtonType.Submit">
-							<MudIcon Icon="@Icons.Material.Filled.Search"/>
+						<MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
+							ButtonType="ButtonType.Submit">
+							<MudIcon Icon="@Icons.Material.Filled.Search" />
 						</MudButton>
-						<MudButton OnClick="ClearFilter"
-						           Color="Color.Transparent"
-						           Variant="Variant.Filled"
-						           ButtonType="ButtonType.Reset">
-							<MudIcon Icon="@Icons.Material.Filled.Clear"/>
+						<MudButton OnClick="ClearFilter" Color="Color.Transparent" Variant="Variant.Filled"
+							ButtonType="ButtonType.Reset">
+							<MudIcon Icon="@Icons.Material.Filled.Clear" />
 						</MudButton>
 					</MudButtonGroup>
 
@@ -93,19 +75,19 @@
 	private MapSearchFilter? _mapSearchFilter;
 	private bool _mapSearchEnabled = false;
 
-    [Parameter]
-    public required GroupSearchFilter Filter { get; set; }
+	[Parameter]
+	public required GroupSearchFilter Filter { get; set; }
 
-    [Parameter]
-    public EventCallback<GroupSearchFilter> FilterChanged { get; set; }
+	[Parameter]
+	public EventCallback<GroupSearchFilter> FilterChanged { get; set; }
 
-    [Parameter]
-    public required EventCallback OnValidSubmit { get; set; }
+	[Parameter]
+	public required EventCallback OnValidSubmit { get; set; }
 
-    private static readonly GroupSearchFilter DefaultFilter = new();
+	private static readonly GroupSearchFilter DefaultFilter = new();
 
-    private bool _recentlyClearedForm = false;
-    private bool _disableSmartCompletionForZipCode => _recentlyClearedForm || Filter != DefaultFilter;
+	private bool _recentlyClearedForm = false;
+	private bool _disableSmartCompletionForZipCode => _recentlyClearedForm || Filter != DefaultFilter;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -120,14 +102,15 @@
 			if (Filter.Latitude.HasValue && Filter.Longitude.HasValue && Filter.WithinRadiusKilometers.HasValue)
 			{
 				await _mapSearchFilter.SetLocationAsync(
-					Filter.Latitude.Value,
-					Filter.Longitude.Value,
-					13);
+				Filter.Latitude.Value,
+				Filter.Longitude.Value,
+				13);
 			}
 		}
 	}
 
-	private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address) locationSearch)
+	private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address)
+	locationSearch)
 	{
 		Filter.Latitude = locationSearch.Latitude;
 		Filter.Longitude = locationSearch.Longitude;
@@ -145,31 +128,31 @@
 		if (_mapSearchFilter is not null && Filter.Latitude.HasValue && Filter.Longitude.HasValue)
 		{
 			await _mapSearchFilter.UpdateSearchRadiusAsync(
-				Filter.Latitude.Value,
-				Filter.Longitude.Value,
-				newRadius);
+			Filter.Latitude.Value,
+			Filter.Longitude.Value,
+			newRadius);
 		}
 
 		await FilterChanged.InvokeAsync(Filter);
 	}
 
-    private async Task ClearFilter()
-    {
-        Filter = new GroupSearchFilter();
-        await FilterChanged.InvokeAsync(Filter);
+	private async Task ClearFilter()
+	{
+		Filter = new GroupSearchFilter();
+		await FilterChanged.InvokeAsync(Filter);
 
-        // Clear the map location if using map search
-        if (_mapSearchEnabled && _mapSearchFilter is not null)
-        {
-            await _mapSearchFilter.ClearLocationAsync();
-        }
+		// Clear the map location if using map search
+		if (_mapSearchEnabled && _mapSearchFilter is not null)
+		{
+			await _mapSearchFilter.ClearLocationAsync();
+		}
 
-        _recentlyClearedForm = true;
-    }
+		_recentlyClearedForm = true;
+	}
 
-    private void LocationChanged(string location)
-    {
-        Filter.Location = location;
-        Filter.WithinRadiusKilometers ??= 10;
-    }
+	private void LocationChanged(string location)
+	{
+		Filter.Location = location;
+		Filter.WithinRadiusKilometers ??= 10;
+	}
 }

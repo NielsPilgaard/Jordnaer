@@ -17,7 +17,7 @@ public interface IDataForsyningenClient
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns></returns>
 	[Get("/adresser/autocomplete")]
-	public Task<IApiResponse<IEnumerable<AddressAutoCompleteResponse>>>
+	Task<IApiResponse<IEnumerable<AddressAutoCompleteResponse>>>
 		GetAddressesWithAutoComplete([AliasAs("q")] string? query, CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -27,7 +27,7 @@ public interface IDataForsyningenClient
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns></returns>
 	[Get("/postnumre/autocomplete")]
-	public Task<IApiResponse<IEnumerable<ZipCodeAutoCompleteResponse>>>
+	Task<IApiResponse<IEnumerable<ZipCodeAutoCompleteResponse>>>
 		GetZipCodesWithAutoComplete([AliasAs("q")] string? query, CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -38,7 +38,7 @@ public interface IDataForsyningenClient
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
 	[Get("/postnumre/reverse")]
-	public Task<IApiResponse<ZipCodeSearchResponse>>
+	Task<IApiResponse<ZipCodeSearchResponse>>
 		GetZipCodeFromCoordinates(
 			[AliasAs("x")] string longitude,
 			[AliasAs("y")] string latitude,
@@ -53,6 +53,6 @@ public interface IDataForsyningenClient
 	/// <returns></returns>
 	[Get("/postnumre")]
 	[QueryUriFormat(UriFormat.Unescaped)]
-	public Task<IApiResponse<IEnumerable<ZipCodeSearchResponse>>>
+	Task<IApiResponse<IEnumerable<ZipCodeSearchResponse>>>
 		GetZipCodesWithinCircle([AliasAs("cirkel")] string? circle, CancellationToken cancellationToken = default);
 }

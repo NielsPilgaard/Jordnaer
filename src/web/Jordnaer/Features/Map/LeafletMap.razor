@@ -26,6 +26,12 @@
 	public EventCallback<(double Latitude, double Longitude)> OnLocationSelected { get; set; }
 
 	/// <summary>
+	/// Callback invoked when the map has been initialized and is ready for use
+	/// </summary>
+	[Parameter]
+	public EventCallback OnMapInitialized { get; set; }
+
+	/// <summary>
 	/// Public property to check if map is initialized
 	/// </summary>
 	public bool IsInitialized => _isInitialized;
@@ -38,16 +44,17 @@
 
 			// Initialize the map
 			var success = await LeafletMapInterop.InitializeMapAsync(
-				MapId,
-				InitialLatitude,
-				InitialLongitude,
-				InitialZoom);
+			MapId,
+			InitialLatitude,
+			InitialLongitude,
+			InitialZoom);
 
 			if (success)
 			{
 				// Setup click handler
 				await LeafletMapInterop.SetupClickHandlerAsync(MapId, _dotNetHelper!);
 				_isInitialized = true;
+				await OnMapInitialized.InvokeAsync();
 			}
 		}
 	}
@@ -86,7 +93,10 @@
 	/// </summary>
 	public async Task UpdateMarkerAsync(double lat, double lng)
 	{
-		if (!_isInitialized) return;
+		if (!_isInitialized)
+		{
+			return;
+		}
 
 		await LeafletMapInterop.UpdateMarkerAsync(MapId, lat, lng);
 	}
@@ -96,7 +106,10 @@
 	/// </summary>
 	public async Task RemoveMarkerAsync()
 	{
-		if (!_isInitialized) return;
+		if (!_isInitialized)
+		{
+			return;
+		}
 
 		await LeafletMapInterop.RemoveMarkerAsync(MapId);
 	}
@@ -106,7 +119,10 @@
 	/// </summary>
 	public async Task RemoveSearchRadiusAsync()
 	{
-		if (!_isInitialized) return;
+		if (!_isInitialized)
+		{
+			return;
+		}
 
 		await LeafletMapInterop.RemoveSearchRadiusAsync(MapId);
 	}

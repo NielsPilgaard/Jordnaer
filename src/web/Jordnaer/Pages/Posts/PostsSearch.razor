@@ -15,12 +15,6 @@
 
     <MudContainer MaxWidth="MaxWidth.Medium">
 
-        @* Back to posts link *@
-        <MudButton Href="/posts" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-4"
-            Color="Color.Default">
-            Tilbage til opslag
-        </MudButton>
-
         <PostSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
 
         @if (_hasSearched)

@@ -18,7 +18,7 @@ namespace Jordnaer.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -261,6 +261,9 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<int?>("ZipCode")
                         .HasColumnType("int");
+
+                    b.Property<Point>("ZipCodeLocation")
+                        .HasColumnType("geography");
 
                     b.HasKey("Id");
 

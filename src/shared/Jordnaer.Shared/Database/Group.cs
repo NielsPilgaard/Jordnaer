@@ -26,6 +26,12 @@ public class Group
 
 	public Point? Location { get; set; }
 
+	/// <summary>
+	/// The center coordinates of the zip code area.
+	/// Used to show approximate location to non-members when a full address is provided.
+	/// </summary>
+	public Point? ZipCodeLocation { get; set; }
+
 	[MinLength(2, ErrorMessage = "Gruppe navn skal være mindst 2 karakterer langt.")]
 	[MaxLength(128, ErrorMessage = "Gruppens navn må højest være 128 karakterer lang.")]
 	public required string Name { get; set; }

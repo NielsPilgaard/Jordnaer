@@ -3,7 +3,7 @@ using NetTopologySuite.Geometries;
 
 namespace Jordnaer.Features.Profile;
 
-public record LocationResult(Point Location, int? ZipCode, string? City);
+public record LocationResult(Point Location, int? ZipCode, string? City, Point? ZipCodeLocation = null);
 
 public interface ILocationService
 {
@@ -72,7 +72,15 @@ public class LocationService(
 		// NetTopologySuite Point uses (longitude, latitude) order
 		var location = GeometryFactory.CreatePoint(new Coordinate(adresse.X, adresse.Y));
 
-		return new LocationResult(location, zipCode, adresse.Postnrnavn);
+		// Also look up the zip code center coordinates for privacy (non-members see this instead of exact address)
+		Point? zipCodeLocation = null;
+		if (!string.IsNullOrEmpty(adresse.Postnr))
+		{
+			var zipCodeResult = await GetLocationFromZipCodeAsync($"{adresse.Postnr} {adresse.Postnrnavn}", cancellationToken);
+			zipCodeLocation = zipCodeResult?.Location;
+		}
+
+		return new LocationResult(location, zipCode, adresse.Postnrnavn, zipCodeLocation);
 	}
 
 	public async Task<LocationResult?> GetLocationFromZipCodeAsync(

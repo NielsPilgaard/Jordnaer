@@ -10,8 +10,7 @@
     Description="Her kan gruppens administratore godkende nye medlemmer, give medlemmer yderligere adgang og lignende." />
 
 <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
-    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@($"/groups/{GroupName}")" Color="Color.Info"
-        Variant="Variant.Filled" title="Tilbage" />
+    <BackButton Href="@($"/groups/{GroupName}")" />
     <MudText Typo="Typo.h4">Medlems oversigt for gruppen '@GroupName'</MudText>
 </MudStack>
 
@@ -153,16 +152,31 @@
 
     private List<GroupMembershipDto> _memberships = [];
     private bool _isLoading = true;
+    private bool _hasAccess;
     private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
 
     [Parameter]
     public required string GroupName { get; set; }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
+
+            var currentUserMembership = _memberships.FirstOrDefault(m => m.UserProfileId == CurrentUser.Id);
+            _hasAccess = currentUserMembership is { PermissionLevel: PermissionLevel.Admin } or { OwnershipLevel: OwnershipLevel.Owner };
+
+            if (!_hasAccess)
+            {
+                Snackbar.Add("Du har ikke adgang til denne side.", Severity.Error);
+                NavigationManager.NavigateTo($"/groups/{GroupName}");
+                return;
+            }
+
             _memberships = _memberships
             .OrderBy(x => SortOrder.TryGetValue(x.MembershipStatus, out var rank) ? rank : int.MaxValue)
             .ToList();

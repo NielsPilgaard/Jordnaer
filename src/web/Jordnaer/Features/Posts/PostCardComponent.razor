@@ -151,14 +151,11 @@
 
     private async Task OpenEditDialog()
     {
-        var categories = await CategoryCache.GetOrCreateCategoriesAsync();
-
         var parameters = new DialogParameters
 {
 { "PostId", PostItem.Id },
 { "InitialText", PostItem.Text },
 { "InitialCategories", PostItem.Categories.ToList() },
-{ "AllCategories", categories.ToList() },
 { "CurrentUserId", CurrentUserId }
 };
 
