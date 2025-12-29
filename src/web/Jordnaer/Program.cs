@@ -28,6 +28,7 @@ using Sidio.Sitemap.AspNetCore;
 using Sidio.Sitemap.Blazor;
 using Sidio.Sitemap.Core.Services;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -115,6 +116,11 @@ app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
 										   .AddStrictTransportSecurityMaxAge()
 										   .AddReferrerPolicyStrictOriginWhenCrossOrigin()
 										   .RemoveServerHeader());
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 if (app.Environment.IsDevelopment())
 {
