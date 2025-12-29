@@ -67,6 +67,32 @@
                     <GroupCard Group="_group" />
                 }
 
+                @* Location Info *@
+                @if (!string.IsNullOrEmpty(_group?.City) || _group?.ZipCode is not null)
+                {
+                    <MudPaper Elevation="3" Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-2">Lokation</MudText>
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-2"
+                                Style="@($"color: {JordnaerPalette.BlueBody};")" />
+                            <MudText Typo="Typo.body1">
+                                @if (!string.IsNullOrEmpty(_group.City))
+                                {
+                                    <span>@_group.City</span>
+                                }
+                                @if (_group.ZipCode is not null)
+                                {
+                                    @if (!string.IsNullOrEmpty(_group.City))
+                                    {
+                                        <span>, </span>
+                                    }
+                                    <span>@_group.ZipCode</span>
+                                }
+                            </MudText>
+                        </div>
+                    </MudPaper>
+                }
+
                 <MudPaper Elevation="3" Class="overflow-hidden" Style="max-height: 500px; overflow-y: auto;">
                     <GroupMemberListComponent CurrentUserIsAdmin="_currentUserIsAdmin" GroupMembers="_groupMembers"
                         GroupName="@GroupName" />

@@ -1,9 +1,11 @@
 @page "/groups/{GroupId:guid}/edit"
+@using NetTopologySuite.Geometries
 
 @attribute [Authorize]
 
 @inject GroupService GroupService
 @inject ICategoryCache CategoryCache
+@inject ILocationService LocationService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
 
@@ -35,24 +37,50 @@
                     <MudTextField @bind-Value="_group.ShortDescription" For="() => _group.ShortDescription"
                         Label="Kort beskrivelse" Variant="Variant.Filled" />
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.Address" For="() => _group.Address" Label="Adresse"
-                        Variant="Variant.Filled" />
+                @* Location Section *@
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-2">Lokation</MudText>
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.ZipCode" For="() => _group.ZipCode" Label="Postnummer"
-                        name="zipCode" Variant="Variant.Filled" />
+
+                <MudItem xs="12" md="8" lg="6">
+                    @if (_useZipCodeOnly)
+                    {
+                        <ZipCodeAutoComplete Location="@_zipCodeLocation" LocationChanged="OnZipCodeLocationChanged"
+                            For="() => _zipCodeLocation" DisableSmartCompletion="true" />
+                    }
+                    else
+                    {
+                        <AddressAutoComplete Address="@_addressLocation" AddressChanged="OnAddressLocationChanged"
+                            For="() => _addressLocation" />
+                    }
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.City" For="() => _group.City" Label="By" name="city"
-                        Variant="Variant.Filled" />
+
+                <MudItem xs="12" md="4" lg="6" Class="d-flex align-center text-center justify-content-center">
+                    <MudTooltip Text="Klik for at skifte mellem fuld adresse og kun postnummer.">
+                        <MudChip T="string" Size="Size.Large" Color="@(_useZipCodeOnly? Color.Default: Color.Info)"
+                            Variant="Variant.Outlined" OnClick="@ToggleLocationMode" Style="cursor: pointer;">
+                            @if (_useZipCodeOnly)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
+                                <span>Kun postnummer</span>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1" />
+                                <span>Fuld adresse</span>
+                            }
+                        </MudChip>
+                    </MudTooltip>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="pa-3">
+                        Gruppens lokation hjælper andre med at finde grupper i deres område.
+                    </MudAlert>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()" T="string"
-                        Label="Kategorier" MultiSelection="true" SelectedValues="_group.Categories.Select(e => e.Name)"
-                        ValuePresenter="ValuePresenter.Chip" Variant="Variant.Filled"
-                        SelectedValuesChanged="SelectedCategoriesChanged">
-                    </MudSelectExtended>
+                    <MudText Typo="Typo.body1" Class="mb-2">Kategorier</MudText>
+                    <CategorySelector @bind-Categories="_selectedCategoryNames" />
                 </MudItem>
                 <MudItem xs="12">
                     <TextEditorComponent Placeholder="Beskriv din gruppe her..." Label="Beskrivelse"
@@ -76,6 +104,11 @@
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
 
+    private bool _useZipCodeOnly = false;
+    private string _zipCodeLocation = string.Empty;
+    private string _addressLocation = string.Empty;
+    private string[]? _selectedCategoryNames;
+
     private TextEditorComponent _textEditorComponent = default!;
 
     protected override async Task OnInitializedAsync()
@@ -85,14 +118,98 @@
         group => _group = group,
         _ => Snackbar.Add("Det lykkedes ikke at finde gruppen.", Severity.Warning));
 
-        _isLoading = false;
-
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
+
+        // Initialize location fields from existing data
+        if (_group is not null)
+        {
+            if (_group.Address is not null)
+            {
+                _addressLocation = _group.Address;
+                _useZipCodeOnly = false;
+            }
+            else if (_group.ZipCode is not null && _group.City is not null)
+            {
+                _zipCodeLocation = $"{_group.ZipCode} {_group.City}";
+                _useZipCodeOnly = true;
+            }
+
+            // Initialize selected category names
+            _selectedCategoryNames = _group.Categories.Select(c => c.Name).ToArray();
+        }
+
+        _isLoading = false;
     }
 
-    private void SelectedCategoriesChanged(IEnumerable<string> categories)
+    private async Task OnAddressLocationChanged(string address)
     {
-        _group!.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
+        _addressLocation = address;
+
+        if (_group is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            _group.Address = null;
+            _group.ZipCode = null;
+            _group.City = null;
+            _group.Location = null;
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromAddressAsync(address);
+        if (result is not null)
+        {
+            _group.Address = address;
+            _group.ZipCode = result.ZipCode;
+            _group.City = result.City;
+            _group.Location = result.Location;
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+                Severity.Warning);
+        }
+    }
+
+    private async Task OnZipCodeLocationChanged(string zipCode)
+    {
+        _zipCodeLocation = zipCode;
+
+        if (_group is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(zipCode))
+        {
+            _group.Address = null;
+            _group.ZipCode = null;
+            _group.City = null;
+            _group.Location = null;
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromZipCodeAsync(zipCode);
+        if (result is not null)
+        {
+            _group.Address = null; // Don't store address when using zip code only
+            _group.ZipCode = result.ZipCode;
+            _group.City = result.City;
+            _group.Location = result.Location;
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+                Severity.Warning);
+        }
+    }
+
+    private void ToggleLocationMode()
+    {
+        _useZipCodeOnly = !_useZipCodeOnly;
     }
 
     private async Task Update()
@@ -105,6 +222,11 @@
             _isLoading = false;
             return;
         }
+
+        // Sync selected categories back to group
+        _group.Categories = _categories
+            .Where(c => _selectedCategoryNames != null && _selectedCategoryNames.Contains(c.Name))
+            .ToList();
 
         _group.Description = await _textEditorComponent.GetHtmlAsync();
 

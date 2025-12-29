@@ -1,20 +1,27 @@
 @page "/groups/create"
+@using NetTopologySuite.Geometries
 
 @attribute [Authorize]
 
 @inject GroupService GroupService
 @inject ICategoryCache CategoryCache
+@inject ILocationService LocationService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
-
-<MudText Typo="Typo.h3" Class="font-cherry-bomb-one mb-5">Opret Gruppe</MudText>
 
 <MetadataComponent Title="Opret gruppe" Description="Her kan du oprette din gruppe." />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
-    <EditForm Model="@_group" OnValidSubmit="Create">
-        <DataAnnotationsValidator />
-        <MudPaper Elevation="3" Class="pa-4">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
+
+        <MudText Typo="Typo.h3" Class="mb-5 font-cherry-bomb-one"
+            Style="@($"color: {JordnaerPalette.RedHeader};")">
+            Opret Gruppe
+        </MudText>
+
+        <EditForm Model="@_group" OnValidSubmit="Create">
+            <DataAnnotationsValidator />
+            <MudPaper Elevation="3" Class="pa-4">
 
             <MudGrid>
                 <MudItem xs="12" sm="4">
@@ -25,36 +32,66 @@
                     <MudTextField @bind-Value="_group.ShortDescription" For="() => _group.ShortDescription"
                         Label="Kort beskrivelse" Variant="Variant.Filled" />
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.Address" For="() => _group.Address" Label="Adresse"
-                        Variant="Variant.Filled" />
+                @* Location Section *@
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-2">Lokation</MudText>
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.ZipCode" For="() => _group.ZipCode" Label="Postnummer"
-                        name="zipCode" Variant="Variant.Filled" />
+
+                <MudItem xs="12" md="8" lg="6">
+                    @if (_useZipCodeOnly)
+                    {
+                        <ZipCodeAutoComplete Location="@_zipCodeLocation" LocationChanged="OnZipCodeLocationChanged"
+                            For="() => _zipCodeLocation" DisableSmartCompletion="true" />
+                    }
+                    else
+                    {
+                        <AddressAutoComplete Address="@_addressLocation" AddressChanged="OnAddressLocationChanged"
+                            For="() => _addressLocation" />
+                    }
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_group.City" For="() => _group.City" Label="By" name="city"
-                        Variant="Variant.Filled" />
+
+                <MudItem xs="12" md="4" lg="6" Class="d-flex align-center text-center justify-content-center">
+                    <MudTooltip
+                        Text="Klik for at skifte mellem fuld adresse og kun postnummer.">
+                        <MudChip T="string" Size="Size.Large" Color="@(_useZipCodeOnly? Color.Default: Color.Info)"
+                            Variant="Variant.Outlined" OnClick="@ToggleLocationMode" Style="cursor: pointer;">
+                            @if (_useZipCodeOnly)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
+                                <span>Kun postnummer</span>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1" />
+                                <span>Fuld adresse</span>
+                            }
+                        </MudChip>
+                    </MudTooltip>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="pa-3">
+                        Gruppens lokation hjælper andre med at finde grupper i deres område.
+                    </MudAlert>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudSelectExtended ItemCollection="_categories.Select(e => e.Name).ToList()" T="string"
-                        Label="Kategorier" MultiSelection="true" SelectedValues="_group.Categories.Select(e => e.Name)"
-                        ValuePresenter="ValuePresenter.Chip" Variant="Variant.Filled"
-                        SelectedValuesChanged="SelectedCategoriesChanged">
-                    </MudSelectExtended>
+                    <MudText Typo="Typo.body1" Class="mb-2">Kategorier</MudText>
+                    <CategorySelector @bind-Categories="_selectedCategoryNames" />
                 </MudItem>
                 <MudItem xs="12">
                     <TextEditorComponent Placeholder="Beskriv din gruppe her..." Label="Beskrivelse" Text="@null"
                         @ref="_textEditorComponent" />
                 </MudItem>
             </MudGrid>
-        </MudPaper>
-        <MudButton Size="Size.Large" StartIcon="@Icons.Material.Filled.Save" Class="my-6" ButtonType="ButtonType.Submit"
-            Variant="Variant.Filled" FullWidth Color="Color.Info">
-            Opret
-        </MudButton>
-    </EditForm>
+            </MudPaper>
+            <MudButton Size="Size.Large" StartIcon="@Icons.Material.Filled.Save" Class="my-6" ButtonType="ButtonType.Submit"
+                Variant="Variant.Filled" FullWidth
+                Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")">
+                Opret Gruppe
+            </MudButton>
+        </EditForm>
+
+    </MudContainer>
 </MudLoading>
 
 @code {
@@ -69,33 +106,103 @@
     private IEnumerable<Category> _categories = Enumerable.Empty<Category>();
     private bool _isLoading = true;
 
+    private bool _useZipCodeOnly = true;
+    private string _zipCodeLocation = string.Empty;
+    private string _addressLocation = string.Empty;
+    private string[]? _selectedCategoryNames = Array.Empty<string>();
+
     protected override async Task OnInitializedAsync()
     {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
         _categories = await CategoryCache.GetOrCreateCategoriesAsync();
         _isLoading = false;
+    }
+
+    private async Task OnAddressLocationChanged(string address)
+    {
+        _addressLocation = address;
+
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            _group.Address = null;
+            _group.ZipCode = null;
+            _group.City = null;
+            _group.Location = null;
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromAddressAsync(address);
+        if (result is not null)
+        {
+            _group.Address = address;
+            _group.ZipCode = result.ZipCode;
+            _group.City = result.City;
+            _group.Location = result.Location;
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+                Severity.Warning);
+        }
+    }
+
+    private async Task OnZipCodeLocationChanged(string zipCode)
+    {
+        _zipCodeLocation = zipCode;
+
+        if (string.IsNullOrWhiteSpace(zipCode))
+        {
+            _group.Address = null;
+            _group.ZipCode = null;
+            _group.City = null;
+            _group.Location = null;
+            return;
+        }
+
+        var result = await LocationService.GetLocationFromZipCodeAsync(zipCode);
+        if (result is not null)
+        {
+            _group.Address = null; // Don't store address when using zip code only
+            _group.ZipCode = result.ZipCode;
+            _group.City = result.City;
+            _group.Location = result.Location;
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
+                Severity.Warning);
+        }
+    }
+
+    private void ToggleLocationMode()
+    {
+        _useZipCodeOnly = !_useZipCodeOnly;
     }
 
     private async Task Create()
     {
         _isLoading = true;
 
+        // Sync selected categories to group
+        _group.Categories = _categories
+            .Where(c => _selectedCategoryNames != null && _selectedCategoryNames.Contains(c.Name))
+            .ToList();
+
         _group.Description = await _textEditorComponent.GetHtmlAsync();
 
         var response = await GroupService.CreateGroupAsync(_group);
         response.Switch(
-        _ =>
-        {
-            Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-            Navigation.NavigateTo($"/groups/{_group.Name}");
-        },
-        badRequest => Snackbar.Add(badRequest.Value, Severity.Warning));
-
+            _ =>
+            {
+                Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
+                Navigation.NavigateTo($"/groups/{_group.Name}");
+            },
+            badRequest => Snackbar.Add(badRequest.Value, Severity.Warning));
 
         _isLoading = false;
-    }
-
-    private void SelectedCategoriesChanged(IEnumerable<string> categories)
-    {
-        _group.Categories = _categories.Where(e => categories.Contains(e.Name)).ToList();
     }
 }

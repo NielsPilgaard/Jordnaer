@@ -1,90 +1,166 @@
-@page "/personal/groups"
+@page "/groups/my-groups"
 
 @attribute [Authorize]
 
 @inject GroupService GroupService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
-<MetadataComponent Title="Dine grupper"
-                   Description="Oversigt over dine grupper, og dine afventende anmodninger"/>
+<MetadataComponent Title="Mine Grupper" Description="Oversigt over dine grupper, og dine afventende anmodninger" />
 
-<MudButton Href="/groups"
-           Color="Color.Info"
-           Variant="Variant.Filled"
-           StartIcon="@Icons.Material.Filled.ArrowLeft"
-           EndIcon="@Icons.Material.Filled.Search">
-	Søg efter grupper
-</MudButton>
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
 
-<MudButton
-	Href="/groups/create"
-	Variant="Variant.Filled"
-	Color="Color.Success"
-	StartIcon="@Icons.Material.Filled.GroupAdd">
-	Opret gruppe
-</MudButton>
+    @* Header with back button *@
+    <div class="d-flex align-center justify-space-between mb-4">
+        <div class="d-flex align-center">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                Style="@($"color: {JordnaerPalette.GreenBackground};")"
+                OnClick="@(() => Navigation.NavigateTo("/groups"))" />
+            <MudText Typo="Typo.h4" Class="ml-2" Style="@($"color: {JordnaerPalette.GreenBackground};")">
+                Mine Grupper
+            </MudText>
+        </div>
 
-<MudLoading @bind-Loading="_isLoading" Darken Overlap>
-	@if (_pendingAccess.Length > 0)
-	{
-		<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-10">Afventer Svar</MudText>
-		<MudDivider Class="mb-5" />
-		<MudGrid Justify="Justify.FlexStart" Spacing="6">
-			@foreach (var group in _pendingAccess)
-			{
-				<MudItem xs="12" sm="6" md="6" lg="4">
-					<GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
-				</MudItem>
-			}
-		</MudGrid>
-	}
+        <MudButton Href="/groups/create" Variant="Variant.Filled"
+            Style="@($"background-color: {JordnaerPalette.GreenBackground}; color: white;")"
+            StartIcon="@Icons.Material.Filled.Add">
+            Opret Gruppe
+        </MudButton>
+    </div>
 
-	<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-10">Mine Grupper</MudText>
-	@if (_memberOf.Length > 0)
-	{
-        <MudDivider Class="mb-5" />
-		<MudGrid Justify="Justify.FlexStart" Spacing="6">
-			@foreach (var group in _memberOf)
-			{
-				<MudItem xs="12" sm="6" md="6" lg="4">
-					<GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
-				</MudItem>
-			}
-		</MudGrid>
-	}
-	else
-	{
-		<MudAlert Severity="Severity.Info">Du er ikke medlem af nogle grupper endnu.</MudAlert>
-	}
+    <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
-	@if (_pendingAccess.Length is 0)
-	{
-		<MudText Typo="Typo.h5" Class="font-open-sans-bold mt-5">Afventer Svar</MudText>
-		<MudDivider Class="mb-5" />
-		<MudAlert Severity="Severity.Info">Du har ingen afventende anmodninger.</MudAlert>
-	}
+        @* Pending Requests Alert *@
+        @if (_pendingAccess.Length > 0)
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                Du har @_pendingAccess.Length afventende anmodning@(_pendingAccess.Length > 1 ? "er" : "").
+            </MudAlert>
+        }
 
-</MudLoading>
+        @* Tabs for Owned vs Member Groups *@
+        <MudPaper Elevation="2" Class="mb-4">
+            <MudTabs Elevation="0" Rounded ApplyEffectsToContainer PanelClass="pa-6"
+                Style="@($"--mud-palette-primary: {JordnaerPalette.GreenBackground};")">
+
+                @* Groups I Own *@
+                <MudTabPanel Text="Grupper Jeg Ejer" Icon="@Icons.Material.Filled.Star">
+                    @if (_ownedGroups.Length > 0)
+                    {
+                        <MudGrid Justify="Justify.FlexStart" Spacing="4">
+                            @foreach (var group in _ownedGroups)
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                            Du ejer ingen grupper endnu.
+                            <MudButton Href="/groups/create" Style="@($"color: {JordnaerPalette.GreenBackground};")"
+                                Variant="Variant.Text" Class="ml-2">
+                                Opret en gruppe
+                            </MudButton>
+                        </MudAlert>
+                    }
+                </MudTabPanel>
+
+                @* Groups I'm a Member Of *@
+                <MudTabPanel Text="Medlem Af" Icon="@Icons.Material.Filled.Group">
+                    @if (_memberGroups.Length > 0)
+                    {
+                        <MudGrid Justify="Justify.FlexStart" Spacing="4">
+                            @foreach (var group in _memberGroups)
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                            Du er ikke medlem af nogen grupper endnu.
+                            <MudButton Href="/groups/discover" Style="@($"color: {JordnaerPalette.BlueBody};")"
+                                Variant="Variant.Text" Class="ml-2">
+                                Opdag grupper
+                            </MudButton>
+                        </MudAlert>
+                    }
+                </MudTabPanel>
+
+                @* Pending Requests *@
+                <MudTabPanel Text="Afventende" Icon="@Icons.Material.Filled.Schedule"
+                    BadgeData="@(_pendingAccess.Length > 0 ? _pendingAccess.Length.ToString() : null)"
+                    BadgeColor="Color.Warning">
+                    @if (_pendingAccess.Length > 0)
+                    {
+                        <MudGrid Justify="Justify.FlexStart" Spacing="4">
+                            @foreach (var group in _pendingAccess)
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                            Du har ingen afventende anmodninger.
+                        </MudAlert>
+                    }
+                </MudTabPanel>
+
+            </MudTabs>
+        </MudPaper>
+
+    </MudLoading>
+
+</MudContainer>
 @code {
-	private bool _isLoading = true;
+    private bool _isLoading = true;
 
-    private List<UserGroupAccess>? _groupSummaries;
-
-    private UserGroupAccess[] _memberOf = Array.Empty<UserGroupAccess>();
-
+    private UserGroupAccess[] _ownedGroups = Array.Empty<UserGroupAccess>();
+    private UserGroupAccess[] _memberGroups = Array.Empty<UserGroupAccess>();
     private UserGroupAccess[] _pendingAccess = Array.Empty<UserGroupAccess>();
 
     protected override async Task OnInitializedAsync()
     {
-        _groupSummaries = await GroupService.GetSlimGroupsForUserAsync();
-        
-        _memberOf = _groupSummaries
-            .Where(x => x.MembershipStatus is MembershipStatus.Active)
-            .ToArray();
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
 
-        _pendingAccess = _groupSummaries
-            .Where(x => x.MembershipStatus is MembershipStatus.PendingApprovalFromGroup or MembershipStatus.PendingApprovalFromUser)
-            .ToArray();
-        
+        await LoadGroups();
         _isLoading = false;
+    }
+
+    private async Task LoadGroups()
+    {
+        var groupSummaries = await GroupService.GetSlimGroupsForUserAsync();
+
+        // Separate owned groups from member groups
+        _ownedGroups = groupSummaries
+        .Where(x => x.MembershipStatus is MembershipStatus.Active &&
+        (x.OwnershipLevel is OwnershipLevel.Owner or OwnershipLevel.InheritsOwnership))
+        .OrderBy(x => x.Group.Name)
+        .ToArray();
+
+        _memberGroups = groupSummaries
+        .Where(x => x.MembershipStatus is MembershipStatus.Active &&
+        x.OwnershipLevel is OwnershipLevel.Member or OwnershipLevel.None)
+        .OrderBy(x => x.Group.Name)
+        .ToArray();
+
+        _pendingAccess = groupSummaries
+        .Where(x => x.MembershipStatus is MembershipStatus.PendingApprovalFromGroup or
+        MembershipStatus.PendingApprovalFromUser)
+        .OrderByDescending(x => x.LastUpdatedUtc)
+        .ToArray();
     }
 }
