@@ -26,12 +26,6 @@
     <meta name="google-site-verification" content="_2XlYiQaPnb6j4QvZhJPB-XwnnQKOkpzs_hmU3EHY8g" />
     <meta name="facebook-domain-verification" content="ispr6bue0cvuoatohe859eubl32ujh" />
 
-    @* Font preloading - reduces FOUT *@
-    <link rel="preload" href="@Assets["fonts/OpenSans-Light.ttf"]" as="font" type="font/ttf" crossorigin />
-    <link rel="preload" href="@Assets["fonts/OpenSans-Medium.ttf"]" as="font" type="font/ttf" crossorigin />
-    <link rel="preload" href="@Assets["fonts/OpenSans-Bold.ttf"]" as="font" type="font/ttf" crossorigin />
-    <link rel="preload" href="@Assets["fonts/CherryBombOne-Regular.ttf"]" as="font" type="font/ttf" crossorigin />
-
     @* Framework CSS - loaded first *@
     <link rel="stylesheet" href="@Assets["bootstrap/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
@@ -47,8 +41,7 @@
 
     @* Leaflet.js for map search functionality *@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="" />
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <ImportMap />
 
@@ -78,8 +71,7 @@
 
     @* Leaflet.js for map search functionality *@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="@Assets["js/leaflet-interop.js"]"></script>
 </body>
 
