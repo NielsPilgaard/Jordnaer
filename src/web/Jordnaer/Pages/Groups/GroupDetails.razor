@@ -26,8 +26,7 @@
 
     <!-- Top Action Bar -->
     <div class="d-flex align-center mb-6 gap-2">
-        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="JsRuntime.GoBackAsync" Color="Color.Info"
-            Variant="Variant.Filled" Class="mr-2" title="Tilbage" />
+        <BackButton Class="mr-2" />
 
         <MudSpacer />
 
@@ -115,7 +114,6 @@
                 @if (_isMember && _group is not null)
                 {
                     <div id="posts-section">
-                        <MudText Typo="Typo.h5" Class="mb-4">Opslag</MudText>
                         <MudStack Spacing="4">
                             <GroupPostForm GroupId="_group.Id"
                                 OnPostCreated="@(async () => { if (_groupPostList is not null) await _groupPostList.RefreshPostsAsync(); })" />
