@@ -41,6 +41,6 @@ public static class GroupExtensions
         group.City = result.City;
         group.Location = result.Location;
         // When using zip code only, both locations are the same (zip code center)
-        group.ZipCodeLocation = result.Location;
+        group.ZipCodeLocation = result.ZipCodeLocation ?? result.Location;
     }
 }
