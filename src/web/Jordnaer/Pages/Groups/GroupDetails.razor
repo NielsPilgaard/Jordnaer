@@ -98,6 +98,7 @@
                                 InitialLongitude="_group.Longitude.Value"
                                 InitialZoom="12"
                                 MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                OnMapInitialized="OnMapInitializedAsync"
                                 @ref="_leafletMap" />
                         }
                     }
@@ -118,6 +119,7 @@
                                     InitialLongitude="_group.Longitude.Value"
                                     InitialZoom="15"
                                     MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                    OnMapInitialized="OnMapInitializedAsync"
                                     @ref="_leafletMap" />
                                 <MudButton Href="@GetGoogleMapsUrl(_group.Latitude.Value, _group.Longitude.Value)"
                                     Target="_blank"
@@ -148,6 +150,7 @@
                                     InitialLongitude="_group.ZipCodeLongitude.Value"
                                     InitialZoom="12"
                                     MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                    OnMapInitialized="OnMapInitializedAsync"
                                     @ref="_leafletMap" />
                             }
                         }
@@ -299,22 +302,10 @@
         return $"https://www.google.com/maps/dir/?api=1&destination={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task OnMapInitializedAsync()
     {
         // Skip if marker already added, no map, or no group data
         if (_markerAdded || _leafletMap is null || _group is null)
-        {
-            return;
-        }
-
-        // Wait for the map to be fully initialized (with timeout)
-        var timeout = DateTime.UtcNow.AddSeconds(5);
-        while (!_leafletMap.IsInitialized && DateTime.UtcNow < timeout)
-        {
-            await Task.Delay(50);
-        }
-
-        if (!_leafletMap.IsInitialized)
         {
             return;
         }

@@ -27,11 +27,14 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // Guard: Only run on first render, when smart completion is enabled, and location hasn't been set yet
         if (!firstRender || DisableSmartCompletion || _locationSetOnInitialized)
         {
             return;
         }
 
+        // Mark as initialized immediately to prevent re-entry on subsequent renders
+        _locationSetOnInitialized = true;
         await SetLocationFromUsersCoordinates();
     }
 

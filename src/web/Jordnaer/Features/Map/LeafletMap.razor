@@ -26,6 +26,12 @@
 	public EventCallback<(double Latitude, double Longitude)> OnLocationSelected { get; set; }
 
 	/// <summary>
+	/// Callback invoked when the map has been initialized and is ready for use
+	/// </summary>
+	[Parameter]
+	public EventCallback OnMapInitialized { get; set; }
+
+	/// <summary>
 	/// Public property to check if map is initialized
 	/// </summary>
 	public bool IsInitialized => _isInitialized;
@@ -48,6 +54,7 @@
 				// Setup click handler
 				await LeafletMapInterop.SetupClickHandlerAsync(MapId, _dotNetHelper!);
 				_isInitialized = true;
+				await OnMapInitialized.InvokeAsync();
 			}
 		}
 	}

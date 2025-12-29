@@ -151,22 +151,14 @@
 
         if (string.IsNullOrWhiteSpace(address))
         {
-            _group.Address = null;
-            _group.ZipCode = null;
-            _group.City = null;
-            _group.Location = null;
-            _group.ZipCodeLocation = null;
+            _group.ClearLocation();
             return;
         }
 
         var result = await LocationService.GetLocationFromAddressAsync(address);
         if (result is not null)
         {
-            _group.Address = address;
-            _group.ZipCode = result.ZipCode;
-            _group.City = result.City;
-            _group.Location = result.Location;
-            _group.ZipCodeLocation = result.ZipCodeLocation;
+            _group.ApplyAddressLocation(address, result);
         }
         else
         {
@@ -186,23 +178,14 @@
 
         if (string.IsNullOrWhiteSpace(zipCode))
         {
-            _group.Address = null;
-            _group.ZipCode = null;
-            _group.City = null;
-            _group.Location = null;
-            _group.ZipCodeLocation = null;
+            _group.ClearLocation();
             return;
         }
 
         var result = await LocationService.GetLocationFromZipCodeAsync(zipCode);
         if (result is not null)
         {
-            _group.Address = null; // Don't store address when using zip code only
-            _group.ZipCode = result.ZipCode;
-            _group.City = result.City;
-            _group.Location = result.Location;
-            // When using zip code only, both locations are the same (zip code center)
-            _group.ZipCodeLocation = result.Location;
+            _group.ApplyZipCodeLocation(result);
         }
         else
         {
@@ -217,11 +200,7 @@
 
         if (_group is not null)
         {
-            _group.Address = null;
-            _group.ZipCode = null;
-            _group.City = null;
-            _group.Location = null;
-            _group.ZipCodeLocation = null;
+            _group.ClearLocation();
         }
 
         _zipCodeLocation = string.Empty;
