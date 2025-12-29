@@ -7,76 +7,66 @@
 @inject IFeatureManager FeatureManager
 
 <MudContainer MaxWidth="MaxWidth.Small">
+	<BackButton Href="/posts" />
+	<MudPaper Elevation="3" Class="pa-10 mt-5">
+		<p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
+			Find opslag
+		</p>
 
-    <MudPaper Elevation="3" Class="pa-10 mt-5">
-        <p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
-            Find Opslag
-        </p>
+		<MudDivider Class="mb-5 mt-1" />
 
-        <MudDivider Class="mb-5 mt-1" />
+		<EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
+			<DataAnnotationsValidator />
 
-        <EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
-            <DataAnnotationsValidator />
-
-            <MudGrid Justify="Justify.SpaceAround" Spacing="6">
+			<MudGrid Justify="Justify.SpaceAround" Spacing="6">
 
 				@if (_mapSearchEnabled)
 				{
 					@* New map-based search experience *@
 					<MudItem xs="12">
-						<MapSearchFilter @ref="_mapSearchFilter"
-										 RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
-										 RadiusKmChanged="OnRadiusChanged"
-										 OnLocationSearchChanged="OnLocationSearchChanged" />
+						<MapSearchFilter @ref="_mapSearchFilter" RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
+							RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged" />
 					</MudItem>
 				}
 				else
 				{
 					@* Existing zip code search *@
 					<MudItem xs="8">
-						<ZipCodeAutoComplete
-							For="() => Filter.Location"
-							Location="@Filter.Location"
-							LocationChanged="LocationChanged"
-							DisableSmartCompletion="_recentlyClearedForm"/>
+						<ZipCodeAutoComplete For="() => Filter.Location" Location="@Filter.Location"
+							LocationChanged="LocationChanged" DisableSmartCompletion="_recentlyClearedForm" />
 					</MudItem>
 					<MudItem xs="4">
 						<MudNumericField For="() => Filter.WithinRadiusKilometers"
-										 @bind-Value="Filter.WithinRadiusKilometers"
-										 Label="km"
-										 Placeholder="Radius">
+							@bind-Value="Filter.WithinRadiusKilometers" Label="km" Placeholder="Radius">
 						</MudNumericField>
 					</MudItem>
 				}
 
-	            <MudItem xs="12">
-		            <CategorySelector @bind-Categories="Filter.Categories" />
-	            </MudItem>
+				<MudItem xs="12">
+					<CategorySelector @bind-Categories="Filter.Categories" />
+				</MudItem>
 
-	            <MudItem xs="12">
-                    <MudTextField @bind-Value="Filter.Contents" Placeholder="Søg efter indlæg" Label="Søg på indlæg" Clearable />
-                </MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Filter.Contents" Placeholder="Søg efter indlæg" Label="Søg på indlæg"
+						Clearable />
+				</MudItem>
 
-                <MudItem xs="12" sm="11" md="10" lg="9" xl="8" Class="mt-8">
+				<MudItem xs="12" sm="11" md="10" lg="9" xl="8" Class="mt-8">
 
-	                <MudButtonGroup OverrideStyles="false" Style="width: 100%;">
-		                <MudButton FullWidth
-		                           Variant="Variant.Filled"
-		                           Color="Color.Success"
-		                           ButtonType="ButtonType.Submit">
-			                <MudIcon Icon="@Icons.Material.Filled.Search"/>
-		                </MudButton>
-		                <MudButton OnClick="ClearFilter"
-		                           Color="Color.Transparent"
-		                           Variant="Variant.Filled"
-		                           ButtonType="ButtonType.Reset">
-			                <MudIcon Icon="@Icons.Material.Filled.Clear"/>
-		                </MudButton>
-	                </MudButtonGroup>
-                </MudItem>
-            </MudGrid>
-        </EditForm>
-    </MudPaper>
+					<MudButtonGroup OverrideStyles="false" Style="width: 100%;">
+						<MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
+							ButtonType="ButtonType.Submit">
+							<MudIcon Icon="@Icons.Material.Filled.Search" />
+						</MudButton>
+						<MudButton OnClick="ClearFilter" Color="Color.Transparent" Variant="Variant.Filled"
+							ButtonType="ButtonType.Reset">
+							<MudIcon Icon="@Icons.Material.Filled.Clear" />
+						</MudButton>
+					</MudButtonGroup>
+				</MudItem>
+			</MudGrid>
+		</EditForm>
+	</MudPaper>
 </MudContainer>
 
 @code
@@ -84,16 +74,16 @@
 	private MapSearchFilter? _mapSearchFilter;
 	private bool _mapSearchEnabled = false;
 
-    [Parameter, EditorRequired]
-    public required PostSearchFilter Filter { get; set; }
+	[Parameter, EditorRequired]
+	public required PostSearchFilter Filter { get; set; }
 
-    [Parameter]
-    public EventCallback<PostSearchFilter> FilterChanged { get; set; }
+	[Parameter]
+	public EventCallback<PostSearchFilter> FilterChanged { get; set; }
 
-    [Parameter]
-    public required EventCallback OnValidSubmit { get; set; }
+	[Parameter]
+	public required EventCallback OnValidSubmit { get; set; }
 
-    private bool _recentlyClearedForm = false;
+	private bool _recentlyClearedForm = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -108,14 +98,15 @@
 			if (Filter.Latitude.HasValue && Filter.Longitude.HasValue && Filter.WithinRadiusKilometers.HasValue)
 			{
 				await _mapSearchFilter.SetLocationAsync(
-					Filter.Latitude.Value,
-					Filter.Longitude.Value,
-					13);
+				Filter.Latitude.Value,
+				Filter.Longitude.Value,
+				13);
 			}
 		}
 	}
 
-	private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address) locationSearch)
+	private async Task OnLocationSearchChanged((double Latitude, double Longitude, int RadiusKm, string? Address)
+	locationSearch)
 	{
 		Filter.Latitude = locationSearch.Latitude;
 		Filter.Longitude = locationSearch.Longitude;
@@ -133,25 +124,25 @@
 		if (_mapSearchFilter is not null && Filter.Latitude.HasValue && Filter.Longitude.HasValue)
 		{
 			await _mapSearchFilter.UpdateSearchRadiusAsync(
-				Filter.Latitude.Value,
-				Filter.Longitude.Value,
-				newRadius);
+			Filter.Latitude.Value,
+			Filter.Longitude.Value,
+			newRadius);
 		}
 
 		await FilterChanged.InvokeAsync(Filter);
 	}
 
-    private async Task ClearFilter()
-    {
-        Filter = new PostSearchFilter();
-        await FilterChanged.InvokeAsync(Filter);
+	private async Task ClearFilter()
+	{
+		Filter = new PostSearchFilter();
+		await FilterChanged.InvokeAsync(Filter);
 
-        _recentlyClearedForm = true;
-    }
+		_recentlyClearedForm = true;
+	}
 
-    private void LocationChanged(string location)
-    {
-	    Filter.Location = location;
-	    Filter.WithinRadiusKilometers ??= 10;
-    }
+	private void LocationChanged(string location)
+	{
+		Filter.Location = location;
+		Filter.WithinRadiusKilometers ??= 10;
+	}
 }

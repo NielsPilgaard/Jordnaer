@@ -178,7 +178,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await ScrollManager.ScrollToBottomAsync(ChatMessageWindowClass);
+        if (ActiveChat is not null)
+        {
+            await ScrollManager.ScrollToBottomAsync(ChatMessageWindowClass);
+        }
     }
 
     private void MarkMessageIfSuccessfullySentByCurrentUser()

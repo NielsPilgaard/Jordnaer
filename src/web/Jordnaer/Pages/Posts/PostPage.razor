@@ -16,7 +16,10 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
 
     <MudContainer MaxWidth="MaxWidth.Medium">
-
+        <MudText Typo="Typo.h3" Class="mb-6 text-center font-cherry-bomb-one"
+            Style="@($"color: {JordnaerPalette.RedHeader};")">
+            Opslag
+        </MudText>
         <CreatePostComponent OnPostCreated="@OnPostCreated" />
 
         <MudDivider Class="my-4" />
@@ -72,7 +75,7 @@
         <div class="text-center mb-4">
             <MudButton Href="/posts/search" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Search"
                 Size="Size.Small" Color="Color.Default">
-                Søg i opslag
+                Find opslag
             </MudButton>
         </div>
     </MudContainer>

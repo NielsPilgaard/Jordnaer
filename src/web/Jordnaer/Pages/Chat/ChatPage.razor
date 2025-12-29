@@ -17,56 +17,57 @@
 <MetadataComponent Title="Chat" Description="Her kan du skrive med andre" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
-    @if (_isMobile)
-    {
-        <MudGrid Style="height: 95svh" Spacing="0">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
 
-            @if ((_activeChat is null && _isMobile) || _isMobile is false)
-            {
-                <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat"
-                    StartNewChatCallback="StartNewChat" />
-            }
+        @if (_isMobile)
+        {
+            <MudGrid Style="height: 90svh" Spacing="0">
 
-            @if (_isMobile is false)
-            {
-                <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
-                    <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem />
-                </MudItem>
-            }
+                @if ((_activeChat is null && _isMobile) || _isMobile is false)
+                {
+                    <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat"
+                        StartNewChatCallback="StartNewChat" />
+                }
 
-            <ChatMessageList @bind-ActiveChat="_activeChat" IsMobile="_isMobile"
-                LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
-        </MudGrid>
-    }
-    else
-    {
-        <MudMainContent Class="mb-4">
-            <MudContainer MaxWidth="MaxWidth.Large">
-                <MudPaper Elevation="3" Style="border-radius: 16px; overflow: hidden;">
-                    <MudGrid Style="height: 80svh" Spacing="0">
+                @if (_isMobile is false)
+                {
+                    <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
+                        <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem />
+                    </MudItem>
+                }
 
-                        @if ((_activeChat is null && _isMobile) || _isMobile is false)
-                        {
-                            <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat"
-                                StartNewChatCallback="StartNewChat" />
-                        }
+                <ChatMessageList @bind-ActiveChat="_activeChat" IsMobile="_isMobile"
+                    LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
+            </MudGrid>
+        }
+        else
+        {
+            <MudText Typo="Typo.h3" Class="mb-6 text-center font-cherry-bomb-one"
+                Style="@($"color: {JordnaerPalette.RedHeader};")">
+                Beskeder
+            </MudText>
+            <MudPaper Elevation="3" Style="border-radius: 16px; overflow: hidden;">
+                <MudGrid Style="height: 70svh" Spacing="0">
 
-                        @if (_isMobile is false)
-                        {
-                            <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
-                                <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem />
-                            </MudItem>
-                        }
+                    @if ((_activeChat is null && _isMobile) || _isMobile is false)
+                    {
+                        <ChatSelector ActiveChat="_activeChat" Chats="_chats" SelectChatCallback="SelectChat"
+                            StartNewChatCallback="StartNewChat" />
+                    }
 
-                        <ChatMessageList @bind-ActiveChat="_activeChat" IsMobile="_isMobile"
-                            LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
-                    </MudGrid>
-                </MudPaper>
-            </MudContainer>
-        </MudMainContent>
-    }
+                    @if (_isMobile is false)
+                    {
+                        <MudItem md="1" lg="1" xl="1" xxl="1" Class="py-0 pl-3">
+                            <MudDivider Vertical Style="height: 95%; width: 1.5px" Class="mt-3" FlexItem />
+                        </MudItem>
+                    }
 
-
+                    <ChatMessageList @bind-ActiveChat="_activeChat" IsMobile="_isMobile"
+                        LastMessageWasSentSuccessfullyByCurrentUser="LastMessageWasSentSuccessfullyByCurrentUser" />
+                </MudGrid>
+            </MudPaper>
+        }
+    </MudContainer>
 </MudLoading>
 
 <style>
