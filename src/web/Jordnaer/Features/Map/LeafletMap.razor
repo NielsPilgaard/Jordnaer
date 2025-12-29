@@ -99,7 +99,10 @@
 	/// </summary>
 	public async Task RemoveMarkerAsync()
 	{
-		if (!_isInitialized) return;
+		if (!_isInitialized)
+		{
+			return;
+		}
 
 		await LeafletMapInterop.RemoveMarkerAsync(MapId);
 	}
@@ -109,7 +112,10 @@
 	/// </summary>
 	public async Task RemoveSearchRadiusAsync()
 	{
-		if (!_isInitialized) return;
+		if (!_isInitialized)
+		{
+			return;
+		}
 
 		await LeafletMapInterop.RemoveSearchRadiusAsync(MapId);
 	}

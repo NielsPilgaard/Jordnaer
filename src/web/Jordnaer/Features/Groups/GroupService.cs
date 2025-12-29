@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using Serilog;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using NotFound = OneOf.Types.NotFound;
 
@@ -179,18 +180,21 @@ public class GroupService(
 
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
 	{
+		Debug.Assert(currentUser.Id is not null, "Current user must be set when updating group membership.");
+
 		logger.LogFunctionBegan();
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-		var currentUserIsAdmin = await context.GroupMemberships
+		var currentUserCanManageMembers = await context.GroupMemberships
 												 .AsNoTracking()
 												 .AnyAsync(x => x.UserProfileId == currentUser.Id &&
 																x.GroupId == membershipDto.GroupId &&
-																x.PermissionLevel == PermissionLevel.Admin,
+																(x.PermissionLevel == PermissionLevel.Admin ||
+																 x.OwnershipLevel == OwnershipLevel.Owner),
 														   cancellationToken);
 
-		if (currentUserIsAdmin is false)
+		if (currentUserCanManageMembers is false)
 		{
 			return logger.LogAndReturnErrorResult(
 				"Du har ikke rettigheder til at redigere medlemmer for denne gruppe.");
