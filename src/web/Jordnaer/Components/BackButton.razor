@@ -1,11 +1,5 @@
-<MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-    Href="@Href"
-    Color="Color.Info"
-    Variant="Variant.Filled"
-    Class="@Class"
-    Style="@Style"
-    title="@Title"
-    OnClick="OnClickHandler" />
+<MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Href="@Href" Color="Color.Info" Variant="Variant.Filled"
+    Class="@Class" Style="@Style" title="@Title" OnClick="OnClickHandler" />
 
 @inject IJSRuntime JsRuntime
 
@@ -34,7 +28,7 @@
         {
             await OnClick.InvokeAsync();
         }
-        else if (UseBrowserHistory)
+        else if (UseBrowserHistory && string.IsNullOrWhiteSpace(Href))
         {
             await JsRuntime.GoBackAsync();
         }
