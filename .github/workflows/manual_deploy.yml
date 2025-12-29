@@ -1,0 +1,38 @@
+name: Manual Deploy (Rollback)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version to deploy (e.g., 1.9.0, 1.8.0, production)'
+        required: true
+        default: 'production'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: nielspilgaard/minimoeder-website
+  AZURE_WEBAPP_NAME: mini-moeder
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App for Containers
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
+
+      - name: Create Deployment on elmah.io
+        uses: elmahio/github-create-deployment-action@v1
+        with:
+          apiKey: ${{ secrets.ELMAH_IO_API_KEY }}
+          version: ${{ inputs.version }}
+          logId: ${{ secrets.ELMAH_IO_LOG_ID }}
+          userName: ${{ github.actor }}
+          description: "Manual deployment/rollback to version ${{ inputs.version }}"

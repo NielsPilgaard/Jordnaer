@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Test, Build and Push Development Docker Image
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
           dotnet test "${{ env.TESTS_DIRECTORY }}"
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
-          -p:InformationalVersion=${{ github.ref_name }}
+          -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
 
   build-and-push:
     # Only build and push the image on pushes to main branch, not tags
@@ -78,3 +78,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=0.0.0-dev+${{ github.sha }}

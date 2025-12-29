@@ -16,8 +16,11 @@ RUN dotnet restore "${PROJECT}"
 # Copy all source files
 COPY --link src/ src/
 
+# Build argument for version
+ARG VERSION=1.0.0
+
 # Publish app
-RUN dotnet publish "${PROJECT}" --no-restore -c Release -o /app
+RUN dotnet publish "${PROJECT}" --no-restore -c Release -o /app -p:InformationalVersion="${VERSION}"
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
