@@ -10,41 +10,30 @@
 <MetadataComponent Title="Opdag Grupper" Description="Søg efter grupper" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
-    <MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
-        <div class="d-flex align-center mb-4">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                Style="@($"color: {JordnaerPalette.BlueBody};")"
-                OnClick="@(() => Navigation.NavigateTo("/groups"))" />
-            <MudText Typo="Typo.h4" Class="ml-2"
-                Style="@($"color: {JordnaerPalette.BlueBody};")">
-                Opdag Grupper
-            </MudText>
-        </div>
 
-        <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+    <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
 
-        @if (!_hasSearched)
-        {
-            return;
-        }
+    @if (!_hasSearched)
+    {
+        return;
+    }
 
-        @if (_searchResult.TotalCount is 0)
-        {
-            <MudContainer MaxWidth="MaxWidth.Small">
-                <MudPaper Elevation="3" Class="pa-10 mt-5">
-                    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-                        <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
-                    </MudAlert>
-                </MudPaper>
-            </MudContainer>
-            return;
-        }
+    @if (_searchResult.TotalCount is 0)
+    {
+        <MudContainer MaxWidth="MaxWidth.Small">
+            <MudPaper Elevation="3" Class="pa-10 mt-5">
+                <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
+                </MudAlert>
+            </MudPaper>
+        </MudContainer>
+        return;
+    }
 
-        <div class="mt-5">
-            <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult"
-                SelectedPageChanged="@OnSelectedPageChanged" />
-        </div>
-    </MudContainer>
+    <div class="mt-5">
+        <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult"
+            SelectedPageChanged="@OnSelectedPageChanged" />
+    </div>
 </MudLoading>
 
 @code {
