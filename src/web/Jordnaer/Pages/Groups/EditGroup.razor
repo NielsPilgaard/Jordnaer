@@ -155,6 +155,7 @@
             _group.ZipCode = null;
             _group.City = null;
             _group.Location = null;
+            _group.ZipCodeLocation = null;
             return;
         }
 
@@ -165,11 +166,12 @@
             _group.ZipCode = result.ZipCode;
             _group.City = result.City;
             _group.Location = result.Location;
+            _group.ZipCodeLocation = result.ZipCodeLocation;
         }
         else
         {
             Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
-                Severity.Warning);
+            Severity.Warning);
         }
     }
 
@@ -188,6 +190,7 @@
             _group.ZipCode = null;
             _group.City = null;
             _group.Location = null;
+            _group.ZipCodeLocation = null;
             return;
         }
 
@@ -198,17 +201,30 @@
             _group.ZipCode = result.ZipCode;
             _group.City = result.City;
             _group.Location = result.Location;
+            // When using zip code only, both locations are the same (zip code center)
+            _group.ZipCodeLocation = result.Location;
         }
         else
         {
             Snackbar.Add("Kunne ikke hente lokationsdata. Prøv venligst igen om et par minutter.",
-                Severity.Warning);
+            Severity.Warning);
         }
     }
 
     private void ToggleLocationMode()
     {
         _useZipCodeOnly = !_useZipCodeOnly;
+
+        if (_group is not null)
+        {
+            _group.Address = null;
+            _group.ZipCode = null;
+            _group.City = null;
+            _group.Location = null;
+        }
+
+        _zipCodeLocation = string.Empty;
+        _addressLocation = string.Empty;
     }
 
     private async Task Update()
@@ -224,8 +240,8 @@
 
         // Sync selected categories back to group
         _group.Categories = _categories
-            .Where(c => _selectedCategoryNames != null && _selectedCategoryNames.Contains(c.Name))
-            .ToList();
+        .Where(c => _selectedCategoryNames != null && _selectedCategoryNames.Contains(c.Name))
+        .ToList();
 
         _group.Description = await _textEditorComponent.GetHtmlAsync();
 

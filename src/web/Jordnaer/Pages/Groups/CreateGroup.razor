@@ -132,6 +132,7 @@
             _group.ZipCode = null;
             _group.City = null;
             _group.Location = null;
+            _group.ZipCodeLocation = null;
             return;
         }
 
@@ -142,6 +143,7 @@
             _group.ZipCode = result.ZipCode;
             _group.City = result.City;
             _group.Location = result.Location;
+            _group.ZipCodeLocation = result.ZipCodeLocation;
         }
         else
         {
@@ -160,6 +162,7 @@
             _group.ZipCode = null;
             _group.City = null;
             _group.Location = null;
+            _group.ZipCodeLocation = null;
             return;
         }
 
@@ -170,6 +173,8 @@
             _group.ZipCode = result.ZipCode;
             _group.City = result.City;
             _group.Location = result.Location;
+            // When using zip code only, both locations are the same (zip code center)
+            _group.ZipCodeLocation = result.Location;
         }
         else
         {
@@ -181,6 +186,13 @@
     private void ToggleLocationMode()
     {
         _useZipCodeOnly = !_useZipCodeOnly;
+
+        _group.Address = null;
+        _group.ZipCode = null;
+        _group.City = null;
+        _group.Location = null;
+        _zipCodeLocation = string.Empty;
+        _addressLocation = string.Empty;
     }
 
     private async Task Create()
@@ -199,7 +211,7 @@
         _ =>
         {
             Snackbar.Add("Gruppen blev oprettet.", Severity.Success);
-            Navigation.NavigateTo($"/groups/{_group.Name}");
+            Navigation.NavigateTo($"/groups/{Uri.EscapeDataString(_group.Name)}");
         },
         badRequest => Snackbar.Add(badRequest.Value, Severity.Warning));
 
