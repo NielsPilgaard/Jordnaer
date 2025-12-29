@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using Serilog;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using NotFound = OneOf.Types.NotFound;
 
@@ -46,8 +47,13 @@ public class GroupService(
 				Name = x.Name,
 				ShortDescription = x.ShortDescription,
 				Description = x.Description,
+				Address = x.Address,
 				ZipCode = x.ZipCode,
 				City = x.City,
+				Latitude = x.Location != null ? x.Location.Y : null,
+				Longitude = x.Location != null ? x.Location.X : null,
+				ZipCodeLatitude = x.ZipCodeLocation != null ? x.ZipCodeLocation.Y : null,
+				ZipCodeLongitude = x.ZipCodeLocation != null ? x.ZipCodeLocation.X : null,
 				ProfilePictureUrl = x.ProfilePictureUrl,
 				MemberCount = x.Memberships.Count(membership => membership.MembershipStatus == MembershipStatus.Active),
 				Categories = x.Categories.Select(category => category.Name).ToArray()
@@ -75,8 +81,13 @@ public class GroupService(
 					Name = x.Group.Name,
 					ShortDescription = x.Group.ShortDescription,
 					Description = x.Group.Description,
+					Address = x.Group.Address,
 					ZipCode = x.Group.ZipCode,
 					City = x.Group.City,
+					Latitude = x.Group.Location != null ? x.Group.Location.Y : null,
+					Longitude = x.Group.Location != null ? x.Group.Location.X : null,
+					ZipCodeLatitude = x.Group.ZipCodeLocation != null ? x.Group.ZipCodeLocation.Y : null,
+					ZipCodeLongitude = x.Group.ZipCodeLocation != null ? x.Group.ZipCodeLocation.X : null,
 					ProfilePictureUrl = x.Group.ProfilePictureUrl,
 					MemberCount =
 						x.Group.Memberships.Count(membership =>
@@ -169,18 +180,21 @@ public class GroupService(
 
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
 	{
+		Debug.Assert(currentUser.Id is not null, "Current user must be set when updating group membership.");
+
 		logger.LogFunctionBegan();
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-		var currentUserIsAdmin = await context.GroupMemberships
+		var currentUserCanManageMembers = await context.GroupMemberships
 												 .AsNoTracking()
 												 .AnyAsync(x => x.UserProfileId == currentUser.Id &&
 																x.GroupId == membershipDto.GroupId &&
-																x.PermissionLevel == PermissionLevel.Admin,
+																(x.PermissionLevel == PermissionLevel.Admin ||
+																 x.OwnershipLevel == OwnershipLevel.Owner),
 														   cancellationToken);
 
-		if (currentUserIsAdmin is false)
+		if (currentUserCanManageMembers is false)
 		{
 			return logger.LogAndReturnErrorResult(
 				"Du har ikke rettigheder til at redigere medlemmer for denne gruppe.");
@@ -407,6 +421,8 @@ public class GroupService(
 		currentGroup.Address = updatedGroup.Address;
 		currentGroup.City = updatedGroup.City;
 		currentGroup.ZipCode = updatedGroup.ZipCode;
+		currentGroup.Location = updatedGroup.Location;
+		currentGroup.ZipCodeLocation = updatedGroup.ZipCodeLocation;
 		currentGroup.ShortDescription = updatedGroup.ShortDescription;
 		currentGroup.Description = updatedGroup.Description;
 

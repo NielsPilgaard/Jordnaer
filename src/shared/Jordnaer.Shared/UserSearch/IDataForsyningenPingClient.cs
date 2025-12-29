@@ -19,6 +19,6 @@ public interface IDataForsyningenPingClient
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns></returns>
 	[Get("/postnumre?side=1&per_side=1")]
-	public Task<IApiResponse<IEnumerable<ZipCodeSearchResponse>>>
+	Task<IApiResponse<IEnumerable<ZipCodeSearchResponse>>>
 		Ping(CancellationToken cancellationToken = default);
 }

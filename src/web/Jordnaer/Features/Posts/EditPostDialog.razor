@@ -1,7 +1,6 @@
-@using Jordnaer.Shared
-@using Jordnaer.Features.Theme
 @inject PostService PostService
 @inject ISnackbar Snackbar
+@inject ICategoryCache CategoryCache
 
 <MudDialog>
     <DialogContent>
@@ -10,14 +9,7 @@
                 Text="@InitialText" />
 
             <MudText Typo="Typo.body2">Kategorier</MudText>
-            <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection" SelectedValues="_selectedCategoryNames"
-                CheckMark Color="Color.Tertiary" SelectedColor="Color.Success"
-                SelectedValuesChanged="SelectedCategoriesChanged" Variant="Variant.Outlined">
-                @foreach (var category in AllCategories)
-                {
-                    <MudChip Text="@category.Name" Value="@category.Name" />
-                }
-            </MudChipSet>
+            <CategorySelector Categories="_selectedCategoryNames.ToArray()" CategoriesChanged="OnCategoriesChanged" />
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -50,8 +42,6 @@
     [Parameter]
     public List<string> InitialCategories { get; set; } = [];
 
-    [Parameter]
-    public List<Category> AllCategories { get; set; } = [];
 
     [Parameter]
     public string? CurrentUserId { get; set; }
@@ -60,24 +50,26 @@
     private bool _isSaving = false;
     private List<string> _selectedCategoryNames = [];
     private List<Category> _selectedCategories = [];
+    private IEnumerable<Category> _allCategories = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        _allCategories = await CategoryCache.GetOrCreateCategoriesAsync();
         _selectedCategoryNames = InitialCategories.ToList();
-        _selectedCategories = AllCategories.Where(c => InitialCategories.Contains(c.Name)).ToList();
+        _selectedCategories = _allCategories.Where(c => InitialCategories.Contains(c.Name)).ToList();
     }
 
-    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    private void OnCategoriesChanged(string[]? categories)
     {
-        if (selectedCategories is null)
+        if (categories is null)
         {
             _selectedCategories.Clear();
             _selectedCategoryNames = [];
             return;
         }
 
-        _selectedCategoryNames = selectedCategories.Where(x => x != null).Cast<string>().ToList();
-        _selectedCategories = AllCategories.Where(c => _selectedCategoryNames.Contains(c.Name)).ToList();
+        _selectedCategoryNames = categories.ToList();
+        _selectedCategories = _allCategories.Where(c => categories.Contains(c.Name)).ToList();
     }
 
     private async Task SaveChanges()

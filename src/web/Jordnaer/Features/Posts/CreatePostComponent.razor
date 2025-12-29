@@ -1,4 +1,3 @@
-@using Jordnaer.Features.Theme
 @inject IProfileCache ProfileCache
 @inject ICategoryCache CategoryCache
 @inject PostService PostService
@@ -68,15 +67,8 @@
                                 Placeholder="Del dine tanker..." />
 
                             <MudText Typo="Typo.body2" Class="mt-2">Kategorier</MudText>
-                            <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection"
-                                SelectedValues="_selectedCategoryNames" CheckMark Color="Color.Tertiary"
-                                SelectedColor="Color.Success" SelectedValuesChanged="SelectedCategoriesChanged"
-                                Variant="Variant.Outlined">
-                                @foreach (var category in _categories)
-                                {
-                                    <MudChip Text="@category.Name" Value="@category.Name" />
-                                }
-                            </MudChipSet>
+                            <CategorySelector Categories="_selectedCategoryNames.ToArray()"
+                                CategoriesChanged="OnCategoriesChanged" />
 
                             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                                 <MudCheckBox Label="Vis område" title="Gem postnummer og by som en del af opslaget"
@@ -213,17 +205,17 @@
         }
     }
 
-    private void SelectedCategoriesChanged(IEnumerable<string?>? selectedCategories)
+    private void OnCategoriesChanged(string[]? categories)
     {
-        if (selectedCategories is null)
+        if (categories is null)
         {
             _postCategories.Clear();
             _selectedCategoryNames = [];
             return;
         }
 
-        _selectedCategoryNames = selectedCategories.Where(x => x != null).Cast<string>().ToList();
-        _postCategories = _categories.Where(possibleCategory => selectedCategories.Contains(possibleCategory.Name)).ToList();
+        _selectedCategoryNames = categories.ToList();
+        _postCategories = _categories.Where(possibleCategory => categories.Contains(possibleCategory.Name)).ToList();
     }
 
     private string GetLoginUrl()

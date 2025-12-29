@@ -4,21 +4,10 @@
 @inject ISnackbar Snackbar
 @inject IProfileCache ProfileCache
 
-<MudAutocomplete T="string"
-                 ValueChanged="LocationValueChanged"
-                 Placeholder="Søg i nærheden af postnummer"
-                 Value="Location"
-                 Label="Område"
-                 SearchFunc="@SearchForZipCodes"
-                 SelectValueOnTab
-                 ShowProgressIndicator
-                 OpenIcon="@string.Empty"
-                 AdornmentIcon="@Icons.Material.Filled.Place"
-                 Adornment="Adornment.Start"
-                 DebounceInterval="250"
-                 Clearable
-                 For="@For"
-                 MinCharacters="2" />
+<MudAutocomplete T="string" ValueChanged="LocationValueChanged" Placeholder="Søg på by eller postnummer"
+    Value="Location" Label="Område" SearchFunc="@SearchForZipCodes" SelectValueOnTab ShowProgressIndicator
+    OpenIcon="@string.Empty" AdornmentIcon="@Icons.Material.Filled.Place" Adornment="Adornment.Start"
+    DebounceInterval="250" Clearable For="@For" MinCharacters="2" />
 
 @code
 {
@@ -35,15 +24,18 @@
 
     private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
     private bool _locationSetOnInitialized = false;
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-	    if (!firstRender || DisableSmartCompletion || _locationSetOnInitialized)
-	    {
-		    return;
-	    }
+        // Guard: Only run on first render, when smart completion is enabled, and location hasn't been set yet
+        if (!firstRender || DisableSmartCompletion || _locationSetOnInitialized)
+        {
+            return;
+        }
 
-	    await SetLocationFromUsersCoordinates();
+        // Mark as initialized immediately to prevent re-entry on subsequent renders
+        _locationSetOnInitialized = true;
+        await SetLocationFromUsersCoordinates();
     }
 
     private async Task SetLocationFromUsersCoordinates()
@@ -57,8 +49,8 @@
         var (latitude, longitude) = userCoordinates.Value;
 
         var response = await DataForsyningenClient.GetZipCodeFromCoordinates(
-            longitude.ToString(FloatNumberFormat),
-            latitude.ToString(FloatNumberFormat));
+        longitude.ToString(FloatNumberFormat),
+        latitude.ToString(FloatNumberFormat));
 
         if (response.IsSuccessful)
         {
@@ -69,10 +61,10 @@
         {
             Snackbar.Add("Det lykkedes ikke at finde dit postnummer ud fra din nuværende lokation.", Severity.Info);
             Logger.LogError(response.Error,
-                "Failed to get zip code from user coordinates. " +
-                "Uri: {Uri} StatusCode: {StatusCode}",
-                response.RequestMessage?.RequestUri,
-                response.StatusCode);
+            "Failed to get zip code from user coordinates. " +
+            "Uri: {Uri} StatusCode: {StatusCode}",
+            response.RequestMessage?.RequestUri,
+            response.StatusCode);
         }
     }
 
@@ -81,8 +73,8 @@
         var searchResponse = await DataForsyningenClient.GetZipCodesWithAutoComplete(value, cancellationToken);
 
         return searchResponse.IsSuccessful
-          ? searchResponse.Content!.Select(response => response.ToString())
-          : [];
+        ? searchResponse.Content!.Select(response => response.ToString())
+        : [];
     }
 
     private async Task LocationValueChanged(string value)

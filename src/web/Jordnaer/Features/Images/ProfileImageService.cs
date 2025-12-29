@@ -45,7 +45,14 @@ public class ProfileImageService(IDbContextFactory<JordnaerDbContext> contextFac
 													  GroupProfilePicturesContainerName,
 													  dto.FileBytes);
 
-		await UpdateGroupProfilePictureAsync(dto, uri);
+		// Only update the database if the group already exists
+		// For new groups, the ProfilePictureUrl will be saved when the group is created
+		await using var context = await contextFactory.CreateDbContextAsync();
+		var groupExists = await context.Groups.AsNoTracking().AnyAsync(g => g.Id == dto.Group.Id);
+		if (groupExists)
+		{
+			await UpdateGroupProfilePictureAsync(dto, uri);
+		}
 
 		return uri;
 	}
@@ -106,12 +113,11 @@ public class ProfileImageService(IDbContextFactory<JordnaerDbContext> contextFac
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var currentGroup = await context.Groups.FindAsync([dto.Group.Id], cancellationToken);
+
+		// Group should already exist when this method is called
 		if (currentGroup is null)
 		{
-			dto.Group.ProfilePictureUrl = uri;
-			context.Groups.Add(dto.Group);
-			await context.SaveChangesAsync(cancellationToken);
-			return;
+			throw new InvalidOperationException($"Group with ID {dto.Group.Id} does not exist.");
 		}
 
 		// Updating is only required if the pictureUrl is not already correct

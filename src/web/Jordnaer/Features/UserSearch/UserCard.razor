@@ -50,8 +50,7 @@
                 <div class="d-flex flex-wrap gap-2">
                     @foreach (var child in User.Children.OrderBy(c => c.DateOfBirth))
                     {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
-                            Style="@($"background-color: {JordnaerPalette.PaleBlueBackground}; color: {JordnaerPalette.BlueBody};")">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Info">
                             @child.FirstName
                             @if (child.Age is not null)
                             {
@@ -75,15 +74,13 @@
                 <div class="d-flex flex-wrap gap-1">
                     @foreach (var category in User.Categories.Take(4))
                     {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                            Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
                             @category
                         </MudChip>
                     }
                     @if (User.Categories.Count > 4)
                     {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                            Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
                             +@(User.Categories.Count - 4)
                         </MudChip>
                     }

@@ -7,34 +7,39 @@
 
 @attribute [Sitemap]
 
-<MetadataComponent Title="Søg efter brugere"
-                   Description="Søg efter brugere" />
+<MetadataComponent Title="Søg efter brugere" Description="Søg efter brugere" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudText Typo="Typo.h3" Class="mb-6 text-center font-cherry-bomb-one"
+            Style="@($"color: {JordnaerPalette.RedHeader};")">
+            Find familier
+        </MudText>
 
-    <UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+        <UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
 
-    @if (!_hasSearched)
-    {
-        return;
-    }
+        @if (!_hasSearched)
+        {
+            return;
+        }
 
-    @if (_searchResult.TotalCount == 0)
-    {
-        <MudContainer MaxWidth="MaxWidth.Small">
-            <MudPaper Elevation="3" Class="pa-10 mt-5">
-                <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
-                </MudAlert>
-            </MudPaper>
-        </MudContainer>
-        return;
-    }
+        @if (_searchResult.TotalCount == 0)
+        {
+            <MudContainer MaxWidth="MaxWidth.Small">
+                <MudPaper Elevation="3" Class="pa-10 mt-5">
+                    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
+                        <MudText Align="Align.Center" Typo="Typo.h6">Ingen brugere matchede søgningen.</MudText>
+                    </MudAlert>
+                </MudPaper>
+            </MudContainer>
+            return;
+        }
 
-    <div class="mt-5">
-        <UserSearchResultComponent Filter="_filter" SearchResult="_searchResult" SelectedPageChanged="@OnSelectedPageChanged" />
-    </div>
-
+        <div class="mt-5">
+            <UserSearchResultComponent Filter="_filter" SearchResult="_searchResult"
+                SelectedPageChanged="@OnSelectedPageChanged" />
+        </div>
+    </MudContainer>
 </MudLoading>
 
 @code {
@@ -66,24 +71,24 @@
         if (_searchResult.TotalCount is 0)
         {
             Snackbar.Add(
-	            message: "Ingen brugere matchede søgningen.",
-	            severity: Severity.Info,
-	            options =>
-	            {
-		            options.VisibleStateDuration = 3500;
-		            options.CloseAfterNavigation = true;
-	            });
+            message: "Ingen brugere matchede søgningen.",
+            severity: Severity.Info,
+            options =>
+            {
+                options.VisibleStateDuration = 3500;
+                options.CloseAfterNavigation = true;
+            });
         }
         else
         {
-	        Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
-		        severity: Severity.Success,
-		        options =>
-		        {
-			        options.VisibleStateDuration = 3500;
-			        options.Icon = Icons.Material.Filled.ArrowDownward;
-			        options.CloseAfterNavigation = true;
-		        });
+            Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
+            severity: Severity.Success,
+            options =>
+            {
+                options.VisibleStateDuration = 3500;
+                options.Icon = Icons.Material.Filled.ArrowDownward;
+                options.CloseAfterNavigation = true;
+            });
         }
 
         _hasSearched = true;

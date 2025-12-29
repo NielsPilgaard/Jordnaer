@@ -12,14 +12,14 @@ public static class LoggerExtensions
 	public static Error<string> LogAndReturnErrorResult(this ILogger logger, string error,
 		[CallerMemberName] string methodName = "")
 	{
-		logger.LogError("{MethodName}:{Error}", methodName, error);
+		logger.LogError("{MethodName}: {Error}", methodName, error);
 		return new Error<string>(error);
 	}
 
 	public static Error<string> LogAndReturnErrorResult(this ILogger logger, Exception exception, string error,
 		[CallerMemberName] string methodName = "")
 	{
-		logger.LogError(exception, "{MethodName}:{Error}", methodName, error);
+		logger.LogError(exception, "{MethodName}: {Error}", methodName, error);
 		return new Error<string>(error);
 	}
 }

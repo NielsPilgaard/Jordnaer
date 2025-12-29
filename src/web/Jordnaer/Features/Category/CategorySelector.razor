@@ -1,18 +1,14 @@
 @inject ICategoryCache CategoryCache
 
-<MudChipSet T="string" 
-            Style="display: flex; flex-wrap: wrap; justify-content: center;"
-            SelectionMode="SelectionMode.MultiSelection"
-            SelectedValues="Categories"
-            CheckMark
-            Color="Color.Tertiary"
-            SelectedColor="Color.Success"
-            SelectedValuesChanged="SelectedCategoriesChanged"
-            Variant="Variant.Outlined">
-	@foreach (var category in _allCategories)
-	{
-		<MudChip Text="@category" Value="@category" />
-	}
+<MudChipSet T="string" Style="display: flex; flex-wrap: wrap; justify-content: center;"
+    SelectionMode="SelectionMode.MultiSelection" SelectedValues="Categories" CheckMark
+    SelectedValuesChanged="SelectedCategoriesChanged">
+    @foreach (var category in _allCategories)
+    {
+        <MudChip Text="@category" Value="@category" Variant="Variant.Outlined" Color="Color.Secondary"
+            SelectedColor="Color.Info" />
+    }
+
 </MudChipSet>
 @code
 {
@@ -23,7 +19,7 @@
 
     [Parameter]
     public EventCallback<string[]?> CategoriesChanged { get; set; }
-    
+
     protected override async Task OnInitializedAsync()
     {
         var cachedCategories = await CategoryCache.GetOrCreateCategoriesAsync();
@@ -32,10 +28,10 @@
 
     private async Task SelectedCategoriesChanged(IEnumerable<string?>? categories)
     {
-        Categories = (categories is null 
-		    ? [] 
-		    : categories.Where(x => x != null).ToArray())!;
+        Categories = (categories is null
+        ? []
+        : categories.Where(x => x != null).ToArray())!;
 
-	    await CategoriesChanged.InvokeAsync(Categories);
+        await CategoriesChanged.InvokeAsync(Categories);
     }
 }

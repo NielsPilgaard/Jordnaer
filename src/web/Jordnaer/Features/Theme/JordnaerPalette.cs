@@ -24,6 +24,31 @@ public static class JordnaerTheme
 				FontFamily = ["Open Sans Light", "Arial", "sans-serif"],
 				FontSize = "1rem"
 			}
+		},
+		PaletteLight = new PaletteLight
+		{
+			Primary = JordnaerPalette.YellowBackground.Value,        // GLÆDE - warm yellow-orange for primary actions
+			Secondary = JordnaerPalette.GreenBackground.Value,      // RO - calm green for secondary actions
+			Tertiary = JordnaerPalette.PaleBlueBackground.Value,       // LEG - playful light blue
+			Info = JordnaerPalette.BlueBody.Value,           // MØDE - informative blue
+			Success = JordnaerPalette.GreenBackground.Value,        // RO - green is perfect for success
+			Warning = JordnaerPalette.YellowBackground.Value,        // GLÆDE - yellow-orange for warnings
+			Error = JordnaerPalette.RedHeader.Value,          // MØDE Red - red-brown for errors
+			Dark = JordnaerPalette.BlueBody.Value,           // MØDE - body text blue
+			TextPrimary = JordnaerPalette.BlueBody.Value,    // MØDE - main text color
+			TextSecondary = JordnaerPalette.RedHeader.Value,  // MØDE Red - secondary text
+			Background = JordnaerPalette.White.Value,     // Pure white
+			Surface = JordnaerPalette.White.Value,        // Pure white for better contrast with text
+			AppbarBackground = JordnaerPalette.YellowBackground.Value, // GLÆDE - warm yellow header
+
+			// Text on colored buttons
+			PrimaryContrastText = JordnaerPalette.White.Value,
+			SecondaryContrastText = JordnaerPalette.White.Value,
+			TertiaryContrastText = JordnaerPalette.BlueBodyDark.Value,  // WCAG AA compliant (~5.4:1) on light blue
+			InfoContrastText = JordnaerPalette.White.Value,
+			SuccessContrastText = JordnaerPalette.White.Value,
+			WarningContrastText = JordnaerPalette.White.Value,
+			ErrorContrastText = JordnaerPalette.White.Value
 		}
 	};
 }
@@ -44,6 +69,12 @@ public static class JordnaerPalette
 	/// Dark Blue. Used for body text (MØDE)
 	/// </summary>
 	public static readonly MudColor BlueBody = "#41556b";
+
+	/// <summary>
+	/// Darker Blue. Used for text on light blue backgrounds to meet WCAG AA contrast requirements.
+	/// Provides ~5.4:1 contrast ratio against <see cref="PaleBlueBackground"/> (#a9c0cf).
+	/// </summary>
+	public static readonly MudColor BlueBodyDark = "#2d4456";
 
 	/// <summary>
 	/// Dark Red. Used for small texts, payoffs, quotes (MØDE Red)

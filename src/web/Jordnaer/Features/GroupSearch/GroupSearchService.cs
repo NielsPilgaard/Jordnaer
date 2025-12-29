@@ -86,6 +86,7 @@ public class GroupSearchService(
 			{
 				return (groups, false);
 			}
+
 			location = searchLocation.Location;
 		}
 		else

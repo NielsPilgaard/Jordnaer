@@ -1,4 +1,4 @@
-@page "/groups"
+@page "/groups/discover"
 
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
@@ -7,7 +7,7 @@
 
 @attribute [Sitemap]
 
-<MetadataComponent Title="Grupper" Description="Søg efter grupper" />
+<MetadataComponent Title="Opdag Grupper" Description="Søg efter grupper" />
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
@@ -34,7 +34,6 @@
         <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult"
             SelectedPageChanged="@OnSelectedPageChanged" />
     </div>
-
 </MudLoading>
 
 @code {
