@@ -38,10 +38,10 @@
 
 			// Initialize the map
 			var success = await LeafletMapInterop.InitializeMapAsync(
-				MapId,
-				InitialLatitude,
-				InitialLongitude,
-				InitialZoom);
+			MapId,
+			InitialLatitude,
+			InitialLongitude,
+			InitialZoom);
 
 			if (success)
 			{
@@ -86,7 +86,10 @@
 	/// </summary>
 	public async Task UpdateMarkerAsync(double lat, double lng)
 	{
-		if (!_isInitialized) return;
+		if (!_isInitialized)
+		{
+			return;
+		}
 
 		await LeafletMapInterop.UpdateMarkerAsync(MapId, lat, lng);
 	}

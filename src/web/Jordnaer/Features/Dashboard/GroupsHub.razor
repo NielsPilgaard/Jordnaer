@@ -75,7 +75,7 @@
     <MiniDivider Color="MiniDividerColor.Red" Center Class="my-6" />
 
     @* Quick Access Section *@
-    @if (_recentGroups.Any())
+    @if (_recentGroups.Count is not 0)
     {
         <MudPaper Elevation="2" Class="pa-6">
             <MudText Typo="Typo.h5" Class="mb-4" Style="@($"color: {JordnaerPalette.RedHeader};")">
@@ -125,32 +125,6 @@
                     <MudDivider />
                 }
             </MudList>
-        </MudPaper>
-    }
-    else
-    {
-        <MudPaper Elevation="2" Class="pa-6">
-            <MudText Typo="Typo.h5" Class="mb-4" Style="@($"color: {JordnaerPalette.RedHeader};")">
-                Kom I Gang
-            </MudText>
-
-            <MudText Typo="Typo.body1" Class="mb-4" Style="color: #666;">
-                Du er endnu ikke medlem af nogen grupper. Udforsk vores grupper eller opret din egen!
-            </MudText>
-
-            <div class="d-flex gap-3 flex-wrap">
-                <MudButton Variant="Variant.Filled"
-                    Style="@($"background-color: {JordnaerPalette.BlueBody}; color: white;")"
-                    StartIcon="@Icons.Material.Filled.Search" Href="/groups/discover">
-                    Opdag Grupper
-                </MudButton>
-
-                <MudButton Variant="Variant.Outlined"
-                    Style="@($"color: {JordnaerPalette.GreenBackground}; border-color: {JordnaerPalette.GreenBackground};")"
-                    StartIcon="@Icons.Material.Filled.Add" Href="/groups/create">
-                    Opret Gruppe
-                </MudButton>
-            </div>
         </MudPaper>
     }
 

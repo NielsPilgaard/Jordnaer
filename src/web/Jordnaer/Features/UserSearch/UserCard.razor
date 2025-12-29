@@ -80,8 +80,7 @@
                     }
                     @if (User.Categories.Count > 4)
                     {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                            Style="@($"border-color: {JordnaerPalette.GreenBackground}; color: {JordnaerPalette.GreenBackground};")">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
                             +@(User.Categories.Count - 4)
                         </MudChip>
                     }
