@@ -3,7 +3,6 @@
 @attribute [Authorize]
 
 @inject GroupService GroupService
-@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
 <MetadataComponent Title="Grupper" Description="Opdag og administrer dine grupper" />
@@ -148,7 +147,7 @@
 
                 <MudButton Variant="Variant.Outlined"
                     Style="@($"color: {JordnaerPalette.GreenBackground}; border-color: {JordnaerPalette.GreenBackground};")"
-                    StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Navigation.NavigateTo("/groups/create"))">
+                    StartIcon="@Icons.Material.Filled.Add" Href="/groups/create">
                     Opret Gruppe
                 </MudButton>
             </div>
