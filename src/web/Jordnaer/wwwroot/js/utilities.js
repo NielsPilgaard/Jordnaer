@@ -54,5 +54,18 @@ window.utilities = {
         const left = (screen.width - width) / 2;
         const top = (screen.height - height) / 2;
         window.open(url, windowName, `width=${width},height=${height},left=${left},top=${top}`);
+    },
+
+    canShare: function () {
+        return typeof navigator.share === 'function';
+    },
+
+    nativeShare: async function (title, text, url) {
+        try {
+            await navigator.share({ title, text, url });
+            return true;
+        } catch {
+            return false;
+        }
     }
 };
