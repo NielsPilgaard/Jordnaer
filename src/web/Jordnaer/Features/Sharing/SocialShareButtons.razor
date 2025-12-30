@@ -7,14 +7,9 @@
             aria-label="Del på Facebook" />
     </MudTooltip>
 
-    <MudTooltip Text="@(ShareService.CanUseNativeShare ? "Del på Instagram" : "Kopiér link til Instagram")">
-        <MudIconButton Icon="@Icons.Custom.Brands.Instagram" Color="Color.Secondary" Size="@Size"
-            OnClick="ShareToInstagramAsync" aria-label="Del på Instagram" />
-    </MudTooltip>
-
-    <MudTooltip Text="Kopiér link">
-        <MudIconButton Icon="@Icons.Material.Filled.Link" Color="Color.Default" Size="@Size" OnClick="CopyLinkAsync"
-            aria-label="Kopiér link" />
+    <MudTooltip Text="@(ShareService.CanUseNativeShare ? "Del via app" : "Kopiér link")">
+        <MudIconButton Icon="@Icons.Material.Filled.IosShare" Color="Color.Default" Size="@Size"
+            OnClick="ShareViaApp" aria-label="Del via app" />
     </MudTooltip>
 </div>
 
@@ -71,7 +66,5 @@
 
     private Task ShareToFacebook() => ShareService.ShareToFacebookAsync(FullShareUrl, Hashtag);
 
-    private Task ShareToInstagramAsync() => ShareService.ShareToInstagramAsync(FullShareUrl, Title, EffectiveShareText);
-
-    private Task CopyLinkAsync() => ShareService.CopyLinkAsync(FullShareUrl);
+    private Task ShareViaApp() => ShareService.ShareViaAppAsync(FullShareUrl, Title, EffectiveShareText);
 }

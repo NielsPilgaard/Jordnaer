@@ -67,18 +67,19 @@ public class SocialShareService(
     }
 
     /// <summary>
-    /// Shares content to Instagram. Uses native share on mobile, copies link on desktop.
+    /// Shares content using native share (mobile) or copies link to clipboard (desktop).
+    /// Native share allows users to choose any app (Instagram, WhatsApp, Messages, etc.)
     /// </summary>
     /// <param name="url">The URL to share</param>
     /// <param name="title">The title for the share (used in native share)</param>
     /// <param name="text">The text/description for the share (used in native share)</param>
-    public async Task ShareToInstagramAsync(string url, string? title = null, string? text = null)
+    public async Task ShareViaAppAsync(string url, string? title = null, string? text = null)
     {
         await InitializeAsync();
 
         if (_canUseNativeShare == true)
         {
-            // On mobile: Use native share sheet which includes Instagram
+            // On mobile: Use native share sheet which allows sharing to any app
             var shared = await jsRuntime.InvokeAsync<bool>(
                 "utilities.nativeShare",
                 title ?? "Mini Møder",
@@ -88,37 +89,20 @@ public class SocialShareService(
             if (!shared)
             {
                 // User cancelled or error - fall back to copy
-                await CopyForInstagramAsync(url);
+                await CopyLinkWithMessageAsync(url);
             }
         }
         else
         {
-            // On desktop: Copy link with Instagram-specific message
-            await CopyForInstagramAsync(url);
+            // On desktop: Copy link to clipboard
+            await CopyLinkWithMessageAsync(url);
         }
     }
 
     /// <summary>
-    /// Copies a URL to clipboard with an Instagram-specific message.
+    /// Copies a URL to clipboard with a helpful message.
     /// </summary>
-    private async Task CopyForInstagramAsync(string url)
-    {
-        var success = await jsRuntime.InvokeAsync<bool>("utilities.copyToClipboard", url);
-        if (success)
-        {
-            snackbar.Add("Link kopieret! Du kan nu indsætte det på Instagram.", Severity.Success);
-        }
-        else
-        {
-            snackbar.Add("Kunne ikke kopiere linket. Prøv igen.", Severity.Error);
-        }
-    }
-
-    /// <summary>
-    /// Copies a URL to clipboard.
-    /// </summary>
-    /// <param name="url">The URL to copy</param>
-    public async Task CopyLinkAsync(string url)
+    private async Task CopyLinkWithMessageAsync(string url)
     {
         var success = await jsRuntime.InvokeAsync<bool>("utilities.copyToClipboard", url);
         if (success)
