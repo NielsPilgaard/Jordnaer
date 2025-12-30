@@ -45,6 +45,9 @@
                 <MudMenuItem Icon="@Icons.Custom.Brands.Facebook" OnClick="ShareToFacebook">
                     Del på Facebook
                 </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Cloud" OnClick="ShareToBluesky">
+                    Del på Bluesky
+                </MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Filled.IosShare" OnClick="ShareViaApp">
                     @(ShareService.CanUseNativeShare ? "Del via app" : "Kopiér link")
                 </MudMenuItem>
@@ -123,7 +126,7 @@
     {
         if (firstRender)
         {
-            await ShareService.InitializeAsync();
+            await ShareService.EnsureInitializedAsync();
             StateHasChanged();
         }
     }
@@ -220,6 +223,11 @@
     }
 
     private Task ShareToFacebook() => ShareService.ShareToFacebookAsync(PostUrl, "#MiniMøder");
+
+    private Task ShareToBluesky()
+    {
+        return ShareService.ShareToBlueskyAsync(PostUrl);
+    }
 
     private Task ShareViaApp()
     {

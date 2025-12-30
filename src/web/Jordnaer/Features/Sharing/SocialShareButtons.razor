@@ -7,6 +7,11 @@
             aria-label="Del på Facebook" />
     </MudTooltip>
 
+    <MudTooltip Text="Del på Bluesky">
+        <MudIconButton Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="@Size" OnClick="ShareToBluesky"
+            aria-label="Del på Bluesky" />
+    </MudTooltip>
+
     <MudTooltip Text="@(ShareService.CanUseNativeShare ? "Del via app" : "Kopiér link")">
         <MudIconButton Icon="@Icons.Material.Filled.IosShare" Color="Color.Default" Size="@Size"
             OnClick="ShareViaApp" aria-label="Del via app" />
@@ -59,12 +64,14 @@
     {
         if (firstRender)
         {
-            await ShareService.InitializeAsync();
+            await ShareService.EnsureInitializedAsync();
             StateHasChanged();
         }
     }
 
     private Task ShareToFacebook() => ShareService.ShareToFacebookAsync(FullShareUrl, Hashtag);
+
+    private Task ShareToBluesky() => ShareService.ShareToBlueskyAsync(FullShareUrl);
 
     private Task ShareViaApp() => ShareService.ShareViaAppAsync(FullShareUrl, Title, EffectiveShareText);
 }

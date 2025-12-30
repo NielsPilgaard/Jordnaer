@@ -17,7 +17,7 @@ public class SocialShareService(
     /// Initializes the service by checking for native share support and loading Facebook App ID.
     /// Should be called once during component initialization.
     /// </summary>
-    public async Task InitializeAsync()
+    public async Task EnsureInitializedAsync()
     {
         if (_canUseNativeShare.HasValue)
         {
@@ -35,7 +35,7 @@ public class SocialShareService(
     /// <param name="hashtag">Optional hashtag to include (e.g., "#MiniMøder")</param>
     public async Task ShareToFacebookAsync(string url, string? hashtag = null)
     {
-        await InitializeAsync();
+        await EnsureInitializedAsync();
 
         string facebookUrl;
         if (!string.IsNullOrEmpty(_facebookAppId))
@@ -67,6 +67,22 @@ public class SocialShareService(
     }
 
     /// <summary>
+    /// Shares content to Bluesky using the compose action intent.
+    /// Opens the Bluesky app with pre-populated post text.
+    /// </summary>
+    /// <param name="url">The URL to share</param>
+    /// <param name="text">Optional text to include with the URL (max 300 characters total including URL)</param>
+    public async Task ShareToBlueskyAsync(string url)
+    {
+        await EnsureInitializedAsync();
+
+        // Use the web URL endpoint for maximum compatibility
+        var blueskyUrl = $"https://bsky.app/intent/compose?text={Uri.EscapeDataString(url)}";
+
+        await jsRuntime.InvokeVoidAsync("utilities.openShareWindow", blueskyUrl, "bluesky-share");
+    }
+
+    /// <summary>
     /// Shares content using native share (mobile) or copies link to clipboard (desktop).
     /// Native share allows users to choose any app (Instagram, WhatsApp, Messages, etc.)
     /// </summary>
@@ -75,7 +91,7 @@ public class SocialShareService(
     /// <param name="text">The text/description for the share (used in native share)</param>
     public async Task ShareViaAppAsync(string url, string? title = null, string? text = null)
     {
-        await InitializeAsync();
+        await EnsureInitializedAsync();
 
         if (_canUseNativeShare == true)
         {
