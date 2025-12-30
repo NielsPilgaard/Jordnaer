@@ -1,13 +1,9 @@
-@using Jordnaer.Shared
-@using Jordnaer.Features.Theme
-@using Humanizer
-@using System.Globalization
 @inject PostService PostService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject ICategoryCache CategoryCache
-@inject IJSRuntime JSRuntime
+@inject SocialShareService ShareService
 
 <MudCard Class="mb-4 warm-shadow warm-rounded" Elevation="3">
     @* Header Section - Author Info *@
@@ -44,20 +40,30 @@
             }
         </CardHeaderContent>
         <CardHeaderActions>
-            <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomRight" Dense="true">
-                <MudMenuItem Icon="@Icons.Material.Filled.Share" OnClick="SharePostAsync">
-                    Del
+            <MudMenu Icon="@Icons.Material.Filled.Share" AnchorOrigin="Origin.BottomRight" Dense="true"
+                aria-label="Del opslag">
+                <MudMenuItem Icon="@Icons.Custom.Brands.Facebook" OnClick="ShareToFacebook">
+                    Del på Facebook
                 </MudMenuItem>
-                @if (PostItem.Author.Id == CurrentUserId)
-                {
+                <MudMenuItem Icon="@Icons.Custom.Brands.Instagram" OnClick="ShareToInstagramAsync">
+                    Del på Instagram
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Link" OnClick="CopyLinkAsync">
+                    Kopiér link
+                </MudMenuItem>
+            </MudMenu>
+            @if (PostItem.Author.Id == CurrentUserId)
+            {
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.BottomRight" Dense="true"
+                    aria-label="Flere muligheder">
                     <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="OpenEditDialog">
                         Redigér
                     </MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Delete" OnClick="DeletePostAsync" IconColor="Color.Error">
                         Slet
                     </MudMenuItem>
-                }
-            </MudMenu>
+                </MudMenu>
+            }
         </CardHeaderActions>
     </MudCardHeader>
 
@@ -109,6 +115,21 @@
         (JordnaerPalette.GreenBackground.Value, JordnaerPalette.White.Value),
         (JordnaerPalette.BeigeBackground.Value, JordnaerPalette.BlueBody.Value)
     ];
+
+    private Uri BaseUri => Navigation.BaseUri.Contains("localhost")
+        ? new Uri("https://mini-moeder.dk")
+        : new Uri(Navigation.BaseUri);
+
+    private string PostUrl => new Uri(BaseUri, $"/posts/{PostItem.Id}").ToString();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ShareService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
 
     private void ToggleTimeDisplay()
     {
@@ -201,19 +222,14 @@
         }
     }
 
-    private async Task SharePostAsync()
-    {
-        var postUrl = Navigation.ToAbsoluteUri($"/posts/{PostItem.Id}").ToString();
+    private Task ShareToFacebook() => ShareService.ShareToFacebookAsync(PostUrl, "#MiniMøder");
 
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", postUrl);
-            Snackbar.Add("Link kopieret til udklipsholder", Severity.Success);
-        }
-        catch
-        {
-            Snackbar.Add("Kunne ikke kopiere link", Severity.Error);
-        }
+    private Task ShareToInstagramAsync()
+    {
+        var shareText = $"{PostItem.Author.DisplayName}: {PostItem.Text}";
+        return ShareService.ShareToInstagramAsync(PostUrl, "Mini Møder", shareText);
     }
+
+    private Task CopyLinkAsync() => ShareService.CopyLinkAsync(PostUrl);
 
 }

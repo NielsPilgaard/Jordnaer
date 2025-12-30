@@ -16,6 +16,7 @@ using Jordnaer.Features.Membership;
 using Jordnaer.Features.GroupPosts;
 using Jordnaer.Features.Posts;
 using Jordnaer.Features.PostSearch;
+using Jordnaer.Features.Sharing;
 using Jordnaer.Features.Map;
 using Jordnaer.Features.Profile;
 using Jordnaer.Features.Search;
@@ -84,6 +85,7 @@ builder.AddMembershipServices();
 builder.AddPostFeature();
 builder.AddGroupPostFeature();
 builder.AddPostSearchFeature();
+builder.AddSharingFeature();
 
 builder.AddMudBlazor();
 
