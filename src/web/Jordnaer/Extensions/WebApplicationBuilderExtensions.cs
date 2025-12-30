@@ -10,16 +10,19 @@ using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Jordnaer.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
+	internal static string ServiceName = "Jordnaer";
+
 	public static WebApplicationBuilder AddMassTransit(this WebApplicationBuilder builder)
 	{
 		builder.Services.AddMassTransit(x =>
@@ -70,12 +73,10 @@ public static class WebApplicationBuilderExtensions
 	}
 	public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
 	{
-		const string serviceName = "Jordnaer";
-
 		var openTelemetryBuilder = builder.Services
 			   .AddOpenTelemetry()
 			   .ConfigureResource(resource => resource
-				   .AddService(serviceName)
+				   .AddService(ServiceName)
 				   .AddAttributes(new Dictionary<string, object>
 				   {
 					   ["environment"] = builder.Environment.EnvironmentName,
@@ -89,7 +90,7 @@ public static class WebApplicationBuilderExtensions
 											  .AddMeter(InstrumentationOptions.MeterName)
 											  .AddMeter("Polly")
 											  .AddMeter("Microsoft.EntityFrameworkCore")
-											  .AddMeter(serviceName))
+											  .AddMeter(ServiceName))
 			   .WithTracing(tracing =>
 			   {
 				   tracing.AddAspNetCoreInstrumentation(options =>
@@ -107,7 +108,7 @@ public static class WebApplicationBuilderExtensions
 						  .AddEntityFrameworkCoreInstrumentation()
 						  .AddSource(DiagnosticHeaders.DefaultListenerName)
 						  .AddSource("Polly")
-						  .AddSource(serviceName);
+						  .AddSource(ServiceName);
 			   });
 
 		// Use the Aspire Dashboard in development
@@ -140,6 +141,24 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 
 		return builder;
+	}
+
+	public static IServiceCollection AddAzureBlobStorageDataProtection(this IServiceCollection services)
+	{
+		const string containerName = "data-protection";
+		const string fileName = "keys.xml";
+
+		services.AddDataProtection(options => options.ApplicationDiscriminator = ServiceName)
+				.PersistKeysToAzureBlobStorage(provider =>
+				{
+					var containerClient = provider.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(containerName);
+
+					containerClient.CreateIfNotExists();
+
+					return containerClient.GetBlobClient(fileName);
+				});
+
+		return services;
 	}
 
 	private static string GetConnectionString(IConfiguration configuration) =>

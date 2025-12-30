@@ -28,7 +28,6 @@ using Sidio.Sitemap.AspNetCore;
 using Sidio.Sitemap.Blazor;
 using Sidio.Sitemap.Core.Services;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.HttpOverrides;
 
 Log.Logger = new LoggerConfiguration()
 			 .WriteTo.Console()
@@ -65,6 +64,8 @@ builder.AddDeleteUserFeature();
 
 builder.Services.AddSingleton(_ =>
 	new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
+
+builder.Services.AddDataProtection();
 
 builder.AddMassTransit();
 
@@ -119,7 +120,6 @@ app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
 
 app.UseReverseProxyHeaderForwarding();
 
-
 if (app.Environment.IsDevelopment())
 {
 	await app.InitializeDatabaseAsync();
@@ -167,9 +167,4 @@ catch (Exception exception)
 finally
 {
 	await Log.CloseAndFlushAsync();
-}
-
-namespace Jordnaer
-{
-	public class Program;
 }
