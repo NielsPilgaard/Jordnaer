@@ -10,7 +10,6 @@ using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -20,6 +19,8 @@ namespace Jordnaer.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
+	internal const string ServiceName = "Jordnaer";
+
 	public static WebApplicationBuilder AddMassTransit(this WebApplicationBuilder builder)
 	{
 		builder.Services.AddMassTransit(x =>
@@ -70,12 +71,10 @@ public static class WebApplicationBuilderExtensions
 	}
 	public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
 	{
-		const string serviceName = "Jordnaer";
-
 		var openTelemetryBuilder = builder.Services
 			   .AddOpenTelemetry()
 			   .ConfigureResource(resource => resource
-				   .AddService(serviceName)
+				   .AddService(ServiceName)
 				   .AddAttributes(new Dictionary<string, object>
 				   {
 					   ["environment"] = builder.Environment.EnvironmentName,
@@ -89,7 +88,7 @@ public static class WebApplicationBuilderExtensions
 											  .AddMeter(InstrumentationOptions.MeterName)
 											  .AddMeter("Polly")
 											  .AddMeter("Microsoft.EntityFrameworkCore")
-											  .AddMeter(serviceName))
+											  .AddMeter(ServiceName))
 			   .WithTracing(tracing =>
 			   {
 				   tracing.AddAspNetCoreInstrumentation(options =>
@@ -107,7 +106,7 @@ public static class WebApplicationBuilderExtensions
 						  .AddEntityFrameworkCoreInstrumentation()
 						  .AddSource(DiagnosticHeaders.DefaultListenerName)
 						  .AddSource("Polly")
-						  .AddSource(serviceName);
+						  .AddSource(ServiceName);
 			   });
 
 		// Use the Aspire Dashboard in development

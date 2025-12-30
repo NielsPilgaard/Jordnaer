@@ -81,20 +81,19 @@ public static class SerilogExtensions
 	{
 		var grafanaLokiOptions = provider.GetRequiredService<IOptions<GrafanaLokiOptions>>().Value;
 
-		var configuration = provider.GetRequiredService<IConfiguration>();
-
-		var environment = configuration["ENVIRONMENT"] ??
-						  configuration["ASPNETCORE_ENVIRONMENT"] ??
-						  configuration["DOTNET_ENVIRONMENT"] ??
-						  "Not Configured";
+		var hostEnvironment = provider.GetRequiredService<IHostEnvironment>();
 
 		var labels = new LokiLabel[] {
 				new()
 				{
 					Key = "environment",
-					Value = environment
+					Value = hostEnvironment.EnvironmentName
 				},
-				new() { Key="service_name", Value = "Jordnaer" }
+				new()
+				{
+					Key = "service_name",
+					Value = hostEnvironment.ApplicationName
+				}
 			};
 
 		loggerConfiguration.WriteTo.GrafanaLoki(
