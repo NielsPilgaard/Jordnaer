@@ -65,7 +65,7 @@ builder.AddDeleteUserFeature();
 builder.Services.AddSingleton(_ =>
 	new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
 
-builder.Services.AddDataProtection();
+builder.Services.AddAzureBlobStorageDataProtection();
 
 builder.AddMassTransit();
 
