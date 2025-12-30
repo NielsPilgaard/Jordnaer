@@ -1,0 +1,83 @@
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<div class="d-flex gap-2 flex-wrap @Class">
+    <MudTooltip Text="Del på Facebook">
+        <MudIconButton Icon="@Icons.Custom.Brands.Facebook"
+                       Color="Color.Primary"
+                       Size="@Size"
+                       OnClick="ShareToFacebook"
+                       aria-label="Del på Facebook" />
+    </MudTooltip>
+
+    <MudTooltip Text="Kopiér link til Instagram">
+        <MudIconButton Icon="@Icons.Custom.Brands.Instagram"
+                       Color="Color.Secondary"
+                       Size="@Size"
+                       OnClick="CopyForInstagramAsync"
+                       aria-label="Kopiér link til Instagram" />
+    </MudTooltip>
+
+    <MudTooltip Text="Kopiér link">
+        <MudIconButton Icon="@Icons.Material.Filled.Link"
+                       Color="Color.Default"
+                       Size="@Size"
+                       OnClick="CopyLinkAsync"
+                       aria-label="Kopiér link" />
+    </MudTooltip>
+</div>
+
+@code {
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string? ShareUrl { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public Size Size { get; set; } = Size.Medium;
+
+    private string FullShareUrl => string.IsNullOrEmpty(ShareUrl)
+        ? NavigationManager.Uri
+        : new Uri(new Uri(NavigationManager.BaseUri), ShareUrl).ToString();
+
+    private async Task ShareToFacebook()
+    {
+        var encodedUrl = Uri.EscapeDataString(FullShareUrl);
+        var facebookUrl = $"https://www.facebook.com/sharer/sharer.php?u={encodedUrl}";
+        await JsRuntime.InvokeVoidAsync("utilities.openShareWindow", facebookUrl, "facebook-share");
+    }
+
+    private async Task CopyForInstagramAsync()
+    {
+        var success = await JsRuntime.InvokeAsync<bool>("utilities.copyToClipboard", FullShareUrl);
+        if (success)
+        {
+            Snackbar.Add("Link kopieret! Du kan nu indsætte det på Instagram.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke kopiere linket. Prøv igen.", Severity.Error);
+        }
+    }
+
+    private async Task CopyLinkAsync()
+    {
+        var success = await JsRuntime.InvokeAsync<bool>("utilities.copyToClipboard", FullShareUrl);
+        if (success)
+        {
+            Snackbar.Add("Link kopieret til udklipsholder!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Kunne ikke kopiere linket. Prøv igen.", Severity.Error);
+        }
+    }
+}

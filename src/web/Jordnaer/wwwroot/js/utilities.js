@@ -37,5 +37,22 @@ window.utilities = {
         if (currentUrl.pathname !== newUrl.pathname || currentUrl.search !== newUrl.search) {
             window.history.pushState({}, '', newUrl.pathname + newUrl.search);
         }
+    },
+
+    copyToClipboard: async function (text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch {
+            return false;
+        }
+    },
+
+    openShareWindow: function (url, windowName) {
+        const width = 600;
+        const height = 400;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        window.open(url, windowName, `width=${width},height=${height},left=${left},top=${top}`);
     }
 };
