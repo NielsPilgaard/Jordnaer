@@ -56,7 +56,7 @@
     : new Uri(NavigationManager.BaseUri);
     private string FullShareUrl => string.IsNullOrEmpty(ShareUrl)
     ? NavigationManager.Uri
-    : new Uri(new Uri(NavigationManager.BaseUri), ShareUrl).ToString();
+    : new Uri(_baseUri, ShareUrl).ToString();
 
     private string EffectiveShareText => !string.IsNullOrEmpty(ShareText)
     ? ShareText
