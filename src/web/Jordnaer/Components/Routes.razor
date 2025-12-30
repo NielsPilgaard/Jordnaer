@@ -17,7 +17,8 @@
                         else
                         {
                             <MudContainer MaxWidth="MaxWidth.Small">
-                                <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke adgang til at se denna side</MudAlert>
+                                <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" role="alert">Du har ikke
+                                    adgang til at se denna side</MudAlert>
                             </MudContainer>
                         }
                     </NotAuthorized>
@@ -36,7 +37,16 @@
     </ChildContent>
     <ErrorContent Context="exception">
         @{
-            _logger.LogWarning(exception, "Error boundary caught exception during navigation");
+            // TaskCanceledException during navigation is expected (e.g., redirect to login with forceLoad)
+            // and doesn't need to be logged as a warning
+            if (exception is TaskCanceledException or OperationCanceledException)
+            {
+                _logger.LogInformation(exception, "Navigation cancelled (expected during redirects)");
+            }
+            else
+            {
+                _logger.LogError(exception, "Error boundary caught exception during navigation");
+            }
             // Hide error from user but log it for debugging
         }
     </ErrorContent>
