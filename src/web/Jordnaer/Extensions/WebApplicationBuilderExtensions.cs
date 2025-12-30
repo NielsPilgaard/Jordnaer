@@ -14,14 +14,12 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
-using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.DataProtection;
 
 namespace Jordnaer.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
-	internal static string ServiceName = "Jordnaer";
+	internal const string ServiceName = "Jordnaer";
 
 	public static WebApplicationBuilder AddMassTransit(this WebApplicationBuilder builder)
 	{
@@ -141,24 +139,6 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 
 		return builder;
-	}
-
-	public static IServiceCollection AddAzureBlobStorageDataProtection(this IServiceCollection services)
-	{
-		const string containerName = "data-protection";
-		const string fileName = "keys.xml";
-
-		services.AddDataProtection(options => options.ApplicationDiscriminator = ServiceName)
-				.PersistKeysToAzureBlobStorage(provider =>
-				{
-					var containerClient = provider.GetRequiredService<BlobServiceClient>().GetBlobContainerClient(containerName);
-
-					containerClient.CreateIfNotExists();
-
-					return containerClient.GetBlobClient(fileName);
-				});
-
-		return services;
 	}
 
 	private static string GetConnectionString(IConfiguration configuration) =>
