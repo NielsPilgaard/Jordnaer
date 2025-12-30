@@ -21,6 +21,17 @@ public static class WebApplicationBuilderExtensions
 {
 	internal const string ServiceName = "Jordnaer";
 
+	public static WebApplicationBuilder AddAppOptions(this WebApplicationBuilder builder)
+	{
+		builder.Services
+			   .AddOptions<AppOptions>()
+			   .BindConfiguration(AppOptions.SectionName)
+			   .ValidateDataAnnotations()
+			   .ValidateOnStart();
+
+		return builder;
+	}
+
 	public static WebApplicationBuilder AddMassTransit(this WebApplicationBuilder builder)
 	{
 		builder.Services.AddMassTransit(x =>

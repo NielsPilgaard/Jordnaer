@@ -41,6 +41,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddFeatureManagement();
 
+builder.AddAppOptions();
+
 builder.AddAuthentication();
 
 builder.Services.AddAuthorization();

@@ -1,5 +1,6 @@
 @inject NavigationManager NavigationManager
 @inject SocialShareService ShareService
+@inject IOptions<AppOptions> AppOptions
 
 <div class="d-flex gap-2 flex-wrap @Class">
     <MudTooltip Text="Del på Facebook">
@@ -47,7 +48,7 @@
     public string? Hashtag { get; set; }
 
     private Uri _baseUri => NavigationManager.BaseUri.Contains("localhost")
-        ? new Uri("https://mini-moeder.dk")
+        ? new Uri(AppOptions.Value.BaseUrl)
         : new Uri(NavigationManager.BaseUri);
 
     private string FullShareUrl => string.IsNullOrEmpty(ShareUrl)

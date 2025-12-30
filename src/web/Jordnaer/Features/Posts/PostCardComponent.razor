@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject ICategoryCache CategoryCache
 @inject SocialShareService ShareService
+@inject IOptions<AppOptions> AppOptions
 
 <MudCard Class="mb-4 warm-shadow warm-rounded" Elevation="3">
     @* Header Section - Author Info *@
@@ -117,7 +118,7 @@
     ];
 
     private Uri BaseUri => Navigation.BaseUri.Contains("localhost")
-        ? new Uri("https://mini-moeder.dk")
+        ? new Uri(AppOptions.Value.BaseUrl)
         : new Uri(Navigation.BaseUri);
 
     private string PostUrl => new Uri(BaseUri, $"/posts/{PostItem.Id}").ToString();
