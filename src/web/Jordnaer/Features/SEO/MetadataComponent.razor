@@ -13,7 +13,7 @@
         <meta property="og:description" content="@Description" />
     }
 
-    @if (!string.IsNullOrEmpty(Image))
+    @if (!string.IsNullOrEmpty(ImageUrl))
     {
         <meta property="og:image" content="@_absoluteImageUrl" />
     }
@@ -33,9 +33,9 @@
     private const string _defaultTitle = "Mini Møder";
     private string _canonicalUrl => NavigationManager.Uri;
     private string _defaultImageUrl => new Uri(new Uri(NavigationManager.BaseUri), "images/mini-moeder-logo.png").ToString();
-    private string _absoluteImageUrl => string.IsNullOrEmpty(Image) || Image.StartsWith("http")
-        ? Image ?? _defaultImageUrl
-        : new Uri(new Uri(NavigationManager.BaseUri), Image).ToString();
+    private string _absoluteImageUrl => string.IsNullOrEmpty(ImageUrl) || ImageUrl.StartsWith("http")
+        ? ImageUrl ?? _defaultImageUrl
+        : new Uri(new Uri(NavigationManager.BaseUri), ImageUrl).ToString();
 
     [Parameter, EditorRequired]
     public required string Title { get; set; }
@@ -47,7 +47,7 @@
     public string? Description { get; set; }
 
     [Parameter]
-    public string? Image { get; set; }
+    public string? ImageUrl { get; set; }
 
     [Parameter]
     public string? Type { get; set; }
