@@ -13,6 +13,22 @@ namespace Jordnaer.Extensions;
 
 public static class AuthenticationExtensions
 {
+	private static Task HandleRemoteAuthenticationFailure(RemoteFailureContext context, string provider)
+	{
+		if (context.Failure?.Message.Contains("access_denied") == true ||
+			context.Failure?.Message.Contains("Access was denied") == true)
+		{
+			var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<RemoteFailureContext>>();
+
+			logger.LogInformation("User cancelled {Provider} login", provider);
+
+			context.Response.Redirect("/Account/Login");
+			context.HandleResponse();
+		}
+
+		return Task.CompletedTask;
+	}
+
 	public static WebApplicationBuilder AddAuthentication(this WebApplicationBuilder builder)
 	{
 		builder.Services.AddCascadingAuthenticationState();
@@ -72,6 +88,7 @@ public static class AuthenticationExtensions
 						"because it's configuration section was not set. " +
 						"SectionName {SectionName}",
 						provider, $"Authentication:Schemes:{provider}");
+
 			return builder;
 		}
 
@@ -80,6 +97,7 @@ public static class AuthenticationExtensions
 			options.ClientId = googleOptions.ClientId;
 			options.ClientSecret = googleOptions.ClientSecret;
 			options.SaveTokens = true;
+			options.Events.OnRemoteFailure = context => HandleRemoteAuthenticationFailure(context, provider);
 		});
 
 		return builder;
@@ -102,6 +120,7 @@ public static class AuthenticationExtensions
 							"because it's configuration section was not set. " +
 							"SectionName {SectionName}",
 						provider, $"Authentication:Schemes:{provider}");
+
 			return builder;
 		}
 
@@ -110,6 +129,7 @@ public static class AuthenticationExtensions
 			options.AppId = facebookOptions.AppId;
 			options.AppSecret = facebookOptions.AppSecret;
 			options.SaveTokens = true;
+			options.Events.OnRemoteFailure = context => HandleRemoteAuthenticationFailure(context, provider);
 		});
 
 		return builder;
@@ -140,6 +160,7 @@ public static class AuthenticationExtensions
 			options.ClientId = microsoftAccountOptions.ClientId;
 			options.ClientSecret = microsoftAccountOptions.ClientSecret;
 			options.SaveTokens = true;
+			options.Events.OnRemoteFailure = context => HandleRemoteAuthenticationFailure(context, provider);
 		});
 
 		return builder;
