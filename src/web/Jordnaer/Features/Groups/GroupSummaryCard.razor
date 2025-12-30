@@ -3,6 +3,15 @@
         <MudCardHeader>
             <MudText Typo="Typo.h4" Class="">@UserGroupAccess.Group.Name.Sanitize()</MudText>
             <MudSpacer />
+            @if (PendingRequestCount > 0)
+            {
+                <MudBadge Content="@PendingRequestCount" Color="Color.Warning" Overlap="true" Class="mr-2">
+                    <MudIconButton Href="@MembersPageUrl"
+                                   title="@($"{PendingRequestCount} afventende anmodning" + (PendingRequestCount > 1 ? "er" : ""))"
+                                   Icon="@Icons.Material.Filled.PersonAdd"
+                                   Color="Color.Warning" />
+                </MudBadge>
+            }
             @if (UserGroupAccess.OwnershipLevel is OwnershipLevel.Owner ||
                  UserGroupAccess.PermissionLevel is PermissionLevel.Admin)
             {
@@ -47,6 +56,10 @@
     [Parameter]
     public required UserGroupAccess UserGroupAccess { get; set; }
 
+    [Parameter]
+    public int PendingRequestCount { get; set; } = 0;
+
     private string GroupUrl => $"/groups/{UserGroupAccess.Group.Name}";
     private string EditGroupUrl => $"/groups/{UserGroupAccess.Group.Id}/edit";
+    private string MembersPageUrl => $"/groups/{UserGroupAccess.Group.Name}/members";
 }

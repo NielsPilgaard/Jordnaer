@@ -63,6 +63,25 @@
         </AuthorizeView>
     </div>
 
+    @* Pending Requests Alert for Admins/Owners *@
+    @if (_currentUserIsAdmin && _pendingRequestCount > 0)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4" NoIcon>
+            <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                <MudText Typo="Typo.body1">
+                    <b>@_pendingRequestCount</b> afventende medlemskabsanmodning@(_pendingRequestCount > 1 ? "er" : "")
+                </MudText>
+                <MudButton Href="@($"/groups/{GroupName}/members")"
+                          Variant="Variant.Filled"
+                          Color="Color.Warning"
+                          StartIcon="@Icons.Material.Filled.PersonAdd"
+                          Size="Size.Small">
+                    Administrér medlemmer
+                </MudButton>
+            </div>
+        </MudAlert>
+    }
+
     <MudGrid>
         <!-- Left Sidebar: Info & Members -->
         <MudItem xs="12" md="4">
@@ -219,6 +238,7 @@
     private GroupPostList? _groupPostList;
     private LeafletMap? _leafletMap;
     private bool _markerAdded;
+    private int _pendingRequestCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -257,6 +277,13 @@
         x.PermissionLevel == PermissionLevel.Admin);
 
         _recipients = _admins.Concat([_currentUser.ToUserSlim()]).ToList();
+
+        // Fetch pending membership count if user is admin
+        if (_currentUserIsAdmin)
+        {
+            _pendingRequestCount = await GroupService.GetPendingMembershipCountAsync(_group.Id);
+        }
+
         _isLoading = false;
     }
 

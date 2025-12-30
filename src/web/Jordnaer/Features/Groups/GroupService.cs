@@ -178,6 +178,61 @@ public class GroupService(
 		return groupMembership;
 	}
 
+	/// <summary>
+	/// Gets the count of pending membership requests for a specific group.
+	/// </summary>
+	public async Task<int> GetPendingMembershipCountAsync(Guid groupId, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var count = await context.GroupMemberships
+			.AsNoTracking()
+			.CountAsync(x => x.GroupId == groupId &&
+							x.MembershipStatus == MembershipStatus.PendingApprovalFromGroup,
+						cancellationToken);
+
+		return count;
+	}
+
+	/// <summary>
+	/// Gets pending membership counts for all groups the current user can manage (admin or owner).
+	/// Returns dictionary mapping GroupId to pending count.
+	/// </summary>
+	public async Task<Dictionary<Guid, int>> GetPendingMembershipCountsForUserAsync(CancellationToken cancellationToken = default)
+	{
+		Debug.Assert(currentUser.Id is not null, "Current user must be set when fetching pending counts.");
+
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		// Get all groups where current user is admin or owner
+		var adminGroupIds = await context.GroupMemberships
+			.AsNoTracking()
+			.Where(x => x.UserProfileId == currentUser.Id &&
+					   (x.PermissionLevel == PermissionLevel.Admin ||
+						x.OwnershipLevel == OwnershipLevel.Owner))
+			.Select(x => x.GroupId)
+			.ToListAsync(cancellationToken);
+
+		if (adminGroupIds.Count == 0)
+		{
+			return new Dictionary<Guid, int>();
+		}
+
+		// Get pending counts for those groups in a single query
+		var pendingCounts = await context.GroupMemberships
+			.AsNoTracking()
+			.Where(x => adminGroupIds.Contains(x.GroupId) &&
+					   x.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
+			.GroupBy(x => x.GroupId)
+			.Select(g => new { GroupId = g.Key, Count = g.Count() })
+			.ToDictionaryAsync(x => x.GroupId, x => x.Count, cancellationToken);
+
+		return pendingCounts;
+	}
+
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
 	{
 		Debug.Assert(currentUser.Id is not null, "Current user must be set when updating group membership.");
