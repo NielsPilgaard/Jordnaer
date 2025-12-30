@@ -3,6 +3,7 @@ using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -17,7 +18,8 @@ public class GroupService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
-	CurrentUser currentUser)
+	CurrentUser currentUser,
+	IHubContext<GroupMembershipHub, IGroupMembershipHub> hubContext)
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -270,6 +272,12 @@ public class GroupService(
 			return logger.LogAndReturnErrorResult(error);
 		}
 
+		// Track if pending status changed to notify listeners
+		var oldStatus = membership.MembershipStatus;
+		var newStatus = membershipDto.MembershipStatus;
+		var wasPending = oldStatus == MembershipStatus.PendingApprovalFromGroup;
+		var isPending = newStatus == MembershipStatus.PendingApprovalFromGroup;
+
 		membership.OwnershipLevel = membershipDto.OwnershipLevel;
 		membership.PermissionLevel = membershipDto.PermissionLevel;
 		membership.MembershipStatus = membershipDto.MembershipStatus;
@@ -280,6 +288,19 @@ public class GroupService(
 		try
 		{
 			await context.SaveChangesAsync(cancellationToken);
+
+			// Notify admins via SignalR if pending count changed
+			if (wasPending != isPending)
+			{
+				var pendingCountChange = isPending ? 1 : -1;
+				await hubContext.Clients
+					.Group($"group-admins-{membershipDto.GroupId}")
+					.MembershipStatusChanged(new GroupMembershipStatusChanged
+					{
+						GroupId = membershipDto.GroupId,
+						PendingCountChange = pendingCountChange
+					});
+			}
 		}
 		catch (Exception exception)
 		{
