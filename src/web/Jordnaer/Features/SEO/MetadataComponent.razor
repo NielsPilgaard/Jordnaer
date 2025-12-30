@@ -1,26 +1,25 @@
+@inject NavigationManager NavigationManager
+
 <PageTitle>@_fullTitle</PageTitle>
 <HeadContent>
-    <meta name="og:title" content="@_fullTitle" />
-    <meta name="og:site_name" content="Mini Møder" />
+    <meta property="og:title" content="@_fullTitle" />
+    <meta property="og:site_name" content="Mini Møder" />
+    <meta property="og:url" content="@_canonicalUrl" />
+    <meta property="og:type" content="@(string.IsNullOrEmpty(Type) ? "website" : Type)" />
 
     @if (!string.IsNullOrEmpty(Description))
     {
         <meta name="description" content="@Description" />
-        <meta name="og:description" content="@Description" />
+        <meta property="og:description" content="@Description" />
     }
 
-    @if (!string.IsNullOrEmpty(Image))
+    @if (!string.IsNullOrEmpty(ImageUrl))
     {
-        <meta name="og:image" content="@Image" />
+        <meta property="og:image" content="@_absoluteImageUrl" />
     }
     else
     {
-        <meta name="og:image" content="images/mini-moeder-logo.png" />
-    }
-    
-    @if (!string.IsNullOrEmpty(Type))
-    {
-        <meta name="og:type" content="@Type" />
+        <meta property="og:image" content="@_defaultImageUrl" />
     }
 
     @if (!string.IsNullOrEmpty(Tags))
@@ -32,6 +31,11 @@
 @code {
     private string _fullTitle => Title is _defaultTitle ? _defaultTitle : $"{Title}{TitleSuffix}";
     private const string _defaultTitle = "Mini Møder";
+    private string _canonicalUrl => NavigationManager.Uri;
+    private string _defaultImageUrl => new Uri(new Uri(NavigationManager.BaseUri), "images/mini-moeder-logo.png").ToString();
+    private string _absoluteImageUrl => string.IsNullOrEmpty(ImageUrl) || ImageUrl.StartsWith("http")
+        ? ImageUrl ?? _defaultImageUrl
+        : new Uri(new Uri(NavigationManager.BaseUri), ImageUrl).ToString();
 
     [Parameter, EditorRequired]
     public required string Title { get; set; }
@@ -43,7 +47,7 @@
     public string? Description { get; set; }
 
     [Parameter]
-    public string? Image { get; set; }
+    public string? ImageUrl { get; set; }
 
     [Parameter]
     public string? Type { get; set; }

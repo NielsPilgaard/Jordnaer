@@ -1,0 +1,78 @@
+@inject NavigationManager NavigationManager
+@inject SocialShareService ShareService
+@inject IOptions<AppOptions> AppOptions
+
+<div class="d-flex gap-2 flex-wrap @Class">
+    <MudTooltip Text="Del på Facebook">
+        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Color="Color.Info" Size="@Size" OnClick="ShareToFacebook"
+            aria-label="Del på Facebook" />
+    </MudTooltip>
+
+    <MudTooltip Text="Del på Bluesky">
+        <MudIconButton Icon="@Icons.Material.Filled.Cloud" Color="Color.Primary" Size="@Size" OnClick="ShareToBluesky"
+            aria-label="Del på Bluesky" />
+    </MudTooltip>
+
+    <MudTooltip Text="@(ShareService.CanUseNativeShare ? "Del via app" : "Kopiér link")">
+        <MudIconButton Icon="@Icons.Material.Filled.IosShare" Color="Color.Default" Size="@Size"
+            OnClick="ShareViaApp" aria-label="Del via app" />
+    </MudTooltip>
+</div>
+
+@code {
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string? ShareUrl { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public Size Size { get; set; } = Size.Medium;
+
+    /// <summary>
+    /// Default share text shown when sharing. Use this to encourage users to complete the share.
+    /// </summary>
+    [Parameter]
+    public string? ShareText { get; set; }
+
+    /// <summary>
+    /// Optional hashtag to add to Facebook shares. Should include the # symbol (e.g., "#MiniMøder").
+    /// </summary>
+    [Parameter]
+    public string? Hashtag { get; set; }
+
+    private Uri _baseUri => NavigationManager.BaseUri.Contains("localhost")
+        ? new Uri(AppOptions.Value.BaseUrl)
+        : new Uri(NavigationManager.BaseUri);
+
+    private string FullShareUrl => string.IsNullOrEmpty(ShareUrl)
+        ? NavigationManager.Uri
+        : new Uri(_baseUri, ShareUrl).ToString();
+
+    private string EffectiveShareText => !string.IsNullOrEmpty(ShareText)
+        ? ShareText
+        : !string.IsNullOrEmpty(Description)
+        ? Description
+        : Title ?? "Se dette på Mini Møder";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ShareService.EnsureInitializedAsync();
+            StateHasChanged();
+        }
+    }
+
+    private Task ShareToFacebook() => ShareService.ShareToFacebookAsync(FullShareUrl, Hashtag);
+
+    private Task ShareToBluesky() => ShareService.ShareToBlueskyAsync(FullShareUrl);
+
+    private Task ShareViaApp() => ShareService.ShareViaAppAsync(FullShareUrl, Title, EffectiveShareText);
+}

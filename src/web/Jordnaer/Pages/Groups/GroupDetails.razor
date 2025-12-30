@@ -23,11 +23,17 @@
 
     <MetadataComponent Title="@_group?.Name"
         Description="@($"Beskrivelse af {_group?.Name}:\n {_group?.ShortDescription}")"
-        Image="@_group?.ProfilePictureUrl" />
+        ImageUrl="@_group?.ProfilePictureUrl" />
 
     <!-- Top Action Bar -->
     <div class="d-flex align-center mb-6 gap-2">
         <BackButton Class="mr-2" />
+
+        @if (_group is not null)
+        {
+            <SocialShareButtons Title="@_group.Name" Description="@_group.ShortDescription"
+                ShareUrl="@($"/groups/{GroupName}")" Size="Size.Small" />
+        }
 
         <MudSpacer />
 
@@ -94,12 +100,9 @@
                         </div>
                         @if (_group.Latitude.HasValue && _group.Longitude.HasValue)
                         {
-                            <LeafletMap InitialLatitude="_group.Latitude.Value"
-                                InitialLongitude="_group.Longitude.Value"
-                                InitialZoom="12"
-                                MapStyle="height: 200px; width: 100%; border-radius: 8px;"
-                                OnMapInitialized="OnMapInitializedAsync"
-                                @ref="_leafletMap" />
+                            <LeafletMap InitialLatitude="_group.Latitude.Value" InitialLongitude="_group.Longitude.Value"
+                                InitialZoom="12" MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                OnMapInitialized="OnMapInitializedAsync" @ref="_leafletMap" />
                         }
                     }
                     else
@@ -115,17 +118,11 @@
                             </div>
                             @if (_group.Latitude.HasValue && _group.Longitude.HasValue)
                             {
-                                <LeafletMap InitialLatitude="_group.Latitude.Value"
-                                    InitialLongitude="_group.Longitude.Value"
-                                    InitialZoom="15"
-                                    MapStyle="height: 200px; width: 100%; border-radius: 8px;"
-                                    OnMapInitialized="OnMapInitializedAsync"
-                                    @ref="_leafletMap" />
-                                <MudButton Href="@GetGoogleMapsUrl(_group.Latitude.Value, _group.Longitude.Value)"
-                                    Target="_blank"
-                                    Variant="Variant.Text"
-                                    Size="Size.Small"
-                                    StartIcon="@Icons.Material.Filled.Directions"
+                                <LeafletMap InitialLatitude="_group.Latitude.Value" InitialLongitude="_group.Longitude.Value"
+                                    InitialZoom="15" MapStyle="height: 200px; width: 100%; border-radius: 8px;"
+                                    OnMapInitialized="OnMapInitializedAsync" @ref="_leafletMap" />
+                                <MudButton Href="@GetGoogleMapsUrl(_group.Latitude.Value, _group.Longitude.Value)" Target="_blank"
+                                    Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.Directions"
                                     Class="mt-2">
                                     Få rutevejledning
                                 </MudButton>
@@ -147,11 +144,9 @@
                             @if (_group.ZipCodeLatitude.HasValue && _group.ZipCodeLongitude.HasValue)
                             {
                                 <LeafletMap InitialLatitude="_group.ZipCodeLatitude.Value"
-                                    InitialLongitude="_group.ZipCodeLongitude.Value"
-                                    InitialZoom="12"
+                                    InitialLongitude="_group.ZipCodeLongitude.Value" InitialZoom="12"
                                     MapStyle="height: 200px; width: 100%; border-radius: 8px;"
-                                    OnMapInitialized="OnMapInitializedAsync"
-                                    @ref="_leafletMap" />
+                                    OnMapInitialized="OnMapInitializedAsync" @ref="_leafletMap" />
                             }
                         }
                     }
@@ -233,9 +228,9 @@
         groupSlim => _group = groupSlim,
         _ => { });
 
-        _isLoading = false;
         if (_group is null)
         {
+            _isLoading = false;
             return;
         }
 
@@ -246,9 +241,8 @@
             return;
         }
 
-        _groupMembers = await GroupService
-        .GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
-        x.MembershipStatus == MembershipStatus.Active);
+        _groupMembers = await GroupService.GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
+                                                                                                x.MembershipStatus == MembershipStatus.Active);
 
         var currentUsersGroupMembership = await GroupService.GetCurrentUsersGroupMembershipAsync(_group.Id);
 
@@ -263,6 +257,7 @@
         x.PermissionLevel == PermissionLevel.Admin);
 
         _recipients = _admins.Concat([_currentUser.ToUserSlim()]).ToList();
+        _isLoading = false;
     }
 
     private async Task RequestMembership()
@@ -299,7 +294,8 @@
 
     private static string GetGoogleMapsUrl(double latitude, double longitude)
     {
-        return $"https://www.google.com/maps/dir/?api=1&destination={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        return
+        $"https://www.google.com/maps/dir/?api=1&destination={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
     }
 
     private async Task OnMapInitializedAsync()

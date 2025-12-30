@@ -20,8 +20,12 @@
     {
         <MetadataComponent Title="@($"Opslag af {_post.Author.DisplayName}")" Description="@_post.Text" />
 
-        <div class="d-flex align-center mb-4">
+        <div class="d-flex align-center mb-4 gap-2">
             <BackButton Href="/posts" Title="Tilbage til opslag" />
+            <SocialShareButtons Title="@($"Opslag af {_post.Author.DisplayName}")"
+                                Description="@(_post.Text.Length > 100 ? _post.Text[..100] + "..." : _post.Text)"
+                                ShareUrl="@($"/posts/{PostId}")"
+                                Size="Size.Small" />
         </div>
 
         <PostCardComponent PostItem="_post" CurrentUserId="@(_currentUserId ?? string.Empty)" OnPostDeleted="@OnPostDeleted"

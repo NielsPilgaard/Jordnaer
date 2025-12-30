@@ -1,5 +1,5 @@
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-azurelinux3.0 AS build
 WORKDIR /source
 
 ARG PROJECT=src/web/Jordnaer/Jordnaer.csproj
@@ -23,7 +23,7 @@ ARG VERSION=1.0.0
 RUN dotnet publish "${PROJECT}" --no-restore -c Release -o /app -p:InformationalVersion="${VERSION}"
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-azurelinux3.0
 
 EXPOSE 8080
 WORKDIR /app
