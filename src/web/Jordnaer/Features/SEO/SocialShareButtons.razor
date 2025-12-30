@@ -52,8 +52,8 @@
     private bool _canUseNativeShare;
     private string? _facebookAppId;
     private Uri _baseUri => NavigationManager.BaseUri.Contains("localhost") 
-    ? new Uri(NavigationManager.BaseUri)
-    : new Uri("https://mini-moeder.dk");
+    ? new Uri("https://mini-moeder.dk")
+    : new Uri(NavigationManager.BaseUri);
     private string FullShareUrl => string.IsNullOrEmpty(ShareUrl)
     ? NavigationManager.Uri
     : new Uri(new Uri(NavigationManager.BaseUri), ShareUrl).ToString();
