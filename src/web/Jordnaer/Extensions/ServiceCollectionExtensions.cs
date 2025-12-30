@@ -24,9 +24,7 @@ public static class ServiceCollectionExtensions
 					catch (Exception ex)
 					{
 						var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("DataProtection");
-#pragma warning disable CA1873 // Avoid potentially expensive logging
 						logger.LogError(ex, "Failed to create or access data protection container '{Container}'", containerName);
-#pragma warning restore CA1873 // Avoid potentially expensive logging
 						throw;
 					}
 
