@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Jordnaer.Tests.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Jordnaer.Tests;
