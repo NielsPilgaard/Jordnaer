@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Jordnaer.Extensions;
 
@@ -17,6 +18,29 @@ public static class WebApplicationExtensions
 
 		// elmah.io sends head requests to check if the server is alive
 		app.MapMethods("/", [HttpMethods.Head, HttpMethods.Options], () => "Ok");
+
+		return app;
+	}
+
+	/// <summary>
+	/// Use forwarded headers to get correct request scheme and client IP when running behind reverse proxies/load balancers.
+	/// <para>
+	/// This is necessary for correct OIDC redirects when using external login providers.
+	/// </para>
+	/// </summary>
+	/// <param name="app"></param>
+	/// <returns></returns>
+	public static WebApplication UseReverseProxyHeaderForwarding(this WebApplication app)
+	{
+		var forwardedHeadersOptions = new ForwardedHeadersOptions
+		{
+			ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+			// Clear the default settings to allow forwarding from any proxy
+			KnownIPNetworks = { },
+			KnownProxies = { }
+		};
+
+		app.UseForwardedHeaders(forwardedHeadersOptions);
 
 		return app;
 	}

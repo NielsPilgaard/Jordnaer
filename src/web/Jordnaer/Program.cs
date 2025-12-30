@@ -117,13 +117,8 @@ app.UseSecurityHeaders(policies => policies.AddFrameOptionsDeny()
 										   .AddReferrerPolicyStrictOriginWhenCrossOrigin()
 										   .RemoveServerHeader());
 
-var forwardedHeadersOptions = new ForwardedHeadersOptions
-{
-	ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-};
-forwardedHeadersOptions.KnownIPNetworks.Clear();
-forwardedHeadersOptions.KnownProxies.Clear();
-app.UseForwardedHeaders(forwardedHeadersOptions);
+app.UseReverseProxyHeaderForwarding();
+
 
 if (app.Environment.IsDevelopment())
 {
