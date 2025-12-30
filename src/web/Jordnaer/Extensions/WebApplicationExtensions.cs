@@ -35,10 +35,11 @@ public static class WebApplicationExtensions
 		var forwardedHeadersOptions = new ForwardedHeadersOptions
 		{
 			ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-			// Clear the default settings to allow forwarding from any proxy
-			KnownIPNetworks = { },
-			KnownProxies = { }
 		};
+
+		// Clear the default settings to allow forwarding from any proxy
+		forwardedHeadersOptions.KnownIPNetworks.Clear();
+		forwardedHeadersOptions.KnownProxies.Clear();
 
 		app.UseForwardedHeaders(forwardedHeadersOptions);
 
