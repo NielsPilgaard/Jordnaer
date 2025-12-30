@@ -1,4 +1,6 @@
-# Jordnaer Codebase Instructions
+# Mini Møder Codebase Instructions
+
+Our project is called Jordnaer but has been rebranded to Mini Møder. This document outlines the architecture, project structure, and core patterns used in the codebase to help new contributors get up to speed quickly.
 
 ## Architecture
 
