@@ -23,7 +23,7 @@
     @* Radius slider with value display *@
     <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
         <MudText Typo="Typo.body2" Style="min-width: 80px;">Radius:</MudText>
-        <MudSlider Value="@RadiusKm" Min="0" Max="500" Step="5" Color="Color.Info" Style="flex: 1;"
+        <MudSlider Value="@RadiusKm" Min="0" Max="200" Step="5" Color="Color.Info" Style="flex: 1;"
             ValueChanged="@(async (int newValue) => await OnRadiusChanged(newValue))" />
         <MudText Typo="Typo.body1" Style="min-width: 60px; text-align: right;">
             <strong>@RadiusKm km</strong>

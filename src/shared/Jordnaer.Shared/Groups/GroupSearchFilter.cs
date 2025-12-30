@@ -11,7 +11,7 @@ public record GroupSearchFilter
 	/// <summary>
 	/// Only show group results within this many kilometers of the <see cref="Location"/>.
 	/// </summary>
-	[Range(1, 500, ErrorMessage = "Afstand skal være mellem 1 og 500 km")]
+	[Range(1, 200, ErrorMessage = "Afstand skal være mellem 1 og 200 km")]
 	[LocationRequired]
 	public int? WithinRadiusKilometers { get; set; }
 
