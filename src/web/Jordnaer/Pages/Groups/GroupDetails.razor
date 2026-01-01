@@ -51,6 +51,14 @@
                         </MudButton>
                     }
 
+                    @if (_isMember && !_currentUserIsOwner)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                            OnClick="LeaveGroup" StartIcon="@Icons.Material.Filled.ExitToApp">
+                            Forlad Gruppe
+                        </MudButton>
+                    }
+
                     @if (_currentUserIsAdmin && _group is not null)
                     {
                         <MudButton Href="@($"/groups/{_group?.Id}/edit")" Variant="Variant.Outlined" Color="Color.Info"
@@ -232,8 +240,9 @@
     private bool _hasPendingMembershipRequest = false;
     private bool _isMember = false;
     private bool _currentUserIsAdmin => _admins.Select(x => x.Id).Contains(_currentUser?.Id);
+    private bool _currentUserIsOwner = false;
     private List<UserSlim> _recipients = [];
-    private List<UserSlim>? _groupMembers;
+    private List<GroupMemberSlim>? _groupMembers;
     private List<UserSlim> _admins = [];
     private GroupPostList? _groupPostList;
     private LeafletMap? _leafletMap;
@@ -257,11 +266,13 @@
         _currentUser = await ProfileCache.GetProfileAsync();
         if (_currentUser is null)
         {
+            _groupMembers = await GroupService.GetGroupMembersWithRolesByPredicateAsync(x => x.GroupId == _group.Id &&
+                                                                                                    x.MembershipStatus == MembershipStatus.Active);
             _isLoading = false;
             return;
         }
 
-        _groupMembers = await GroupService.GetGroupMembersByPredicateAsync(x => x.GroupId == _group.Id &&
+        _groupMembers = await GroupService.GetGroupMembersWithRolesByPredicateAsync(x => x.GroupId == _group.Id &&
                                                                                                 x.MembershipStatus == MembershipStatus.Active);
 
         var currentUsersGroupMembership = await GroupService.GetCurrentUsersGroupMembershipAsync(_group.Id);
@@ -270,6 +281,7 @@
         _hasPendingMembershipRequest = currentUsersGroupMembership?.MembershipStatus
         is MembershipStatus.PendingApprovalFromGroup
         or MembershipStatus.PendingApprovalFromUser;
+        _currentUserIsOwner = currentUsersGroupMembership?.OwnershipLevel is OwnershipLevel.Owner;
 
         _admins = await GroupService
         .GetGroupMembersByPredicateAsync(x =>
@@ -299,6 +311,19 @@
         },
         existingMembershipError => Snackbar.Add($"Nuværende medlems status: {existingMembershipError.Value}",
         Severity.Warning),
+        error => Snackbar.Add(error.Value, Severity.Warning));
+    }
+
+    private async Task LeaveGroup()
+    {
+        var leaveResponse = await MembershipService.LeaveMembership(GroupName, CancellationToken);
+        leaveResponse.Switch(
+        _ =>
+        {
+            Snackbar.Add("Du har forladt gruppen", Severity.Success);
+            _isMember = false;
+            StateHasChanged();
+        },
         error => Snackbar.Add(error.Value, Severity.Warning));
     }
 

@@ -70,6 +70,11 @@ public class GroupService(
 	{
 		logger.LogFunctionBegan();
 
+		if (currentUser.Id is null)
+		{
+			return [];
+		}
+
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var groups = await context.GroupMemberships
 			.AsNoTracking()
@@ -125,6 +130,30 @@ public class GroupService(
 									  Id = x.UserProfileId,
 									  ProfilePictureUrl = x.UserProfile.ProfilePictureUrl,
 									  UserName = x.UserProfile.UserName
+								  })
+								  .ToListAsync(cancellationToken);
+
+		return members;
+	}
+
+	public async Task<List<GroupMemberSlim>> GetGroupMembersWithRolesByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var members = await context.GroupMemberships
+								  .AsNoTracking()
+								  .Where(predicate)
+								  .OrderByDescending(x => x.OwnershipLevel)
+								  .ThenByDescending(x => x.PermissionLevel)
+								  .Select(x => new GroupMemberSlim
+								  {
+									  DisplayName = x.UserProfile.DisplayName,
+									  Id = x.UserProfileId,
+									  ProfilePictureUrl = x.UserProfile.ProfilePictureUrl,
+									  UserName = x.UserProfile.UserName,
+									  OwnershipLevel = x.OwnershipLevel,
+									  PermissionLevel = x.PermissionLevel
 								  })
 								  .ToListAsync(cancellationToken);
 
@@ -203,9 +232,12 @@ public class GroupService(
 	/// </summary>
 	public async Task<Dictionary<Guid, int>> GetPendingMembershipCountsForUserAsync(CancellationToken cancellationToken = default)
 	{
-		Debug.Assert(currentUser.Id is not null, "Current user must be set when fetching pending counts.");
-
 		logger.LogFunctionBegan();
+
+		if (currentUser.Id is null)
+		{
+			return new Dictionary<Guid, int>();
+		}
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 

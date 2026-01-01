@@ -14,6 +14,10 @@ public interface IMembershipService
 	Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
 		string groupName,
 		CancellationToken cancellationToken = default);
+
+	Task<OneOf<Success, Error<string>>> LeaveMembership(
+		string groupName,
+		CancellationToken cancellationToken = default);
 }
 
 public class MembershipService(CurrentUser currentUser,
@@ -61,6 +65,49 @@ public class MembershipService(CurrentUser currentUser,
 			await context.SaveChangesAsync(cancellationToken);
 
 			await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
+
+			return new Success();
+		}
+		catch (Exception exception)
+		{
+			logger.LogException(exception);
+			return new Error<string>("Der skete en fejl. Prøv igen senere.");
+		}
+	}
+
+	public async Task<OneOf<Success, Error<string>>> LeaveMembership(
+		string groupName,
+		CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		try
+		{
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+			var membership = await context.GroupMemberships
+				.Include(x => x.Group)
+				.FirstOrDefaultAsync(x => x.Group.Name == groupName && x.UserProfileId == currentUser.Id, cancellationToken);
+
+			if (membership is null)
+			{
+				return new Error<string>("Du er ikke medlem af denne gruppe.");
+			}
+
+			if (membership.MembershipStatus != MembershipStatus.Active)
+			{
+				return new Error<string>("Du kan kun forlade grupper, hvor du er et aktivt medlem.");
+			}
+
+			if (membership.OwnershipLevel == OwnershipLevel.Owner)
+			{
+				return new Error<string>("Ejeren kan ikke forlade gruppen. Overdrag først ejerskabet til et andet medlem.");
+			}
+
+			// Soft delete: change status to Left instead of removing the record
+			membership.MembershipStatus = MembershipStatus.Left;
+			membership.LastUpdatedUtc = DateTime.UtcNow;
+			await context.SaveChangesAsync(cancellationToken);
 
 			return new Success();
 		}
