@@ -288,9 +288,18 @@ public class GroupService(
 		try
 		{
 			await context.SaveChangesAsync(cancellationToken);
+		}
+		catch (Exception exception)
+		{
+			return logger.LogAndReturnErrorResult(exception,
+				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
+		}
 
-			// Notify admins via SignalR if pending count changed
-			if (wasPending != isPending)
+		// Notify admins via SignalR if pending count changed
+		// This is outside the DB transaction to prevent notification failures from affecting DB success
+		if (wasPending != isPending)
+		{
+			try
 			{
 				var pendingCountChange = isPending ? 1 : -1;
 				await hubContext.Clients
@@ -301,11 +310,13 @@ public class GroupService(
 						PendingCountChange = pendingCountChange
 					});
 			}
-		}
-		catch (Exception exception)
-		{
-			return logger.LogAndReturnErrorResult(exception,
-				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
+			catch (Exception notificationException)
+			{
+				// Log but don't fail the request - DB update succeeded
+				logger.LogError(notificationException,
+					"Failed to send SignalR notification for membership status change. GroupId: {GroupId}",
+					membershipDto.GroupId);
+			}
 		}
 
 		return new Success();

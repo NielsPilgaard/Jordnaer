@@ -47,4 +47,11 @@ internal static class JordnaerMetrics
 
 	internal static readonly Counter<int> AdViewCounter =
 		Meter.CreateCounter<int>("jordnaer_ad_views_total");
+
+	internal static readonly Counter<int> GroupPostCreatedConsumerReceivedCounter =
+		Meter.CreateCounter<int>("jordnaer_group_post_created_consumer_received_total");
+	internal static readonly Counter<int> GroupPostCreatedConsumerSucceededCounter =
+		Meter.CreateCounter<int>("jordnaer_group_post_created_consumer_succeeded_total");
+	internal static readonly Counter<int> GroupPostCreatedConsumerFailedCounter =
+		Meter.CreateCounter<int>("jordnaer_group_post_created_consumer_failed_total");
 }

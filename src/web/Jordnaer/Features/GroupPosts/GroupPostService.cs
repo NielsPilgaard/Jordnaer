@@ -11,7 +11,8 @@ namespace Jordnaer.Features.GroupPosts;
 
 public class GroupPostService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	IPublishEndpoint publishEndpoint)
+	IPublishEndpoint publishEndpoint,
+	ILogger<GroupPostService> logger)
 {
 	public async Task<OneOf<GroupPostDto, NotFound>> GetPostAsync(Guid postId,
 		CancellationToken cancellationToken = default)
@@ -86,6 +87,15 @@ public class GroupPostService(
 				PostText = post.Text,
 				CreatedUtc = post.CreatedUtc
 			}, cancellationToken);
+		}
+		else
+		{
+			// Log warning - this indicates a data integrity issue
+			logger.LogWarning(
+				"Skipping GroupPostCreated event publication due to missing data. " +
+				"PostId: {PostId}, GroupId: {GroupId}, UserProfileId: {UserProfileId}, " +
+				"GroupFound: {GroupFound}, AuthorFound: {AuthorFound}",
+				post.Id, post.GroupId, post.UserProfileId, group is not null, author is not null);
 		}
 
 		return new Success();
