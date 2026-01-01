@@ -34,6 +34,10 @@ public class GroupMembershipNotificationService(
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var adminUserIds = await GetGroupAdminUserIdsAsync(groupId, context, cancellationToken);
 
+			logger.LogInformation(
+				"Sending membership status notification: GroupId={GroupId}, PendingCountChange={PendingCountChange}, AdminCount={AdminCount}, AdminUserIds={AdminUserIds}",
+				groupId, pendingCountChange, adminUserIds.Count, string.Join(", ", adminUserIds));
+
 			if (adminUserIds.Count > 0)
 			{
 				await hubContext.Clients
@@ -43,6 +47,12 @@ public class GroupMembershipNotificationService(
 						GroupId = groupId,
 						PendingCountChange = pendingCountChange
 					});
+
+				logger.LogInformation("Successfully sent membership status notification to {AdminCount} admins", adminUserIds.Count);
+			}
+			else
+			{
+				logger.LogWarning("No admins found for group {GroupId}, skipping notification", groupId);
 			}
 		}
 		catch (Exception exception)

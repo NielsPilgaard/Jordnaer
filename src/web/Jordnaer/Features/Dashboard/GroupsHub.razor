@@ -1,7 +1,6 @@
 @page "/groups"
 
 @inject GroupService GroupService
-@inject GroupMembershipSignalRClient GroupMembershipSignalRClient
 @inject NavigationManager Navigation
 
 @implements IAsyncDisposable
@@ -176,19 +175,6 @@
         _totalPendingRequests = pendingCounts.Values.Sum();
         var adminGroupIds = pendingCounts.Keys.ToList();
 
-        // Subscribe to group membership status changes
-        GroupMembershipSignalRClient.OnMembershipStatusChanged(async notification =>
-        {
-            _totalPendingRequests += notification.PendingCountChange;
-            if (_totalPendingRequests < 0)
-            {
-                _totalPendingRequests = 0;
-            }
-            await InvokeAsync(StateHasChanged);
-        });
-
-        await GroupMembershipSignalRClient.StartAsync();
-
         _isLoading = false;
     }
 
@@ -206,6 +192,8 @@
 
     public async ValueTask DisposeAsync()
     {
-        await GroupMembershipSignalRClient.StopAsync();
+        // Don't stop SignalR client here - it should persist for the entire user session
+        // The client will be disposed when the DI scope ends (when user closes browser/logs out)
+        await ValueTask.CompletedTask;
     }
 }

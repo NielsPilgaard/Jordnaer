@@ -266,7 +266,6 @@ public class GroupService(
 		return pendingCounts;
 	}
 
-
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
 	{
 		Debug.Assert(currentUser.Id is not null, "Current user must be set when updating group membership.");
@@ -305,6 +304,7 @@ public class GroupService(
 		}
 
 		// Track if pending status changed to notify listeners
+		// Only track PendingApprovalFromGroup (incoming requests), not PendingApprovalFromUser (outgoing invitations)
 		var oldStatus = membership.MembershipStatus;
 		var newStatus = membershipDto.MembershipStatus;
 		var wasPending = oldStatus == MembershipStatus.PendingApprovalFromGroup;
