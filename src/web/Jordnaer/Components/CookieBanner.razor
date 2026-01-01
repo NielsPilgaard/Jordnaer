@@ -9,18 +9,20 @@
     bool _hideBanner = false;
     async Task Consent() => await LocalStorage.SetItemAsync(CookieBannerId, true);
 
-    RenderFragment _banner =
-      (@<div>
-        <MudText Typo="Typo.body2">
-            Mini Møder anvender cookies for at forbedre din oplevelse og for at hjælpe os med at forstå,
-            hvordan vores hjemmeside bliver brugt.
-        </MudText>
-        <MudText Class="mt-3" Typo="Typo.body2">
-            Du kan læse mere i vores
-            <MudLink Color="Color.Inherit" Href="/privacy" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Privatlivspolitik</b></MudLink> og
-            <MudLink Color="Color.Inherit" Href="/terms" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Servicevilkår</b></MudLink>.
-        </MudText>
-    </div>);
+    RenderFragment _banner => __builder =>
+    {
+        <div>
+            <MudText Typo="Typo.body2" Style="@($"color: {JordnaerPalette.WarmWhite};")">
+                Mini Møder anvender cookies for at forbedre din oplevelse og for at hjælpe os med at forstå,
+                hvordan vores hjemmeside bliver brugt.
+            </MudText>
+            <MudText Class="mt-3" Typo="Typo.body2" Style="@($"color: {JordnaerPalette.WarmWhite};")">
+                Du kan læse mere i vores
+                <MudLink Color="Color.Inherit" Href="/privacy" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Privatlivspolitik</b></MudLink> og
+                <MudLink Color="Color.Inherit" Href="/terms" Target="_blank" Typo="Typo.body2" Underline="Underline.Always"><b>Servicevilkår</b></MudLink>.
+            </MudText>
+        </div>
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
