@@ -1,7 +1,8 @@
-﻿using Jordnaer.Database;
+using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
+using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
@@ -23,7 +24,8 @@ public interface IMembershipService
 public class MembershipService(CurrentUser currentUser,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IEmailService emailService,
-	ILogger<MembershipService> logger) : IMembershipService
+	ILogger<MembershipService> logger,
+	IGroupMembershipNotificationService notificationService) : IMembershipService
 {
 	public async Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
 		string groupName,
@@ -47,6 +49,21 @@ public class MembershipService(CurrentUser currentUser,
 			var existingMembership = group.Memberships.FirstOrDefault(x => x.UserProfileId == currentUser.Id);
 			if (existingMembership is not null)
 			{
+				// Allow re-application if user has left or been rejected
+				if (existingMembership.MembershipStatus is MembershipStatus.Left or MembershipStatus.Rejected)
+				{
+					existingMembership.MembershipStatus = MembershipStatus.PendingApprovalFromGroup;
+					existingMembership.LastUpdatedUtc = DateTime.UtcNow;
+					existingMembership.UserInitiatedMembership = true;
+					await context.SaveChangesAsync(cancellationToken);
+					await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
+
+					// Notify admins via SignalR about the new pending request
+					await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
+
+					return new Success();
+				}
+
 				return new Error<MembershipStatus>(existingMembership.MembershipStatus);
 			}
 
@@ -65,6 +82,9 @@ public class MembershipService(CurrentUser currentUser,
 			await context.SaveChangesAsync(cancellationToken);
 
 			await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
+
+			// Notify admins via SignalR about the new pending request
+			await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
 
 			return new Success();
 		}

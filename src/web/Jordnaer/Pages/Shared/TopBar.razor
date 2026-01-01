@@ -205,10 +205,9 @@
 		// Get initial unread count
 		_unreadCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
 
-		// Get pending group membership requests count and admin group IDs
+		// Get pending group membership requests count
 		var pendingCounts = await GroupService.GetPendingMembershipCountsForUserAsync();
 		_pendingGroupRequestCount = pendingCounts.Values.Sum();
-		var adminGroupIds = pendingCounts.Keys.ToList();
 
 		// Subscribe to real-time updates
 		UnreadMessageSignalRClient.OnMessageReceived(async message =>
@@ -250,12 +249,6 @@
 
 		await UnreadMessageSignalRClient.StartAsync();
 		await GroupMembershipSignalRClient.StartAsync();
-
-		// Join SignalR groups for admin notifications
-		if (adminGroupIds.Count > 0)
-		{
-			await GroupMembershipSignalRClient.JoinAdminGroupsAsync(adminGroupIds);
-		}
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)

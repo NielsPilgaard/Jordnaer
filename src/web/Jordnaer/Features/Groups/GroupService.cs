@@ -3,7 +3,6 @@ using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -19,7 +18,7 @@ public class GroupService(
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
 	CurrentUser currentUser,
-	IHubContext<GroupMembershipHub, IGroupMembershipHub> hubContext)
+	IGroupMembershipNotificationService notificationService)
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -267,6 +266,7 @@ public class GroupService(
 		return pendingCounts;
 	}
 
+
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
 	{
 		Debug.Assert(currentUser.Id is not null, "Current user must be set when updating group membership.");
@@ -331,24 +331,8 @@ public class GroupService(
 		// This is outside the DB transaction to prevent notification failures from affecting DB success
 		if (wasPending != isPending)
 		{
-			try
-			{
-				var pendingCountChange = isPending ? 1 : -1;
-				await hubContext.Clients
-					.Group($"group-admins-{membershipDto.GroupId}")
-					.MembershipStatusChanged(new GroupMembershipStatusChanged
-					{
-						GroupId = membershipDto.GroupId,
-						PendingCountChange = pendingCountChange
-					});
-			}
-			catch (Exception notificationException)
-			{
-				// Log but don't fail the request - DB update succeeded
-				logger.LogError(notificationException,
-					"Failed to send SignalR notification for membership status change. GroupId: {GroupId}",
-					membershipDto.GroupId);
-			}
+			var pendingCountChange = isPending ? 1 : -1;
+			await notificationService.NotifyAdminsOfPendingCountChangeAsync(membershipDto.GroupId, pendingCountChange, cancellationToken);
 		}
 
 		return new Success();

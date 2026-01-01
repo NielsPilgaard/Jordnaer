@@ -22,14 +22,4 @@ public class GroupMembershipSignalRClient(
 		HubConnection.Remove(nameof(IGroupMembershipHub.MembershipStatusChanged));
 		HubConnection.On(nameof(IGroupMembershipHub.MembershipStatusChanged), action);
 	}
-
-	public async Task JoinAdminGroupsAsync(List<Guid> groupIds)
-	{
-		if (HubConnection is null || !IsConnected)
-		{
-			return;
-		}
-
-		await HubConnection.InvokeAsync(nameof(GroupMembershipHub.JoinAdminGroups), groupIds);
-	}
 }

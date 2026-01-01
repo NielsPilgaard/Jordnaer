@@ -189,12 +189,6 @@
 
         await GroupMembershipSignalRClient.StartAsync();
 
-        // Join SignalR groups for admin notifications
-        if (adminGroupIds.Count > 0)
-        {
-            await GroupMembershipSignalRClient.JoinAdminGroupsAsync(adminGroupIds);
-        }
-
         _isLoading = false;
     }
 

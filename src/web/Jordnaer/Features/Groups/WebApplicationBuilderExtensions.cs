@@ -6,6 +6,7 @@ public static class WebApplicationBuilderExtensions
 	{
 		builder.Services.AddScoped<GroupService>();
 		builder.Services.AddScoped<GroupMembershipSignalRClient>();
+		builder.Services.AddScoped<IGroupMembershipNotificationService, GroupMembershipNotificationService>();
 
 		return builder;
 	}
