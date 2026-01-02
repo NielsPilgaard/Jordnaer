@@ -46,7 +46,11 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 			.HasMany(e => e.Members)
 			.WithMany(e => e.Groups)
 			.UsingEntity<GroupMembership>(
-				builder => builder.Property(e => e.CreatedUtc).HasDefaultValueSql("GETUTCDATE()"));
+				builder =>
+				{
+					builder.Property(e => e.CreatedUtc).HasDefaultValueSql("GETUTCDATE()");
+					builder.Property(e => e.EmailOnNewPost).HasDefaultValue(true);
+				});
 
 		modelBuilder.Entity<Group>()
 			.HasMany(e => e.Categories)
@@ -57,7 +61,11 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 			.HasMany(userProfile => userProfile.Groups)
 			.WithMany(group => group.Members)
 			.UsingEntity<GroupMembership>(
-				builder => builder.Property(e => e.CreatedUtc).HasDefaultValueSql("GETUTCDATE()"));
+				builder =>
+				{
+					builder.Property(e => e.CreatedUtc).HasDefaultValueSql("GETUTCDATE()");
+					builder.Property(e => e.EmailOnNewPost).HasDefaultValue(true);
+				});
 
 		modelBuilder.Entity<UserProfile>()
 			.HasMany(userProfile => userProfile.Categories)

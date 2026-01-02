@@ -852,7 +852,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20260102194640_Add_NotificationSettings'
 )
 BEGIN
-    ALTER TABLE [GroupMemberships] ADD [EmailOnNewPost] bit NOT NULL DEFAULT CAST(0 AS bit);
+    ALTER TABLE [GroupMemberships] ADD [EmailOnNewPost] bit NOT NULL DEFAULT CAST(1 AS bit);
 END;
 
 IF NOT EXISTS (
