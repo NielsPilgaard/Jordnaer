@@ -12,7 +12,8 @@ namespace Jordnaer.Consumers;
 public class SendMessageConsumer(
 	JordnaerDbContext context,
 	ILogger<SendMessageConsumer> logger,
-	IHubContext<ChatHub, IChatHub> chatHub)
+	IHubContext<ChatHub, IChatHub> chatHub,
+	ChatNotificationService chatNotificationService)
 	: IConsumer<SendMessage>
 {
 	public async Task Consume(ConsumeContext<SendMessage> consumeContext)
@@ -64,6 +65,9 @@ public class SendMessageConsumer(
 			logger.LogException(exception);
 			throw;
 		}
+
+		// Send email notifications to users who want all messages
+		await chatNotificationService.NotifyRecipientsOfNewMessage(chatMessage, consumeContext.CancellationToken);
 
 		JordnaerMetrics.ChatMessagesSentCounter.Add(1);
 	}
