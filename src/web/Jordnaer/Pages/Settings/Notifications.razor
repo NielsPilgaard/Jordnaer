@@ -14,7 +14,7 @@
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
     <MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
         <MudText Typo="Typo.h3" Class="mb-6"
-            Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em;")">
+            Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em; font-size: clamp(1.5rem, 5vw, 3rem); word-break: break-word;")">
             Notifikationsindstillinger
         </MudText>
 
@@ -87,10 +87,10 @@
             @if (_groupSettings.Any())
             {
                 <div class="mb-4 d-flex gap-2">
-                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="EnableAllGroups">
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="EnableAllGroups" Disabled="_isBulkSaving">
                         Aktivér alle
                     </MudButton>
-                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" OnClick="DisableAllGroups">
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" OnClick="DisableAllGroups" Disabled="_isBulkSaving">
                         Deaktivér alle
                     </MudButton>
                 </div>
@@ -127,6 +127,7 @@
 @code {
     private bool _isLoading = true;
     private bool _isSaving = false;
+    private bool _isBulkSaving = false;
     private ChatNotificationPreference _chatPreference = ChatNotificationPreference.FirstMessageOnly;
     private List<GroupMembership> _groupSettings = new();
 
@@ -211,6 +212,7 @@
             return;
         }
 
+        _isBulkSaving = true;
         try
         {
             var result = await NotificationSettingsService.SetAllGroupPostPreferencesAsync(CurrentUser.Id, true);
@@ -230,6 +232,10 @@
         {
             Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
         }
+        finally
+        {
+            _isBulkSaving = false;
+        }
     }
 
     private async Task DisableAllGroups()
@@ -239,6 +245,7 @@
             return;
         }
 
+        _isBulkSaving = true;
         try
         {
             var result = await NotificationSettingsService.SetAllGroupPostPreferencesAsync(CurrentUser.Id, false);
@@ -257,6 +264,10 @@
         catch (Exception)
         {
             Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isBulkSaving = false;
         }
     }
 }
