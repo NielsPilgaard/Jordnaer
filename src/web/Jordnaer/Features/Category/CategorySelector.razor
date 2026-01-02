@@ -1,12 +1,38 @@
 @inject ICategoryCache CategoryCache
 
-<MudChipSet T="string" Style="display: flex; flex-wrap: wrap; justify-content: center;"
+<style>
+    .category-chip-selected {
+        background-color: var(--mud-palette-success) !important;
+        color: white !important;
+    }
+
+    .category-chip-unselected {
+        background-color: #6b7280 !important;
+        color: white !important;
+    }
+
+    .category-chip-unselected:hover {
+        background-color: #4b5563 !important;
+    }
+
+    .category-chip-set {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+</style>
+
+<MudChipSet T="string" Class="category-chip-set"
     SelectionMode="SelectionMode.MultiSelection" SelectedValues="Categories" CheckMark
     SelectedValuesChanged="SelectedCategoriesChanged">
     @foreach (var category in _allCategories)
     {
-        <MudChip Text="@category" Value="@category" Variant="Variant.Outlined" Color="Color.Secondary"
-            SelectedColor="Color.Info" />
+        var isSelected = Categories?.Contains(category) == true;
+        <MudChip Text="@category" Value="@category" Variant="Variant.Filled"
+            Color="@(isSelected ? Color.Success : Color.Info)"
+            Size="Size.Medium"
+            Class="@(isSelected ? "category-chip-selected" : "category-chip-unselected")" />
     }
 
 </MudChipSet>
