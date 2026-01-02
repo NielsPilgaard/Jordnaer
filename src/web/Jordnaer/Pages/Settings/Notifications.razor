@@ -96,7 +96,7 @@
                 </div>
 
                 <MudList T="string">
-                    @foreach (var setting in _groupSettings.OrderBy(g => g.Group?.Name))
+                    @foreach (var setting in _groupSettings.Where(g => g.Group is not null).OrderBy(g => g.Group!.Name))
                     {
                         <MudListItem T="string">
                             <div class="d-flex justify-space-between align-center">
