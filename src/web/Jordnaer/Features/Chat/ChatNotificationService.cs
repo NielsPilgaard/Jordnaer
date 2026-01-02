@@ -86,6 +86,7 @@ public class ChatNotificationService(
 
 		// Get all recipients of this chat (excluding the sender)
 		var recipientIds = await context.UserChats
+			.AsNoTracking()
 			.Where(x => x.ChatId == message.ChatId && x.UserProfileId != message.SenderId)
 			.Select(x => x.UserProfileId)
 			.ToListAsync(cancellationToken);
