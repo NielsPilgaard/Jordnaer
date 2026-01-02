@@ -42,7 +42,8 @@
                             @foreach (var group in _ownedGroups)
                             {
                                 <MudItem xs="12" sm="6" md="4">
-                                    <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+                                    <GroupSummaryCard UserGroupAccess="group"
+                                                      PendingRequestCount="@(_pendingCounts.GetValueOrDefault(group.Group.Id, 0))" />
                                 </MudItem>
                             }
                         </MudGrid>
@@ -63,7 +64,8 @@
                             @foreach (var group in _memberGroups)
                             {
                                 <MudItem xs="12" sm="6" md="4">
-                                    <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+                                    <GroupSummaryCard UserGroupAccess="group"
+                                                      PendingRequestCount="@(_pendingCounts.GetValueOrDefault(group.Group.Id, 0))" />
                                 </MudItem>
                             }
                         </MudGrid>
@@ -86,7 +88,8 @@
                             @foreach (var group in _pendingAccess)
                             {
                                 <MudItem xs="12" sm="6" md="4">
-                                    <GroupSummaryCard UserGroupAccess="group"></GroupSummaryCard>
+                                    <GroupSummaryCard UserGroupAccess="group"
+                                                      PendingRequestCount="@(_pendingCounts.GetValueOrDefault(group.Group.Id, 0))" />
                                 </MudItem>
                             }
                         </MudGrid>
@@ -111,6 +114,7 @@
     private UserGroupAccess[] _ownedGroups = Array.Empty<UserGroupAccess>();
     private UserGroupAccess[] _memberGroups = Array.Empty<UserGroupAccess>();
     private UserGroupAccess[] _pendingAccess = Array.Empty<UserGroupAccess>();
+    private Dictionary<Guid, int> _pendingCounts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,5 +149,8 @@
         MembershipStatus.PendingApprovalFromUser)
         .OrderByDescending(x => x.LastUpdatedUtc)
         .ToArray();
+
+        // Fetch pending membership counts for groups user can manage
+        _pendingCounts = await GroupService.GetPendingMembershipCountsForUserAsync();
     }
 }

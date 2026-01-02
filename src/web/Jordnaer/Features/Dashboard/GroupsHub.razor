@@ -3,6 +3,8 @@
 @inject GroupService GroupService
 @inject NavigationManager Navigation
 
+@implements IAsyncDisposable
+
 <MetadataComponent Title="Grupper" Description="Opdag og administrer dine grupper" />
 
 <MudLoading @bind-Loading="_isLoading" Darken Overlap>
@@ -12,6 +14,25 @@
         Style="@($"color: {JordnaerPalette.RedHeader};")">
         Find grupper
     </MudText>
+
+    @* Pending Requests Alert *@
+    @if (_totalPendingRequests > 0)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4" NoIcon>
+            <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                <MudText Typo="Typo.body1">
+                    <b>@_totalPendingRequests</b> afventende medlemskabsanmodning@(_totalPendingRequests > 1 ? "er" : "") i dine grupper
+                </MudText>
+                <MudButton Href="/groups/my-groups"
+                          Variant="Variant.Filled"
+                          Color="Color.Warning"
+                          StartIcon="@Icons.Material.Filled.PersonAdd"
+                          Size="Size.Small">
+                    Administrér medlemmer
+                </MudButton>
+            </div>
+        </MudAlert>
+    }
 
     @* Main Hub Cards *@
     <MudGrid Spacing="4" Class="mb-6">
@@ -138,6 +159,7 @@
 @code {
     private bool _isLoading = true;
     private List<UserGroupAccess> _recentGroups = new();
+    private int _totalPendingRequests = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,6 +169,12 @@
         }
 
         await LoadRecentGroups();
+
+        // Get pending counts and admin group IDs
+        var pendingCounts = await GroupService.GetPendingMembershipCountsForUserAsync();
+        _totalPendingRequests = pendingCounts.Values.Sum();
+        var adminGroupIds = pendingCounts.Keys.ToList();
+
         _isLoading = false;
     }
 
@@ -160,5 +188,12 @@
         .OrderByDescending(g => g.LastUpdatedUtc)
         .Take(5)
         .ToList();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Don't stop SignalR client here - it should persist for the entire user session
+        // The client will be disposed when the DI scope ends (when user closes browser/logs out)
+        await ValueTask.CompletedTask;
     }
 }

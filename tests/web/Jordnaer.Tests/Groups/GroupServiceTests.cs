@@ -59,7 +59,8 @@ public class GroupServiceTests : IAsyncLifetime
 					new ClaimsIdentity(
 						[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
 						))
-			});
+			},
+			Substitute.For<IGroupMembershipNotificationService>());
 	}
 
 	[Fact]

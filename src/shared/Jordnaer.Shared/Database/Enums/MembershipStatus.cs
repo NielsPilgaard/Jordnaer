@@ -16,5 +16,8 @@ public enum MembershipStatus
 	PendingApprovalFromUser = 2,
 
 	[Display(Name = "Afvist")]
-	Rejected = 3
+	Rejected = 3,
+
+	[Display(Name = "Forladt")]
+	Left = 4
 }

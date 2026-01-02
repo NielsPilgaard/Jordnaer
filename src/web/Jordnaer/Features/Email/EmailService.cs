@@ -75,9 +75,9 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		var email = new SendEmail
 		{
-			Subject = "Ny medlemskabsanmodning",
+			Subject = $"Ny medlemskabsanmodning til {groupName}",
 			HtmlContent = $"""
-						  <h4>Din gruppe har modtaget en ny medlemskabsanmodning</h4>
+						  <h4>Din gruppe <b>{groupName}</b> har modtaget en ny medlemskabsanmodning</h4>
 
 						  <a href="{groupMembershipUrl}">Klik her for at se den</a>
 

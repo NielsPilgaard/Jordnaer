@@ -1,5 +1,6 @@
 ﻿using Jordnaer.Database;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -8,7 +9,10 @@ namespace Jordnaer.Features.GroupPosts;
 
 
 
-public class GroupPostService(IDbContextFactory<JordnaerDbContext> contextFactory)
+public class GroupPostService(
+	IDbContextFactory<JordnaerDbContext> contextFactory,
+	IPublishEndpoint publishEndpoint,
+	ILogger<GroupPostService> logger)
 {
 	public async Task<OneOf<GroupPostDto, NotFound>> GetPostAsync(Guid postId,
 		CancellationToken cancellationToken = default)
@@ -57,6 +61,42 @@ public class GroupPostService(IDbContextFactory<JordnaerDbContext> contextFactor
 		context.GroupPosts.Add(post);
 
 		await context.SaveChangesAsync(cancellationToken);
+
+		// Publish event for email notifications - handled out-of-process by MassTransit
+		var group = await context.Groups
+			.AsNoTracking()
+			.Where(g => g.Id == post.GroupId)
+			.Select(g => new { g.Id, g.Name })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		var author = await context.UserProfiles
+			.AsNoTracking()
+			.Where(u => u.Id == post.UserProfileId)
+			.Select(u => new { u.Id, u.DisplayName })
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (group is not null && author is not null)
+		{
+			await publishEndpoint.Publish(new GroupPostCreated
+			{
+				PostId = post.Id,
+				GroupId = group.Id,
+				GroupName = group.Name,
+				AuthorId = author.Id,
+				AuthorDisplayName = author.DisplayName,
+				PostText = post.Text,
+				CreatedUtc = post.CreatedUtc
+			}, cancellationToken);
+		}
+		else
+		{
+			// Log warning - this indicates a data integrity issue
+			logger.LogWarning(
+				"Skipping GroupPostCreated event publication due to missing data. " +
+				"PostId: {PostId}, GroupId: {GroupId}, UserProfileId: {UserProfileId}, " +
+				"GroupFound: {GroupFound}, AuthorFound: {AuthorFound}",
+				post.Id, post.GroupId, post.UserProfileId, group is not null, author is not null);
+		}
 
 		return new Success();
 	}

@@ -17,7 +17,8 @@ public class GroupService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
-	CurrentUser currentUser)
+	CurrentUser currentUser,
+	IGroupMembershipNotificationService notificationService)
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -68,11 +69,17 @@ public class GroupService(
 	{
 		logger.LogFunctionBegan();
 
+		if (currentUser.Id is null)
+		{
+			return [];
+		}
+
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var groups = await context.GroupMemberships
 			.AsNoTracking()
 			.Where(membership => membership.UserProfileId == currentUser.Id &&
-								 membership.MembershipStatus != MembershipStatus.Rejected)
+								 membership.MembershipStatus != MembershipStatus.Rejected &&
+								 membership.MembershipStatus != MembershipStatus.Left)
 			.Select(x => new UserGroupAccess
 			{
 				Group = new GroupSlim
@@ -129,6 +136,30 @@ public class GroupService(
 		return members;
 	}
 
+	public async Task<List<GroupMemberSlim>> GetGroupMembersWithRolesByPredicateAsync(Expression<Func<GroupMembership, bool>> predicate, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var members = await context.GroupMemberships
+								  .AsNoTracking()
+								  .Where(predicate)
+								  .OrderByDescending(x => x.OwnershipLevel)
+								  .ThenByDescending(x => x.PermissionLevel)
+								  .Select(x => new GroupMemberSlim
+								  {
+									  DisplayName = x.UserProfile.DisplayName,
+									  Id = x.UserProfileId,
+									  ProfilePictureUrl = x.UserProfile.ProfilePictureUrl,
+									  UserName = x.UserProfile.UserName,
+									  OwnershipLevel = x.OwnershipLevel,
+									  PermissionLevel = x.PermissionLevel
+								  })
+								  .ToListAsync(cancellationToken);
+
+		return members;
+	}
+
 	public async Task<List<GroupMembershipDto>> GetGroupMembershipsAsync(string groupName, CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -178,6 +209,64 @@ public class GroupService(
 		return groupMembership;
 	}
 
+	/// <summary>
+	/// Gets the count of pending membership requests for a specific group.
+	/// </summary>
+	public async Task<int> GetPendingMembershipCountAsync(Guid groupId, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var count = await context.GroupMemberships
+			.AsNoTracking()
+			.CountAsync(x => x.GroupId == groupId &&
+							x.MembershipStatus == MembershipStatus.PendingApprovalFromGroup,
+						cancellationToken);
+
+		return count;
+	}
+
+	/// <summary>
+	/// Gets pending membership counts for all groups the current user can manage (admin or owner).
+	/// Returns dictionary mapping GroupId to pending count.
+	/// </summary>
+	public async Task<Dictionary<Guid, int>> GetPendingMembershipCountsForUserAsync(CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		if (currentUser.Id is null)
+		{
+			return new Dictionary<Guid, int>();
+		}
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		// Get all groups where current user is admin or owner
+		var adminGroupIds = await context.GroupMemberships
+			.AsNoTracking()
+			.Where(x => x.UserProfileId == currentUser.Id &&
+					   (x.PermissionLevel == PermissionLevel.Admin ||
+						x.OwnershipLevel == OwnershipLevel.Owner))
+			.Select(x => x.GroupId)
+			.ToListAsync(cancellationToken);
+
+		if (adminGroupIds.Count == 0)
+		{
+			return new Dictionary<Guid, int>();
+		}
+
+		// Get pending counts for those groups in a single query
+		var pendingCounts = await context.GroupMemberships
+			.AsNoTracking()
+			.Where(x => adminGroupIds.Contains(x.GroupId) &&
+					   x.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
+			.GroupBy(x => x.GroupId)
+			.Select(g => new { GroupId = g.Key, Count = g.Count() })
+			.ToDictionaryAsync(x => x.GroupId, x => x.Count, cancellationToken);
+
+		return pendingCounts;
+	}
+
 	public async Task<OneOf<Success, Error<string>>> UpdateMembership(GroupMembershipDto membershipDto, CancellationToken cancellationToken = default)
 	{
 		Debug.Assert(currentUser.Id is not null, "Current user must be set when updating group membership.");
@@ -215,6 +304,13 @@ public class GroupService(
 			return logger.LogAndReturnErrorResult(error);
 		}
 
+		// Track if pending status changed to notify listeners
+		// Only track PendingApprovalFromGroup (incoming requests), not PendingApprovalFromUser (outgoing invitations)
+		var oldStatus = membership.MembershipStatus;
+		var newStatus = membershipDto.MembershipStatus;
+		var wasPending = oldStatus == MembershipStatus.PendingApprovalFromGroup;
+		var isPending = newStatus == MembershipStatus.PendingApprovalFromGroup;
+
 		membership.OwnershipLevel = membershipDto.OwnershipLevel;
 		membership.PermissionLevel = membershipDto.PermissionLevel;
 		membership.MembershipStatus = membershipDto.MembershipStatus;
@@ -230,6 +326,14 @@ public class GroupService(
 		{
 			return logger.LogAndReturnErrorResult(exception,
 				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
+		}
+
+		// Notify admins via SignalR if pending count changed
+		// This is outside the DB transaction to prevent notification failures from affecting DB success
+		if (wasPending != isPending)
+		{
+			var pendingCountChange = isPending ? 1 : -1;
+			await notificationService.NotifyAdminsOfPendingCountChangeAsync(membershipDto.GroupId, pendingCountChange, cancellationToken);
 		}
 
 		return new Success();

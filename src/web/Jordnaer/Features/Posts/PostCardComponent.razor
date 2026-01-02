@@ -43,10 +43,12 @@
         <CardHeaderActions>
             <MudMenu Icon="@Icons.Material.Filled.Share" AnchorOrigin="Origin.BottomRight" Dense Color="Color.Info"
                 aria-label="Del opslag">
-                <MudMenuItem Icon="@Icons.Custom.Brands.Facebook" OnClick="ShareToFacebook">
+                <MudMenuItem OnClick="ShareToFacebook" Style="color: #1877F2;">
+                    <MudIcon Icon="@Icons.Custom.Brands.Facebook" Class="mud-menu-item-icon" Style="color: #1877F2;" />
                     Del på Facebook
                 </MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.Cloud" OnClick="ShareToBluesky">
+                <MudMenuItem OnClick="ShareToBluesky" Style="color: #1185FE;">
+                    <MudIcon Icon="@Icons.Material.Filled.Cloud" Class="mud-menu-item-icon" Style="color: #1185FE;" />
                     Del på Bluesky
                 </MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Filled.IosShare" OnClick="ShareViaApp">
