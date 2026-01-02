@@ -54,6 +54,8 @@ public class UserProfile
 	public List<Group> Groups { get; set; } = [];
 	public List<GroupMembership> GroupMemberships { get; set; } = [];
 
+	public ChatNotificationPreference ChatNotificationPreference { get; set; } = ChatNotificationPreference.FirstMessageOnly;
+
 	public DateTime? DateOfBirth { get; set; }
 
 	public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;

@@ -1,0 +1,273 @@
+@page "/settings/notifications"
+@using Jordnaer.Features.Authentication
+@using Jordnaer.Features.Notifications
+@using Jordnaer.Shared
+
+@inject INotificationSettingsService NotificationSettingsService
+@inject CurrentUser CurrentUser
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MetadataComponent Title="Notifikationsindstillinger" Description="Administrer dine email notifikationsindstillinger" />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Large" Class="my-6">
+        <MudText Typo="Typo.h3" Class="mb-6"
+            Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em; font-size: clamp(1.5rem, 5vw, 3rem); word-break: break-word;")">
+            Notifikationsindstillinger
+        </MudText>
+
+        @* Chat Notifications Section *@
+        <MudPaper Elevation="3" Class="pa-6 mb-4">
+            <MudText Typo="Typo.h5" Class="mb-4"
+                Style="@($"color: {JordnaerPalette.BlueBody};")">
+                Chat Beskeder
+            </MudText>
+
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Vælg hvornår du vil modtage email notifikationer for chat beskeder:
+            </MudText>
+
+            <MudRadioGroup @bind-Value="_chatPreference" T="ChatNotificationPreference">
+                <MudRadio Value="ChatNotificationPreference.None" Color="Color.Primary">
+                    <div>
+                        <MudText Typo="Typo.body1"><b>Ingen</b></MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1" Color="Color.Secondary">
+                            Du modtager ingen email notifikationer for chat beskeder
+                        </MudText>
+                    </div>
+                </MudRadio>
+
+                <MudRadio Value="ChatNotificationPreference.FirstMessageOnly" Color="Color.Primary" Class="mt-4">
+                    <div>
+                        <MudText Typo="Typo.body1"><b>Kun første besked i ny samtale</b></MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1" Color="Color.Secondary">
+                            Du modtager en email når nogen starter en ny samtale med dig (standard)
+                        </MudText>
+                    </div>
+                </MudRadio>
+
+                <MudRadio Value="ChatNotificationPreference.AllMessages" Color="Color.Primary" Class="mt-4">
+                    <div>
+                        <MudText Typo="Typo.body1"><b>Alle beskeder</b></MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1" Color="Color.Secondary">
+                            Du modtager en email for hver ny besked
+                        </MudText>
+                    </div>
+                </MudRadio>
+            </MudRadioGroup>
+
+            <MudDivider Class="my-4" />
+
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveChatPreference" Disabled="_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ml-2">Gemmer...</MudText>
+                }
+                else
+                {
+                    <MudText>Gem Chat Indstillinger</MudText>
+                }
+            </MudButton>
+        </MudPaper>
+
+        @* Group Notifications Section *@
+        <MudPaper Elevation="3" Class="pa-6">
+            <MudText Typo="Typo.h5" Class="mb-4"
+                Style="@($"color: {JordnaerPalette.BlueBody};")">
+                Gruppe Opslag
+            </MudText>
+
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Vælg hvilke grupper du vil modtage email notifikationer fra når der laves nye opslag:
+            </MudText>
+
+            @if (_groupSettings.Any())
+            {
+                <div class="mb-4 d-flex gap-2">
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="EnableAllGroups" Disabled="_isBulkSaving">
+                        Aktivér alle
+                    </MudButton>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" OnClick="DisableAllGroups" Disabled="_isBulkSaving">
+                        Deaktivér alle
+                    </MudButton>
+                </div>
+
+                <MudList T="string">
+                    @foreach (var setting in _groupSettings.Where(g => g.Group is not null).OrderBy(g => g.Group!.Name))
+                    {
+                        <MudListItem T="string">
+                            <div class="d-flex justify-space-between align-center">
+                                <MudText Typo="Typo.body1">
+                                    @setting.Group?.Name
+                                </MudText>
+                                <MudSwitch
+                                    Value="setting.EmailOnNewPost"
+                                    Color="Color.Primary"
+                                    Label="@(setting.EmailOnNewPost ? "Aktiveret" : "Deaktiveret")"
+                                    ValueChanged="@(async (bool enabled) => await SaveGroupPreference(setting.GroupId, enabled))" />
+                            </div>
+                        </MudListItem>
+                        <MudDivider />
+                    }
+                </MudList>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-4">
+                    Du er ikke medlem af nogen grupper endnu. Når du bliver medlem af en gruppe, kan du justere notifikationsindstillingerne her.
+                </MudAlert>
+            }
+        </MudPaper>
+    </MudContainer>
+</MudLoading>
+
+@code {
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private bool _isBulkSaving = false;
+    private ChatNotificationPreference _chatPreference = ChatNotificationPreference.FirstMessageOnly;
+    private List<GroupMembership> _groupSettings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (CurrentUser.Id is null)
+            {
+                return;
+            }
+
+            _chatPreference = CurrentUser.UserProfile?.ChatNotificationPreference ?? ChatNotificationPreference.FirstMessageOnly;
+            _groupSettings = await NotificationSettingsService.GetGroupPreferencesAsync(CurrentUser.Id);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SaveChatPreference()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        _isSaving = true;
+        try
+        {
+            var result = await NotificationSettingsService.SetChatPreferenceAsync(CurrentUser.Id, _chatPreference);
+            result.Switch(
+                success => Snackbar.Add("Chat notifikationsindstillinger gemt", Severity.Success),
+                notFound => Snackbar.Add("Brugerprofil ikke fundet.", Severity.Error)
+            );
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task SaveGroupPreference(Guid groupId, bool enabled)
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var result = await NotificationSettingsService.SetGroupPostPreferenceAsync(CurrentUser.Id, groupId, enabled);
+            result.Switch(
+                success =>
+                {
+                    // Update the local setting
+                    var setting = _groupSettings.FirstOrDefault(s => s.GroupId == groupId);
+                    if (setting is not null)
+                    {
+                        setting.EmailOnNewPost = enabled;
+                    }
+                    Snackbar.Add("Gruppe notifikationsindstillinger gemt", Severity.Success);
+                },
+                notFound => Snackbar.Add("Gruppemedlemskab ikke fundet.", Severity.Error)
+            );
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
+        }
+    }
+
+    private async Task EnableAllGroups()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        _isBulkSaving = true;
+        try
+        {
+            var result = await NotificationSettingsService.SetAllGroupPostPreferencesAsync(CurrentUser.Id, true);
+            result.Switch(
+                success =>
+                {
+                    foreach (var setting in _groupSettings)
+                    {
+                        setting.EmailOnNewPost = true;
+                    }
+                    Snackbar.Add("Alle gruppe notifikationer aktiveret", Severity.Success);
+                },
+                notFound => Snackbar.Add("Kunne ikke opdatere indstillinger.", Severity.Error)
+            );
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isBulkSaving = false;
+        }
+    }
+
+    private async Task DisableAllGroups()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        _isBulkSaving = true;
+        try
+        {
+            var result = await NotificationSettingsService.SetAllGroupPostPreferencesAsync(CurrentUser.Id, false);
+            result.Switch(
+                success =>
+                {
+                    foreach (var setting in _groupSettings)
+                    {
+                        setting.EmailOnNewPost = false;
+                    }
+                    Snackbar.Add("Alle gruppe notifikationer deaktiveret", Severity.Success);
+                },
+                notFound => Snackbar.Add("Kunne ikke opdatere indstillinger.", Severity.Error)
+            );
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isBulkSaving = false;
+        }
+    }
+}

@@ -1,10 +1,11 @@
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
 using MassTransit;
-using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -14,7 +15,7 @@ public partial class GroupPostCreatedConsumer(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<GroupPostCreatedConsumer> logger,
 	IPublishEndpoint publishEndpoint,
-	NavigationManager navigationManager) : IConsumer<GroupPostCreated>
+	IOptions<AppOptions> appOptions) : IConsumer<GroupPostCreated>
 {
 	public async Task Consume(ConsumeContext<GroupPostCreated> consumeContext)
 	{
@@ -29,18 +30,20 @@ public partial class GroupPostCreatedConsumer(
 		{
 			await using var context = await contextFactory.CreateDbContextAsync(consumeContext.CancellationToken);
 
-			// Get all active members excluding the post author
-			var activeMembers = context.GroupMemberships
+			// Get all active members excluding the post author who have email notifications enabled
+			var activeMembers = await context.GroupMemberships
 				.AsNoTracking()
 				.Where(x => x.GroupId == message.GroupId &&
 						   x.MembershipStatus == MembershipStatus.Active &&
-						   x.UserProfileId != message.AuthorId)
-				.Select(x => x.UserProfileId);
+						   x.UserProfileId != message.AuthorId &&
+						   x.EmailOnNewPost)
+				.Select(x => x.UserProfileId)
+				.ToListAsync(consumeContext.CancellationToken);
 
 			// Get their email addresses
 			var emails = await context.Users
 				.AsNoTracking()
-				.Where(user => activeMembers.Any(userId => userId == user.Id) &&
+				.Where(user => activeMembers.Contains(user.Id) &&
 							  !string.IsNullOrEmpty(user.Email))
 				.Select(user => new EmailRecipient
 				{
@@ -59,7 +62,8 @@ public partial class GroupPostCreatedConsumer(
 			logger.LogInformation("Sending new post notification to {Count} members in group {GroupName}",
 				emails.Count, message.GroupName);
 
-			var groupUrl = $"{navigationManager.BaseUri}groups/{message.GroupName}";
+			var baseUrl = appOptions.Value.BaseUrl.TrimEnd('/');
+			var groupUrl = $"{baseUrl}/groups/{message.GroupName}";
 			var postPreview = GetPostPreview(message.PostText);
 
 			var email = new SendEmail

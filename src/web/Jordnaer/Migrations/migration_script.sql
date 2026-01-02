@@ -838,3 +838,32 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260102194640_Add_NotificationSettings'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [ChatNotificationPreference] int NOT NULL DEFAULT 0;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260102194640_Add_NotificationSettings'
+)
+BEGIN
+    ALTER TABLE [GroupMemberships] ADD [EmailOnNewPost] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260102194640_Add_NotificationSettings'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260102194640_Add_NotificationSettings', N'10.0.1');
+END;
+
+COMMIT;
+GO
+
