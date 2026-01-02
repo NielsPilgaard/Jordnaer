@@ -22,7 +22,7 @@ namespace Jordnaer.Server.Migrations
                 table: "GroupMemberships",
                 type: "bit",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
         }
 
         /// <inheritdoc />
