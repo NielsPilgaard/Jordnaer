@@ -301,6 +301,9 @@ namespace Jordnaer.Server.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<bool>("EmailOnNewPost")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("LastUpdatedUtc")
                         .HasColumnType("datetime2");
 
@@ -468,6 +471,9 @@ namespace Jordnaer.Server.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("int")
                         .HasComputedColumnSql("DATEDIFF(YY, [DateOfBirth], GETDATE()) - CASE WHEN MONTH([DateOfBirth]) > MONTH(GETDATE()) OR MONTH([DateOfBirth]) = MONTH(GETDATE()) AND DAY([DateOfBirth]) > DAY(GETDATE()) THEN 1 ELSE 0 END");
+
+                    b.Property<int>("ChatNotificationPreference")
+                        .HasColumnType("int");
 
                     b.Property<string>("City")
                         .HasMaxLength(100)
