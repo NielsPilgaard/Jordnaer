@@ -6,15 +6,9 @@
 @inject IJSRuntime JsRuntime
 @inject IFeatureManager FeatureManager
 
-<MudContainer MaxWidth="MaxWidth.Small">
+<MudContainer MaxWidth="MaxWidth.Medium">
 	<BackButton Href="/posts" />
-	<MudPaper Elevation="3" Class="pa-10 mt-5">
-		<p class="font-open-sans-light" style="color: @JordnaerPalette.RedHeader; font-size: 20px;">
-			Find opslag
-		</p>
-
-		<MudDivider Class="mb-5 mt-1" />
-
+	<MudPaper Elevation="3" Class="pa-6 pa-sm-8 pa-md-10 mt-5">
 		<EditForm OnValidSubmit="@OnValidSubmit" Model="Filter">
 			<DataAnnotationsValidator />
 
@@ -48,19 +42,22 @@
 
 				<MudItem xs="12">
 					<MudTextField @bind-Value="Filter.Contents" Placeholder="Søg efter indlæg" Label="Søg på indlæg"
-						Clearable />
+						Clearable Variant="Variant.Outlined" Adornment="Adornment.Start"
+						AdornmentIcon="@Icons.Material.Filled.Article" AdornmentColor="Color.Primary" />
 				</MudItem>
 
-				<MudItem xs="12" sm="11" md="10" lg="9" xl="8" Class="mt-8">
+				<MudItem xs="12" Class="mt-8">
 
 					<MudButtonGroup OverrideStyles="false" Style="width: 100%;">
 						<MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
-							ButtonType="ButtonType.Submit">
-							<MudIcon Icon="@Icons.Material.Filled.Search" />
+							ButtonType="ButtonType.Submit" Size="Size.Large"
+							StartIcon="@Icons.Material.Filled.Search">
+							Søg
 						</MudButton>
-						<MudButton OnClick="ClearFilter" Color="Color.Transparent" Variant="Variant.Filled"
-							ButtonType="ButtonType.Reset">
-							<MudIcon Icon="@Icons.Material.Filled.Clear" />
+						<MudButton OnClick="ClearFilter" Color="Color.Default" Variant="Variant.Outlined"
+							ButtonType="ButtonType.Reset" Size="Size.Large"
+							StartIcon="@Icons.Material.Filled.Clear">
+							Ryd
 						</MudButton>
 					</MudButtonGroup>
 				</MudItem>

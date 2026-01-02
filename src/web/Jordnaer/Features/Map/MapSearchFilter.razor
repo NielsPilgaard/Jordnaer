@@ -15,30 +15,38 @@
     }
 
     @* Address search with autocomplete *@
-    <MudAutocomplete T="string" Label="Søg efter adresse" Value="@_addressText" SearchFunc="SearchForAddresses"
+    <MudAutocomplete T="string" Value="@_addressText" SearchFunc="SearchForAddresses"
         DebounceInterval="250" MinCharacters="3" ResetValueOnEmptyText CoerceText="false" CoerceValue="false"
         ProgressIndicatorColor="Color.Info" Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable
-        ValueChanged="OnAddressSelected" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Info" />
+        ValueChanged="OnAddressSelected" AdornmentIcon="@Icons.Material.Filled.LocationOn" AdornmentColor="Color.Primary"
+        Variant="Variant.Outlined" />
 
     @* Radius slider with value display *@
-    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-        <MudText Typo="Typo.body2" Style="min-width: 80px;">Radius:</MudText>
-        <MudSlider Value="@RadiusKm" Min="0" Max="200" Step="5" Color="Color.Info" Style="flex: 1;"
+    <MudStack Spacing="1" Class="mt-3">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.body2">
+                Radius:
+            </MudText>
+            <MudText Typo="Typo.body1" Color="Color.Default" FontWeight="FontWeight.Bold">
+                <strong>@RadiusKm km</strong>
+            </MudText>
+        </MudStack>
+        <MudSlider Value="@RadiusKm" Min="0" Max="200" Step="5" Color="Color.Primary"
+            Size="Size.Medium" Class="py-2"
             ValueChanged="@(async (int newValue) => await OnRadiusChanged(newValue))" />
-        <MudText Typo="Typo.body1" Style="min-width: 60px; text-align: right;">
-            <strong>@RadiusKm km</strong>
-        </MudText>
     </MudStack>
 
     @* Map *@
     <LeafletMap @ref="_mapComponent" MapId="@MapId" InitialLatitude="@InitialLatitude"
         InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom" OnLocationSelected="OnMapClicked"
-        MapStyle="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #e0e0e0;" />
+        MapStyle="height: 450px; width: 100%; border-radius: 12px; border: 2px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
 
     @* Instructions *@
-    <MudText Typo="Typo.caption" Class="mud-text-secondary">
-        Klik på kortet eller søg efter en adresse for at vælge et søgeområde
-    </MudText>
+    <MudAlert Severity="Severity.Info" Dense Icon="@Icons.Material.Filled.Info" Class="mt-2">
+        <MudText Typo="Typo.caption">
+            Klik på kortet eller søg efter en adresse for at vælge et søgeområde
+        </MudText>
+    </MudAlert>
 </MudStack>
 
 @code {
