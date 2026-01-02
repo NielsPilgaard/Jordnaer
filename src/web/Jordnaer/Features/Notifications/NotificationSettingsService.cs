@@ -10,7 +10,6 @@ public interface INotificationSettingsService
 {
 	Task<ChatNotificationPreference> GetChatPreferenceAsync(string userId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, NotFound>> SetChatPreferenceAsync(string userId, ChatNotificationPreference preference, CancellationToken cancellationToken = default);
-	Task<bool> ShouldSendGroupPostEmailAsync(string userId, Guid groupId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, NotFound>> SetGroupPostPreferenceAsync(string userId, Guid groupId, bool enabled, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, NotFound>> SetAllGroupPostPreferencesAsync(string userId, bool enabled, CancellationToken cancellationToken = default);
 	Task<List<GroupMembership>> GetGroupPreferencesAsync(string userId, CancellationToken cancellationToken = default);
@@ -44,19 +43,6 @@ public class NotificationSettingsService(IDbContextFactory<JordnaerDbContext> co
 		userProfile.ChatNotificationPreference = preference;
 		await context.SaveChangesAsync(cancellationToken);
 		return new Success();
-	}
-
-	public async Task<bool> ShouldSendGroupPostEmailAsync(string userId, Guid groupId, CancellationToken cancellationToken = default)
-	{
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-		// Check the membership's EmailOnNewPost setting
-		var membership = await context.GroupMemberships
-			.AsNoTracking()
-			.FirstOrDefaultAsync(x => x.UserProfileId == userId && x.GroupId == groupId, cancellationToken);
-
-		// Return the setting if membership exists, otherwise default to true
-		return membership?.EmailOnNewPost ?? true;
 	}
 
 	public async Task<OneOf<Success, NotFound>> SetGroupPostPreferenceAsync(string userId, Guid groupId, bool enabled, CancellationToken cancellationToken = default)
