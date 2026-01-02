@@ -1,14 +1,14 @@
 ﻿using FluentAssertions;
 using Jordnaer.Consumers;
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Features.Chat;
 using Jordnaer.Features.Email;
 using Jordnaer.Shared;
 using MassTransit;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.EntityFrameworkCore;
 using NSubstitute;
@@ -21,7 +21,7 @@ public class ChatNotificationServiceTests
 {
 	private readonly Mock<JordnaerDbContext> _contextMock;
 	private readonly Mock<IPublishEndpoint> _publishEndpointMock;
-	private readonly IServer _serverMock;
+	private readonly IOptions<AppOptions> _appOptions;
 	private readonly ChatNotificationService _service;
 
 	public ChatNotificationServiceTests()
@@ -35,13 +35,15 @@ public class ChatNotificationServiceTests
 			.ReturnsAsync(_contextMock.Object);
 
 		_publishEndpointMock = new Mock<IPublishEndpoint>();
-		_serverMock = Substitute.For<IServer>();
+
+		_appOptions = Substitute.For<IOptions<AppOptions>>();
+		_appOptions.Value.Returns(new AppOptions { BaseUrl = "http://localhost:5000" });
 
 		_service = new ChatNotificationService(
 			contextFactoryMock.Object,
 			new NullLogger<StartChatConsumer>(),
 			_publishEndpointMock.Object,
-			_serverMock
+			_appOptions
 		);
 	}
 
@@ -159,9 +161,6 @@ public class ChatNotificationServiceTests
 	{
 		// Arrange
 		var chatId = Guid.NewGuid();
-		var serverAddressesFeatureMock = Substitute.For<IServerAddressesFeature>();
-		serverAddressesFeatureMock.Addresses.Returns(new List<string> { "http://localhost:5000" });
-		_serverMock.Features.Get<IServerAddressesFeature>().Returns(serverAddressesFeatureMock);
 
 		// Act
 		var link = _service.GetChatLink(chatId);
@@ -227,7 +226,7 @@ public class ChatNotificationServiceTests
 	{
 		// Arrange
 		var chatId = Guid.NewGuid();
-		_serverMock.Features.Get<IServerAddressesFeature>().Returns((IServerAddressesFeature?)null);
+		_appOptions.Value.Returns(new AppOptions { BaseUrl = null });
 		var defaultLink = $"https://mini-moeder.dk/chat/{chatId}";
 
 		// Act
