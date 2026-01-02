@@ -7,7 +7,6 @@ using Jordnaer.Features.Groups;
 using Jordnaer.Shared;
 using Jordnaer.Tests.Infrastructure;
 using MassTransit;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -61,7 +60,7 @@ public class GroupServiceTests : IAsyncLifetime
 						[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
 						))
 			},
-			Substitute.For<IHubContext<GroupMembershipHub, IGroupMembershipHub>>());
+			Substitute.For<IGroupMembershipNotificationService>());
 	}
 
 	[Fact]
