@@ -1,10 +1,11 @@
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Shared;
 using MassTransit;
-using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -14,7 +15,7 @@ public partial class GroupPostCreatedConsumer(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<GroupPostCreatedConsumer> logger,
 	IPublishEndpoint publishEndpoint,
-	NavigationManager navigationManager) : IConsumer<GroupPostCreated>
+	IOptions<AppOptions> appOptions) : IConsumer<GroupPostCreated>
 {
 	public async Task Consume(ConsumeContext<GroupPostCreated> consumeContext)
 	{
@@ -59,7 +60,8 @@ public partial class GroupPostCreatedConsumer(
 			logger.LogInformation("Sending new post notification to {Count} members in group {GroupName}",
 				emails.Count, message.GroupName);
 
-			var groupUrl = $"{navigationManager.BaseUri}groups/{message.GroupName}";
+			var baseUrl = appOptions.Value.BaseUrl.TrimEnd('/');
+			var groupUrl = $"{baseUrl}/groups/{message.GroupName}";
 			var postPreview = GetPostPreview(message.PostText);
 
 			var email = new SendEmail
