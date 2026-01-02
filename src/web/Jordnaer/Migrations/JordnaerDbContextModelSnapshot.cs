@@ -302,7 +302,9 @@ namespace Jordnaer.Server.Migrations
                         .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<bool>("EmailOnNewPost")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<DateTime>("LastUpdatedUtc")
                         .HasColumnType("datetime2");
