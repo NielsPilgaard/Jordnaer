@@ -32,6 +32,7 @@
         <MudPaper Elevation="2" Class="mb-4">
 
             <MudTabs Elevation="0" Rounded ApplyEffectsToContainer PanelClass="pa-6"
+                Class="my-groups-tabs"
                 Style="@($"--mud-palette-primary: {JordnaerPalette.GreenBackground};")">
 
                 @* Groups I Own *@
@@ -108,6 +109,13 @@
     </MudLoading>
 
 </MudContainer>
+
+<style>
+    .my-groups-tabs .mud-tab {
+        padding-right: 24px !important;
+    }
+</style>
+
 @code {
     private bool _isLoading = true;
 
