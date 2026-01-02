@@ -4,16 +4,6 @@ Social media posts for Facebook and Instagram highlighting recent features. Use 
 
 ---
 
-## 0. Improved onboarding take 2
-
-👋 Velkommen til Mini Møder!
-
-Nu er det endnu nemmere at komme i gang. Vi har gjort det lettere at oprette profil og finde andre forældre i dit område 🚀
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
 ## 1. Forbedret Chat (Improved Chat UI)
 
 💬 Nyt på Mini Møder: Bedre chat!
