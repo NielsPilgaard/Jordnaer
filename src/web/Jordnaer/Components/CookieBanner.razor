@@ -9,7 +9,7 @@
     bool _hideBanner = false;
     async Task Consent() => await LocalStorage.SetItemAsync(CookieBannerId, true);
 
-    RenderFragment _banner => __builder =>
+    readonly RenderFragment _banner = __builder =>
     {
         <div>
             <MudText Typo="Typo.body2" Style="@($"color: {JordnaerPalette.WarmWhite};")">
