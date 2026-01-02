@@ -261,11 +261,18 @@ public class ChatNotificationServiceTests : IAsyncLifetime
 	{
 		// Arrange
 		var chatId = Guid.NewGuid();
-		_appOptions.Value.Returns(new AppOptions { BaseUrl = null });
+		var nullAppOptions = Substitute.For<IOptions<AppOptions>>();
+		nullAppOptions.Value.Returns(new AppOptions { BaseUrl = null });
+		var serviceWithNullBaseUrl = new ChatNotificationService(
+			Mock.Of<IDbContextFactory<JordnaerDbContext>>(),
+			new NullLogger<StartChatConsumer>(),
+			Mock.Of<IPublishEndpoint>(),
+			nullAppOptions
+		);
 		var defaultLink = $"https://mini-moeder.dk/chat/{chatId}";
 
 		// Act
-		var link = _service.GetChatLink(chatId);
+		var link = serviceWithNullBaseUrl.GetChatLink(chatId);
 
 		// Assert
 		link.Should().Be(defaultLink);
