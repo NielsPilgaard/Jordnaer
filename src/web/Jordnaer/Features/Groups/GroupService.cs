@@ -78,7 +78,8 @@ public class GroupService(
 		var groups = await context.GroupMemberships
 			.AsNoTracking()
 			.Where(membership => membership.UserProfileId == currentUser.Id &&
-								 membership.MembershipStatus != MembershipStatus.Rejected)
+								 membership.MembershipStatus != MembershipStatus.Rejected &&
+								 membership.MembershipStatus != MembershipStatus.Left)
 			.Select(x => new UserGroupAccess
 			{
 				Group = new GroupSlim
