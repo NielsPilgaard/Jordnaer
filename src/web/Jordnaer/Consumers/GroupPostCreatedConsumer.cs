@@ -30,18 +30,20 @@ public partial class GroupPostCreatedConsumer(
 		{
 			await using var context = await contextFactory.CreateDbContextAsync(consumeContext.CancellationToken);
 
-			// Get all active members excluding the post author
-			var activeMembers = context.GroupMemberships
+			// Get all active members excluding the post author who have email notifications enabled
+			var activeMembers = await context.GroupMemberships
 				.AsNoTracking()
 				.Where(x => x.GroupId == message.GroupId &&
 						   x.MembershipStatus == MembershipStatus.Active &&
-						   x.UserProfileId != message.AuthorId)
-				.Select(x => x.UserProfileId);
+						   x.UserProfileId != message.AuthorId &&
+						   x.EmailOnNewPost)
+				.Select(x => x.UserProfileId)
+				.ToListAsync(consumeContext.CancellationToken);
 
 			// Get their email addresses
 			var emails = await context.Users
 				.AsNoTracking()
-				.Where(user => activeMembers.Any(userId => userId == user.Id) &&
+				.Where(user => activeMembers.Contains(user.Id) &&
 							  !string.IsNullOrEmpty(user.Email))
 				.Select(user => new EmailRecipient
 				{

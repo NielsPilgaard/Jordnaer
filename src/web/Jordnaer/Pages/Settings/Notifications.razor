@@ -213,27 +213,18 @@
 
         try
         {
-            var hasErrors = false;
-            foreach (var setting in _groupSettings)
-            {
-                if (!setting.EmailOnNewPost)
+            var result = await NotificationSettingsService.SetAllGroupPostPreferencesAsync(CurrentUser.Id, true);
+            result.Switch(
+                success =>
                 {
-                    var result = await NotificationSettingsService.SetGroupPostPreferenceAsync(CurrentUser.Id, setting.GroupId, true);
-                    result.Switch(
-                        success => setting.EmailOnNewPost = true,
-                        notFound => hasErrors = true
-                    );
-                }
-            }
-
-            if (hasErrors)
-            {
-                Snackbar.Add("Nogle gruppemedlemskaber blev ikke fundet.", Severity.Warning);
-            }
-            else
-            {
-                Snackbar.Add("Alle gruppe notifikationer aktiveret", Severity.Success);
-            }
+                    foreach (var setting in _groupSettings)
+                    {
+                        setting.EmailOnNewPost = true;
+                    }
+                    Snackbar.Add("Alle gruppe notifikationer aktiveret", Severity.Success);
+                },
+                notFound => Snackbar.Add("Kunne ikke opdatere indstillinger.", Severity.Error)
+            );
         }
         catch (Exception)
         {
@@ -250,27 +241,18 @@
 
         try
         {
-            var hasErrors = false;
-            foreach (var setting in _groupSettings)
-            {
-                if (setting.EmailOnNewPost)
+            var result = await NotificationSettingsService.SetAllGroupPostPreferencesAsync(CurrentUser.Id, false);
+            result.Switch(
+                success =>
                 {
-                    var result = await NotificationSettingsService.SetGroupPostPreferenceAsync(CurrentUser.Id, setting.GroupId, false);
-                    result.Switch(
-                        success => setting.EmailOnNewPost = false,
-                        notFound => hasErrors = true
-                    );
-                }
-            }
-
-            if (hasErrors)
-            {
-                Snackbar.Add("Nogle gruppemedlemskaber blev ikke fundet.", Severity.Warning);
-            }
-            else
-            {
-                Snackbar.Add("Alle gruppe notifikationer deaktiveret", Severity.Success);
-            }
+                    foreach (var setting in _groupSettings)
+                    {
+                        setting.EmailOnNewPost = false;
+                    }
+                    Snackbar.Add("Alle gruppe notifikationer deaktiveret", Severity.Success);
+                },
+                notFound => Snackbar.Add("Kunne ikke opdatere indstillinger.", Severity.Error)
+            );
         }
         catch (Exception)
         {
