@@ -56,10 +56,26 @@ public class MembershipService(CurrentUser currentUser,
 					existingMembership.LastUpdatedUtc = DateTime.UtcNow;
 					existingMembership.UserInitiatedMembership = true;
 					await context.SaveChangesAsync(cancellationToken);
-					await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
 
-					// Notify admins via SignalR about the new pending request
-					await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
+					// Send email notification - don't fail the request if notification fails
+					try
+					{
+						await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
+					}
+					catch (Exception notificationException)
+					{
+						logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
+					}
+
+					// Notify admins via SignalR - don't fail the request if notification fails
+					try
+					{
+						await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
+					}
+					catch (Exception notificationException)
+					{
+						logger.LogError(notificationException, "Failed to send SignalR notification for group {GroupId}", group.Id);
+					}
 
 					return new Success();
 				}
@@ -81,10 +97,25 @@ public class MembershipService(CurrentUser currentUser,
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
+			// Send email notification - don't fail the request if notification fails
+			try
+			{
+				await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
+			}
+			catch (Exception notificationException)
+			{
+				logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
+			}
 
-			// Notify admins via SignalR about the new pending request
-			await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
+			// Notify admins via SignalR - don't fail the request if notification fails
+			try
+			{
+				await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
+			}
+			catch (Exception notificationException)
+			{
+				logger.LogError(notificationException, "Failed to send SignalR notification for group {GroupId}", group.Id);
+			}
 
 			return new Success();
 		}
