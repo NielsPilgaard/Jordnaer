@@ -20,4 +20,10 @@ public class GroupMembership
 	public MembershipStatus MembershipStatus { get; set; }
 	public PermissionLevel PermissionLevel { get; set; } = PermissionLevel.None;
 	public OwnershipLevel OwnershipLevel { get; set; } = OwnershipLevel.None;
+
+	/// <summary>
+	/// Whether the user wants email notifications for new posts in this group.
+	/// Default is true.
+	/// </summary>
+	public bool EmailOnNewPost { get; set; } = true;
 }
