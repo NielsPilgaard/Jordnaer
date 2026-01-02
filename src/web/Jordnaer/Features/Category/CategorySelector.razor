@@ -14,9 +14,16 @@
     .category-chip-unselected:hover {
         background-color: #4b5563 !important;
     }
+
+    .category-chip-set {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
 </style>
 
-<MudChipSet T="string" Style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;"
+<MudChipSet T="string" Class="category-chip-set"
     SelectionMode="SelectionMode.MultiSelection" SelectedValues="Categories" CheckMark
     SelectedValuesChanged="SelectedCategoriesChanged">
     @foreach (var category in _allCategories)
