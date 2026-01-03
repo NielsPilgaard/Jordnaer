@@ -88,7 +88,7 @@ public class LandingPageTests : BrowserTest
 	[TestCase("Privatlivspolitik")]
 	[TestCase("Servicevilkår")]
 	[TestCase("Kontakt")]
-	[TestCase("Sponsorer")]
+	[TestCase("Partnere")]
 	[TestCase("Drift")]
 	public async Task When_User_Is_On_The_LandingPage_Footer_Links_Should_Be_Visible_At_Very_The_Bottom(
 		string linkText)

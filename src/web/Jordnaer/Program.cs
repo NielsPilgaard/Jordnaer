@@ -5,6 +5,7 @@ using Jordnaer.Components;
 using Jordnaer.Components.Account;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
+using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Category;
 using Jordnaer.Features.Chat;
 using Jordnaer.Features.DeleteUser;
@@ -46,7 +47,13 @@ builder.AddAppOptions();
 
 builder.AddAuthentication();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+	options.AddPolicy(AuthorizationPolicies.AdminOnly, policy =>
+		policy.RequireRole(AppRoles.Admin));
+	options.AddPolicy(AuthorizationPolicies.PartnerAccess, policy =>
+		policy.RequireRole(AppRoles.Partner));
+});
 
 builder.AddSerilog();
 
@@ -76,6 +83,8 @@ builder.AddMassTransit();
 builder.AddSignalR();
 
 builder.Services.AddScoped<IImageService, ImageService>();
+
+builder.AddAuthenticationFeature();
 
 builder.AddSearchServices();
 builder.AddGroupServices();

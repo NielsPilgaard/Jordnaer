@@ -64,6 +64,7 @@ public static class AuthenticationExtensions
 
 				   options.User.RequireUniqueEmail = true;
 			   })
+			   .AddRoles<IdentityRole>()
 			   .AddEntityFrameworkStores<JordnaerDbContext>()
 			   .AddSignInManager()
 			   .AddDefaultTokenProviders();

@@ -1,6 +1,7 @@
 using Grafana.OpenTelemetry;
 using HealthChecks.OpenTelemetry.Instrumentation;
 using Jordnaer.Database;
+using Jordnaer.Features.Authentication;
 using MassTransit;
 using MassTransit.Logging;
 using MassTransit.Monitoring;
@@ -77,6 +78,13 @@ public static class WebApplicationBuilderExtensions
 			};
 		});
 		builder.Services.AddMudExtensions();
+
+		return builder;
+	}
+
+	public static WebApplicationBuilder AddAuthenticationFeature(this WebApplicationBuilder builder)
+	{
+		builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
 		return builder;
 	}
