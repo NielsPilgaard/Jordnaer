@@ -1,0 +1,106 @@
+@using Jordnaer.Features.UserSearch
+@using Jordnaer.Shared
+@using MudBlazor
+@using OneOf.Types
+
+@inject IMembershipService MembershipService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Inviter medlem til gruppen</MudText>
+
+        <UserSearchAutocomplete CurrentUserId="@CurrentUserId"
+                                UserSelected="@UserSelected"
+                                Disabled="@_isInviting"
+                                ShowUsername="true"
+                                AvatarSize="Size.Medium" />
+
+        @if (_selectedUser is not null)
+        {
+            <MudPaper Class="mt-4 pa-4" Elevation="0" Outlined>
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                    <MudAvatar Size="Size.Large">
+                        <MudImage Src="@_selectedUser.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                    </MudAvatar>
+                    <div>
+                        <MudText Typo="Typo.subtitle1">@_selectedUser.DisplayName</MudText>
+                        @if (!string.IsNullOrEmpty(_selectedUser.UserName))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@@@_selectedUser.UserName</MudText>
+                        }
+                    </div>
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="ClearSelection" />
+                </MudStack>
+            </MudPaper>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="_isInviting">Annuller</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="InviteUser"
+                   Disabled="@(_selectedUser is null || _isInviting)">
+            @if (_isInviting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate />
+                <MudText Class="ml-2">Inviterer...</MudText>
+            }
+            else
+            {
+                <text>Inviter</text>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public required Guid GroupId { get; set; }
+    [Parameter] public required string CurrentUserId { get; set; }
+
+    private UserSlim? _selectedUser;
+    private bool _isInviting;
+
+    private Task UserSelected(UserSlim? user)
+    {
+        _selectedUser = user;
+        return Task.CompletedTask;
+    }
+
+    private void ClearSelection()
+    {
+        _selectedUser = null;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task InviteUser()
+    {
+        if (_selectedUser is null)
+        {
+            return;
+        }
+
+        _isInviting = true;
+
+        var result = await MembershipService.InviteUserToGroupAsync(GroupId, _selectedUser.Id, CancellationToken.None);
+
+        result.Switch(
+            success =>
+            {
+                Snackbar.Add($"{_selectedUser.DisplayName} er blevet inviteret til gruppen.", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            },
+            error =>
+            {
+                Snackbar.Add(error.Value, Severity.Error);
+                _isInviting = false;
+            }
+        );
+    }
+}

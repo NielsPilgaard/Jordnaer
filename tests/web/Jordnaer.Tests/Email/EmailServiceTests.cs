@@ -237,14 +237,13 @@ public class EmailServiceTests : IAsyncLifetime
 					email.Bcc.Any(r => r.Email == "admin1@example.com") &&
 					email.Bcc.Any(r => r.Email == "admin2@example.com") &&
 					email.HtmlContent.Contains(groupName) &&
-					email.HtmlContent.Contains("http://localhost:5000/groups/TestGroup/members")
+					email.HtmlContent.Contains($"http://localhost:5000/groups/{groupName}/members")
 				),
 				It.IsAny<CancellationToken>()
 			),
 			Times.Once
 		);
 	}
-
 	[Fact]
 	public async Task SendMembershipRequestEmails_ShouldNotPublishEmail_WhenNoAdminsFound()
 	{

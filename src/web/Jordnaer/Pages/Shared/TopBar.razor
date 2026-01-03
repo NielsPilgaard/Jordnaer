@@ -14,11 +14,11 @@
 	@* Desktop Navigation - Icons with Labels *@
 	<div class="topbar-desktop" style="display: flex; gap: 4px;">
 		<MudButton Href="/" StartIcon="@Icons.Material.Filled.Home" Variant="Variant.Text"
-			Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Class="@GetNavLinkClass("/")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 			Hjem
 		</MudButton>
 		<MudButton Href="/users" StartIcon="@Icons.Material.Filled.PersonSearch" Variant="Variant.Text"
-			Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Class="@GetNavLinkClass("/users")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 			Søg
 		</MudButton>
 
@@ -27,14 +27,14 @@
 				<MudBadge Content="@_pendingGroupRequestCount" Visible="@(_pendingGroupRequestCount > 0)" Color="Color.Warning" Overlap="true"
 					Class="mx-0" BadgeClass="badge-offset">
 					<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
-						Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+						Class="@GetNavLinkClass("/groups")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 						Grupper
 					</MudButton>
 				</MudBadge>
 			</Authorized>
 			<NotAuthorized>
 				<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
-					Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+					Class="@GetNavLinkClass("/groups")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 					Grupper
 				</MudButton>
 			</NotAuthorized>
@@ -42,7 +42,7 @@
 
 		<Feature Name="@FeatureFlags.Posts">
 			<MudButton Href="/posts" StartIcon="@Icons.Material.Filled.Feed" Variant="Variant.Text"
-				Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+				Class="@GetNavLinkClass("/posts")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 				Opslag
 			</MudButton>
 		</Feature>
@@ -52,7 +52,7 @@
 				<MudBadge Content="@_unreadCount" Visible="@(_unreadCount > 0)" Color="Color.Info" Overlap="true"
 					Class="mx-0" BadgeClass="badge-offset">
 					<MudButton Href="/chat" StartIcon="@Icons.Material.Filled.Chat" Variant="Variant.Text"
-						Class="topbar-nav-link font-open-sans-semibold" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+						Class="@GetNavLinkClass("/chat")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 						Chat
 					</MudButton>
 				</MudBadge>
@@ -69,15 +69,15 @@
 
 		<nav class="mobile-menu-dropdown" aria-label="Mobile navigation"
 			onclick="document.getElementById('mobile-menu-toggle').checked = false;">
-			<a href="/" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+			<a href="/" class="@GetMobileNavLinkClass("/")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 				<MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Hjem
 			</a>
-			<a href="/users" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+			<a href="/users" class="@GetMobileNavLinkClass("/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 				<MudIcon Icon="@Icons.Material.Filled.PersonSearch" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Søg
 			</a>
-			<a href="/groups" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+			<a href="/groups" class="@GetMobileNavLinkClass("/groups")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 				<MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Grupper
 				<AuthorizeView>
@@ -91,7 +91,7 @@
 			</a>
 
 			<Feature Name="@FeatureFlags.Posts">
-				<a href="/posts" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+				<a href="/posts" class="@GetMobileNavLinkClass("/posts")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 					<MudIcon Icon="@Icons.Material.Filled.Feed" Size="Size.Small" Style="margin-right: 0.75rem;" />
 					Opslag
 				</a>
@@ -99,7 +99,7 @@
 
 			<AuthorizeView>
 				<Authorized>
-					<a href="/chat" class="mobile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/chat" class="@GetMobileNavLinkClass("/chat")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" Style="margin-right: 0.75rem;" />
 						Chat
 						@if (_unreadCount > 0)
@@ -127,17 +127,17 @@
 				</label>
 				<nav class="profile-menu-dropdown" aria-label="Profile menu"
 					onclick="document.getElementById('profile-menu-toggle').checked = false;">
-					<a href="/profile" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/profile" class="@GetProfileMenuItemClass("/profile")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
 						Profil
 					</a>
-					<a href="/settings/notifications" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/settings/notifications" class="@GetProfileMenuItemClass("/settings/notifications")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
 						Notifikationer
 					</a>
-					<a href="/Account/Manage" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/Account/Manage" class="@GetProfileMenuItemClass("/Account/Manage")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
@@ -159,17 +159,17 @@
 				</label>
 				<nav class="profile-menu-dropdown" aria-label="Profile menu"
 					onclick="document.getElementById('profile-menu-toggle-mobile').checked = false;">
-					<a href="/profile" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/profile" class="@GetProfileMenuItemClass("/profile")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
 						Profil
 					</a>
-					<a href="/settings/notifications" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/settings/notifications" class="@GetProfileMenuItemClass("/settings/notifications")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
 						Notifikationer
 					</a>
-					<a href="/Account/Manage" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
+					<a href="/Account/Manage" class="@GetProfileMenuItemClass("/Account/Manage")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
@@ -204,9 +204,16 @@
 	private int _pendingGroupRequestCount = 0;
 	private bool _isJsAvailable = false;
 	private string? _baseTitle = null;
+	private string _currentPath = string.Empty;
 
 	protected override async Task OnInitializedAsync()
 	{
+		// Get current path for active nav highlighting
+		_currentPath = new Uri(Navigation.Uri).AbsolutePath;
+
+		// Subscribe to navigation changes to update active nav item
+		Navigation.LocationChanged += OnLocationChanged;
+
 		if (CurrentUser.Id is null)
 		{
 			return;
@@ -308,8 +315,38 @@
 		await JsRuntime.InvokeVoidAsync("eval", $"document.title = '{title}'");
 	}
 
+	private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+	{
+		_currentPath = new Uri(e.Location).AbsolutePath;
+		StateHasChanged();
+	}
+
+	private bool IsActive(string path)
+	{
+		return _currentPath.Equals(path, StringComparison.OrdinalIgnoreCase);
+	}
+
+	private string GetNavLinkClass(string path)
+	{
+		var baseClass = "topbar-nav-link font-open-sans-semibold";
+		return IsActive(path) ? $"{baseClass} active" : baseClass;
+	}
+
+	private string GetMobileNavLinkClass(string path)
+	{
+		var baseClass = "mobile-menu-item";
+		return IsActive(path) ? $"{baseClass} active" : baseClass;
+	}
+
+	private string GetProfileMenuItemClass(string path)
+	{
+		var baseClass = "profile-menu-item";
+		return IsActive(path) ? $"{baseClass} active" : baseClass;
+	}
+
 	public async ValueTask DisposeAsync()
 	{
+		Navigation.LocationChanged -= OnLocationChanged;
 		ChatService.MessagesMarkedAsRead -= OnMessagesMarkedAsRead;
 		await UnreadMessageSignalRClient.StopAsync();
 		await GroupMembershipSignalRClient.StopAsync();

@@ -115,7 +115,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 			return;
 		}
 
-		logger.LogInformation("Sending group invite email to {UserEmail} for group {GroupName}.", invitedUser.Email, groupName);
+		logger.LogInformation("Sending group invite email to user {UserId} for group {GroupName}.", userId, groupName);
 
 		var groupUrl = $"{options.Value.BaseUrl}/groups/{groupName}";
 

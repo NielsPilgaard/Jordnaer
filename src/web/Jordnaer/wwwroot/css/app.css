@@ -154,6 +154,15 @@ div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.topbar-nav-link.active {
+    background-color: rgba(33, 150, 243, 0.12);
+    font-weight: 700;
+}
+
+.topbar-nav-link.active:hover {
+    background-color: rgba(33, 150, 243, 0.18);
+}
+
 .topbar-nav-link .mud-button-label {
     font-size: 15px;
 }
@@ -384,6 +393,15 @@ body, p {
     background-color: rgba(65, 85, 107, 0.05);
 }
 
+.mobile-menu-item.active {
+    background-color: rgba(33, 150, 243, 0.12);
+    font-weight: 600;
+}
+
+.mobile-menu-item.active:hover {
+    background-color: rgba(33, 150, 243, 0.18);
+}
+
 /* First and last items get rounded corners */
 .mobile-menu-item:first-child {
     border-radius: 8px 8px 0 0;
@@ -475,6 +493,15 @@ body, p {
     outline: 2px solid #41556b;
     outline-offset: -2px;
     background-color: rgba(65, 85, 107, 0.05);
+}
+
+.profile-menu-item.active {
+    background-color: rgba(33, 150, 243, 0.12);
+    font-weight: 600;
+}
+
+.profile-menu-item.active:hover {
+    background-color: rgba(33, 150, 243, 0.18);
 }
 
 /* First and last items get rounded corners */

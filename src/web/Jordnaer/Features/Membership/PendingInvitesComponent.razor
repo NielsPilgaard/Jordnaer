@@ -1,0 +1,157 @@
+@using OneOf.Types
+@inject IMembershipService MembershipService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@if (_invites.Count > 0)
+{
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudText Typo="Typo.h6" Class="mb-3">Gruppeinvitationer</MudText>
+        <MudText Typo="Typo.body2" Class="mb-4" Color="Color.Secondary">
+            Du har @_invites.Count afventende gruppeinvitation@(_invites.Count > 1 ? "er" : "")
+        </MudText>
+
+        <MudStack Spacing="3">
+            @foreach (var invite in _invites)
+            {
+                <MudCard Outlined>
+                    <MudCardContent>
+                        <MudStack Row AlignItems="AlignItems.Start" Spacing="3">
+                            @if (!string.IsNullOrEmpty(invite.GroupProfilePictureUrl))
+                            {
+                                <MudAvatar Size="Size.Large" Class="flex-shrink-0">
+                                    <MudImage Src="@invite.GroupProfilePictureUrl" loading="lazy" Alt="@invite.GroupName" />
+                                </MudAvatar>
+                            }
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <MudText Typo="Typo.h6" Class="mb-1">@invite.GroupName</MudText>
+                                @if (!string.IsNullOrEmpty(invite.GroupDescription))
+                                {
+                                    <MudText Typo="Typo.body2" Class="mb-2" Style="overflow-wrap: break-word;">
+                                        @invite.GroupDescription
+                                    </MudText>
+                                }
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Inviteret @invite.InvitedAtUtc.ToString("dd. MMM yyyy")
+                                </MudText>
+                            </div>
+                        </MudStack>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   Size="Size.Small"
+                                   OnClick="@(() => AcceptInvite(invite))"
+                                   Disabled="_processingInviteId == invite.GroupId">
+                            @if (_processingInviteId == invite.GroupId && _isAccepting)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate />
+                            }
+                            else
+                            {
+                                <text>Acceptér</text>
+                            }
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   Size="Size.Small"
+                                   OnClick="@(() => DeclineInvite(invite))"
+                                   Disabled="_processingInviteId == invite.GroupId">
+                            @if (_processingInviteId == invite.GroupId && !_isAccepting)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate />
+                            }
+                            else
+                            {
+                                <text>Afvis</text>
+                            }
+                        </MudButton>
+                        <MudSpacer />
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Info"
+                                   Size="Size.Small"
+                                   Href="@($"/groups/{invite.GroupName}")"
+                                   Disabled="_processingInviteId == invite.GroupId">
+                            Se gruppe
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            }
+        </MudStack>
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public EventCallback OnInviteProcessed { get; set; }
+
+    private List<GroupInviteDto> _invites = [];
+    private Guid? _processingInviteId;
+    private bool _isAccepting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInvites();
+    }
+
+    private async Task LoadInvites()
+    {
+        _invites = await MembershipService.GetPendingInvitesForUserAsync();
+    }
+
+    private async Task AcceptInvite(GroupInviteDto invite)
+    {
+        _processingInviteId = invite.GroupId;
+        _isAccepting = true;
+
+        var result = await MembershipService.AcceptGroupInviteAsync(invite.GroupId);
+
+        result.Switch(
+            success =>
+            {
+                Snackbar.Add($"Du er nu medlem af {invite.GroupName}!", Severity.Success);
+                _invites.Remove(invite);
+                NavigationManager.NavigateTo($"/groups/{invite.GroupName}");
+            },
+            error =>
+            {
+                Snackbar.Add(error.Value, Severity.Error);
+                _processingInviteId = null;
+                _isAccepting = false;
+            }
+        );
+
+        await OnInviteProcessed.InvokeAsync();
+        StateHasChanged();
+    }
+
+    private async Task DeclineInvite(GroupInviteDto invite)
+    {
+        _processingInviteId = invite.GroupId;
+        _isAccepting = false;
+
+        var result = await MembershipService.DeclineGroupInviteAsync(invite.GroupId);
+
+        result.Switch(
+            success =>
+            {
+                Snackbar.Add($"Invitationen til {invite.GroupName} er afvist.", Severity.Info);
+                _invites.Remove(invite);
+            },
+            error =>
+            {
+                Snackbar.Add(error.Value, Severity.Error);
+            }
+        );
+
+        _processingInviteId = null;
+        await OnInviteProcessed.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task Refresh()
+    {
+        await LoadInvites();
+        StateHasChanged();
+    }
+}
