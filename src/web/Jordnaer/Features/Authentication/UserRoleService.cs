@@ -11,7 +11,7 @@ public interface IUserRoleService
 	Task<List<UserRoleDto>> GetAllUsersWithRolesAsync();
 	Task<OneOf<Success, NotFound, Error<string>>> AddRoleToUserAsync(string userId, string roleName);
 	Task<OneOf<Success, NotFound, Error<string>>> RemoveRoleFromUserAsync(string userId, string roleName);
-	Task<List<string>> GetUserRolesAsync(string userId);
+	Task<OneOf<List<string>, NotFound>> GetUserRolesAsync(string userId);
 }
 
 public class UserRoleDto
@@ -150,12 +150,12 @@ public sealed class UserRoleService(
 		return new Error<string>("Failed to remove role");
 	}
 
-	public async Task<List<string>> GetUserRolesAsync(string userId)
+	public async Task<OneOf<List<string>, NotFound>> GetUserRolesAsync(string userId)
 	{
 		var user = await userManager.FindByIdAsync(userId);
 		if (user == null)
 		{
-			return [];
+			return new NotFound();
 		}
 
 		var roles = await userManager.GetRolesAsync(user);

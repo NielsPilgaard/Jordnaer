@@ -83,7 +83,8 @@ builder.AddMassTransit();
 builder.AddSignalR();
 
 builder.Services.AddScoped<IImageService, ImageService>();
-builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+
+builder.AddAuthenticationFeature();
 
 builder.AddSearchServices();
 builder.AddGroupServices();

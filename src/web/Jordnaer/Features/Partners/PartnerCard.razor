@@ -1,16 +1,25 @@
 @using Jordnaer.Shared
-<MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None">
-    <MudCard Elevation="5" Class="mt-5 card-hover" Style="max-width: 300px">
-        <MudCardContent>
-            <MudImage Fluid Src="@Partner.LogoUrl" />
-            @if (!string.IsNullOrEmpty(Partner.Name))
-            {
-	            <MudText Typo="Typo.h5">@Partner.Name</MudText>
-            }
-            <MudText Class="mt-2" Typo="Typo.subtitle1">@Partner.Description</MudText>
-        </MudCardContent>
-    </MudCard>
-</MudLink>
+@if (!string.IsNullOrEmpty(Partner.Link))
+{
+    <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None">
+        <MudCard Elevation="5" Class="mt-5 card-hover" Style="max-width: 300px">
+            <MudCardContent>
+                @if (!string.IsNullOrEmpty(Partner.LogoUrl))
+                {
+                    <MudImage Fluid Src="@Partner.LogoUrl" Alt="@($"{Partner.Name} logo")" />
+                }
+                @if (!string.IsNullOrEmpty(Partner.Name))
+                {
+                    <MudText Typo="Typo.h5">@Partner.Name</MudText>
+                }
+                @if (!string.IsNullOrEmpty(Partner.Description))
+                {
+                    <MudText Class="mt-2" Typo="Typo.subtitle1">@Partner.Description</MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudLink>
+}
 @code
 {
     [Parameter]
