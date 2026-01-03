@@ -71,7 +71,7 @@
                         <MudButton Variant="Variant.Text"
                                    Color="Color.Info"
                                    Size="Size.Small"
-                                   Href="@($"/groups/{invite.GroupName}")"
+                                   Href="@($"/groups/{Uri.EscapeDataString(invite.GroupName)}")"
                                    Disabled="_processingInviteId == invite.GroupId">
                             Se gruppe
                         </MudButton>
@@ -105,14 +105,16 @@
         _processingInviteId = invite.GroupId;
         _isAccepting = true;
 
-        var result = await MembershipService.AcceptGroupInviteAsync(invite.GroupId);
+        var result = await MembershipService.AcceptGroupInviteAsync(invite.GroupId, CancellationToken);
 
         result.Switch(
             success =>
             {
                 Snackbar.Add($"Du er nu medlem af {invite.GroupName}!", Severity.Success);
                 _invites.Remove(invite);
-                NavigationManager.NavigateTo($"/groups/{invite.GroupName}");
+                _processingInviteId = null;
+                _isAccepting = false;
+                StateHasChanged();
             },
             error =>
             {
@@ -122,6 +124,12 @@
                 StateHasChanged();
             }
         );
+
+        if (result.IsT0)
+        {
+            await OnInviteProcessed.InvokeAsync();
+            NavigationManager.NavigateTo($"/groups/{invite.GroupName}");
+        }
     }
 
     private async Task DeclineInvite(GroupInviteDto invite)
@@ -129,7 +137,7 @@
         _processingInviteId = invite.GroupId;
         _isAccepting = false;
 
-        var result = await MembershipService.DeclineGroupInviteAsync(invite.GroupId);
+        var result = await MembershipService.DeclineGroupInviteAsync(invite.GroupId, CancellationToken);
 
         result.Switch(
             success =>

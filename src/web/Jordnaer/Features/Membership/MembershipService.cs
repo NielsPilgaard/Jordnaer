@@ -369,7 +369,6 @@ public class MembershipService(CurrentUser currentUser,
 				.AsNoTracking()
 				.Where(x => x.UserProfileId == currentUser.Id &&
 							x.MembershipStatus == MembershipStatus.PendingApprovalFromUser)
-				.Include(x => x.Group)
 				.Select(x => new GroupInviteDto
 				{
 					GroupId = x.GroupId,

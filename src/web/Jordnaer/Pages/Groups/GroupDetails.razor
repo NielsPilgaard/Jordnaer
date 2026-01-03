@@ -446,6 +446,7 @@
                 Snackbar.Add(error.Value, Severity.Error);
                 _processingInvite = false;
                 _isAcceptingInvite = false;
+                StateHasChanged();
             }
         );
     }

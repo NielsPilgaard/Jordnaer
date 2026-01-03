@@ -98,6 +98,16 @@ Få besked når nye brugere tilmelder sig i dit nærområde. Vær blandt de før
 
 ---
 
+## 10. Inviter brugere til din gruppe
+
+👥 Byg dit netværk hurtigere!
+
+Nu kan du invitere andre forældre direkte til din gruppe. Find interessante profiler og send dem en invitation - så nemt er det at udvide jeres fællesskab 🤝
+
+#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
+
+---
+
 ## Notes
 
 - All posts follow the same format for consistency

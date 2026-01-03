@@ -86,42 +86,7 @@ else
                     </MudChip>
                 </MudTd>
                 <MudTd>
-                    @if (CanEditUser(context))
-                    {
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
-                            <MudMenuItem Icon="@Icons.Material.Filled.Edit"
-                                         OnClick="@(() => OpenEditDialog(context))">
-                                Rediger Rettigheder
-                            </MudMenuItem>
-
-                            @if (context.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
-                            {
-                                <MudMenuItem Icon="@Icons.Material.Filled.Check"
-                                             OnClick="@(() => ApproveMember(context))">
-                                    Godkend
-                                </MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Filled.Close"
-                                             OnClick="@(() => RejectMember(context))">
-                                    Afvis
-                                </MudMenuItem>
-                            }
-                            else if (context.MembershipStatus == MembershipStatus.Active)
-                            {
-                                <MudDivider />
-                                <MudMenuItem Icon="@Icons.Material.Filled.PersonRemove"
-                                             OnClick="@(() => RemoveMember(context))">
-                                    Fjern Medlem
-                                </MudMenuItem>
-                            }
-                            else if (context.MembershipStatus == MembershipStatus.Rejected)
-                            {
-                                <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd"
-                                             OnClick="@(() => AddMember(context))">
-                                    Tilføj Medlem
-                                </MudMenuItem>
-                            }
-                        </MudMenu>
-                    }
+                    @MemberActionMenu(context)
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -154,42 +119,7 @@ else
                                 </MudChip>
                             </MudStack>
                         </MudStack>
-                        @if (CanEditUser(member))
-                        {
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
-                                <MudMenuItem Icon="@Icons.Material.Filled.Edit"
-                                             OnClick="@(() => OpenEditDialog(member))">
-                                    Rediger Rettigheder
-                                </MudMenuItem>
-
-                                @if (member.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
-                                {
-                                    <MudMenuItem Icon="@Icons.Material.Filled.Check"
-                                                 OnClick="@(() => ApproveMember(member))">
-                                        Godkend
-                                    </MudMenuItem>
-                                    <MudMenuItem Icon="@Icons.Material.Filled.Close"
-                                                 OnClick="@(() => RejectMember(member))">
-                                        Afvis
-                                    </MudMenuItem>
-                                }
-                                else if (member.MembershipStatus == MembershipStatus.Active)
-                                {
-                                    <MudDivider />
-                                    <MudMenuItem Icon="@Icons.Material.Filled.PersonRemove"
-                                                 OnClick="@(() => RemoveMember(member))">
-                                        Fjern Medlem
-                                    </MudMenuItem>
-                                }
-                                else if (member.MembershipStatus == MembershipStatus.Rejected)
-                                {
-                                    <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd"
-                                                 OnClick="@(() => AddMember(member))">
-                                        Tilføj Medlem
-                                    </MudMenuItem>
-                                }
-                            </MudMenu>
-                        }
+                        @MemberActionMenu(member)
                     </MudStack>
                 </MudListItem>
                 <MudDivider />
@@ -257,6 +187,46 @@ else
     private bool _isLoading = true;
     private bool _hasAccess;
     private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
+
+    private RenderFragment MemberActionMenu(GroupMembershipDto member) => __builder =>
+    {
+        if (CanEditUser(member))
+        {
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                <MudMenuItem Icon="@Icons.Material.Filled.Edit"
+                             OnClick="@(() => OpenEditDialog(member))">
+                    Rediger Rettigheder
+                </MudMenuItem>
+
+                @if (member.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.Check"
+                                 OnClick="@(() => ApproveMember(member))">
+                        Godkend
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Close"
+                                 OnClick="@(() => RejectMember(member))">
+                        Afvis
+                    </MudMenuItem>
+                }
+                else if (member.MembershipStatus == MembershipStatus.Active)
+                {
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.PersonRemove"
+                                 OnClick="@(() => RemoveMember(member))">
+                        Fjern Medlem
+                    </MudMenuItem>
+                }
+                else if (member.MembershipStatus == MembershipStatus.Rejected)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd"
+                                 OnClick="@(() => AddMember(member))">
+                        Tilføj Medlem
+                    </MudMenuItem>
+                }
+            </MudMenu>
+        }
+    };
 
     // Search and filtering
     private string _searchString = "";

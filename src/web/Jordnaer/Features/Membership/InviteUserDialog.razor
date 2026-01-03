@@ -103,6 +103,7 @@
             {
                 Snackbar.Add(error.Value, Severity.Error);
                 _isInviting = false;
+                StateHasChanged();
             }
         );
     }
