@@ -1,0 +1,88 @@
+@using Jordnaer.Shared
+@using MudBlazor
+
+@inject IUserSearchService UserSearchService
+
+<MudAutocomplete T="UserSlim"
+                 @ref="_autocomplete"
+                 Label="@Label"
+                 SearchFunc="@SearchForUsers"
+                 ShowProgressIndicator
+                 OpenIcon="@string.Empty"
+                 DebounceInterval="750"
+                 Clearable
+                 SelectValueOnTab
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 MaxItems="10"
+                 ValueChanged="OnUserSelected"
+                 MinCharacters="2"
+                 Variant="@Variant"
+                 Disabled="@Disabled"
+                 Dense="@Dense"
+                 Class="@Class">
+
+    <ItemTemplate Context="user">
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+            <MudAvatar Size="@AvatarSize">
+                <MudImage Src="@user.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+            </MudAvatar>
+            <div>
+                <MudText>@user.DisplayName</MudText>
+                @if (ShowUsername && !string.IsNullOrEmpty(user.UserName))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@("@" + user.UserName)</MudText>
+                }
+            </div>
+        </MudStack>
+    </ItemTemplate>
+
+    <MoreItemsTemplate>
+        <MudText Align="Align.Center" Class="px-4 py-1">
+            Kun de første 10 brugere vises
+        </MudText>
+    </MoreItemsTemplate>
+
+    <NoItemsTemplate>
+        <MudText Align="Align.Center" Class="px-4 py-1">
+            Ingen brugere fundet
+        </MudText>
+    </NoItemsTemplate>
+
+</MudAutocomplete>
+
+@code {
+    [Parameter] public required string CurrentUserId { get; set; }
+    [Parameter] public EventCallback<UserSlim?> UserSelected { get; set; }
+    [Parameter] public string Label { get; set; } = "Søg efter bruger...";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool ShowUsername { get; set; } = true;
+    [Parameter] public Size AvatarSize { get; set; } = Size.Medium;
+    [Parameter] public bool Dense { get; set; } = true;
+    [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    [Parameter] public string? Class { get; set; }
+
+    private MudAutocomplete<UserSlim> _autocomplete = null!;
+
+    private async Task<IEnumerable<UserSlim>> SearchForUsers(string searchString, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return Enumerable.Empty<UserSlim>();
+        }
+
+        return await UserSearchService.GetUsersByNameAsync(CurrentUserId, searchString, cancellationToken);
+    }
+
+    private async Task OnUserSelected(UserSlim? user)
+    {
+        await UserSelected.InvokeAsync(user);
+    }
+
+    public async Task ToggleMenuAsync()
+    {
+        if (_autocomplete is not null)
+        {
+            await _autocomplete.ToggleMenuAsync();
+        }
+    }
+}

@@ -1,13 +1,9 @@
-@using System.Net
 @using Jordnaer.Features.UserSearch
-@using Jordnaer.Models
 @using Jordnaer.Shared
 @using MudBlazor
 
 @attribute [Authorize]
 
-@inject IUserSearchService UserSearchService
-@inject ISnackbar Snackbar
 @inject CurrentUser CurrentUser
 
 @if (CurrentUser.Id is null)
@@ -15,73 +11,22 @@
 	return;
 }
 
-<MudAutocomplete T="UserSlim"
-                 @ref="_autocomplete"
-                 Label="Start samtale med..."
-                 SearchFunc="@SearchForUsers"
-                 ShowProgressIndicator
-                 OpenIcon="@string.Empty"
-                 DebounceInterval="750"
-                 Clearable
-                 SelectValueOnTab
-                 AdornmentIcon="@Icons.Material.Filled.Search"
-                 MaxItems="10"
-                 ValueChanged="SelectedValueChanged"
-                 MinCharacters="2"
-                 Variant="Variant.Outlined"
-                 Class="chat-user-search">
-
-    <ItemTemplate Context="user">
-        <MudListItem OnClick="@(async() => await UserSelected(user))" Dense="true" Class="chat-selector-autocomplete" T="RenderFragment">
-
-            <MudAvatar Size="Size.Large" Class="mr-3">
-                <MudImage Src="@user.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
-            </MudAvatar>
-            <MudText>@user.DisplayName</MudText>
-
-        </MudListItem>
-    </ItemTemplate>
-
-    <MoreItemsTemplate>
-        <MudText Align="Align.Center" Class="px-4 py-1">
-            Kun de første 10 brugere vises
-        </MudText>
-    </MoreItemsTemplate>
-
-    <NoItemsTemplate>
-        <MudText Align="Align.Center" Class="px-4 py-1">
-            Ingen brugere fundet
-        </MudText>
-    </NoItemsTemplate>
-
-</MudAutocomplete>
-
+<UserSearchAutocomplete CurrentUserId="@CurrentUser.Id"
+                        UserSelected="@OnUserSelected"
+                        Label="Start samtale med..."
+                        ShowUsername="false"
+                        AvatarSize="Size.Large"
+                        Class="chat-user-search" />
 
 @code {
     [Parameter]
     public EventCallback<IEnumerable<UserSlim>> SelectedUserChanged { get; set; }
 
-    private MudAutocomplete<UserSlim> _autocomplete = null!;
-
-    private async Task<IEnumerable<UserSlim>> SearchForUsers(string searchString, CancellationToken cancellationToken)
+    private async Task OnUserSelected(UserSlim? user)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
+        if (user is not null)
         {
-            return Enumerable.Empty<UserSlim>();
+            await SelectedUserChanged.InvokeAsync([user]);
         }
-
-        return await UserSearchService.GetUsersByNameAsync(CurrentUser.Id!, searchString, cancellationToken);
     }
-
-    private async Task UserSelected(UserSlim user)
-    {
-        await _autocomplete.ToggleMenuAsync();
-        await SelectedUserChanged.InvokeAsync([user]);
-    }
-
-    private async Task SelectedValueChanged(UserSlim user)
-    {
-        await UserSelected(user);
-    }
-
 }

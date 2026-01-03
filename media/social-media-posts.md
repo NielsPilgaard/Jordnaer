@@ -4,41 +4,11 @@ Social media posts for Facebook and Instagram highlighting recent features. Use 
 
 ---
 
-## 0. Improved onboarding take 2
-
-👋 Velkommen til Mini Møder!
-
-Nu er det endnu nemmere at komme i gang. Vi har gjort det lettere at oprette profil og finde andre forældre i dit område 🚀
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
 ## 1. Forbedret Chat (Improved Chat UI)
 
 💬 Nyt på Mini Møder: Bedre chat!
 
 Vi har opgraderet chatten med varmere farver, bedre brugervenlighed og en smart scroll-til-bunden knap. Nemmere samtaler med andre forældre 🎨
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
-## 2. Gruppe opslag
-
-📢 Del dine tanker i gruppen!
-
-Nu kan du lave opslag direkte i dine grupper. Del aktiviteter, still spørgsmål eller find legeaftaler med andre forældre i netværket 🎯
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
-## 3. Gruppe "hub"
-
-🏠 Samlet overblik over dine grupper!
-
-Find alt på ét sted: kommende møder, gruppebeskeder og medlemmer. Dit sociale liv som forælder - samlet ét sted 📍
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
@@ -99,6 +69,16 @@ Hold dig opdateret med emails ved nye gruppebeskeder. Gå aldrig glip af vigtige
 📍 Nye forældre i området?
 
 Få besked når nye brugere tilmelder sig i dit nærområde. Vær blandt de første til at byde nye familier velkommen og udvid dit netværk 👋
+
+#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
+
+---
+
+## 10. Inviter brugere til din gruppe
+
+👥 Byg dit netværk hurtigere!
+
+Nu kan du invitere andre forældre direkte til din gruppe. Find interessante profiler og send dem en invitation - så nemt er det at udvide jeres fællesskab 🤝
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 

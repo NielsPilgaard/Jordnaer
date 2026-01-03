@@ -3,6 +3,7 @@
 @inject GroupService GroupService
 @inject ISnackbar Snackbar
 @inject CurrentUser CurrentUser
+@inject IDialogService DialogService
 
 @attribute [Authorize]
 
@@ -16,144 +17,244 @@
 
 <MudDivider Class="mb-5" />
 
-<MudDataGrid T="GroupMembershipDto" Items="_memberships" ReadOnly="false" EditMode="DataGridEditMode.Cell"
-    EditTrigger="DataGridEditTrigger.OnRowClick" Bordered="true" Loading="_isLoading">
-    <Columns>
-        <PropertyColumn Property="x => x.UserDisplayName" Title="Navn" Editable="false" HeaderStyle="@HeaderStyles" />
-        <PropertyColumn Property="x => x.OwnershipLevel" Title="Ejerskabs Niveau" HeaderStyle="@HeaderStyles">
-            <EditTemplate>
-                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
-                                OwnershipLevel.Owner)
-                {
-                    <MudText Typo="Typo.body2">@context.Item.OwnershipLevel.ToDisplayName()</MudText>
-                }
-                else
-                {
-                    <MudSelect T="OwnershipLevel" Value="context.Item.OwnershipLevel"
-                        ValueChanged="async ownershipLevel => await UpdateOwnershipLevel(context, ownershipLevel)"
-                        Margin="@Margin.Dense">
-                        @foreach (var ownershipLevel in Enum.GetValues<OwnershipLevel>())
-                        {
-                            <MudSelectItem T="OwnershipLevel" Value="ownershipLevel">
-                                @ownershipLevel.ToDisplayName()
-                            </MudSelectItem>
-                        }
-                    </MudSelect>
-                }
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.PermissionLevel" Title="Adgangs Niveau" HeaderStyle="@HeaderStyles">
-            <EditTemplate>
-                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
-                                OwnershipLevel.Owner)
-                {
-                    <MudText Typo="Typo.body2">
-                        @context.Item.PermissionLevel.ToDisplayName()
-                    </MudText>
-                }
-                else
-                {
-                    <MudSelect T="PermissionLevel" Value="context.Item.PermissionLevel"
-                        ValueChanged="async permissionLevel => await UpdatePermissionLevel(context, permissionLevel)"
-                        Margin="@Margin.Dense">
-                        @foreach (var permissionLevel in Enum.GetValues<PermissionLevel>())
-                        {
-                            <MudSelectItem T="PermissionLevel" Value="permissionLevel">
-                                @permissionLevel.ToDisplayName()
-                            </MudSelectItem>
-                        }
-                    </MudSelect>
-                }
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.MembershipStatus" Title="Medlemskabs Status" HeaderStyle="@HeaderStyles">
-            <EditTemplate>
-                @if (context.Item.UserProfileId == CurrentUser.Id || context.Item.OwnershipLevel is
-                                OwnershipLevel.Owner)
-                {
-                    <MudText Typo="Typo.body2">
-                        @context.Item.MembershipStatus.ToDisplayName()
-                    </MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2">
-                        @switch (context.Item.MembershipStatus)
-                        {
-                            case MembershipStatus.Active:
-                                <span class="text-success">Medlem</span>
-                                break;
-                            case MembershipStatus.PendingApprovalFromUser:
-                                <span class="text-warning">Afventer godkendelse</span>
-                                break;
-                            case MembershipStatus.PendingApprovalFromGroup:
-                                <span class="text-info">Afventer gruppens godkendelse</span>
-                                break;
-                            case MembershipStatus.Rejected:
-                                <span class="text-danger">Ikke medlem</span>
-                                break;
-                            default:
-                                <span>Ukendt status</span>
-                                break;
-                        }
-                    </MudText>
-                }
-            </EditTemplate>
-        </PropertyColumn>
-        <TemplateColumn Title="Handlinger" HeaderStyle="@HeaderStyles">
-            <EditTemplate>
-                @if (context.Item.UserProfileId != CurrentUser.Id && context.Item.OwnershipLevel is not
-                                OwnershipLevel.Owner)
-                {
-                    @switch (context.Item.MembershipStatus)
+@* Toolbar *@
+<MudPaper Class="mb-3 pa-3">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudText Typo="Typo.h6">Medlemmer (@_filteredMemberships.Count())</MudText>
+
+        @if (_pendingCount > 0)
+        {
+            <MudBadge Content="_pendingCount" Color="Color.Warning" Overlap="true">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" />
+            </MudBadge>
+        }
+
+        <MudSpacer />
+
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Søg medlemmer..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Small"
+                      Margin="Margin.Dense"
+                      Immediate="true"
+                      Class="mt-0" />
+    </MudStack>
+</MudPaper>
+
+@if (_isLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    @* Desktop Table - Hidden on mobile *@
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudTable T="GroupMembershipDto"
+                  Items="_filteredMemberships"
+                  Hover="true"
+                  Bordered="true"
+                  Dense="true">
+            <HeaderContent>
+                <MudTh Style="@HeaderStyles">Navn</MudTh>
+                <MudTh Style="@HeaderStyles">Ejerskabs Niveau</MudTh>
+                <MudTh Style="@HeaderStyles">Adgangs Niveau</MudTh>
+                <MudTh Style="@HeaderStyles">Status</MudTh>
+                <MudTh Style="@HeaderStyles">Handlinger</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Navn">@context.UserDisplayName</MudTd>
+                <MudTd DataLabel="Ejerskabs Niveau">
+                    <MudChip T="string"
+                             Size="Size.Small"
+                             Color="@(context.OwnershipLevel == OwnershipLevel.Owner ? Color.Primary : Color.Default)">
+                        @context.OwnershipLevel.ToDisplayName()
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Adgangs Niveau">
+                    <MudChip T="string"
+                             Size="Size.Small"
+                             Color="@GetPermissionLevelColor(context.PermissionLevel)">
+                        @context.PermissionLevel.ToDisplayName()
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string"
+                             Size="Size.Small"
+                             Color="@GetMembershipStatusColor(context.MembershipStatus)">
+                        @GetMembershipStatusText(context.MembershipStatus)
+                    </MudChip>
+                </MudTd>
+                <MudTd>
+                    @MemberActionMenu(context)
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudHidden>
+
+    @* Mobile List - Hidden on desktop *@
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudList T="string" Dense="true">
+            @foreach (var member in _filteredMemberships)
+            {
+                <MudListItem T="string">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Spacing="1" Class="pa-2">
+                        <MudStack Spacing="1" Style="flex: 1;">
+                            <MudText Typo="Typo.body1"><strong>@member.UserDisplayName</strong></MudText>
+                            <MudStack Row="true" Spacing="1" Style="flex-wrap: wrap;">
+                                <MudChip T="string"
+                                         Size="Size.Small"
+                                         Color="@GetMembershipStatusColor(member.MembershipStatus)">
+                                    @GetMembershipStatusText(member.MembershipStatus)
+                                </MudChip>
+                                <MudChip T="string"
+                                         Size="Size.Small"
+                                         Color="@(member.OwnershipLevel == OwnershipLevel.Owner ? Color.Primary : Color.Default)">
+                                    @member.OwnershipLevel.ToDisplayName()
+                                </MudChip>
+                                <MudChip T="string"
+                                         Size="Size.Small"
+                                         Color="@GetPermissionLevelColor(member.PermissionLevel)">
+                                    @member.PermissionLevel.ToDisplayName()
+                                </MudChip>
+                            </MudStack>
+                        </MudStack>
+                        @MemberActionMenu(member)
+                    </MudStack>
+                </MudListItem>
+                <MudDivider />
+            }
+        </MudList>
+    </MudHidden>
+}
+
+@* Edit Permissions Dialog *@
+<MudDialog @bind-Visible="_editDialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" />
+            Rediger Rettigheder for @_editingMember?.UserDisplayName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (_editingMember != null)
+            {
+                <MudSelect @bind-Value="_editingMember.OwnershipLevel"
+                           Label="Ejerskabs Niveau"
+                           HelperText="Bestemmer ejerskabsrettigheder i gruppen">
+                    @foreach (var level in Enum.GetValues<OwnershipLevel>())
                     {
-                        case MembershipStatus.Active:
-                            <MudButton Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
-                                OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Rejected))">
-                                <MudIcon Icon="@Icons.Material.Filled.Clear" /> Fjern medlem
-                            </MudButton>
-                            break;
-                        case MembershipStatus.PendingApprovalFromUser:
-                            break;
-                        case MembershipStatus.PendingApprovalFromGroup:
-                            <MudButton Color="Color.Success" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
-                                OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Active))">
-                                <MudIcon Icon="@Icons.Material.Filled.Check" /> Godkend anmodning
-                            </MudButton>
-                            <MudButton Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" Class="ml-2"
-                                OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Rejected))">
-                                <MudIcon Icon="@Icons.Material.Filled.Clear" /> Afvis anmodning
-                            </MudButton>
-                            break;
-                        case MembershipStatus.Rejected:
-                            <MudButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" Variant="Variant.Filled"
-                                Size="Size.Small" Class="ml-2"
-                                OnClick="@(async () => await ChangeMembershipStatusAsync(context.Item, MembershipStatus.Active))">
-                                <MudIcon Icon="@Icons.Material.Filled.Check" /> Tilføj medlem
-                            </MudButton>
-                            break;
-                        default:
-                            break;
+                        <MudSelectItem Value="level">
+                            @level.ToDisplayName()
+                        </MudSelectItem>
                     }
-                }
-            </EditTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
+                </MudSelect>
+
+                <MudSelect @bind-Value="_editingMember.PermissionLevel"
+                           Label="Adgangs Niveau"
+                           HelperText="Kontrollerer hvilke handlinger medlemmet kan udføre">
+                    @foreach (var level in Enum.GetValues<PermissionLevel>())
+                    {
+                        <MudSelectItem Value="level">
+                            @level.ToDisplayName()
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelEdit">Annuller</MudButton>
+        <MudButton Color="Color.Info"
+                   Variant="Variant.Filled"
+                   OnClick="SaveEdit">
+            Gem Ændringer
+        </MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     private static readonly Dictionary<MembershipStatus, int> SortOrder = new()
-{
-{MembershipStatus.PendingApprovalFromGroup, 0},
-{MembershipStatus.PendingApprovalFromUser, 1},
-{MembershipStatus.Active, 2},
-{MembershipStatus.Rejected, 3}
-};
+    {
+        {MembershipStatus.PendingApprovalFromGroup, 0},
+        {MembershipStatus.PendingApprovalFromUser, 1},
+        {MembershipStatus.Active, 2},
+        {MembershipStatus.Rejected, 3}
+    };
 
     private List<GroupMembershipDto> _memberships = [];
     private bool _isLoading = true;
     private bool _hasAccess;
     private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
+
+    private RenderFragment MemberActionMenu(GroupMembershipDto member) => __builder =>
+    {
+        if (CanEditUser(member))
+        {
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                <MudMenuItem Icon="@Icons.Material.Filled.Edit"
+                             OnClick="@(() => OpenEditDialog(member))">
+                    Rediger Rettigheder
+                </MudMenuItem>
+
+                @if (member.MembershipStatus == MembershipStatus.PendingApprovalFromGroup)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.Check"
+                                 OnClick="@(() => ApproveMember(member))">
+                        Godkend
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Close"
+                                 OnClick="@(() => RejectMember(member))">
+                        Afvis
+                    </MudMenuItem>
+                }
+                else if (member.MembershipStatus == MembershipStatus.Active)
+                {
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.PersonRemove"
+                                 OnClick="@(() => RemoveMember(member))">
+                        Fjern Medlem
+                    </MudMenuItem>
+                }
+                else if (member.MembershipStatus == MembershipStatus.Rejected)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.PersonAdd"
+                                 OnClick="@(() => AddMember(member))">
+                        Tilføj Medlem
+                    </MudMenuItem>
+                }
+            </MudMenu>
+        }
+    };
+
+    // Search and filtering
+    private string _searchString = "";
+    private int _pendingCount => _memberships.Count(m => m.MembershipStatus == MembershipStatus.PendingApprovalFromGroup);
+
+    private IEnumerable<GroupMembershipDto> _filteredMemberships
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_searchString))
+                return _memberships;
+
+            return _memberships.Where(m => m.UserDisplayName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    // Edit dialog
+    private bool _editDialogVisible;
+    private GroupMembershipDto? _editingMember;
+    private OwnershipLevel _originalOwnershipLevel;
+    private PermissionLevel _originalPermissionLevel;
+
+    private DialogOptions _dialogOptions = new()
+    {
+        CloseOnEscapeKey = true,
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true
+    };
 
     [Parameter]
     public required string GroupName { get; set; }
@@ -178,8 +279,8 @@
             }
 
             _memberships = _memberships
-            .OrderBy(x => SortOrder.TryGetValue(x.MembershipStatus, out var rank) ? rank : int.MaxValue)
-            .ToList();
+                .OrderBy(x => SortOrder.TryGetValue(x.MembershipStatus, out var rank) ? rank : int.MaxValue)
+                .ToList();
         }
         catch (Exception)
         {
@@ -189,6 +290,112 @@
         {
             _isLoading = false;
         }
+    }
+
+    private bool CanEditUser(GroupMembershipDto member)
+    {
+        return member.UserProfileId != CurrentUser.Id && member.OwnershipLevel != OwnershipLevel.Owner;
+    }
+
+    private Color GetPermissionLevelColor(PermissionLevel level) => level switch
+    {
+        PermissionLevel.Admin => Color.Success,
+        PermissionLevel.Write => Color.Info,
+        _ => Color.Default
+    };
+
+    private Color GetMembershipStatusColor(MembershipStatus status) => status switch
+    {
+        MembershipStatus.PendingApprovalFromGroup => Color.Warning,
+        MembershipStatus.Active => Color.Success,
+        MembershipStatus.Rejected => Color.Default,
+        MembershipStatus.PendingApprovalFromUser => Color.Info,
+        _ => Color.Default
+    };
+
+    private string GetMembershipStatusText(MembershipStatus status) => status switch
+    {
+        MembershipStatus.Active => "Medlem",
+        MembershipStatus.PendingApprovalFromUser => "Afventer godkendelse",
+        MembershipStatus.PendingApprovalFromGroup => "Afventer gruppens godkendelse",
+        MembershipStatus.Rejected => "Ikke medlem",
+        _ => "Ukendt status"
+    };
+
+    // Edit Dialog Methods
+    private void OpenEditDialog(GroupMembershipDto member)
+    {
+        _editingMember = member;
+        _originalOwnershipLevel = member.OwnershipLevel;
+        _originalPermissionLevel = member.PermissionLevel;
+        _editDialogVisible = true;
+    }
+
+    private void CancelEdit()
+    {
+        if (_editingMember != null)
+        {
+            _editingMember.OwnershipLevel = _originalOwnershipLevel;
+            _editingMember.PermissionLevel = _originalPermissionLevel;
+        }
+        _editDialogVisible = false;
+        _editingMember = null;
+    }
+
+    private async Task SaveEdit()
+    {
+        if (_editingMember == null) return;
+
+        var success = await SaveChangesAsync(_editingMember);
+        if (success)
+        {
+            _editDialogVisible = false;
+            _editingMember = null;
+        }
+        else
+        {
+            _editingMember.OwnershipLevel = _originalOwnershipLevel;
+            _editingMember.PermissionLevel = _originalPermissionLevel;
+        }
+    }
+
+    // Membership Status Change Methods
+    private async Task ApproveMember(GroupMembershipDto member)
+    {
+        await ChangeMembershipStatusAsync(member, MembershipStatus.Active);
+    }
+
+    private async Task RejectMember(GroupMembershipDto member)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Afvis Medlem",
+            $"Er du sikker på, at du vil afvise {member.UserDisplayName}?",
+            yesText: "Afvis",
+            cancelText: "Annuller");
+
+        if (result == true)
+        {
+            await ChangeMembershipStatusAsync(member, MembershipStatus.Rejected);
+        }
+    }
+
+    private async Task RemoveMember(GroupMembershipDto member)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Fjern Medlem",
+            $"Er du sikker på, at du vil fjerne {member.UserDisplayName} fra gruppen?",
+            yesText: "Fjern",
+            cancelText: "Annuller");
+
+        if (result == true)
+        {
+            await ChangeMembershipStatusAsync(member, MembershipStatus.Rejected);
+        }
+    }
+
+    private async Task AddMember(GroupMembershipDto member)
+    {
+        await ChangeMembershipStatusAsync(member, MembershipStatus.Active);
     }
 
     private async Task ChangeMembershipStatusAsync(GroupMembershipDto membership, MembershipStatus newStatus)
@@ -208,53 +415,37 @@
         }
     }
 
-    private async Task<bool> SaveChangesAsync(GroupMembershipDto item)
+    private async Task<bool> SaveChangesAsync(GroupMembershipDto item, bool showSnackbar = true)
     {
         try
         {
             var updateResult = await GroupService.UpdateMembership(item);
             var updateSuccessful = false;
             updateResult.Switch(
-            success =>
-            {
-                Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success);
-                updateSuccessful = true;
-            },
-            error => Snackbar.Add(error.Value, Severity.Error));
+                success =>
+                {
+                    if (showSnackbar)
+                    {
+                        Snackbar.Add($"{item.UserDisplayName}'s medlemskab blev opdateret.", Severity.Success);
+                    }
+                    updateSuccessful = true;
+                },
+                error =>
+                {
+                    if (showSnackbar)
+                    {
+                        Snackbar.Add(error.Value, Severity.Error);
+                    }
+                });
             return updateSuccessful;
         }
         catch (Exception)
         {
-            Snackbar.Add("Der skete en fejl under opdatering. Prøv igen.", Severity.Error);
+            if (showSnackbar)
+            {
+                Snackbar.Add("Der skete en fejl under opdatering. Prøv igen.", Severity.Error);
+            }
             return false;
-        }
-    }
-
-    private async Task UpdateOwnershipLevel(CellContext<GroupMembershipDto> context, OwnershipLevel newValue)
-    {
-        var oldValue = context.Item.OwnershipLevel;
-
-        context.Item.OwnershipLevel = newValue;
-
-        var updateSucceeded = await SaveChangesAsync(context.Item);
-
-        if (!updateSucceeded)
-        {
-            context.Item.OwnershipLevel = oldValue;
-        }
-    }
-
-    private async Task UpdatePermissionLevel(CellContext<GroupMembershipDto> context, PermissionLevel newValue)
-    {
-        var oldValue = context.Item.PermissionLevel;
-
-        context.Item.PermissionLevel = newValue;
-
-        var updateSucceeded = await SaveChangesAsync(context.Item);
-
-        if (!updateSucceeded)
-        {
-            context.Item.PermissionLevel = oldValue;
         }
     }
 }

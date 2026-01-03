@@ -1,8 +1,9 @@
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Jordnaer.Shared;
 using MassTransit;
-using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Jordnaer.Features.Email;
 
@@ -10,12 +11,13 @@ public interface IEmailService
 {
 	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
 	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
+	Task SendGroupInviteEmail(string groupName, string userId, CancellationToken cancellationToken = default);
 }
 
 public sealed class EmailService(IPublishEndpoint publishEndpoint,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<EmailService> logger,
-	NavigationManager navigationManager) : IEmailService
+	IOptions<AppOptions> options) : IEmailService
 {
 	public async Task SendEmailFromContactForm(
 		ContactForm contactForm,
@@ -53,10 +55,11 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		var emails = await context.Users
 							.AsNoTracking()
-							.Where(user => membersThatCanApproveRequest.Any(userId => userId == user.Id))
+							.Where(user => membersThatCanApproveRequest.Any(userId => userId == user.Id) &&
+											!string.IsNullOrEmpty(user.Email))
 							.Select(user => new EmailRecipient
 							{
-								Email = user.Email!,
+								Email = user.Email!, // Safe: filtered by user.Email != null above
 								DisplayName = user.UserName
 							})
 							.ToListAsync(cancellationToken);
@@ -71,7 +74,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 							  "membership request for group {GroupName}. " +
 							  "Sending an email to them.", emails.Count, groupName);
 
-		var groupMembershipUrl = $"{navigationManager.BaseUri}groups/{groupName}/members";
+		var groupMembershipUrl = $"{options.Value.BaseUrl}/groups/{Uri.EscapeDataString(groupName)}/members";
 
 		var email = new SendEmail
 		{
@@ -84,6 +87,50 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 						  {EmailConstants.Signature}
 						  """,
 			Bcc = emails.ToList()
+		};
+
+		await publishEndpoint.Publish(email, cancellationToken);
+	}
+
+	public async Task SendGroupInviteEmail(
+		string groupName,
+		string userId,
+		CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		// Get the user being invited
+		var invitedUser = await context.Users
+			.AsNoTracking()
+			.Where(x => x.Id == userId && x.Email != null)
+			.Select(x => new EmailRecipient
+			{
+				Email = x.Email!, // Safe: filtered by x.Email != null above
+				DisplayName = x.UserName
+			})
+			.FirstOrDefaultAsync(cancellationToken);
+
+		if (invitedUser is null)
+		{
+			logger.LogError("User {UserId} not found for group invite to {GroupName}.", userId, groupName);
+			return;
+		}
+
+		logger.LogInformation("Sending group invite email to user {UserId} for group {GroupName}.", userId, groupName);
+
+		var groupUrl = $"{options.Value.BaseUrl}/groups/{Uri.EscapeDataString(groupName)}";
+
+		var email = new SendEmail
+		{
+			Subject = $"Du er inviteret til {groupName}",
+			HtmlContent = $"""
+						  <h4>Du er blevet inviteret til at blive medlem af gruppen <b>{groupName}</b></h4>
+
+						  <a href="{groupUrl}">Klik her for at se gruppen og acceptere invitationen</a>
+
+						  {EmailConstants.Signature}
+						  """,
+			To = [invitedUser]
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);
