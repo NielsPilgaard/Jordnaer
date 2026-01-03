@@ -14,6 +14,8 @@ Vi har opgraderet chatten med varmere farver, bedre brugervenlighed og en smart 
 
 ---
 
+**Sendt**
+
 ## 2. Gruppe opslag
 
 📢 Del dine tanker i gruppen!
