@@ -4,61 +4,93 @@ Social media posts for Facebook and Instagram highlighting recent features. Use 
 
 ---
 
+**Scheduled**
+
 ## 1. Forbedret Chat (Improved Chat UI)
 
-💬 Nyt på Mini Møder: Bedre chat!
+💬 Vi har gjort chatten lidt pænere
 
-Vi har opgraderet chatten med varmere farver, bedre brugervenlighed og en smart scroll-til-bunden knap. Nemmere samtaler med andre forældre 🎨
+Varmere farver og en knap der nemt bringer dig til bunden af samtalen. Små ting der gør det lettere at holde kontakten med andre forældre 🎨
+
+#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
+
+_(Screenshot viser fiktiv samtale)_
+
+---
+
+**Scheduled**
+
+## 2. Lav opslag i grupper (Group posts)
+
+📝 Du kan lave opslag i dine grupper
+
+Har I lyst til legeplads i morgen? Eller brug for et godt råd? Nu kan du nemt dele aktiviteter, stille spørgsmål eller finde legeaftaler direkte i dine grupper 🎯
+
+_(Screenshot viser fiktivt opslag)_
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
 ---
+
+**Scheduled**
+
+## 3. Gruppeoversigt (Group overview)
+
+🏠 Alt om dine grupper ét sted
+
+Kommende møder, beskeder og hvem der er med. Lidt nemmere at holde overblikket når hverdagen er travel 📍
+
+#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
+
+---
+
+**Scheduled**
 
 ## 4 Gruppe lokationskort og vejviser
 
-🗺️ Find vej til jeres møder!
+🗺️ Nu er det lettere at finde hinanden
 
-Nu kan du se gruppens postnummer og adresse direkte i appen. Find nemt andre forældre i dit nærområde 🧭
+Gruppens postnummer og adresse står direkte i appen, så I nemt kan mødes i virkeligheden 🧭
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
+_(Screenshot viser fiktiv gruppe)_
+
 ---
+
+**Scheduled**
 
 ## 5. Share buttons on groups and posts (facebook, bluesky, all)
 
-🔗 Del det gode videre!
+🔗 Kender du nogen der kunne bruge det her?
 
-Nu kan du nemt dele grupper og opslag på Facebook, Bluesky og andre platforme. Hjælp andre forældre med at finde fællesskabet 💙
+Hvis du kender en gruppe eller et opslag som kunne hjælpe en du kender, kan du nu dele det direkte. Måske lige det den anden manglede 💙
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
+_(Screenshot viser fiktiv gruppe)_
+
 ---
+
+**Scheduled**
 
 ## 6. Notifikations indstillinger
 
-🔔 Styr dine beskeder!
+🔔 Du bestemmer selv hvad du får besked om
 
-Nye notifikationsindstillinger giver dig kontrol. Vælg præcis hvad du vil have besked om, så du aldrig går glip af vigtige opdateringer ⚙️
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
-## 7. Easier group invite/response system
-
-✉️ Nemmere gruppeinvitationer!
-
-Vi har gjort det lettere at invitere og svare på gruppeinvitationer. Kom hurtigere i gang med nye fællesskaber i dit nabolag ✅
+Nye indstillinger giver dig mulighed for at vælge præcis de beskeder der er vigtige for dig. Lidt mere ro, lidt mere kontrol ⚙️
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
 ---
+
+**Scheduled**
 
 ## 8. New email for every message in group
 
-📧 Få besked om gruppebeskeder!
+📧 Du kan få gruppebeskeder på email
 
-Hold dig opdateret med emails ved nye gruppebeskeder. Gå aldrig glip af vigtige beskeder fra dine grupper, selvom du ikke er i appen 📬
+Hvis du vil være sikker på ikke at gå glip af noget, kan du nu få en email når der sker noget i dine grupper. Du vælger selv 📬
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
@@ -66,21 +98,25 @@ Hold dig opdateret med emails ved nye gruppebeskeder. Gå aldrig glip af vigtige
 
 ## 9. Subscriptions. Get an email if a user near x signs up
 
-📍 Nye forældre i området?
+📍 Når der kommer nye forældre til i dit område
 
-Få besked når nye brugere tilmelder sig i dit nærområde. Vær blandt de første til at byde nye familier velkommen og udvid dit netværk 👋
+Hvis du vil, kan du få besked når der dukker nye familier op i nærheden. Godt at vide hvis du har lyst til at række ud 👋
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
 ---
 
+**Scheduled**
+
 ## 10. Inviter brugere til din gruppe
 
-👥 Byg dit netværk hurtigere!
+👥 Du kan invitere andre direkte til din gruppe
 
-Nu kan du invitere andre forældre direkte til din gruppe. Find interessante profiler og send dem en invitation - så nemt er det at udvide jeres fællesskab 🤝
+Stødt på en profil hvor du tænkte "dem kunne jeg godt tænke mig at lære bedre at kende"? Nu kan du invitere dem til din gruppe 🤝
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
+
+_(Screenshot viser fiktiv gruppe)_
 
 ---
 
@@ -92,3 +128,4 @@ Nu kan du invitere andre forældre direkte til din gruppe. Find interessante pro
 - Consistent hashtags across all posts
 - Posts are in Danish as per target audience
 - Each feature gets a relevant emoji to catch attention
+- Screenshots bruger fiktive grupper, navne og samtaler - vi har haft det sjovt med at finde på dem!
