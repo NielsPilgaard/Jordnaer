@@ -55,7 +55,7 @@ public sealed class UserRoleService(
 		var userDtos = users.Select(user => new UserRoleDto
 		{
 			UserId = user.Id,
-			UserName = user.UserName ?? string.Empty,
+			UserName = MaskEmail(user.UserName ?? string.Empty),
 			Email = MaskEmail(user.Email ?? string.Empty),
 			Roles = rolesByUserId.TryGetValue(user.Id, out var roles) ? roles : []
 		}).ToList();
