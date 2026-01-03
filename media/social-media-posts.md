@@ -14,30 +14,6 @@ Vi har opgraderet chatten med varmere farver, bedre brugervenlighed og en smart 
 
 ---
 
-**Sendt**
-
-## 2. Gruppe opslag
-
-📢 Del dine tanker i gruppen!
-
-Nu kan du lave opslag direkte i dine grupper. Del aktiviteter, still spørgsmål eller find legeaftaler med andre forældre i netværket 🎯
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
-**Sendt**
-
-## 3. Gruppe "hub"
-
-🏠 Samlet overblik over dine grupper!
-
-Find alt på ét sted: kommende møder, gruppebeskeder og medlemmer. Nemt at holde styr på dit forældrefællesskab 📍
-
-#Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
-
----
-
 ## 4 Gruppe lokationskort og vejviser
 
 🗺️ Find vej til jeres møder!
