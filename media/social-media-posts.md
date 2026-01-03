@@ -26,11 +26,13 @@ Nu kan du lave opslag direkte i dine grupper. Del aktiviteter, still spørgsmål
 
 ---
 
+**Sendt**
+
 ## 3. Gruppe "hub"
 
 🏠 Samlet overblik over dine grupper!
 
-Find alt på ét sted: kommende møder, gruppebeskeder og medlemmer. Dit sociale liv som forælder - samlet ét sted 📍
+Find alt på ét sted: kommende møder, gruppebeskeder og medlemmer. Nemt at holde styr på dit forældrefællesskab 📍
 
 #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier #MiniMøder
 
