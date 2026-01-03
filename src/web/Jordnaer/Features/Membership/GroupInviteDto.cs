@@ -1,13 +1,11 @@
-using Jordnaer.Shared;
-
 namespace Jordnaer.Features.Membership;
 
-public class GroupInviteDto
+public record GroupInviteDto
 {
-	public required Guid GroupId { get; set; }
-	public required string GroupName { get; set; }
-	public string? GroupDescription { get; set; }
-	public string? GroupProfilePictureUrl { get; set; }
-	public required string InvitedByUserName { get; set; }
-	public required DateTime InvitedAtUtc { get; set; }
+	public required Guid GroupId { get; init; }
+	public required string GroupName { get; init; }
+	public string? GroupDescription { get; init; }
+	public string? GroupProfilePictureUrl { get; init; }
+	public required string InvitedByUserName { get; init; }
+	public required DateTime InvitedAtUtc { get; init; }
 }

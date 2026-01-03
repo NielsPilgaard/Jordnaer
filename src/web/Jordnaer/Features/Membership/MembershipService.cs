@@ -194,6 +194,12 @@ public class MembershipService(CurrentUser currentUser,
 
 		try
 		{
+			// Prevent self-invitation
+			if (userId == currentUser.Id)
+			{
+				return new Error<string>("Du kan ikke invitere dig selv til en gruppe.");
+			}
+
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
 			// Check if current user is admin or owner of the group

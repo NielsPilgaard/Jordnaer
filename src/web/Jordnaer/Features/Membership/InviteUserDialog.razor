@@ -3,6 +3,8 @@
 @using MudBlazor
 @using OneOf.Types
 
+@inherits CancellableComponent
+
 @inject IMembershipService MembershipService
 @inject ISnackbar Snackbar
 
@@ -88,7 +90,7 @@
 
         _isInviting = true;
 
-        var result = await MembershipService.InviteUserToGroupAsync(GroupId, _selectedUser.Id, CancellationToken.None);
+        var result = await MembershipService.InviteUserToGroupAsync(GroupId, _selectedUser.Id, CancellationToken);
 
         result.Switch(
             success =>

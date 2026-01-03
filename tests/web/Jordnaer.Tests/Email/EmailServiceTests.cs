@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using NSubstitute;
 using Xunit;
 
 namespace Jordnaer.Tests.Email;
@@ -36,8 +35,7 @@ public class EmailServiceTests : IAsyncLifetime
 
 		_publishEndpointMock = new Mock<IPublishEndpoint>();
 
-		_appOptions = Substitute.For<IOptions<AppOptions>>();
-		_appOptions.Value.Returns(new AppOptions { BaseUrl = "http://localhost:5000" });
+		_appOptions = Options.Create(new AppOptions { BaseUrl = "http://localhost:5000" });
 
 		_service = new EmailService(
 			_publishEndpointMock.Object,
@@ -154,7 +152,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendMembershipRequestEmails_ShouldPublishEmailToAllAdmins()
 	{
 		// Arrange
-		var groupName = "TestGroup";
+		var groupName = $"TestGroup_{Guid.NewGuid()}";
 		var admin1Id = Guid.NewGuid().ToString();
 		var admin2Id = Guid.NewGuid().ToString();
 		var memberId = Guid.NewGuid().ToString();
@@ -248,7 +246,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendMembershipRequestEmails_ShouldNotPublishEmail_WhenNoAdminsFound()
 	{
 		// Arrange
-		var groupName = "GroupWithoutAdmins";
+		var groupName = $"GroupWithoutAdmins_{Guid.NewGuid()}";
 		var memberId = Guid.NewGuid().ToString();
 
 		var user = new ApplicationUser
@@ -295,7 +293,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendMembershipRequestEmails_ShouldNotPublishEmail_WhenGroupDoesNotExist()
 	{
 		// Arrange
-		var nonExistentGroupName = "NonExistentGroup";
+		var nonExistentGroupName = $"NonExistentGroup_{Guid.NewGuid()}";
 
 		// Act
 		await _service.SendMembershipRequestEmails(nonExistentGroupName);
@@ -311,7 +309,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendMembershipRequestEmails_ShouldIncludeGroupNameInEmailContent()
 	{
 		// Arrange
-		var groupName = "AwesomeGroup";
+		var groupName = $"AwesomeGroup_{Guid.NewGuid()}";
 		var adminId = Guid.NewGuid().ToString();
 
 		var admin = new ApplicationUser
@@ -368,7 +366,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendGroupInviteEmail_ShouldPublishEmailToInvitedUser()
 	{
 		// Arrange
-		var groupName = "InviteGroup";
+		var groupName = $"InviteGroup_{Guid.NewGuid()}";
 		var userId = Guid.NewGuid().ToString();
 
 		var user = new ApplicationUser
@@ -406,7 +404,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendGroupInviteEmail_ShouldNotPublishEmail_WhenUserNotFound()
 	{
 		// Arrange
-		var groupName = "TestGroup";
+		var groupName = $"TestGroup_{Guid.NewGuid()}";
 		var nonExistentUserId = Guid.NewGuid().ToString();
 
 		// Act
@@ -423,7 +421,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendGroupInviteEmail_ShouldIncludeGroupLinkInEmail()
 	{
 		// Arrange
-		var groupName = "MySpecialGroup";
+		var groupName = $"MySpecialGroup_{Guid.NewGuid()}";
 		var userId = Guid.NewGuid().ToString();
 
 		var user = new ApplicationUser
@@ -458,7 +456,7 @@ public class EmailServiceTests : IAsyncLifetime
 	public async Task SendGroupInviteEmail_ShouldSetCorrectEmailRecipientDisplayName()
 	{
 		// Arrange
-		var groupName = "TestGroup";
+		var groupName = $"TestGroup_{Guid.NewGuid()}";
 		var userId = Guid.NewGuid().ToString();
 
 		var user = new ApplicationUser

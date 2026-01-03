@@ -437,6 +437,8 @@
                 _hasPendingInvite = false;
                 _isMember = true;
                 _hasPendingMembershipRequest = false;
+                _processingInvite = false;
+                _isAcceptingInvite = false;
                 StateHasChanged();
             },
             error =>
@@ -466,15 +468,15 @@
                 Snackbar.Add($"Invitationen til {_group.Name} er afvist.", Severity.Info);
                 _hasPendingInvite = false;
                 _hasPendingMembershipRequest = false;
+                _processingInvite = false;
                 StateHasChanged();
             },
             error =>
             {
                 Snackbar.Add(error.Value, Severity.Error);
+                _processingInvite = false;
             }
         );
-
-        _processingInvite = false;
     }
 
     private static string FormatLocation(string? city, int? zipCode)

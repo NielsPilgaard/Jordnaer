@@ -12,6 +12,11 @@
     --color-omsorg: #cfc1a6;      /* Care - light beige background */
     --color-leg: #a9c0cf;         /* Play - light blue background */
 
+    /* Active State Colors */
+    --color-active: rgba(33, 150, 243, 1);
+    --color-active-bg: rgba(33, 150, 243, 0.12);
+    --color-active-bg-hover: rgba(33, 150, 243, 0.18);
+
     /* Typography */
     --font-heading: 'Cherry Bomb One', cursive, Arial, sans-serif;
     --font-body: 'Open Sans Light', Arial, sans-serif;
@@ -155,12 +160,12 @@ div.mud-input-slot.mud-input-root.mud-input-root-text.ms-4 {
 }
 
 .topbar-nav-link.active {
-    background-color: rgba(33, 150, 243, 0.12);
+    background-color: var(--color-active-bg);
     font-weight: 700;
 }
 
 .topbar-nav-link.active:hover {
-    background-color: rgba(33, 150, 243, 0.18);
+    background-color: var(--color-active-bg-hover);
 }
 
 .topbar-nav-link .mud-button-label {
@@ -394,12 +399,12 @@ body, p {
 }
 
 .mobile-menu-item.active {
-    background-color: rgba(33, 150, 243, 0.12);
+    background-color: var(--color-active-bg);
     font-weight: 600;
 }
 
 .mobile-menu-item.active:hover {
-    background-color: rgba(33, 150, 243, 0.18);
+    background-color: var(--color-active-bg-hover);
 }
 
 /* First and last items get rounded corners */
@@ -496,12 +501,12 @@ body, p {
 }
 
 .profile-menu-item.active {
-    background-color: rgba(33, 150, 243, 0.12);
+    background-color: var(--color-active-bg);
     font-weight: 600;
 }
 
 .profile-menu-item.active:hover {
-    background-color: rgba(33, 150, 243, 0.18);
+    background-color: var(--color-active-bg-hover);
 }
 
 /* First and last items get rounded corners */

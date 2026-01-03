@@ -32,7 +32,7 @@
                                     </MudText>
                                 }
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Inviteret @invite.InvitedAtUtc.ToString("dd. MMM yyyy")
+                                    Inviteret @invite.InvitedAtUtc.ToString("dd. MMM yyyy") (UTC)
                                 </MudText>
                             </div>
                         </MudStack>
@@ -118,11 +118,9 @@
                 Snackbar.Add(error.Value, Severity.Error);
                 _processingInviteId = null;
                 _isAccepting = false;
+                StateHasChanged();
             }
         );
-
-        await OnInviteProcessed.InvokeAsync();
-        StateHasChanged();
     }
 
     private async Task DeclineInvite(GroupInviteDto invite)
@@ -137,16 +135,21 @@
             {
                 Snackbar.Add($"Invitationen til {invite.GroupName} er afvist.", Severity.Info);
                 _invites.Remove(invite);
+                _processingInviteId = null;
+                StateHasChanged();
             },
             error =>
             {
                 Snackbar.Add(error.Value, Severity.Error);
+                _processingInviteId = null;
+                StateHasChanged();
             }
         );
 
-        _processingInviteId = null;
-        await OnInviteProcessed.InvokeAsync();
-        StateHasChanged();
+        if (result.IsT0)
+        {
+            await OnInviteProcessed.InvokeAsync();
+        }
     }
 
     public async Task Refresh()
