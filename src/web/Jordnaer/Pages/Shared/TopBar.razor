@@ -71,7 +71,7 @@
 
 		<nav class="mobile-menu-dropdown" aria-label="Mobile navigation"
 			onclick="document.getElementById('mobile-menu-toggle').checked = false;">
-			<a href="/" class="@GetMobileNavLinkClass("/")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+			<a href="/" class="@GetMobileNavLinkClass("/", true)" style="@JordnaerPalette.BlueBody.ToTextColor()">
 				<MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Hjem
 			</a>
@@ -358,16 +358,16 @@
 		return IsActive(path, useExactMatch) ? $"{baseClass} active" : baseClass;
 	}
 
-	private string GetMobileNavLinkClass(string path)
+	private string GetMobileNavLinkClass(string path, bool useExactMatch = false)
 	{
 		var baseClass = "mobile-menu-item";
-		return IsActive(path) ? $"{baseClass} active" : baseClass;
+		return IsActive(path, useExactMatch) ? $"{baseClass} active" : baseClass;
 	}
 
-	private string GetProfileMenuItemClass(string path)
+	private string GetProfileMenuItemClass(string path, bool useExactMatch = false)
 	{
 		var baseClass = "profile-menu-item";
-		return IsActive(path) ? $"{baseClass} active" : baseClass;
+		return IsActive(path, useExactMatch) ? $"{baseClass} active" : baseClass;
 	}
 
 	public async ValueTask DisposeAsync()
