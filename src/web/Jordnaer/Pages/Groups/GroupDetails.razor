@@ -476,6 +476,7 @@
             {
                 Snackbar.Add(error.Value, Severity.Error);
                 _processingInvite = false;
+                StateHasChanged();
             }
         );
     }
