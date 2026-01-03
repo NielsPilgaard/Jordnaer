@@ -2,7 +2,7 @@
 <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None">
     <MudCard Elevation="5" Class="mt-5 card-hover" Style="max-width: 300px">
         <MudCardContent>
-            <MudImage Fluid Src="@Partner.LogoUrl" />
+            <MudImage Fluid Src="@Partner.LogoUrl" Alt="@($"{Partner.Name} logo")" />
             @if (!string.IsNullOrEmpty(Partner.Name))
             {
 	            <MudText Typo="Typo.h5">@Partner.Name</MudText>
