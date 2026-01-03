@@ -1,0 +1,295 @@
+@page "/backoffice/users"
+
+@inject IUserRoleService UserRoleService
+@inject ISnackbar Snackbar
+@inject CurrentUser CurrentUser
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
+
+<MetadataComponent Title="Backoffice - Bruger Administration"
+    Description="Administrer brugerroller og rettigheder i systemet." />
+
+<MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Bruger Administration</MudText>
+</MudStack>
+
+<MudDivider Class="mb-5" />
+
+<MudDataGrid T="UserRoleDto"
+             Items="_users"
+             ReadOnly="true"
+             QuickFilter="_quickFilterFunc"
+             Bordered="true"
+             Loading="_isLoading"
+             Striped="true"
+             Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Brugere (@_users.Count)</MudText>
+
+        <MudSpacer />
+
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Søg brugere..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Small"
+                      Margin="Margin.Dense"
+                      Immediate="true" />
+    </ToolBarContent>
+
+    <Columns>
+        <PropertyColumn Property="x => x.UserName" Title="Brugernavn" HeaderStyle="@HeaderStyles" />
+
+        <PropertyColumn Property="x => x.Email" Title="Email" HeaderStyle="@HeaderStyles" />
+
+        <TemplateColumn Title="Roller" HeaderStyle="@HeaderStyles">
+            <CellTemplate>
+                @if (context.Item.Roles.Count > 0)
+                {
+                    <MudStack Row Spacing="1">
+                        @foreach (var role in context.Item.Roles)
+                        {
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Color="@GetRoleColor(role)">
+                                @GetRoleDisplayName(role)
+                            </MudChip>
+                        }
+                    </MudStack>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Default">Ingen roller</MudText>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+
+        <TemplateColumn Title="Handlinger" Sortable="false" HeaderStyle="@HeaderStyles">
+            <CellTemplate>
+                @if (CanEditUser(context.Item))
+                {
+                    <MudButton Color="Color.Info"
+                               StartIcon="@Icons.Material.Filled.Edit"
+                               Size="Size.Small"
+                               OnClick="@(() => OpenEditDialog(context.Item))">
+                        Rediger Roller
+                    </MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Default">Kan ikke redigere egen konto</MudText>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@* Edit Roles Dialog *@
+<MudDialog @bind-Visible="_editDialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2" />
+            Rediger Roller for @_editingUser?.UserName
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (_editingUser != null)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Default">
+                    Vælg hvilke roller brugeren skal have:
+                </MudText>
+
+                <MudCheckBox @bind-Value="_hasPartnerRole"
+                             Label="Partner"
+                             Color="Color.Primary">
+                    <MudText Typo="Typo.caption">
+                        Giver adgang til partner dashboard og annoncefunktioner
+                    </MudText>
+                </MudCheckBox>
+
+                <MudCheckBox @bind-Value="_hasAdminRole"
+                             Label="Administrator"
+                             Color="Color.Error">
+                    <MudText Typo="Typo.caption">
+                        Giver fuld administratoradgang til systemet
+                    </MudText>
+                </MudCheckBox>
+
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    Ændringer kræver, at brugeren logger ud og ind igen for at træde i kraft.
+                </MudAlert>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelEdit">Annuller</MudButton>
+        <MudButton Color="Color.Info"
+                   Variant="Variant.Filled"
+                   OnClick="SaveEdit">
+            Gem Ændringer
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<UserRoleDto> _users = [];
+    private bool _isLoading = true;
+    private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
+
+    // Search and filtering
+    private string _searchString = "";
+
+    // Edit dialog
+    private bool _editDialogVisible;
+    private UserRoleDto? _editingUser;
+    private bool _hasPartnerRole;
+    private bool _hasAdminRole;
+
+    private DialogOptions _dialogOptions = new()
+    {
+        CloseOnEscapeKey = true,
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Kunne ikke hente brugere: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _users = await UserRoleService.GetAllUsersWithRolesAsync();
+        _users = _users.OrderBy(u => u.UserName).ToList();
+    }
+
+    private Func<UserRoleDto, bool> _quickFilterFunc => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.UserName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+    private bool CanEditUser(UserRoleDto user)
+    {
+        // Cannot edit own roles to prevent self-lockout
+        return user.UserId != CurrentUser.Id;
+    }
+
+    private Color GetRoleColor(string role) => role switch
+    {
+        AppRoles.Admin => Color.Error,
+        AppRoles.Partner => Color.Primary,
+        _ => Color.Default
+    };
+
+    private string GetRoleDisplayName(string role) => role switch
+    {
+        AppRoles.Admin => "Administrator",
+        AppRoles.Partner => "Partner",
+        _ => role
+    };
+
+    private void OpenEditDialog(UserRoleDto user)
+    {
+        _editingUser = user;
+        _hasPartnerRole = user.Roles.Contains(AppRoles.Partner);
+        _hasAdminRole = user.Roles.Contains(AppRoles.Admin);
+        _editDialogVisible = true;
+    }
+
+    private void CancelEdit()
+    {
+        _editDialogVisible = false;
+        _editingUser = null;
+        _hasPartnerRole = false;
+        _hasAdminRole = false;
+    }
+
+    private async Task SaveEdit()
+    {
+        if (_editingUser == null) return;
+
+        var originalPartnerRole = _editingUser.Roles.Contains(AppRoles.Partner);
+        var originalAdminRole = _editingUser.Roles.Contains(AppRoles.Admin);
+
+        var success = true;
+        var errorMessages = new List<string>();
+
+        // Handle Partner role
+        if (_hasPartnerRole && !originalPartnerRole)
+        {
+            var result = await UserRoleService.AddRoleToUserAsync(_editingUser.UserId, AppRoles.Partner);
+            result.Switch(
+                _ => { },
+                _ => { errorMessages.Add("Kunne ikke tilføje partner rolle."); success = false; },
+                error => { errorMessages.Add($"Partner rolle fejl: {error.Value}"); success = false; });
+        }
+        else if (!_hasPartnerRole && originalPartnerRole)
+        {
+            var result = await UserRoleService.RemoveRoleFromUserAsync(_editingUser.UserId, AppRoles.Partner);
+            result.Switch(
+                _ => { },
+                _ => { errorMessages.Add("Kunne ikke fjerne partner rolle."); success = false; },
+                error => { errorMessages.Add($"Partner rolle fejl: {error.Value}"); success = false; });
+        }
+
+        // Handle Admin role
+        if (_hasAdminRole && !originalAdminRole)
+        {
+            var result = await UserRoleService.AddRoleToUserAsync(_editingUser.UserId, AppRoles.Admin);
+            result.Switch(
+                _ => { },
+                _ => { errorMessages.Add("Kunne ikke tilføje administrator rolle."); success = false; },
+                error => { errorMessages.Add($"Administrator rolle fejl: {error.Value}"); success = false; });
+        }
+        else if (!_hasAdminRole && originalAdminRole)
+        {
+            var result = await UserRoleService.RemoveRoleFromUserAsync(_editingUser.UserId, AppRoles.Admin);
+            result.Switch(
+                _ => { },
+                _ => { errorMessages.Add("Kunne ikke fjerne administrator rolle."); success = false; },
+                error => { errorMessages.Add($"Administrator rolle fejl: {error.Value}"); success = false; });
+        }
+
+        if (success)
+        {
+            Snackbar.Add($"Roller for {_editingUser.UserName} blev opdateret.", Severity.Success);
+
+            // Reload users to refresh the display
+            await LoadUsersAsync();
+
+            _editDialogVisible = false;
+            _editingUser = null;
+            _hasPartnerRole = false;
+            _hasAdminRole = false;
+        }
+        else
+        {
+            foreach (var error in errorMessages)
+            {
+                Snackbar.Add(error, Severity.Error);
+            }
+        }
+    }
+}
