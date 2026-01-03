@@ -101,15 +101,15 @@
     @* Pending Invite Alert for User *@
     @if (_hasPendingInvite && _group is not null)
     {
-        <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mb-4">
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4" Elevation="4" NoIcon>
             <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-                <MudText Typo="Typo.body1">
+                <MudText Typo="Typo.body1" Class="font-weight-bold">
                     Du er blevet inviteret til at blive medlem af denne gruppe
                 </MudText>
                 <div class="d-flex gap-2">
                     <MudButton OnClick="AcceptInvite"
                               Variant="Variant.Filled"
-                              Color="Color.Success"
+                              Color="Color.Secondary"
                               StartIcon="@Icons.Material.Filled.Check"
                               Size="Size.Small"
                               Disabled="_processingInvite">
@@ -119,12 +119,12 @@
                         }
                         else
                         {
-                            <text>Acceptér invitation</text>
+                            <text>Acceptér</text>
                         }
                     </MudButton>
                     <MudButton OnClick="DeclineInvite"
-                              Variant="Variant.Outlined"
-                              Color="Color.Error"
+                              Variant="Variant.Filled"
+                              Color="Color.Default"
                               StartIcon="@Icons.Material.Filled.Close"
                               Size="Size.Small"
                               Disabled="_processingInvite">
@@ -134,7 +134,7 @@
                         }
                         else
                         {
-                            <text>Afvis invitation</text>
+                            <text>Afvis</text>
                         }
                     </MudButton>
                 </div>

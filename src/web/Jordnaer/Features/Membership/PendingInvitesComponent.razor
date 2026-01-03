@@ -1,4 +1,5 @@
 @using OneOf.Types
+@inherits CancellableComponent
 @inject IMembershipService MembershipService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -32,7 +33,7 @@
                                     </MudText>
                                 }
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Inviteret @invite.InvitedAtUtc.ToString("dd. MMM yyyy") (UTC)
+                                    Inviteret @invite.InvitedAtUtc.ToLocalTime().ToString("dd. MMM yyyy")
                                 </MudText>
                             </div>
                         </MudStack>
@@ -96,7 +97,7 @@
 
     private async Task LoadInvites()
     {
-        _invites = await MembershipService.GetPendingInvitesForUserAsync();
+        _invites = await MembershipService.GetPendingInvitesForUserAsync(CancellationToken);
     }
 
     private async Task AcceptInvite(GroupInviteDto invite)

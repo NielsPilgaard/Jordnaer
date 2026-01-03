@@ -68,6 +68,7 @@
     private Task UserSelected(UserSlim? user)
     {
         _selectedUser = user;
+        StateHasChanged();
         return Task.CompletedTask;
     }
 

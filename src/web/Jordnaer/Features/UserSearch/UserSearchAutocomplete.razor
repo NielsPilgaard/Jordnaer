@@ -14,7 +14,6 @@
                  SelectValueOnTab
                  AdornmentIcon="@Icons.Material.Filled.Search"
                  MaxItems="10"
-                 Value="_selectedUser"
                  ValueChanged="OnUserSelected"
                  MinCharacters="2"
                  Variant="@Variant"
@@ -22,20 +21,18 @@
                  Class="@Class">
 
     <ItemTemplate Context="user">
-        <MudListItem Dense="@Dense" T="RenderFragment">
-            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                <MudAvatar Size="@AvatarSize">
-                    <MudImage Src="@user.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
-                </MudAvatar>
-                <div>
-                    <MudText>@user.DisplayName</MudText>
-                    @if (ShowUsername && !string.IsNullOrEmpty(user.UserName))
-                    {
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@("@" + user.UserName)</MudText>
-                    }
-                </div>
-            </MudStack>
-        </MudListItem>
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+            <MudAvatar Size="@AvatarSize">
+                <MudImage Src="@user.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+            </MudAvatar>
+            <div>
+                <MudText>@user.DisplayName</MudText>
+                @if (ShowUsername && !string.IsNullOrEmpty(user.UserName))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@("@" + user.UserName)</MudText>
+                }
+            </div>
+        </MudStack>
     </ItemTemplate>
 
     <MoreItemsTemplate>
@@ -64,7 +61,6 @@
     [Parameter] public string? Class { get; set; }
 
     private MudAutocomplete<UserSlim> _autocomplete = null!;
-    private UserSlim? _selectedUser;
 
     private async Task<IEnumerable<UserSlim>> SearchForUsers(string searchString, CancellationToken cancellationToken)
     {
@@ -78,17 +74,7 @@
 
     private async Task OnUserSelected(UserSlim? user)
     {
-        _selectedUser = user;
-
-        if (_autocomplete is not null)
-        {
-            await _autocomplete.ToggleMenuAsync();
-        }
-
         await UserSelected.InvokeAsync(user);
-
-        // Clear the selection after notifying parent
-        _selectedUser = null;
     }
 
     public async Task ToggleMenuAsync()

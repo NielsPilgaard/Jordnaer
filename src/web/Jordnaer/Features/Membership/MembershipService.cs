@@ -217,9 +217,15 @@ public class MembershipService(CurrentUser currentUser,
 				return new Error<string>("Du har ikke tilladelse til at invitere medlemmer til denne gruppe.");
 			}
 
+			// Get group first
+			var group = await context.Groups.FindAsync([groupId], cancellationToken);
+			if (group is null)
+			{
+				return new Error<string>("Gruppen kunne ikke findes.");
+			}
+
 			// Check if user already has a membership (active, pending, etc.)
 			var existingMembership = await context.GroupMemberships
-				.Include(x => x.Group)
 				.FirstOrDefaultAsync(x => x.GroupId == groupId && x.UserProfileId == userId, cancellationToken);
 
 			if (existingMembership is not null)
@@ -235,24 +241,17 @@ public class MembershipService(CurrentUser currentUser,
 					// Send email notification
 					try
 					{
-						await emailService.SendGroupInviteEmail(existingMembership.Group.Name, userId, cancellationToken);
+						await emailService.SendGroupInviteEmail(group.Name, userId, cancellationToken);
 					}
 					catch (Exception notificationException)
 					{
-						logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", existingMembership.Group.Name);
+						logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", group.Name);
 					}
 
 					return new Success();
 				}
 
 				return new Error<string>("Brugeren er allerede medlem af gruppen eller har en aktiv anmodning.");
-			}
-
-			// Get group to include in response
-			var group = await context.Groups.FindAsync([groupId], cancellationToken);
-			if (group is null)
-			{
-				return new Error<string>("Gruppen kunne ikke findes.");
 			}
 
 			// Create new membership with PendingApprovalFromUser status
