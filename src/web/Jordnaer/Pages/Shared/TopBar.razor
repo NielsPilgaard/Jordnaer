@@ -1,3 +1,5 @@
+@using Jordnaer.Features.Authentication
+
 @inject NavigationManager Navigation
 @inject UnreadMessageSignalRClient UnreadMessageSignalRClient
 @inject IChatService ChatService
@@ -14,7 +16,7 @@
 	@* Desktop Navigation - Icons with Labels *@
 	<div class="topbar-desktop" style="display: flex; gap: 4px;">
 		<MudButton Href="/" StartIcon="@Icons.Material.Filled.Home" Variant="Variant.Text"
-			Class="@GetNavLinkClass("/")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Class="@GetNavLinkClass("/", useExactMatch: true)" Style="@JordnaerPalette.BlueBody.ToTextColor()">
 			Hjem
 		</MudButton>
 		<MudButton Href="/users" StartIcon="@Icons.Material.Filled.PersonSearch" Variant="Variant.Text"
@@ -142,6 +144,15 @@
 							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
 					</a>
+					<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="desktopAdminContext">
+						<Authorized>
+							<a href="/backoffice/users" class="@GetProfileMenuItemClass("/backoffice/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Backoffice
+							</a>
+						</Authorized>
+					</AuthorizeView>
 					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
@@ -174,6 +185,15 @@
 							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
 					</a>
+					<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="mobileAdminContext">
+						<Authorized>
+							<a href="/backoffice/users" class="@GetProfileMenuItemClass("/backoffice/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Backoffice
+							</a>
+						</Authorized>
+					</AuthorizeView>
 					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
@@ -321,15 +341,21 @@
 		StateHasChanged();
 	}
 
-	private bool IsActive(string path)
+	private bool IsActive(string path, bool useExactMatch = false)
 	{
-		return _currentPath.Equals(path, StringComparison.OrdinalIgnoreCase);
+		if (useExactMatch)
+		{
+			return string.Equals(_currentPath, path, StringComparison.OrdinalIgnoreCase);
+		}
+
+		// For non-exact matches, check if the current path starts with the given path
+		return _currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
 	}
 
-	private string GetNavLinkClass(string path)
+	private string GetNavLinkClass(string path, bool useExactMatch = false)
 	{
 		var baseClass = "topbar-nav-link font-open-sans-semibold";
-		return IsActive(path) ? $"{baseClass} active" : baseClass;
+		return IsActive(path, useExactMatch) ? $"{baseClass} active" : baseClass;
 	}
 
 	private string GetMobileNavLinkClass(string path)
