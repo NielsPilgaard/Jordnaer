@@ -4,6 +4,7 @@
 @inject ISnackbar Snackbar
 @inject CurrentUser CurrentUser
 @inject NavigationManager NavigationManager
+@inject ILogger<Users> Logger
 
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 
@@ -162,7 +163,8 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Kunne ikke hente brugere: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Failed to load users in backoffice");
+            Snackbar.Add("Kunne ikke hente brugere. Prøv igen senere.", Severity.Error);
         }
         finally
         {
