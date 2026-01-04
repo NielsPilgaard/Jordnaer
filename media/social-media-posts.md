@@ -4,6 +4,67 @@ Social media posts for Facebook and Instagram highlighting recent features. Use 
 
 ---
 
+## Active Posts (To Be Published)
+
+### 1. Del dine opslag (Share your posts)
+
+📝 Du kan nu dele opslag med andre forældre
+
+Har du et godt tip? Et spørgsmål om hverdagen? Eller bare lyst til at dele en tanke? Nu kan du skrive opslag og dele dem med andre familier 💬
+
+https://mini-moeder.dk/posts
+
+#MiniMøder #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier
+
+---
+
+### 2. Søg med kort (Map search)
+
+🗺️ Find familier på kortet
+
+Se hvem der er i dit område direkte på kortet. Godt når man leder efter andre familier i nærheden
+
+https://mini-moeder.dk/users
+
+#MiniMøder #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier
+
+---
+
+### 3. Dashboard oversigt (Dashboard overview)
+
+🏠 Alt samlet ét sted
+
+Dine grupper, kommende møder og nye beskeder på din forside. Lidt nemmere at holde overblikket når hverdagen er travl
+
+https://mini-moeder.dk/groups
+
+#MiniMøder #Hjemmeunger #hjemmeskole #hjemmepasning #Børnefamilier
+
+---
+
+### 4. Om Mini Møder (About Mini Møder)
+
+🏡 Mini Møder hjælper hjemmepassere og hjemmeskolere med at finde hinanden lokalt
+
+Vi er stadig små, men bygger fællesskabet op sammen:
+🤝 Legeaftaler
+👥 Legegrupper
+🏠 Hjemmeskolefællesskaber
+💫 Nye venskaber
+
+Jo flere familier der er med, jo lettere bliver det at finde andre i dit område
+
+https://mini-moeder.dk
+
+#MiniMøder #Hjemmepassere #Hjemmeskole #Fællesskab #Hjemmeunger
+
+---
+
+<details>
+<summary>📦 Scheduled Posts (Click to expand)</summary>
+
+---
+
 **Scheduled**
 
 ## 1. Forbedret Chat (Improved Chat UI)
@@ -120,12 +181,4 @@ _(Screenshot viser fiktiv gruppe)_
 
 ---
 
-## Notes
-
-- All posts follow the same format for consistency
-- Each post is short and engaging for both Facebook and Instagram
-- Friendly call-to-action
-- Consistent hashtags across all posts
-- Posts are in Danish as per target audience
-- Each feature gets a relevant emoji to catch attention
-- Screenshots bruger fiktive grupper, navne og samtaler - vi har haft det sjovt med at finde på dem!
+</details>
