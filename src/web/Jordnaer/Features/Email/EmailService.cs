@@ -12,6 +12,8 @@ public interface IEmailService
 	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
 	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
 	Task SendGroupInviteEmail(string groupName, string userId, CancellationToken cancellationToken = default);
+	Task SendPartnerImageApprovalEmailAsync(Guid partnerId, string partnerName, CancellationToken cancellationToken = default);
+	Task SendPartnerWelcomeEmailAsync(string email, string partnerName, string temporaryPassword, CancellationToken cancellationToken = default);
 }
 
 public sealed class EmailService(IPublishEndpoint publishEndpoint,
@@ -134,5 +136,103 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);
+	}
+
+	public async Task SendPartnerImageApprovalEmailAsync(
+		Guid partnerId,
+		string partnerName,
+		CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var partner = await context.Partners
+			.AsNoTracking()
+			.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
+
+		if (partner is null)
+		{
+			logger.LogError("Partner {PartnerId} not found when trying to send approval email", partnerId);
+			return;
+		}
+
+		logger.LogInformation("Sending partner image approval email for partner {PartnerName} ({PartnerId})", partnerName, partnerId);
+
+		var approvalUrl = $"{options.Value.BaseUrl}/backoffice/partners/{partnerId}";
+
+		var imageLinks = new List<string>();
+
+		if (!string.IsNullOrEmpty(partner.PendingMobileImageUrl))
+		{
+			imageLinks.Add($"<li><a href=\"{partner.PendingMobileImageUrl}\">Mobil billede</a></li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingDesktopImageUrl))
+		{
+			imageLinks.Add($"<li><a href=\"{partner.PendingDesktopImageUrl}\">Desktop billede</a></li>");
+		}
+
+		var email = new SendEmail
+		{
+			Subject = $"Ny partner billede godkendelse: {partnerName}",
+			HtmlContent = $"""
+						  <h4>Partner <b>{partnerName}</b> har uploadet nye billeder til godkendelse</h4>
+
+						  <p>Se de nye billeder:</p>
+						  <ul>
+						  {string.Join("\n", imageLinks)}
+						  </ul>
+
+						  <p><a href="{approvalUrl}">Klik her for at godkende eller afvise billederne</a></p>
+
+						  {EmailConstants.Signature}
+						  """,
+			To = [new EmailRecipient { Email = "kontakt@mini-moeder.dk", DisplayName = "Mini Møder Admin" }]
+		};
+
+		await publishEndpoint.Publish(email, cancellationToken);
+	}
+
+	public async Task SendPartnerWelcomeEmailAsync(
+		string email,
+		string partnerName,
+		string temporaryPassword,
+		CancellationToken cancellationToken = default)
+	{
+		logger.LogInformation("Sending partner welcome email to {Email} for partner {PartnerName}", email, partnerName);
+
+		var loginUrl = $"{options.Value.BaseUrl}/Account/Login";
+		var dashboardUrl = $"{options.Value.BaseUrl}/partner/dashboard";
+
+		var welcomeEmail = new SendEmail
+		{
+			Subject = "Velkommen som partner på Mini Møder",
+			HtmlContent = $"""
+						  <h4>Velkommen som partner på Mini Møder, {partnerName}!</h4>
+
+						  <p>Din partnerkonto er blevet oprettet. Du kan nu logge ind og administrere dine partner-annoncer.</p>
+
+						  <h5>Login oplysninger:</h5>
+						  <ul>
+						      <li><strong>Email:</strong> {email}</li>
+						      <li><strong>Midlertidigt kodeord:</strong> <code>{temporaryPassword}</code></li>
+						  </ul>
+
+						  <p><strong>VIGTIGT:</strong> Af sikkerhedsmæssige årsager bedes du ændre dit kodeord efter første login.</p>
+
+						  <h5>Sådan kommer du i gang:</h5>
+						  <ol>
+						      <li><a href="{loginUrl}">Log ind med dine oplysninger</a></li>
+						      <li>Skift dit kodeord under <em>Profil i øverste højre hjørne → Kontoindstillinger → Adgangskode</em></li>
+						      <li>Gå til <a href="{dashboardUrl}">dit partner dashboard</a> for at uploade annoncer og se statistik</li>
+						  </ol>
+
+						  <p>Hvis du har spørgsmål eller brug for hjælp, er du velkommen til at kontakte os.</p>
+
+						  {EmailConstants.Signature}
+						  """,
+			To = [new EmailRecipient { Email = email, DisplayName = partnerName }]
+		};
+
+		await publishEndpoint.Publish(welcomeEmail, cancellationToken);
 	}
 }

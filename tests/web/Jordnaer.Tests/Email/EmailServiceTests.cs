@@ -486,4 +486,144 @@ public class EmailServiceTests : IAsyncLifetime
 	}
 
 	#endregion
+
+	#region SendSponsorImageApprovalEmailAsync Tests
+
+	[Fact]
+	public async Task SendSponsorImageApprovalEmailAsync_ShouldPublishEmailToAdmin()
+	{
+		// Arrange
+		var partnerId = Guid.NewGuid();
+		var sponsorName = "Test Partner Company";
+
+		var partner = new Partner
+		{
+			Id = partnerId,
+			Name = sponsorName,
+			Description = "Test description",
+			Link = "https://example.com",
+			UserId = Guid.NewGuid().ToString(),
+			PendingMobileImageUrl = "https://example.com/mobile.png",
+			PendingDesktopImageUrl = "https://example.com/desktop.png"
+		};
+
+		_context.Partners.Add(partner);
+		await _context.SaveChangesAsync();
+
+		// Act
+		await _service.SendSponsorImageApprovalEmailAsync(partnerId, sponsorName);
+
+		// Assert
+		_publishEndpointMock.Verify(
+			x => x.Publish(
+				It.Is<SendEmail>(email =>
+					email.Subject == $"Ny partner billede godkendelse: {sponsorName}" &&
+					email.To != null &&
+					email.To.Count == 1 &&
+					email.To[0].Email == "kontakt@mini-moeder.dk" &&
+					email.To[0].DisplayName == "Mini Møder Admin" &&
+					email.HtmlContent.Contains(sponsorName) &&
+					email.HtmlContent.Contains($"http://localhost:5000/backoffice/partners/{partnerId}") &&
+					email.HtmlContent.Contains("https://example.com/mobile.png") &&
+					email.HtmlContent.Contains("https://example.com/desktop.png") &&
+					email.HtmlContent.Contains(EmailConstants.Signature)
+				),
+				It.IsAny<CancellationToken>()
+			),
+			Times.Once
+		);
+	}
+
+	[Fact]
+	public async Task SendSponsorImageApprovalEmailAsync_ShouldNotPublishEmail_WhenSponsorNotFound()
+	{
+		// Arrange
+		var nonExistentSponsorId = Guid.NewGuid();
+		var sponsorName = "Non-existent Partner";
+
+		// Act
+		await _service.SendSponsorImageApprovalEmailAsync(nonExistentSponsorId, sponsorName);
+
+		// Assert
+		_publishEndpointMock.Verify(
+			x => x.Publish(It.IsAny<SendEmail>(), It.IsAny<CancellationToken>()),
+			Times.Never
+		);
+	}
+
+	[Fact]
+	public async Task SendSponsorImageApprovalEmailAsync_ShouldIncludeOnlyMobileImage_WhenDesktopImageIsNull()
+	{
+		// Arrange
+		var partnerId = Guid.NewGuid();
+		var sponsorName = "Mobile Only Partner";
+
+		var partner = new Partner
+		{
+			Id = partnerId,
+			Name = sponsorName,
+			Description = "Test description",
+			Link = "https://example.com",
+			UserId = Guid.NewGuid().ToString(),
+			PendingMobileImageUrl = "https://example.com/mobile.png",
+			PendingDesktopImageUrl = null
+		};
+
+		_context.Partners.Add(partner);
+		await _context.SaveChangesAsync();
+
+		// Act
+		await _service.SendSponsorImageApprovalEmailAsync(partnerId, sponsorName);
+
+		// Assert
+		_publishEndpointMock.Verify(
+			x => x.Publish(
+				It.Is<SendEmail>(email =>
+					email.HtmlContent.Contains("https://example.com/mobile.png") &&
+					!email.HtmlContent.Contains("Desktop billede")
+				),
+				It.IsAny<CancellationToken>()
+			),
+			Times.Once
+		);
+	}
+
+	[Fact]
+	public async Task SendSponsorImageApprovalEmailAsync_ShouldIncludeApprovalUrl()
+	{
+		// Arrange
+		var partnerId = Guid.NewGuid();
+		var sponsorName = "Test Partner";
+
+		var partner = new Partner
+		{
+			Id = partnerId,
+			Name = sponsorName,
+			Description = "Test description",
+			Link = "https://example.com",
+			UserId = Guid.NewGuid().ToString(),
+			PendingMobileImageUrl = "https://example.com/mobile.png"
+		};
+
+		_context.Partners.Add(partner);
+		await _context.SaveChangesAsync();
+
+		var expectedApprovalUrl = $"http://localhost:5000/backoffice/partners/{partnerId}";
+
+		// Act
+		await _service.SendSponsorImageApprovalEmailAsync(partnerId, sponsorName);
+
+		// Assert
+		_publishEndpointMock.Verify(
+			x => x.Publish(
+				It.Is<SendEmail>(email =>
+					email.HtmlContent.Contains(expectedApprovalUrl)
+				),
+				It.IsAny<CancellationToken>()
+			),
+			Times.Once
+		);
+	}
+
+	#endregion
 }

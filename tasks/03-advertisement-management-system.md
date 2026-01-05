@@ -7,17 +7,17 @@
 **Priority:** High
 **Related:**
 
-- Task 01 (Sponsor Dashboard) - Sponsors will eventually manage their own ads
+- Task 01 (Partner Dashboard) - Partners will eventually manage their own ads
 - Task 02 (Backoffice Claims) - Admin access required for ad management
 
 ## Objective
 
-Create a database-backed advertisement management system to replace hardcoded ads in search results. This allows adding/updating ads without code deployments and provides analytics tracking. Keep it simple for the current single-sponsor scenario while being extensible for future multi-sponsor needs.
+Create a database-backed advertisement management system to replace hardcoded ads in search results. This allows adding/updating ads without code deployments and provides analytics tracking. Keep it simple for the current single-partner scenario while being extensible for future multi-partner needs.
 
 ## Current State
 
 - Ads are hardcoded in [UserSearchResultComponent.razor](src/web/Jordnaer/Features/UserSearch/UserSearchResultComponent.razor) (lines 84-92)
-- Only one sponsor (Moon Creative) currently exists
+- Only one partner (Moon Creative) currently exists
 - No analytics tracking for ad performance
 - Changes require code deployment
 - [SponsorAd.razor](src/web/Jordnaer/Features/Ad/SponsorAd.razor) exists but only used on old landing page
@@ -403,7 +403,7 @@ Create minimal CRUD at `/backoffice/advertisements`:
 
 ## Technical Notes
 
-- Keep it simple for single sponsor - no complex targeting yet
+- Keep it simple for single partner - no complex targeting yet
 - Use EF Core ExecuteUpdate for efficient counter increments
 - Analytics track aggregate numbers only (GDPR-friendly)
 - Priority system allows control over ad frequency (higher = more often)
@@ -421,7 +421,7 @@ These can be added later when needed:
 - Category/interest targeting
 - A/B testing variants
 - Budget limits and billing
-- Sponsor self-service (Task 01)
+- Partner self-service (Task 01)
 - Click-through tracking with unique URLs
 - Impression frequency capping
 - Detailed analytics dashboard with charts

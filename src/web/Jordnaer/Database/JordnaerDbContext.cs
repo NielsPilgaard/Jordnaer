@@ -23,6 +23,9 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Post> Posts { get; set; } = default!;
 	public DbSet<GroupPost> GroupPosts { get; set; } = default!;
 
+	public DbSet<Partner> Partners { get; set; }
+	public DbSet<PartnerAnalytics> PartnerAnalytics { get; set; }
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<Post>()
@@ -115,6 +118,12 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 				$"OR MONTH([{nameof(ChildProfile.DateOfBirth)}]) = MONTH(GETDATE()) " +
 				$"AND DAY([{nameof(ChildProfile.DateOfBirth)}]) > DAY(GETDATE()) " +
 				$"THEN 1 ELSE 0 END");
+
+		modelBuilder.Entity<Partner>()
+			.HasMany(partner => partner.Analytics)
+			.WithOne(analytics => analytics.Partner)
+			.HasForeignKey(analytics => analytics.PartnerId)
+			.OnDelete(DeleteBehavior.Cascade);
 
 		base.OnModelCreating(modelBuilder);
 	}
