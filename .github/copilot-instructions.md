@@ -2,6 +2,15 @@
 
 Our project is called Jordnaer but has been rebranded to Mini Møder. This document outlines the architecture, project structure, and core patterns used in the codebase to help new contributors get up to speed quickly.
 
+# Upon completion of an instruction, please:
+
+1. Run the tests to ensure nothing is broken
+2. Start CodeRabbit with the following command to generate a code review based on the latest committed changes:
+
+`wsl -d Ubuntu bash -c "cd /mnt/c/Users/Niels/Documents/GitHub/Jordnaer && ~/.local/bin/coderabbit --prompt-only --type committed" > reviews/review-committed-$(date +%Y%m%d-%H%M%S).txt 2>&1`
+
+3. When CodeRabbit review is generated, please review and apply any relevant suggestions to improve code quality.
+
 ## Architecture
 
 Blazor social platform for parents to find playgroups. Stack:
