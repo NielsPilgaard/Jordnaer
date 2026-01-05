@@ -20,7 +20,7 @@ Create a database-backed advertisement management system to replace hardcoded ad
 - Only one partner (Moon Creative) currently exists
 - No analytics tracking for ad performance
 - Changes require code deployment
-- [SponsorAd.razor](src/web/Jordnaer/Features/Ad/SponsorAd.razor) exists but only used on old landing page
+- [PartnerAd.razor](src/web/Jordnaer/Features/Ad/PartnerAd.razor) exists but only used on old landing page
 - New [AdCard.razor](src/web/Jordnaer/Features/Ad/AdCard.razor) component created for user search
 
 ## Requirements

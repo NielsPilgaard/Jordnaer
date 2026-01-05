@@ -28,7 +28,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	private readonly IEmailService _emailService = Substitute.For<IEmailService>();
 	private readonly string _userProfileId;
 
-	private readonly Faker<Partner> _sponsorFaker = new Faker<Partner>("en")
+	private readonly Faker<Partner> _partnerFaker = new Faker<Partner>("en")
 		.RuleFor(s => s.Id, _ => Guid.NewGuid())
 		.RuleFor(s => s.Name, f => f.Company.CompanyName())
 		.RuleFor(s => s.Description, f => f.Lorem.Sentence())
@@ -65,98 +65,98 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task GetSponsorByIdAsync_ReturnsNotFound_WhenSponsorDoesNotExist()
+	public async Task GetPartnerByIdAsync_ReturnsNotFound_WhenPartnerDoesNotExist()
 	{
 		// Arrange
 		var id = Guid.NewGuid();
 
 		// Act
-		var result = await _partnerUserService.GetSponsorByIdAsync(id);
+		var result = await _partnerUserService.GetPartnerByIdAsync(id);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
-	public async Task GetSponsorByIdAsync_ReturnsSponsor_WhenSponsorExists()
+	public async Task GetPartnerByIdAsync_ReturnsPartner_WhenPartnerExists()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.GetSponsorByIdAsync(partner.Id);
+		var result = await _partnerUserService.GetPartnerByIdAsync(partner.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Partner>();
-		var returnedSponsor = result.AsT0;
-		returnedSponsor.Should().NotBeNull();
-		returnedSponsor.Name.Should().Be(partner.Name);
-		returnedSponsor.Description.Should().Be(partner.Description);
+		var returnedPartner = result.AsT0;
+		returnedPartner.Should().NotBeNull();
+		returnedPartner.Name.Should().Be(partner.Name);
+		returnedPartner.Description.Should().Be(partner.Description);
 	}
 
 	[Fact]
-	public async Task GetSponsorByUserIdAsync_ReturnsNotFound_WhenSponsorDoesNotExist()
+	public async Task GetPartnerByUserIdAsync_ReturnsNotFound_WhenPartnerDoesNotExist()
 	{
 		// Arrange
 		var userId = Guid.NewGuid().ToString();
 
 		// Act
-		var result = await _partnerUserService.GetSponsorByUserIdAsync(userId);
+		var result = await _partnerUserService.GetPartnerByUserIdAsync(userId);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
-	public async Task GetSponsorByUserIdAsync_ReturnsSponsor_WhenSponsorExists()
+	public async Task GetPartnerByUserIdAsync_ReturnsPartner_WhenPartnerExists()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.GetSponsorByUserIdAsync(partner.UserId);
+		var result = await _partnerUserService.GetPartnerByUserIdAsync(partner.UserId);
 
 		// Assert
 		result.Value.Should().BeOfType<Partner>();
-		var returnedSponsor = result.AsT0;
-		returnedSponsor.Should().NotBeNull();
-		returnedSponsor.UserId.Should().Be(partner.UserId);
+		var returnedPartner = result.AsT0;
+		returnedPartner.Should().NotBeNull();
+		returnedPartner.UserId.Should().Be(partner.UserId);
 	}
 
 	[Fact]
-	public async Task GetAllSponsorsAsync_ReturnsEmptyList_WhenNoSponsorsExist()
+	public async Task GetAllPartnersAsync_ReturnsEmptyList_WhenNoPartnersExist()
 	{
 		// Act
-		var result = await _partnerUserService.GetAllSponsorsAsync();
+		var result = await _partnerUserService.GetAllPartnersAsync();
 
 		// Assert
 		result.Should().BeEmpty();
 	}
 
 	[Fact]
-	public async Task GetAllSponsorsAsync_ReturnsAllSponsors_WhenSponsorsExist()
+	public async Task GetAllPartnersAsync_ReturnsAllPartners_WhenPartnersExist()
 	{
 		// Arrange
-		var sponsor1 = AddSponsor();
-		var sponsor2 = AddSponsor();
+		var partner1 = AddPartner();
+		var partner2 = AddPartner();
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.GetAllSponsorsAsync();
+		var result = await _partnerUserService.GetAllPartnersAsync();
 
 		// Assert
 		result.Should().HaveCount(2);
-		result.Should().Contain(s => s.Id == sponsor1.Id);
-		result.Should().Contain(s => s.Id == sponsor2.Id);
+		result.Should().Contain(s => s.Id == partner1.Id);
+		result.Should().Contain(s => s.Id == partner2.Id);
 	}
 
 	[Fact]
 	public async Task RecordImpressionAsync_CreatesNewAnalytics_WhenNoneExistForToday()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
 		// Act
@@ -165,7 +165,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		// Assert
 		result.Value.Should().BeOfType<Success>();
 
-		var analytics = await _context.SponsorAnalytics
+		var analytics = await _context.PartnerAnalytics
 			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
 
 		analytics.Should().NotBeNull();
@@ -177,15 +177,15 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task RecordImpressionAsync_IncrementsExistingAnalytics_WhenAnalyticsExistForToday()
 	{
 		// Arrange
-		var partner = AddSponsor();
-		var analytics = new SponsorAnalytics
+		var partner = AddPartner();
+		var analytics = new PartnerAnalytics
 		{
 			PartnerId = partner.Id,
 			Date = DateTime.UtcNow.Date,
 			Impressions = 5,
 			Clicks = 2
 		};
-		_context.SponsorAnalytics.Add(analytics);
+		_context.PartnerAnalytics.Add(analytics);
 		await _context.SaveChangesAsync();
 
 		// Act
@@ -194,7 +194,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		// Assert
 		result.Value.Should().BeOfType<Success>();
 
-		var updatedAnalytics = await _context.SponsorAnalytics
+		var updatedAnalytics = await _context.PartnerAnalytics
 			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
 
 		updatedAnalytics.Should().NotBeNull();
@@ -206,7 +206,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task RecordClickAsync_CreatesNewAnalytics_WhenNoneExistForToday()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
 		// Act
@@ -215,7 +215,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		// Assert
 		result.Value.Should().BeOfType<Success>();
 
-		var analytics = await _context.SponsorAnalytics
+		var analytics = await _context.PartnerAnalytics
 			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
 
 		analytics.Should().NotBeNull();
@@ -227,15 +227,15 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task RecordClickAsync_IncrementsExistingAnalytics_WhenAnalyticsExistForToday()
 	{
 		// Arrange
-		var partner = AddSponsor();
-		var analytics = new SponsorAnalytics
+		var partner = AddPartner();
+		var analytics = new PartnerAnalytics
 		{
 			PartnerId = partner.Id,
 			Date = DateTime.UtcNow.Date,
 			Impressions = 10,
 			Clicks = 3
 		};
-		_context.SponsorAnalytics.Add(analytics);
+		_context.PartnerAnalytics.Add(analytics);
 		await _context.SaveChangesAsync();
 
 		// Act
@@ -244,7 +244,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		// Assert
 		result.Value.Should().BeOfType<Success>();
 
-		var updatedAnalytics = await _context.SponsorAnalytics
+		var updatedAnalytics = await _context.PartnerAnalytics
 			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
 
 		updatedAnalytics.Should().NotBeNull();
@@ -256,7 +256,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task GetAnalyticsAsync_ReturnsEmptyAnalytics_WhenNoDataExists()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
 		var fromDate = DateTime.UtcNow.AddDays(-7);
@@ -277,10 +277,10 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task GetAnalyticsAsync_ReturnsAggregatedData_WhenDataExists()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		var today = DateTime.UtcNow.Date;
 
-		_context.SponsorAnalytics.Add(new SponsorAnalytics
+		_context.PartnerAnalytics.Add(new PartnerAnalytics
 		{
 			PartnerId = partner.Id,
 			Date = today.AddDays(-2),
@@ -288,7 +288,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			Clicks = 5
 		});
 
-		_context.SponsorAnalytics.Add(new SponsorAnalytics
+		_context.PartnerAnalytics.Add(new PartnerAnalytics
 		{
 			PartnerId = partner.Id,
 			Date = today.AddDays(-1),
@@ -313,7 +313,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task UploadPendingImagesAsync_ReturnsError_WhenSponsorNotFound()
+	public async Task UploadPendingImagesAsync_ReturnsError_WhenPartnerNotFound()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
@@ -331,7 +331,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task UploadPendingImagesAsync_ReturnsError_WhenUserNotAuthorized()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		partner.UserId = Guid.NewGuid().ToString(); // Different user
 		await _context.SaveChangesAsync();
 
@@ -349,7 +349,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task UploadPendingImagesAsync_UploadsImagesAndSendsEmail_WhenValid()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		partner.UserId = _userProfileId; // Same user as CurrentUser
 		await _context.SaveChangesAsync();
 
@@ -375,19 +375,19 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			Arg.Any<Stream>(),
 			Arg.Any<CancellationToken>());
 
-		await _emailService.Received(1).SendSponsorImageApprovalEmailAsync(
+		await _emailService.Received(1).SendPartnerImageApprovalEmailAsync(
 			partner.Id,
 			partner.Name,
 			Arg.Any<CancellationToken>());
 
-		var updatedSponsor = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
-		updatedSponsor.HasPendingImageApproval.Should().BeTrue();
-		updatedSponsor.PendingMobileImageUrl.Should().NotBeNullOrEmpty();
-		updatedSponsor.PendingDesktopImageUrl.Should().NotBeNullOrEmpty();
+		var updatedPartner = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
+		updatedPartner.HasPendingImageApproval.Should().BeTrue();
+		updatedPartner.PendingMobileImageUrl.Should().NotBeNullOrEmpty();
+		updatedPartner.PendingDesktopImageUrl.Should().NotBeNullOrEmpty();
 	}
 
 	[Fact]
-	public async Task ApproveImagesAsync_ReturnsError_WhenSponsorNotFound()
+	public async Task ApproveImagesAsync_ReturnsError_WhenPartnerNotFound()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
@@ -404,7 +404,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task ApproveImagesAsync_MovesImagesToActive_WhenValid()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		partner.PendingMobileImageUrl = "https://example.com/pending-mobile.png";
 		partner.PendingDesktopImageUrl = "https://example.com/pending-desktop.png";
 		partner.HasPendingImageApproval = true;
@@ -416,16 +416,16 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		// Assert
 		result.IsT0.Should().BeTrue();
 
-		var updatedSponsor = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
-		updatedSponsor.MobileImageUrl.Should().Be("https://example.com/pending-mobile.png");
-		updatedSponsor.DesktopImageUrl.Should().Be("https://example.com/pending-desktop.png");
-		updatedSponsor.PendingMobileImageUrl.Should().BeNull();
-		updatedSponsor.PendingDesktopImageUrl.Should().BeNull();
-		updatedSponsor.HasPendingImageApproval.Should().BeFalse();
+		var updatedPartner = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
+		updatedPartner.MobileImageUrl.Should().Be("https://example.com/pending-mobile.png");
+		updatedPartner.DesktopImageUrl.Should().Be("https://example.com/pending-desktop.png");
+		updatedPartner.PendingMobileImageUrl.Should().BeNull();
+		updatedPartner.PendingDesktopImageUrl.Should().BeNull();
+		updatedPartner.HasPendingImageApproval.Should().BeFalse();
 	}
 
 	[Fact]
-	public async Task RejectImagesAsync_ReturnsError_WhenSponsorNotFound()
+	public async Task RejectImagesAsync_ReturnsError_WhenPartnerNotFound()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
@@ -442,7 +442,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task RejectImagesAsync_DeletesPendingImages_WhenValid()
 	{
 		// Arrange
-		var partner = AddSponsor();
+		var partner = AddPartner();
 		partner.PendingMobileImageUrl = "https://example.com/pending-mobile.png";
 		partner.PendingDesktopImageUrl = "https://example.com/pending-desktop.png";
 		partner.HasPendingImageApproval = true;
@@ -459,15 +459,15 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>());
 
-		var updatedSponsor = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
-		updatedSponsor.PendingMobileImageUrl.Should().BeNull();
-		updatedSponsor.PendingDesktopImageUrl.Should().BeNull();
-		updatedSponsor.HasPendingImageApproval.Should().BeFalse();
+		var updatedPartner = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
+		updatedPartner.PendingMobileImageUrl.Should().BeNull();
+		updatedPartner.PendingDesktopImageUrl.Should().BeNull();
+		updatedPartner.HasPendingImageApproval.Should().BeFalse();
 	}
 
-	private Partner AddSponsor()
+	private Partner AddPartner()
 	{
-		var partner = _sponsorFaker.Generate();
+		var partner = _partnerFaker.Generate();
 		partner.UserId = _userProfileId;
 		_context.Partners.Add(partner);
 		return partner;

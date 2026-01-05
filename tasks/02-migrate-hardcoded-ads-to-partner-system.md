@@ -77,14 +77,14 @@ Replace hardcoded logic with database queries:
 
 ```csharp
 // In the component that uses GetAdsForSearch
-@inject ISponsorService PartnerService
+@inject IPartnerService PartnerService
 
 // Replace:
 var ads = HardcodedAds.GetAdsForSearch(count);
 
 // With:
-var partners = await PartnerService.GetAllSponsorsAsync();
-var activeSponsors = partners
+var partners = await PartnerService.GetAllPartnersAsync();
+var activePartners = partners
     .Where(s => !string.IsNullOrEmpty(s.MobileImageUrl) ||
                 !string.IsNullOrEmpty(s.DesktopImageUrl))
     .ToList();
@@ -96,10 +96,10 @@ var activeSponsors = partners
 // src/web/Jordnaer/Features/Ad/AdService.cs
 public interface IAdService
 {
-    Task<List<SponsorAd>> GetAdsForSearchAsync(int count, CancellationToken cancellationToken = default);
+    Task<List<PartnerAd>> GetAdsForSearchAsync(int count, CancellationToken cancellationToken = default);
 }
 
-public record SponsorAd
+public record PartnerAd
 {
     public Guid PartnerId { get; init; }
     public string Name { get; init; }
@@ -111,22 +111,22 @@ public record SponsorAd
 
 public class AdService : IAdService
 {
-    private readonly ISponsorService _sponsorService;
+    private readonly IPartnerService _partnerService;
 
-    public async Task<List<SponsorAd>> GetAdsForSearchAsync(int count, CancellationToken cancellationToken = default)
+    public async Task<List<PartnerAd>> GetAdsForSearchAsync(int count, CancellationToken cancellationToken = default)
     {
-        var partners = await _sponsorService.GetAllSponsorsAsync(cancellationToken);
+        var partners = await _partnerService.GetAllPartnersAsync(cancellationToken);
 
-        var activeSponsors = partners
+        var activePartners = partners
             .Where(s => (!string.IsNullOrEmpty(s.MobileImageUrl) || !string.IsNullOrEmpty(s.DesktopImageUrl))
                         && !s.HasPendingImageApproval) // Only show approved ads
             .ToList();
 
         // Implement rotation/selection logic here
         // For now, return all active partners up to count
-        return activeSponsors
+        return activePartners
             .Take(count)
-            .Select(s => new SponsorAd
+            .Select(s => new PartnerAd
             {
                 PartnerId = s.Id,
                 Name = s.Name,
@@ -188,7 +188,7 @@ Once the migration is complete, consider these improvements:
 ### Ad Rotation Logic
 
 - Fair rotation between multiple partners
-- Weighted rotation based on sponsorship tier (future feature)
+- Weighted rotation based on partnership tier (future feature)
 - A/B testing support
 
 ### Ad Placement Optimization
@@ -210,15 +210,15 @@ Once the migration is complete, consider these improvements:
 Keep `HardcodedAds.cs` as a fallback during migration:
 
 ```csharp
-public async Task<List<SponsorAd>> GetAdsForSearchAsync(int count)
+public async Task<List<PartnerAd>> GetAdsForSearchAsync(int count)
 {
-    var partners = await GetActiveSponsors();
+    var partners = await GetActivePartners();
 
     // Fallback to hardcoded ads if no partners available
     if (!partners.Any())
     {
         return HardcodedAds.GetAdsForSearch(count)
-            .Select(ConvertToSponsorAd)
+            .Select(ConvertToPartnerAd)
             .ToList();
     }
 
@@ -229,7 +229,7 @@ public async Task<List<SponsorAd>> GetAdsForSearchAsync(int count)
 ### Migration Checklist Files to Update
 
 - [ ] Find all `HardcodedAds.GetAdsForSearch()` usages
-- [ ] Update to use `ISponsorService` or new `IAdService`
+- [ ] Update to use `IPartnerService` or new `IAdService`
 - [ ] Add impression tracking
 - [ ] Add click tracking
 - [ ] Test on staging environment first

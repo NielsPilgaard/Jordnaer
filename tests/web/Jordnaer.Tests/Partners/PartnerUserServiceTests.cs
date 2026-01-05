@@ -56,7 +56,7 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task CreatePartnerAccountAsync_ShouldCreateUserProfileSponsorAndSendEmail()
+	public async Task CreatePartnerAccountAsync_ShouldCreateUserProfilePartnerAndSendEmail()
 	{
 		// Arrange
 		var request = new CreatePartnerRequest
@@ -434,7 +434,7 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task ResendWelcomeEmailAsync_ShouldReturnNotFound_WhenSponsorDoesNotExist()
+	public async Task ResendWelcomeEmailAsync_ShouldReturnNotFound_WhenPartnerDoesNotExist()
 	{
 		// Arrange
 		var userId = Guid.NewGuid().ToString();

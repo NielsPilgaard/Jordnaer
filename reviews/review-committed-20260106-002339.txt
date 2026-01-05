@@ -1,0 +1,66 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: tasks/02-migrate-hardcoded-ads-to-partner-system.md
+Line: 29 to 174
+Type: refactor_suggestion
+
+Prompt for AI Agent:
+Add a "Testing & Verification" section between "Record Analytics" and "Remove Hardcoded Files" that mandates unit, integration and e2e tests: unit tests for AdService (e.g., AdService.GetAdsForSearchAsync) verifying selection, mapping to SponsorAd, limit/count behavior and HasPendingImageApproval filtering (suggest test name AdServiceTests_GetAdsForSearch_ReturnsActiveSponsors); unit tests for PartnerService impression/click methods (RecordImpressionAsync, RecordClickAsync) asserting counters/DB writes (e.g., PartnerServiceTests_RecordImpression_IncrementsCounter); compatibility tests that verify fallback to HardcodedAds.GetAdsForSearch when no partners exist; component/integration tests for all Razor components updated to call the new service (mock ISponsorService/PartnerService) verifying ads render and analytics calls are issued; and end-to-end tests that cover partner account creation, image upload/approval and that the approved images appear in search results; include guidance to add mock data fixtures, use CI to run tests before deleting HardcodedAds and to add explicit test file names like AdServiceTests.cs and PartnerServiceIntegrationTests.cs.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Pages/Footer/Sponsors.razor
+Line: 1 to 2
+Type: potential_issue
+
+Prompt for AI Agent:
+The route was changed from "/sponsors" to "/partners" which breaks existing links; update internal navigation by searching for usages of the Sponsors component and any NavLink/Href targeting "/sponsors" and replace them with "/partners" or point them to the component name (Sponsors.razor) so they follow the new route, and restore backwards-compatibility by adding an additional @page "/sponsors" directive to Sponsors.razor (or implement a simple redirect component that maps "/sponsors" → "/partners"); also ensure server-level redirects or sitemap/external link updates are applied for external bookmarks and verify any canonical URLs and links in the footer/navigation, CI content, or marketing pages are updated accordingly.
+
+
+
+============================================================================
+File: tasks/02-migrate-hardcoded-ads-to-partner-system.md
+Line: 12
+Type: potential_issue
+
+Prompt for AI Agent:
+Edit the task description to remove the redundant "partner/partner system" phrasing; update the sentence referencing the new system (near HardcodedAds.cs migration) to a clearer form such as "the new partner system" or "the new partner dashboard and database-backed system" so it reads: "With the new partner system (Task 01) now complete..." or the alternative longer form; ensure the reference to migrating hardcoded ads in src/web/Jordnaer/Features/Ad/HardcodedAds.cs remains intact.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Database/JordnaerDbContext.cs
+Line: 26 to 27
+Type: potential_issue
+
+Prompt for AI Agent:
+The new DbSet properties Partners and PartnerAnalytics in JordnaerDbContext lack the same non-null initializers used elsewhere; update the property declarations for Partners and PartnerAnalytics to include the non-null initializer (= default!;) so they match the existing DbSet pattern and silence nullable warnings in the JordnaerDbContext class.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Features/Email/EmailService.cs
+Line: 201
+Type: potential_issue
+
+Prompt for AI Agent:
+The LogInformation call in EmailService is logging a full email (PII); change the logger.LogInformation usage so it no longer logs the raw email — keep partnerName but replace email with a non-identifying value (e.g., a masked version like show only first char and domain or a deterministic hash such as SHA256) before passing it to logger.LogInformation; add a small helper (e.g., MaskEmail or HashEmail) in EmailService and use that helper in place of the plain email in the logger.LogInformation call.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Features/Email/EmailService.cs
+Line: 162 to 183
+Type: potential_issue
+
+Prompt for AI Agent:
+The email generation currently builds imageLinks from partner.PendingMobileImageUrl and partner.PendingDesktopImageUrl and will render an empty  if both are null/empty; update the logic in EmailService.cs where imageLinks and the SendEmail HtmlContent are constructed to detect when imageLinks is empty and instead include fallback text (e.g., a paragraph like "Ingen nye billeder til godkendelse") or omit the  entirely; modify the construction around the imageLinks list and the HtmlContent assignment (the SendEmail object’s HtmlContent) so it conditionally injects either the joined  entries or the fallback message.
+
+

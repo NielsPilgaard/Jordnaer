@@ -13,7 +13,7 @@ Create a dashboard where partners can view analytics about their ad performance 
 
 ## Current State
 
-- Partners are displayed on public `/partners` page via [SponsorCard.razor](src/web/Jordnaer/Features/Partners/SponsorCard.razor)
+- Partners are displayed on public `/partners` page via [PartnerCard.razor](src/web/Jordnaer/Features/Partners/PartnerCard.razor)
 - Partner model exists at [Partner.cs](src/shared/Jordnaer.Shared/Partners/Partner.cs) with basic properties (Name, Description, LogoUrl, Link)
 - No partner-specific dashboard or analytics exist
 - No admin approval workflow for partner content changes
@@ -75,7 +75,7 @@ public bool HasPendingImageApproval { get; set; }
 Create new analytics model:
 
 ```csharp
-public class SponsorAnalytics
+public class PartnerAnalytics
 {
     public Guid PartnerId { get; set; }
     public DateTime Date { get; set; }
@@ -88,7 +88,7 @@ public class SponsorAnalytics
 
 - Track impressions when ad is displayed (client-side or server-side)
 - Track clicks when partner link is clicked
-- Store daily aggregated data in `SponsorAnalytics` table
+- Store daily aggregated data in `PartnerAnalytics` table
 - Implement service methods:
   - `RecordImpressionAsync(Guid partnerId)`
   - `RecordClickAsync(Guid partnerId)`
@@ -96,7 +96,7 @@ public class SponsorAnalytics
 
 ### 6. Integration Points
 
-- Update [SponsorCard.razor](src/web/Jordnaer/Features/Partners/SponsorCard.razor) to:
+- Update [PartnerCard.razor](src/web/Jordnaer/Features/Partners/PartnerCard.razor) to:
   - Use responsive image display (mobile vs desktop)
   - Track impressions on render
   - Track clicks on link interaction
@@ -130,7 +130,7 @@ public class SponsorAnalytics
 ### Data & Tracking
 
 - [ ] Database migration adds new fields to Partner table
-- [ ] SponsorAnalytics table created
+- [ ] PartnerAnalytics table created
 - [ ] Impression tracking implemented
 - [ ] Click tracking implemented
 - [ ] Analytics aggregation service implemented
@@ -148,14 +148,14 @@ public class SponsorAnalytics
 
 - `src/web/Jordnaer/Pages/Partner/Dashboard.razor` - Partner dashboard page
 - `src/web/Jordnaer/Features/Partners/PartnerService.cs` - Service for analytics and image management
-- `src/web/Jordnaer/Features/Partners/SponsorAnalytics.cs` - Analytics model
-- `src/web/Jordnaer/Database/Migrations/AddSponsorAnalytics.cs` - EF migration
+- `src/web/Jordnaer/Features/Partners/PartnerAnalytics.cs` - Analytics model
+- `src/web/Jordnaer/Database/Migrations/AddPartnerAnalytics.cs` - EF migration
 
 **Modify:**
 
 - [Partner.cs](src/shared/Jordnaer.Shared/Partners/Partner.cs) - Add image and approval fields
-- [SponsorCard.razor](src/web/Jordnaer/Features/Partners/SponsorCard.razor) - Responsive images + tracking
-- [JordnaerDbContext.cs](src/web/Jordnaer/Database/JordnaerDbContext.cs) - Add SponsorAnalytics DbSet
+- [PartnerCard.razor](src/web/Jordnaer/Features/Partners/PartnerCard.razor) - Responsive images + tracking
+- [JordnaerDbContext.cs](src/web/Jordnaer/Database/JordnaerDbContext.cs) - Add PartnerAnalytics DbSet
 - [EmailService.cs](src/web/Jordnaer/Features/Email/EmailService.cs) - Add method for partner image approval emails
 
 ## Technical Notes

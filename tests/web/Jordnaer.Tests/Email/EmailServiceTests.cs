@@ -487,19 +487,19 @@ public class EmailServiceTests : IAsyncLifetime
 
 	#endregion
 
-	#region SendSponsorImageApprovalEmailAsync Tests
+	#region SendPartnerImageApprovalEmailAsync Tests
 
 	[Fact]
-	public async Task SendSponsorImageApprovalEmailAsync_ShouldPublishEmailToAdmin()
+	public async Task SendPartnerImageApprovalEmailAsync_ShouldPublishEmailToAdmin()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
-		var sponsorName = "Test Partner Company";
+		var partnerName = "Test Partner Company";
 
 		var partner = new Partner
 		{
 			Id = partnerId,
-			Name = sponsorName,
+			Name = partnerName,
 			Description = "Test description",
 			Link = "https://example.com",
 			UserId = Guid.NewGuid().ToString(),
@@ -511,18 +511,18 @@ public class EmailServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		await _service.SendSponsorImageApprovalEmailAsync(partnerId, sponsorName);
+		await _service.SendPartnerImageApprovalEmailAsync(partnerId, partnerName);
 
 		// Assert
 		_publishEndpointMock.Verify(
 			x => x.Publish(
 				It.Is<SendEmail>(email =>
-					email.Subject == $"Ny partner billede godkendelse: {sponsorName}" &&
+					email.Subject == $"Ny partner billede godkendelse: {partnerName}" &&
 					email.To != null &&
 					email.To.Count == 1 &&
 					email.To[0].Email == "kontakt@mini-moeder.dk" &&
 					email.To[0].DisplayName == "Mini Møder Admin" &&
-					email.HtmlContent.Contains(sponsorName) &&
+					email.HtmlContent.Contains(partnerName) &&
 					email.HtmlContent.Contains($"http://localhost:5000/backoffice/partners/{partnerId}") &&
 					email.HtmlContent.Contains("https://example.com/mobile.png") &&
 					email.HtmlContent.Contains("https://example.com/desktop.png") &&
@@ -535,14 +535,14 @@ public class EmailServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task SendSponsorImageApprovalEmailAsync_ShouldNotPublishEmail_WhenSponsorNotFound()
+	public async Task SendPartnerImageApprovalEmailAsync_ShouldNotPublishEmail_WhenPartnerNotFound()
 	{
 		// Arrange
-		var nonExistentSponsorId = Guid.NewGuid();
-		var sponsorName = "Non-existent Partner";
+		var nonExistentPartnerId = Guid.NewGuid();
+		var partnerName = "Non-existent Partner";
 
 		// Act
-		await _service.SendSponsorImageApprovalEmailAsync(nonExistentSponsorId, sponsorName);
+		await _service.SendPartnerImageApprovalEmailAsync(nonExistentPartnerId, partnerName);
 
 		// Assert
 		_publishEndpointMock.Verify(
@@ -552,16 +552,16 @@ public class EmailServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task SendSponsorImageApprovalEmailAsync_ShouldIncludeOnlyMobileImage_WhenDesktopImageIsNull()
+	public async Task SendPartnerImageApprovalEmailAsync_ShouldIncludeOnlyMobileImage_WhenDesktopImageIsNull()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
-		var sponsorName = "Mobile Only Partner";
+		var partnerName = "Mobile Only Partner";
 
 		var partner = new Partner
 		{
 			Id = partnerId,
-			Name = sponsorName,
+			Name = partnerName,
 			Description = "Test description",
 			Link = "https://example.com",
 			UserId = Guid.NewGuid().ToString(),
@@ -573,7 +573,7 @@ public class EmailServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		await _service.SendSponsorImageApprovalEmailAsync(partnerId, sponsorName);
+		await _service.SendPartnerImageApprovalEmailAsync(partnerId, partnerName);
 
 		// Assert
 		_publishEndpointMock.Verify(
@@ -589,16 +589,16 @@ public class EmailServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task SendSponsorImageApprovalEmailAsync_ShouldIncludeApprovalUrl()
+	public async Task SendPartnerImageApprovalEmailAsync_ShouldIncludeApprovalUrl()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
-		var sponsorName = "Test Partner";
+		var partnerName = "Test Partner";
 
 		var partner = new Partner
 		{
 			Id = partnerId,
-			Name = sponsorName,
+			Name = partnerName,
 			Description = "Test description",
 			Link = "https://example.com",
 			UserId = Guid.NewGuid().ToString(),
@@ -611,7 +611,7 @@ public class EmailServiceTests : IAsyncLifetime
 		var expectedApprovalUrl = $"http://localhost:5000/backoffice/partners/{partnerId}";
 
 		// Act
-		await _service.SendSponsorImageApprovalEmailAsync(partnerId, sponsorName);
+		await _service.SendPartnerImageApprovalEmailAsync(partnerId, partnerName);
 
 		// Assert
 		_publishEndpointMock.Verify(
