@@ -894,3 +894,71 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+)
+BEGIN
+    CREATE TABLE [Partners] (
+        [Id] uniqueidentifier NOT NULL,
+        [Name] nvarchar(128) NOT NULL,
+        [Description] nvarchar(500) NOT NULL,
+        [LogoUrl] nvarchar(max) NULL,
+        [Link] nvarchar(max) NOT NULL,
+        [MobileImageUrl] nvarchar(max) NULL,
+        [DesktopImageUrl] nvarchar(max) NULL,
+        [PendingMobileImageUrl] nvarchar(max) NULL,
+        [PendingDesktopImageUrl] nvarchar(max) NULL,
+        [LastImageUpdateUtc] datetime2 NULL,
+        [HasPendingImageApproval] bit NOT NULL,
+        [UserId] nvarchar(max) NOT NULL,
+        [CreatedUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_Partners] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+)
+BEGIN
+    CREATE TABLE [PartnerAnalytics] (
+        [Id] int NOT NULL IDENTITY,
+        [PartnerId] uniqueidentifier NOT NULL,
+        [Date] datetime2 NOT NULL,
+        [Impressions] int NOT NULL,
+        [Clicks] int NOT NULL,
+        CONSTRAINT [PK_PartnerAnalytics] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_PartnerAnalytics_Partners_PartnerId] FOREIGN KEY ([PartnerId]) REFERENCES [Partners] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_PartnerAnalytics_PartnerId_Date] ON [PartnerAnalytics] ([PartnerId], [Date]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Partners_Name] ON [Partners] ([Name]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260106215849_Add_Partners', N'10.0.1');
+END;
+
+COMMIT;
+GO
+

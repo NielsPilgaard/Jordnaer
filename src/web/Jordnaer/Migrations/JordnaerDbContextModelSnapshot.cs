@@ -357,6 +357,89 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("GroupPosts");
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.Partner", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DesktopImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasPendingImageApproval")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastImageUpdateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Link")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MobileImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("PendingDesktopImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingMobileImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Partners");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.PartnerAnalytics", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Clicks")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Impressions")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PartnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartnerId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("PartnerAnalytics");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.Post", b =>
                 {
                     b.Property<Guid>("Id")
@@ -761,6 +844,17 @@ namespace Jordnaer.Server.Migrations
                     b.Navigation("UserProfile");
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.PartnerAnalytics", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.Partner", "Partner")
+                        .WithMany("Analytics")
+                        .HasForeignKey("PartnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Partner");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.Post", b =>
                 {
                     b.HasOne("Jordnaer.Shared.UserProfile", "UserProfile")
@@ -891,6 +985,11 @@ namespace Jordnaer.Server.Migrations
             modelBuilder.Entity("Jordnaer.Shared.Group", b =>
                 {
                     b.Navigation("Memberships");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Partner", b =>
+                {
+                    b.Navigation("Analytics");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.UserProfile", b =>
