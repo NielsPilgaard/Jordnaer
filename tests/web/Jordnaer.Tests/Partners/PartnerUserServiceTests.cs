@@ -10,10 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
-using Microsoft.EntityFrameworkCore.Sqlite;
 namespace Jordnaer.Tests.Partners;
 
-public class PartnerServiceTests : IAsyncLifetime
+public class PartnerUserServiceTests : IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
 	private readonly UserManager<ApplicationUser> _userManager;
@@ -23,7 +22,7 @@ public class PartnerServiceTests : IAsyncLifetime
 	private readonly PartnerUserService _partnerUserService;
 	private readonly Faker _faker = new("en");
 
-	public PartnerServiceTests()
+	public PartnerUserServiceTests()
 	{
 		var options = new DbContextOptionsBuilder<JordnaerDbContext>()
 			.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())

@@ -19,9 +19,9 @@ namespace Jordnaer.Tests.Partners;
 
 [Trait("Category", "IntegrationTest")]
 [Collection(nameof(SqlServerContainerCollection))]
-public class PartnerUserServiceTests : IAsyncLifetime
+public class PartnerServiceTests : IAsyncLifetime
 {
-	private readonly PartnerUserService _partnerUserService;
+	private readonly PartnerService _partnerService;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
 	private readonly JordnaerDbContext _context;
 	private readonly IImageService _imageService = Substitute.For<IImageService>();
@@ -40,7 +40,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 
 	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
 
-	public PartnerUserServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
+	public PartnerServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
 		_sqlServerContainer = sqlServerContainer;
 		_context = _sqlServerContainer.CreateContext();
@@ -56,9 +56,9 @@ public class PartnerUserServiceTests : IAsyncLifetime
 				))
 		};
 
-		_partnerUserService = new PartnerUserService(
+		_partnerService = new PartnerService(
 			_contextFactory,
-			Substitute.For<ILogger<PartnerUserService>>(),
+			Substitute.For<ILogger<PartnerService>>(),
 			currentUser,
 			_imageService,
 			_emailService);
@@ -71,7 +71,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var id = Guid.NewGuid();
 
 		// Act
-		var result = await _partnerUserService.GetPartnerByIdAsync(id);
+		var result = await _partnerService.GetPartnerByIdAsync(id);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
@@ -85,7 +85,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.GetPartnerByIdAsync(partner.Id);
+		var result = await _partnerService.GetPartnerByIdAsync(partner.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Partner>();
@@ -102,7 +102,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var userId = Guid.NewGuid().ToString();
 
 		// Act
-		var result = await _partnerUserService.GetPartnerByUserIdAsync(userId);
+		var result = await _partnerService.GetPartnerByUserIdAsync(userId);
 
 		// Assert
 		result.Value.Should().BeOfType<NotFound>();
@@ -116,7 +116,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.GetPartnerByUserIdAsync(partner.UserId);
+		var result = await _partnerService.GetPartnerByUserIdAsync(partner.UserId);
 
 		// Assert
 		result.Value.Should().BeOfType<Partner>();
@@ -129,7 +129,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 	public async Task GetAllPartnersAsync_ReturnsEmptyList_WhenNoPartnersExist()
 	{
 		// Act
-		var result = await _partnerUserService.GetAllPartnersAsync();
+		var result = await _partnerService.GetAllPartnersAsync();
 
 		// Assert
 		result.Should().BeEmpty();
@@ -144,7 +144,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.GetAllPartnersAsync();
+		var result = await _partnerService.GetAllPartnersAsync();
 
 		// Assert
 		result.Should().HaveCount(2);
@@ -160,7 +160,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.RecordImpressionAsync(partner.Id);
+		var result = await _partnerService.RecordImpressionAsync(partner.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -189,17 +189,15 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.RecordImpressionAsync(partner.Id);
+		var result = await _partnerService.RecordImpressionAsync(partner.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
 
-		var updatedAnalytics = await _context.PartnerAnalytics
-			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
-
-		updatedAnalytics.Should().NotBeNull();
-		updatedAnalytics!.Impressions.Should().Be(6);
-		updatedAnalytics.Clicks.Should().Be(2);
+		// Reload the entity from database to see changes made by the service
+		await _context.Entry(analytics).ReloadAsync();
+		analytics.Impressions.Should().Be(6);
+		analytics.Clicks.Should().Be(2);
 	}
 
 	[Fact]
@@ -210,7 +208,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.RecordClickAsync(partner.Id);
+		var result = await _partnerService.RecordClickAsync(partner.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
@@ -239,17 +237,15 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.RecordClickAsync(partner.Id);
+		var result = await _partnerService.RecordClickAsync(partner.Id);
 
 		// Assert
 		result.Value.Should().BeOfType<Success>();
 
-		var updatedAnalytics = await _context.PartnerAnalytics
-			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
-
-		updatedAnalytics.Should().NotBeNull();
-		updatedAnalytics!.Impressions.Should().Be(10);
-		updatedAnalytics!.Clicks.Should().Be(4);
+		// Reload the entity from database to see changes made by the service
+		await _context.Entry(analytics).ReloadAsync();
+		analytics.Impressions.Should().Be(10);
+		analytics.Clicks.Should().Be(4);
 	}
 
 	[Fact]
@@ -263,7 +259,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var toDate = DateTime.UtcNow;
 
 		// Act
-		var result = await _partnerUserService.GetAnalyticsAsync(partner.Id, fromDate, toDate);
+		var result = await _partnerService.GetAnalyticsAsync(partner.Id, fromDate, toDate);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -302,7 +298,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var toDate = today;
 
 		// Act
-		var result = await _partnerUserService.GetAnalyticsAsync(partner.Id, fromDate, toDate);
+		var result = await _partnerService.GetAnalyticsAsync(partner.Id, fromDate, toDate);
 
 		// Assert
 		result.Should().NotBeNull();
@@ -320,7 +316,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerUserService.UploadPendingImagesAsync(partnerId, stream, null);
+		var result = await _partnerService.UploadPendingImagesAsync(partnerId, stream, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -338,7 +334,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerUserService.UploadPendingImagesAsync(partner.Id, stream, null);
+		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, stream, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -364,7 +360,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			.Returns("https://example.com/image.png");
 
 		// Act
-		var result = await _partnerUserService.UploadPendingImagesAsync(partner.Id, mobileStream, desktopStream);
+		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, mobileStream, desktopStream);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
@@ -380,10 +376,11 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			partner.Name,
 			Arg.Any<CancellationToken>());
 
-		var updatedPartner = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
-		updatedPartner.HasPendingImageApproval.Should().BeTrue();
-		updatedPartner.PendingMobileImageUrl.Should().NotBeNullOrEmpty();
-		updatedPartner.PendingDesktopImageUrl.Should().NotBeNullOrEmpty();
+		// Reload the entity from database to see changes made by the service
+		await _context.Entry(partner).ReloadAsync();
+		partner.HasPendingImageApproval.Should().BeTrue();
+		partner.PendingMobileImageUrl.Should().NotBeNullOrEmpty();
+		partner.PendingDesktopImageUrl.Should().NotBeNullOrEmpty();
 	}
 
 	[Fact]
@@ -393,7 +390,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var partnerId = Guid.NewGuid();
 
 		// Act
-		var result = await _partnerUserService.ApproveImagesAsync(partnerId);
+		var result = await _partnerService.ApproveImagesAsync(partnerId);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -411,17 +408,18 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.ApproveImagesAsync(partner.Id);
+		var result = await _partnerService.ApproveImagesAsync(partner.Id);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
 
-		var updatedPartner = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
-		updatedPartner.MobileImageUrl.Should().Be("https://example.com/pending-mobile.png");
-		updatedPartner.DesktopImageUrl.Should().Be("https://example.com/pending-desktop.png");
-		updatedPartner.PendingMobileImageUrl.Should().BeNull();
-		updatedPartner.PendingDesktopImageUrl.Should().BeNull();
-		updatedPartner.HasPendingImageApproval.Should().BeFalse();
+		// Reload the entity from database to see changes made by the service
+		await _context.Entry(partner).ReloadAsync();
+		partner.MobileImageUrl.Should().Be("https://example.com/pending-mobile.png");
+		partner.DesktopImageUrl.Should().Be("https://example.com/pending-desktop.png");
+		partner.PendingMobileImageUrl.Should().BeNull();
+		partner.PendingDesktopImageUrl.Should().BeNull();
+		partner.HasPendingImageApproval.Should().BeFalse();
 	}
 
 	[Fact]
@@ -431,7 +429,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		var partnerId = Guid.NewGuid();
 
 		// Act
-		var result = await _partnerUserService.RejectImagesAsync(partnerId);
+		var result = await _partnerService.RejectImagesAsync(partnerId);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -449,7 +447,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerUserService.RejectImagesAsync(partner.Id);
+		var result = await _partnerService.RejectImagesAsync(partner.Id);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
@@ -459,10 +457,11 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>());
 
-		var updatedPartner = await _context.Partners.FirstAsync(s => s.Id == partner.Id);
-		updatedPartner.PendingMobileImageUrl.Should().BeNull();
-		updatedPartner.PendingDesktopImageUrl.Should().BeNull();
-		updatedPartner.HasPendingImageApproval.Should().BeFalse();
+		// Reload the entity from database to see changes made by the service
+		await _context.Entry(partner).ReloadAsync();
+		partner.PendingMobileImageUrl.Should().BeNull();
+		partner.PendingDesktopImageUrl.Should().BeNull();
+		partner.HasPendingImageApproval.Should().BeFalse();
 	}
 
 	private Partner AddPartner()
@@ -477,7 +476,10 @@ public class PartnerUserServiceTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		await _context.Database.EnsureDeletedAsync();
+		// Clean up test data to ensure test isolation
+		_context.PartnerAnalytics.RemoveRange(_context.PartnerAnalytics);
+		_context.Partners.RemoveRange(_context.Partners);
+		await _context.SaveChangesAsync();
 		await _context.DisposeAsync();
 	}
 }

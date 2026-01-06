@@ -198,7 +198,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		string temporaryPassword,
 		CancellationToken cancellationToken = default)
 	{
-		logger.LogInformation("Sending partner welcome email to {Email} for partner {PartnerName}", email, partnerName);
+		logger.LogInformation("Sending partner welcome email to {Email} for partner {PartnerName}", new MaskedEmail(email), partnerName);
 
 		var loginUrl = $"{options.Value.BaseUrl}/Account/Login";
 		var dashboardUrl = $"{options.Value.BaseUrl}/partner/dashboard";

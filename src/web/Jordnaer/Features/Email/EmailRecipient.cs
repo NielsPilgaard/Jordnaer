@@ -29,50 +29,10 @@ public class EmailRecipient
 	/// </summary>
 	public override string ToString()
 	{
-		var maskedEmail = MaskEmailAddress(Email);
+		var maskedEmail = MaskedEmail.Mask(Email);
 
 		return string.IsNullOrWhiteSpace(DisplayName)
 				   ? maskedEmail
 				   : $"{DisplayName} <{maskedEmail}>";
-	}
-
-	private static string MaskEmailAddress(string email)
-	{
-		if (string.IsNullOrWhiteSpace(email))
-		{
-			return "[invalid]";
-		}
-
-		var atIndex = email.LastIndexOf('@');
-		if (atIndex <= 0 || atIndex == email.Length - 1)
-		{
-			return "[invalid]";
-		}
-
-		var localPart = email[..atIndex];
-		var domain = email[(atIndex + 1)..];
-
-		// Mask local part - show first character and last character (if length > 2)
-		var maskedLocal = localPart.Length switch
-		{
-			1 => "*",
-			2 => $"{localPart[0]}*",
-			_ => $"{localPart[0]}***{localPart[^1]}"
-		};
-
-		// Mask domain - show first character and keep the TLD
-		var dotIndex = domain.LastIndexOf('.');
-		if (dotIndex <= 0)
-		{
-			// No TLD found, just mask most of domain
-			var maskedDomain = domain.Length > 1 ? $"{domain[0]}***" : "*";
-			return $"{maskedLocal}@{maskedDomain}";
-		}
-
-		var domainName = domain[..dotIndex];
-		var tld = domain[dotIndex..];
-		var maskedDomainName = domainName.Length > 1 ? $"{domainName[0]}***" : "*";
-
-		return $"{maskedLocal}@{maskedDomainName}{tld}";
 	}
 }

@@ -55,7 +55,7 @@ public sealed class PartnerUserService(
 		var existingUser = await userManager.FindByEmailAsync(request.Email);
 		if (existingUser is not null)
 		{
-			logger.LogWarning("Attempted to create partner account with existing email: {Email}", request.Email);
+			logger.LogWarning("Attempted to create partner account with existing email: {Email}", new MaskedEmail(request.Email));
 			return new Error<string>("En bruger med denne email findes allerede");
 		}
 
@@ -129,7 +129,7 @@ public sealed class PartnerUserService(
 
 			logger.LogInformation(
 				"Created partner account for {Email} with PartnerId {PartnerId}",
-				request.Email,
+				new MaskedEmail(request.Email),
 				partner.Id);
 
 			return new CreatePartnerResult
@@ -143,7 +143,7 @@ public sealed class PartnerUserService(
 		catch (Exception ex)
 		{
 			// Rollback: Delete the user account if partner/profile creation failed
-			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back user account.", request.Email);
+			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back user account.", new MaskedEmail(request.Email));
 			await userManager.DeleteAsync(user);
 			throw;
 		}
@@ -189,7 +189,7 @@ public sealed class PartnerUserService(
 			newTemporaryPassword,
 			cancellationToken);
 
-		logger.LogInformation("Resent welcome email to partner {Email}", user.Email);
+		logger.LogInformation("Resent welcome email to partner {Email}", new MaskedEmail(user.Email));
 
 		return new Success();
 	}
