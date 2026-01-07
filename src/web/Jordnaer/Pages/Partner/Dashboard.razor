@@ -1,0 +1,587 @@
+@page "/partner/dashboard"
+@attribute [Authorize(Policy = AuthorizationPolicies.PartnerAccess)]
+@using Jordnaer.Features.Authentication
+@using Jordnaer.Features.Dashboard
+@using Jordnaer.Features.Partners
+@using Jordnaer.Features.Ad
+@using Jordnaer.Shared
+@using static Jordnaer.Features.Partners.PartnerService
+@inject IPartnerService PartnerService
+@inject CurrentUser CurrentUser
+@inject ISnackbar Snackbar
+
+<PageTitle>Partner Dashboard - Mini Møder</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+	@if (_loading)
+	{
+		<MudProgressCircular Indeterminate Color="Color.Primary" />
+	}
+	else if (_partner is null)
+	{
+		<MudAlert Severity="Severity.Warning">
+			Ingen partner konto fundet. Kontakt <a href="mailto:kontakt@mini-moeder.dk">support</a> for at få hjælp.
+		</MudAlert>
+	}
+	else
+	{
+		@* Welcome Header *@
+		<MudText Typo="Typo.h3" Class="font-open-sans-bold mb-8" Align="Align.Center"
+			Style="@JordnaerPalette.YellowBackground.ToTextColor()">
+			Partner Dashboard - @_partner.Name
+		</MudText>
+
+		@* Pending Approval Alert *@
+		@if (_partner.HasPendingApproval)
+		{
+			<MudAlert Severity="Severity.Info" Class="mb-6">
+				Dine ændringer afventer godkendelse fra admin
+			</MudAlert>
+		}
+
+		@* Time Period Selector *@
+		<MudPaper Class="pa-4 mb-6" Elevation="2">
+			<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+				<MudText Typo="Typo.h6">Tidsperiode:</MudText>
+				<MudButtonGroup Color="Color.Primary">
+					<MudButton OnClick="() => SelectTimePeriod(7)"
+						Variant="@(_selectedDays == 7 ? Variant.Filled : Variant.Outlined)"
+						Color="Color.Primary">
+						7 dage
+					</MudButton>
+					<MudButton OnClick="() => SelectTimePeriod(30)"
+						Variant="@(_selectedDays == 30 ? Variant.Filled : Variant.Outlined)"
+						Color="Color.Primary">
+						30 dage
+					</MudButton>
+					<MudButton OnClick="() => SelectTimePeriod(90)"
+						Variant="@(_selectedDays == 90 ? Variant.Filled : Variant.Outlined)"
+						Color="Color.Primary">
+						90 dage
+					</MudButton>
+					<MudButton OnClick="() => SelectTimePeriod(365)"
+						Variant="@(_selectedDays == 365 ? Variant.Filled : Variant.Outlined)"
+						Color="Color.Primary">
+						Alt
+					</MudButton>
+				</MudButtonGroup>
+			</MudStack>
+		</MudPaper>
+
+		@* Analytics Cards Grid *@
+		<MudGrid Spacing="6" Class="mb-8">
+			<MudItem xs="12" sm="6" md="4">
+				<MudCard Elevation="2">
+					<MudCardContent>
+						<MudStack Spacing="2">
+							<MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+								<MudIcon Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" />
+								<MudText Typo="Typo.h6">Impressions</MudText>
+							</MudStack>
+							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
+								@_analytics?.TotalImpressions.ToString("N0")
+							</MudText>
+							<MudText Typo="Typo.body2" Color="Color.Secondary">
+								Antal gange din annonce er vist
+							</MudText>
+						</MudStack>
+					</MudCardContent>
+				</MudCard>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="4">
+				<MudCard Elevation="2">
+					<MudCardContent>
+						<MudStack Spacing="2">
+							<MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+								<MudIcon Icon="@Icons.Material.Filled.TouchApp" Color="Color.Success" />
+								<MudText Typo="Typo.h6">Clicks</MudText>
+							</MudStack>
+							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
+								@_analytics?.TotalClicks.ToString("N0")
+							</MudText>
+							<MudText Typo="Typo.body2" Color="Color.Secondary">
+								Antal gange der er klikket på din annonce
+							</MudText>
+						</MudStack>
+					</MudCardContent>
+				</MudCard>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="4">
+				<MudCard Elevation="2">
+					<MudCardContent>
+						<MudStack Spacing="2">
+							<MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+								<MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Info" />
+								<MudText Typo="Typo.h6">CTR</MudText>
+							</MudStack>
+							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
+								@_analytics?.ClickThroughRate.ToString("F2")%
+							</MudText>
+							<MudText Typo="Typo.body2" Color="Color.Secondary">
+								Click-through rate
+							</MudText>
+						</MudStack>
+					</MudCardContent>
+				</MudCard>
+			</MudItem>
+		</MudGrid>
+
+		@* Analytics Chart *@
+		@if (_analytics?.DailyAnalytics.Any() == true)
+		{
+			<MudPaper Class="pa-4 mb-8" Elevation="2">
+				<MudText Typo="Typo.h6" Class="mb-4">Daglig statistik</MudText>
+				<MudChart ChartType="ChartType.Line"
+					ChartSeries="@_chartSeries"
+					XAxisLabels="@_xAxisLabels"
+					Width="100%"
+					Height="300px" />
+			</MudPaper>
+		}
+		else
+		{
+			<MudPaper Class="pa-8 mb-8" Elevation="2">
+				<MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Secondary">
+					Ingen data for denne periode
+				</MudText>
+			</MudPaper>
+		}
+
+		@* Partner Information Management *@
+		<MudPaper Class="pa-6 mb-8" Elevation="2">
+			<MudText Typo="Typo.h5" Class="mb-4 font-open-sans-bold">Partner Administration</MudText>
+
+			@* Ad Image Section *@
+			<MudPaper Class="pa-4 mb-6" Elevation="1">
+				<MudText Typo="Typo.h6" Class="mb-4">
+					<MudIcon Icon="@Icons.Material.Filled.Image" Class="mr-2" /> Annonce Billede
+				</MudText>
+
+				<MudGrid Spacing="4">
+					@* Upload Controls *@
+					<MudItem xs="12" md="6">
+						<MudStack Spacing="3">
+							<MudText Typo="Typo.body2" Color="Color.Secondary">
+								<strong>Anbefalet format:</strong> 9:16 (portræt) - fx 1080x1920 eller 720x1280. 1:1 (kvadrat) er også acceptabelt.
+							</MudText>
+
+							@if (!string.IsNullOrEmpty(_partner.AdImageUrl))
+							{
+								<div>
+									<MudText Typo="Typo.subtitle2" Class="mb-2">Nuværende billede:</MudText>
+									<MudCard>
+										<MudCardMedia Image="@_partner.AdImageUrl" Height="300" />
+									</MudCard>
+								</div>
+							}
+
+							<MudDivider Class="my-2" />
+
+							<MudText Typo="Typo.subtitle2">Upload nyt billede:</MudText>
+							<MudFileUpload T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
+								@bind-Files="_adImage" MaximumFileCount="1">
+								<ActivatorContent>
+									<MudButton Variant="Variant.Filled" Color="Color.Primary"
+										StartIcon="@Icons.Material.Filled.CloudUpload">
+										Vælg Annonce Billede
+									</MudButton>
+								</ActivatorContent>
+							</MudFileUpload>
+							@if (_adImage is not null)
+							{
+								<MudChip T="string" OnClose="() => { _adImage = null; _adImagePreviewUrl = null; }">@_adImage.Name</MudChip>
+							}
+
+							@if (!string.IsNullOrEmpty(_partner.PendingAdImageUrl))
+							{
+								<MudAlert Severity="Severity.Warning" Dense Class="mt-2">
+									Du har et billede der afventer godkendelse
+								</MudAlert>
+							}
+
+							<MudText Typo="Typo.caption" Color="Color.Secondary">
+								Max 5MB. Formater: PNG, JPG, WEBP
+							</MudText>
+						</MudStack>
+					</MudItem>
+
+					@* Preview *@
+					<MudItem xs="12" md="6">
+						<MudStack Spacing="2">
+							<MudText Typo="Typo.subtitle2">Forhåndsvisning i søgeresultater:</MudText>
+							<MudText Typo="Typo.caption" Color="Color.Secondary">
+								Din annonce vises tilfældigt mellem brugerprofiler
+							</MudText>
+
+							@* Mock search result with ad preview *@
+							<div style="max-width: 300px;">
+								@if (!string.IsNullOrEmpty(GetPreviewAdImageUrl()))
+								{
+									<AdCard Link="@(_partner.Link)"
+										ImagePath="@GetPreviewAdImageUrl()"
+										ImageAlt="@(_partner.Name + " annonce")" />
+								}
+								else
+								{
+									<MudCard Elevation="2" Style="border: 2px dashed #ccc;">
+										<MudCardContent>
+											<MudStack AlignItems="AlignItems.Center" Spacing="2" Style="min-height: 200px;" Justify="Justify.Center">
+												<MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Secondary" />
+												<MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+													Upload et billede for at se forhåndsvisning
+												</MudText>
+											</MudStack>
+										</MudCardContent>
+									</MudCard>
+								}
+							</div>
+						</MudStack>
+					</MudItem>
+				</MudGrid>
+			</MudPaper>
+
+			@* Partner Card Section *@
+			<MudPaper Class="pa-4 mb-6" Elevation="1">
+				<MudText Typo="Typo.h6" Class="mb-4">
+					<MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" /> Partner Kort Information
+				</MudText>
+
+				<MudGrid Spacing="4">
+					@* Form Controls *@
+					<MudItem xs="12" md="6">
+						<MudStack Spacing="3">
+							<MudText Typo="Typo.body2" Color="Color.Secondary">
+								Denne information vises på <MudLink Href="/partners" Target="_blank">partnersiden</MudLink>
+							</MudText>
+
+							<MudTextField @bind-Value="_pendingName" Label="Partner Navn"
+								Placeholder="@_partner.Name" MaxLength="128"
+								Variant="Variant.Outlined"
+								HelperText="Lad tomt for at beholde nuværende" />
+
+							<MudTextField @bind-Value="_pendingDescription" Label="Beskrivelse"
+								Placeholder="@_partner.Description" MaxLength="500" Lines="4"
+								Variant="Variant.Outlined"
+								HelperText="Lad tomt for at beholde nuværende" />
+
+							<MudTextField @bind-Value="_pendingLink" Label="Website Link"
+								Placeholder="@_partner.Link"
+								Variant="Variant.Outlined"
+								HelperText="Lad tomt for at beholde nuværende" />
+
+							<MudDivider Class="my-2" />
+
+							<MudText Typo="Typo.subtitle2">Partner Logo:</MudText>
+							@if (!string.IsNullOrEmpty(_partner.LogoUrl))
+							{
+								<MudCard Style="max-width: 200px;">
+									<MudCardMedia Image="@_partner.LogoUrl" Height="100" />
+								</MudCard>
+							}
+
+							<MudFileUpload T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
+								@bind-Files="_logoImage" MaximumFileCount="1">
+								<ActivatorContent>
+									<MudButton Variant="Variant.Filled" Color="Color.Primary"
+										StartIcon="@Icons.Material.Filled.CloudUpload">
+										Vælg Logo
+									</MudButton>
+								</ActivatorContent>
+							</MudFileUpload>
+							@if (_logoImage is not null)
+							{
+								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; }">@_logoImage.Name</MudChip>
+							}
+
+							@if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
+							{
+								<MudAlert Severity="Severity.Warning" Dense Class="mt-2">
+									Du har et logo der afventer godkendelse
+								</MudAlert>
+							}
+						</MudStack>
+					</MudItem>
+
+					@* Preview *@
+					<MudItem xs="12" md="6">
+						<MudStack Spacing="2">
+							<MudText Typo="Typo.subtitle2">Forhåndsvisning på partnersiden:</MudText>
+
+							<div style="max-width: 300px;">
+								<PartnerCard Partner="@GetPreviewPartner()" />
+							</div>
+						</MudStack>
+					</MudItem>
+				</MudGrid>
+			</MudPaper>
+
+			@* Submit Button *@
+			<MudStack Row Class="mt-4 justify-center">
+				<MudButton Variant="Variant.Filled" Color="Color.Success"
+					OnClick="SubmitChangesAsync"
+					Disabled="@(!HasChanges() || _uploading)"
+					StartIcon="@Icons.Material.Filled.Send"
+					Size="Size.Large">
+					@if (_uploading)
+					{
+						<MudProgressCircular Size="Size.Small" Indeterminate />
+						<MudText Class="ml-2">Sender...</MudText>
+					}
+					else
+					{
+						<text>Send Ændringer til Godkendelse</text>
+					}
+				</MudButton>
+			</MudStack>
+		</MudPaper>
+	}
+</MudContainer>
+
+@code {
+	private Partner? _partner;
+	private PartnerAnalyticsDto? _analytics;
+	private bool _loading = true;
+	private int _selectedDays = 30;
+	private IBrowserFile? _adImage;
+	private IBrowserFile? _logoImage;
+	private string? _pendingName;
+	private string? _pendingDescription;
+	private string? _pendingLink;
+	private bool _uploading;
+	private string? _adImagePreviewUrl;
+	private string? _logoPreviewUrl;
+
+	private List<ChartSeries> _chartSeries = [];
+	private string[] _xAxisLabels = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (CurrentUser.Id is null)
+		{
+			return;
+		}
+
+		await LoadPartnerDataAsync();
+		await LoadAnalyticsAsync();
+		_loading = false;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender)
+		{
+			// Update preview URLs when files are selected
+			if (_adImage is not null && _adImagePreviewUrl is null)
+			{
+				_adImagePreviewUrl = await CreateObjectUrlAsync(_adImage);
+				StateHasChanged();
+			}
+			if (_logoImage is not null && _logoPreviewUrl is null)
+			{
+				_logoPreviewUrl = await CreateObjectUrlAsync(_logoImage);
+				StateHasChanged();
+			}
+		}
+	}
+
+	private async Task<string?> CreateObjectUrlAsync(IBrowserFile file)
+	{
+		try
+		{
+			var buffer = new byte[file.Size];
+			await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).ReadAsync(buffer);
+			var base64 = Convert.ToBase64String(buffer);
+			return $"data:{file.ContentType};base64,{base64}";
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	private async Task LoadPartnerDataAsync()
+	{
+		if (CurrentUser.Id is null)
+		{
+			return;
+		}
+
+		var result = await PartnerService.GetPartnerByUserIdAsync(CurrentUser.Id);
+		result.Switch(
+			partner => _partner = partner,
+			notFound => _partner = null
+		);
+	}
+
+	private async Task LoadAnalyticsAsync()
+	{
+		if (_partner is null)
+		{
+			return;
+		}
+
+		var toDate = DateTime.UtcNow;
+		var fromDate = toDate.AddDays(-_selectedDays);
+
+		_analytics = await PartnerService.GetAnalyticsAsync(_partner.Id, fromDate, toDate);
+
+		// Update chart data
+		if (_analytics?.DailyAnalytics.Any() == true)
+		{
+			_xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
+
+			_chartSeries = new List<ChartSeries>
+			{
+				new ChartSeries
+				{
+					Name = "Impressions",
+					Data = _analytics.DailyAnalytics.Select(a => (double)a.Impressions).ToArray()
+				},
+				new ChartSeries
+				{
+					Name = "Clicks",
+					Data = _analytics.DailyAnalytics.Select(a => (double)a.Clicks).ToArray()
+				}
+			};
+		}
+	}
+
+	private async Task SelectTimePeriod(int days)
+	{
+		_selectedDays = days;
+		await LoadAnalyticsAsync();
+		StateHasChanged();
+	}
+
+	private bool HasChanges()
+	{
+		return _adImage is not null ||
+			_logoImage is not null ||
+			!string.IsNullOrWhiteSpace(_pendingName) ||
+			!string.IsNullOrWhiteSpace(_pendingDescription) ||
+			!string.IsNullOrWhiteSpace(_pendingLink);
+	}
+
+	private string? GetPreviewAdImageUrl()
+	{
+		if (_adImagePreviewUrl is not null) return _adImagePreviewUrl;
+		if (_partner?.PendingAdImageUrl is not null) return _partner.PendingAdImageUrl;
+		return _partner?.AdImageUrl;
+	}
+
+	private string? GetPreviewLogoUrl()
+	{
+		if (_logoPreviewUrl is not null) return _logoPreviewUrl;
+		if (_partner?.PendingLogoUrl is not null) return _partner.PendingLogoUrl;
+		return _partner?.LogoUrl;
+	}
+
+	private string? GetPreviewName()
+	{
+		if (!string.IsNullOrWhiteSpace(_pendingName)) return _pendingName;
+		if (_partner?.PendingName is not null) return _partner.PendingName;
+		return _partner?.Name;
+	}
+
+	private string? GetPreviewDescription()
+	{
+		if (!string.IsNullOrWhiteSpace(_pendingDescription)) return _pendingDescription;
+		if (_partner?.PendingDescription is not null) return _partner.PendingDescription;
+		return _partner?.Description;
+	}
+
+	private string? GetPreviewLink()
+	{
+		if (!string.IsNullOrWhiteSpace(_pendingLink)) return _pendingLink;
+		if (_partner?.PendingLink is not null) return _partner.PendingLink;
+		return _partner?.Link;
+	}
+
+	private Partner GetPreviewPartner()
+	{
+		// Create a preview Partner object with current or pending values
+		return new Partner
+		{
+			Id = _partner?.Id ?? Guid.Empty,
+			Name = GetPreviewName() ?? "",
+			Description = GetPreviewDescription() ?? "",
+			LogoUrl = GetPreviewLogoUrl(),
+			Link = GetPreviewLink() ?? "#",
+			UserId = _partner?.UserId ?? "",
+			CreatedUtc = _partner?.CreatedUtc ?? DateTime.UtcNow
+		};
+	}
+
+	private async Task SubmitChangesAsync()
+	{
+		if (_partner is null || !HasChanges())
+		{
+			return;
+		}
+
+		_uploading = true;
+		try
+		{
+			Stream? adImageStream = null;
+			string? adImageFileName = null;
+			Stream? logoStream = null;
+			string? logoFileName = null;
+
+			if (_adImage is not null)
+			{
+				if (_adImage.Size > 5 * 1024 * 1024)
+				{
+					Snackbar.Add("Annonce billede er for stort (max 5MB)", Severity.Error);
+					return;
+				}
+				adImageStream = _adImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+				adImageFileName = _adImage.Name;
+			}
+
+			if (_logoImage is not null)
+			{
+				if (_logoImage.Size > 5 * 1024 * 1024)
+				{
+					Snackbar.Add("Logo er for stort (max 5MB)", Severity.Error);
+					return;
+				}
+				logoStream = _logoImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+				logoFileName = _logoImage.Name;
+			}
+
+			var result = await PartnerService.UploadPendingChangesAsync(
+				_partner.Id,
+				adImageStream,
+				adImageFileName,
+				_pendingName,
+				_pendingDescription,
+				logoStream,
+				logoFileName,
+				_pendingLink
+			);
+
+			result.Switch(
+				success =>
+				{
+					Snackbar.Add("Ændringer sendt til godkendelse!", Severity.Success);
+					_adImage = null;
+					_logoImage = null;
+					_pendingName = null;
+					_pendingDescription = null;
+					_pendingLink = null;
+					_adImagePreviewUrl = null;
+					_logoPreviewUrl = null;
+				},
+				error => Snackbar.Add(error.Value, Severity.Error)
+			);
+
+			await LoadPartnerDataAsync();
+		}
+		finally
+		{
+			_uploading = false;
+		}
+	}
+}
