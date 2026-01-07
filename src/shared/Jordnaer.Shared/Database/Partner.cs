@@ -28,38 +28,50 @@ public class Partner
 	public required string Link { get; set; }
 
 	/// <summary>
-	/// Mobile image URL for screens < 768px
+	/// Ad image URL (9:16 or 1:1 aspect ratio recommended)
 	/// </summary>
 	[Url]
-	public string? MobileImageUrl { get; set; }
+	public string? AdImageUrl { get; set; }
 
 	/// <summary>
-	/// Desktop image URL for screens >= 768px
+	/// Pending ad image URL awaiting admin approval
 	/// </summary>
 	[Url]
-	public string? DesktopImageUrl { get; set; }
+	public string? PendingAdImageUrl { get; set; }
 
 	/// <summary>
-	/// Pending mobile image URL awaiting admin approval
+	/// Pending partner name awaiting admin approval
+	/// </summary>
+	[MaxLength(128)]
+	public string? PendingName { get; set; }
+
+	/// <summary>
+	/// Pending partner description awaiting admin approval
+	/// </summary>
+	[MaxLength(500)]
+	public string? PendingDescription { get; set; }
+
+	/// <summary>
+	/// Pending logo URL awaiting admin approval
 	/// </summary>
 	[Url]
-	public string? PendingMobileImageUrl { get; set; }
+	public string? PendingLogoUrl { get; set; }
 
 	/// <summary>
-	/// Pending desktop image URL awaiting admin approval
+	/// Pending partner link awaiting admin approval
 	/// </summary>
 	[Url]
-	public string? PendingDesktopImageUrl { get; set; }
+	public string? PendingLink { get; set; }
 
 	/// <summary>
-	/// Timestamp of the last image update (UTC)
+	/// Timestamp of the last update (UTC)
 	/// </summary>
-	public DateTime? LastImageUpdateUtc { get; set; }
+	public DateTime? LastUpdateUtc { get; set; }
 
 	/// <summary>
-	/// Indicates whether there are pending images awaiting approval
+	/// Indicates whether there are pending changes awaiting approval
 	/// </summary>
-	public bool HasPendingImageApproval { get; set; }
+	public bool HasPendingApproval { get; set; }
 
 	/// <summary>
 	/// The user ID associated with this partner account
