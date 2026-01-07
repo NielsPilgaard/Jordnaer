@@ -19,7 +19,7 @@ public interface IPartnerService
 	Task<PartnerAnalyticsDto> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> UploadPendingImagesAsync(Guid partnerId, Stream? mobileImageStream, Stream? desktopImageStream, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> UploadPendingImagesAsync(Guid partnerId, Stream? mobileImageStream, string? mobileImageFileName, Stream? desktopImageStream, string? desktopImageFileName, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> ApproveImagesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RejectImagesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 }
@@ -133,7 +133,6 @@ public class PartnerService(
 			else
 			{
 				analytics.Impressions++;
-				context.PartnerAnalytics.Update(analytics);
 			}
 
 			await context.SaveChangesAsync(cancellationToken);
@@ -172,7 +171,6 @@ public class PartnerService(
 			else
 			{
 				analytics.Clicks++;
-				context.PartnerAnalytics.Update(analytics);
 			}
 
 			await context.SaveChangesAsync(cancellationToken);
@@ -188,7 +186,9 @@ public class PartnerService(
 	public async Task<OneOf<Success, Error<string>>> UploadPendingImagesAsync(
 		Guid partnerId,
 		Stream? mobileImageStream,
+		string? mobileImageFileName,
 		Stream? desktopImageStream,
+		string? desktopImageFileName,
 		CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
@@ -217,6 +217,16 @@ public class PartnerService(
 					return new Error<string>("Mobile image exceeds maximum size of 5MB");
 				}
 
+				// Validate file extension
+				if (!string.IsNullOrEmpty(mobileImageFileName))
+				{
+					var extension = Path.GetExtension(mobileImageFileName).ToLowerInvariant();
+					if (!AllowedImageFormats.Contains(extension))
+					{
+						return new Error<string>($"Mobile image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+					}
+				}
+
 				var mobileImageUrl = await imageService.UploadImageAsync(
 					$"{partnerId}_mobile_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
 					PartnerAdsContainer,
@@ -232,6 +242,16 @@ public class PartnerService(
 				if (desktopImageStream.Length > MaxImageSizeBytes)
 				{
 					return new Error<string>("Desktop image exceeds maximum size of 5MB");
+				}
+
+				// Validate file extension
+				if (!string.IsNullOrEmpty(desktopImageFileName))
+				{
+					var extension = Path.GetExtension(desktopImageFileName).ToLowerInvariant();
+					if (!AllowedImageFormats.Contains(extension))
+					{
+						return new Error<string>($"Desktop image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+					}
 				}
 
 				var desktopImageUrl = await imageService.UploadImageAsync(
@@ -271,6 +291,12 @@ public class PartnerService(
 
 		try
 		{
+			// Check admin authorization
+			if (!currentUser.User.IsInRole(AppRoles.Admin))
+			{
+				return new Error<string>("Unauthorized: Admin role required");
+			}
+
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var partner = await context.Partners.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
 
@@ -279,13 +305,14 @@ public class PartnerService(
 				return new Error<string>("Partner not found");
 			}
 
-			// Delete old images if they exist
+			// Delete old mobile image if new one is being approved
 			if (!string.IsNullOrEmpty(partner.MobileImageUrl) && !string.IsNullOrEmpty(partner.PendingMobileImageUrl))
 			{
 				var mobileImageName = Path.GetFileName(new Uri(partner.MobileImageUrl).LocalPath);
 				await imageService.DeleteImageAsync(mobileImageName, PartnerAdsContainer, cancellationToken);
 			}
 
+			// Delete old desktop image if new one is being approved
 			if (!string.IsNullOrEmpty(partner.DesktopImageUrl) && !string.IsNullOrEmpty(partner.PendingDesktopImageUrl))
 			{
 				var desktopImageName = Path.GetFileName(new Uri(partner.DesktopImageUrl).LocalPath);
@@ -308,7 +335,6 @@ public class PartnerService(
 			partner.HasPendingImageApproval = false;
 			partner.LastImageUpdateUtc = DateTime.UtcNow;
 
-			context.Partners.Update(partner);
 			await context.SaveChangesAsync(cancellationToken);
 
 			return new Success();
@@ -326,6 +352,12 @@ public class PartnerService(
 
 		try
 		{
+			// Check admin authorization
+			if (!currentUser.User.IsInRole(AppRoles.Admin))
+			{
+				return new Error<string>("Unauthorized: Admin role required");
+			}
+
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var partner = await context.Partners.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
 
@@ -351,7 +383,6 @@ public class PartnerService(
 
 			partner.HasPendingImageApproval = false;
 
-			context.Partners.Update(partner);
 			await context.SaveChangesAsync(cancellationToken);
 
 			return new Success();

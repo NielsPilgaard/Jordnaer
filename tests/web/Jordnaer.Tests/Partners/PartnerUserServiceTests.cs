@@ -5,6 +5,7 @@ using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Partners;
 using Jordnaer.Shared;
+using Jordnaer.Tests.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,23 +13,29 @@ using NSubstitute;
 using Xunit;
 namespace Jordnaer.Tests.Partners;
 
+[Trait("Category", "IntegrationTest")]
+[Collection(nameof(SqlServerContainerCollection))]
 public class PartnerUserServiceTests : IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
+	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
 	private readonly UserManager<ApplicationUser> _userManager;
 	private readonly IUserRoleService _userRoleService;
 	private readonly IEmailService _emailService;
 	private readonly ILogger<PartnerUserService> _logger;
 	private readonly PartnerUserService _partnerUserService;
 	private readonly Faker _faker = new("en");
+	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
 
-	public PartnerUserServiceTests()
+	public PartnerUserServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
-		var options = new DbContextOptionsBuilder<JordnaerDbContext>()
-			.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-			.Options;
+		_sqlServerContainer = sqlServerContainer;
+		_context = _sqlServerContainer.CreateContext();
 
-		_context = new JordnaerDbContext(options);
+		// Setup context factory
+		_contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
+		_contextFactory.CreateDbContextAsync(Arg.Any<CancellationToken>())
+			.ReturnsForAnyArgs(callInfo => Task.FromResult(_sqlServerContainer.CreateContext()));
 
 		// Setup UserManager
 		var userStore = Substitute.For<IUserStore<ApplicationUser>>();
@@ -42,7 +49,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		_partnerUserService = new PartnerUserService(
 			_userManager,
 			_userRoleService,
-			_context,
+			_contextFactory,
 			_emailService,
 			_logger);
 	}

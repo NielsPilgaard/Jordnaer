@@ -125,6 +125,20 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 			.HasForeignKey(analytics => analytics.PartnerId)
 			.OnDelete(DeleteBehavior.Cascade);
 
+		modelBuilder.Entity<Partner>()
+			.HasOne<ApplicationUser>()
+			.WithOne()
+			.HasForeignKey<Partner>(partner => partner.UserId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<Partner>()
+			.Property(partner => partner.UserId)
+			.HasMaxLength(450);
+
+		modelBuilder.Entity<Partner>()
+			.Property(partner => partner.CreatedUtc)
+			.HasDefaultValueSql("GETUTCDATE()");
+
 		base.OnModelCreating(modelBuilder);
 	}
 

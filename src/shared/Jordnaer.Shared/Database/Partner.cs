@@ -67,7 +67,7 @@ public class Partner
 	[Required]
 	public required string UserId { get; set; }
 
-	public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+	public DateTime CreatedUtc { get; set; }
 
 	public List<PartnerAnalytics> Analytics { get; set; } = [];
 }

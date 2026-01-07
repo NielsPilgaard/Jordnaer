@@ -52,7 +52,11 @@ public class PartnerServiceTests : IAsyncLifetime
 		{
 			User = new ClaimsPrincipal(
 				new ClaimsIdentity(
-					[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
+					[
+						new Claim(ClaimTypes.NameIdentifier, _userProfileId),
+						new Claim(ClaimTypes.Role, AppRoles.Admin)
+					],
+					"TestAuthType"
 				))
 		};
 
@@ -156,6 +160,7 @@ public class PartnerServiceTests : IAsyncLifetime
 	public async Task RecordImpressionAsync_CreatesNewAnalytics_WhenNoneExistForToday()
 	{
 		// Arrange
+		var today = DateTime.UtcNow.Date;
 		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
@@ -166,7 +171,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		result.Value.Should().BeOfType<Success>();
 
 		var analytics = await _context.PartnerAnalytics
-			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
+			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == today);
 
 		analytics.Should().NotBeNull();
 		analytics!.Impressions.Should().Be(1);
@@ -177,11 +182,12 @@ public class PartnerServiceTests : IAsyncLifetime
 	public async Task RecordImpressionAsync_IncrementsExistingAnalytics_WhenAnalyticsExistForToday()
 	{
 		// Arrange
+		var today = DateTime.UtcNow.Date;
 		var partner = AddPartner();
 		var analytics = new PartnerAnalytics
 		{
 			PartnerId = partner.Id,
-			Date = DateTime.UtcNow.Date,
+			Date = today,
 			Impressions = 5,
 			Clicks = 2
 		};
@@ -204,6 +210,7 @@ public class PartnerServiceTests : IAsyncLifetime
 	public async Task RecordClickAsync_CreatesNewAnalytics_WhenNoneExistForToday()
 	{
 		// Arrange
+		var today = DateTime.UtcNow.Date;
 		var partner = AddPartner();
 		await _context.SaveChangesAsync();
 
@@ -214,7 +221,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		result.Value.Should().BeOfType<Success>();
 
 		var analytics = await _context.PartnerAnalytics
-			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == DateTime.UtcNow.Date);
+			.FirstOrDefaultAsync(a => a.PartnerId == partner.Id && a.Date == today);
 
 		analytics.Should().NotBeNull();
 		analytics!.Impressions.Should().Be(0);
@@ -225,11 +232,12 @@ public class PartnerServiceTests : IAsyncLifetime
 	public async Task RecordClickAsync_IncrementsExistingAnalytics_WhenAnalyticsExistForToday()
 	{
 		// Arrange
+		var today = DateTime.UtcNow.Date;
 		var partner = AddPartner();
 		var analytics = new PartnerAnalytics
 		{
 			PartnerId = partner.Id,
-			Date = DateTime.UtcNow.Date,
+			Date = today,
 			Impressions = 10,
 			Clicks = 3
 		};
@@ -316,7 +324,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingImagesAsync(partnerId, stream, null);
+		var result = await _partnerService.UploadPendingImagesAsync(partnerId, stream, "image.png", null, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -334,7 +342,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, stream, null);
+		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, stream, "image.png", null, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -360,7 +368,7 @@ public class PartnerServiceTests : IAsyncLifetime
 			.Returns("https://example.com/image.png");
 
 		// Act
-		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, mobileStream, desktopStream);
+		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, mobileStream, "mobile.png", desktopStream, "desktop.png");
 
 		// Assert
 		result.IsT0.Should().BeTrue();
@@ -472,13 +480,31 @@ public class PartnerServiceTests : IAsyncLifetime
 		return partner;
 	}
 
-	public Task InitializeAsync() => Task.CompletedTask;
+	public async Task InitializeAsync()
+	{
+		// Create the ApplicationUser that tests will reference
+		var user = new ApplicationUser
+		{
+			Id = _userProfileId,
+			UserName = "test@example.com",
+			Email = "test@example.com",
+			EmailConfirmed = true
+		};
+		_context.Users.Add(user);
+		await _context.SaveChangesAsync();
+	}
 
 	public async Task DisposeAsync()
 	{
 		// Clean up test data to ensure test isolation
 		_context.PartnerAnalytics.RemoveRange(_context.PartnerAnalytics);
 		_context.Partners.RemoveRange(_context.Partners);
+		var user = await _context.Users.FindAsync(_userProfileId);
+		if (user is not null)
+		{
+			_context.Users.Remove(user);
+		}
+
 		await _context.SaveChangesAsync();
 		await _context.DisposeAsync();
 	}

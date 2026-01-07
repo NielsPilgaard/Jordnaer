@@ -41,7 +41,7 @@ public record CreatePartnerResult
 public sealed class PartnerUserService(
 	UserManager<ApplicationUser> userManager,
 	IUserRoleService userRoleService,
-	JordnaerDbContext dbContext,
+	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IEmailService emailService,
 	ILogger<PartnerUserService> logger) : IPartnerUserService
 {
@@ -93,10 +93,12 @@ public sealed class PartnerUserService(
 
 		try
 		{
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
 			// Create UserProfile
 			var userProfile = new UserProfile { Id = user.Id };
-			dbContext.UserProfiles.Add(userProfile);
-			await dbContext.SaveChangesAsync(cancellationToken);
+			context.UserProfiles.Add(userProfile);
+			await context.SaveChangesAsync(cancellationToken);
 
 			// Assign Partner role
 			var roleResult = await userRoleService.AddRoleToUserAsync(user.Id, AppRoles.Partner);
@@ -113,12 +115,11 @@ public sealed class PartnerUserService(
 				Description = request.Description,
 				LogoUrl = request.LogoUrl,
 				Link = request.Link,
-				UserId = user.Id,
-				CreatedUtc = DateTime.UtcNow
+				UserId = user.Id
 			};
 
-			dbContext.Partners.Add(partner);
-			await dbContext.SaveChangesAsync(cancellationToken);
+			context.Partners.Add(partner);
+			await context.SaveChangesAsync(cancellationToken);
 
 			// Send welcome email
 			await emailService.SendPartnerWelcomeEmailAsync(
@@ -159,7 +160,9 @@ public sealed class PartnerUserService(
 			return new NotFound();
 		}
 
-		var partner = await dbContext.Partners
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		var partner = await context.Partners
+			.AsNoTracking()
 			.FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
 
 		if (partner is null)
@@ -205,6 +208,7 @@ public sealed class PartnerUserService(
 
 		var password = new char[TemporaryPasswordLength + 3]; // +3 for hyphens
 		var position = 0;
+		var charIndex = 0; // Track character index without hyphens
 
 		for (var group = 0; group < 4; group++)
 		{
@@ -216,15 +220,16 @@ public sealed class PartnerUserService(
 			for (var i = 0; i < 4; i++)
 			{
 				// Ensure at least one of each character type in the password
-				if (position == 0)
+				// charIndex 0: uppercase, charIndex 1: lowercase, charIndex 2: digit
+				if (charIndex == 0)
 				{
 					password[position++] = uppercase[RandomNumberGenerator.GetInt32(uppercase.Length)];
 				}
-				else if (position == 2)
+				else if (charIndex == 1)
 				{
 					password[position++] = lowercase[RandomNumberGenerator.GetInt32(lowercase.Length)];
 				}
-				else if (position == 4)
+				else if (charIndex == 2)
 				{
 					password[position++] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
 				}
@@ -232,6 +237,8 @@ public sealed class PartnerUserService(
 				{
 					password[position++] = allChars[RandomNumberGenerator.GetInt32(allChars.Length)];
 				}
+
+				charIndex++;
 			}
 		}
 
