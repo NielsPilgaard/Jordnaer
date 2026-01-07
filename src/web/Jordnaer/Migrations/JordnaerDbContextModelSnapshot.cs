@@ -363,7 +363,9 @@ namespace Jordnaer.Server.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -402,11 +404,15 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Partners");
@@ -842,6 +848,15 @@ namespace Jordnaer.Server.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Partner", b =>
+                {
+                    b.HasOne("Jordnaer.Database.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("Jordnaer.Shared.Partner", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.PartnerAnalytics", b =>

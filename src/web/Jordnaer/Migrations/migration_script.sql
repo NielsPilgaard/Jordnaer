@@ -962,3 +962,60 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+)
+BEGIN
+    DECLARE @var4 nvarchar(max);
+    SELECT @var4 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'UserId');
+    IF @var4 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var4 + ';');
+    ALTER TABLE [Partners] ALTER COLUMN [UserId] nvarchar(450) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+)
+BEGIN
+    DECLARE @var5 nvarchar(max);
+    SELECT @var5 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'CreatedUtc');
+    IF @var5 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var5 + ';');
+    ALTER TABLE [Partners] ADD DEFAULT (GETUTCDATE()) FOR [CreatedUtc];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Partners_UserId] ON [Partners] ([UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD CONSTRAINT [FK_Partners_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260107204756_UpdatePartnerModel', N'10.0.1');
+END;
+
+COMMIT;
+GO
+
