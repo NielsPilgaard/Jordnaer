@@ -21,7 +21,7 @@ public class SendEmailConsumerTests
 		_consumer = new SendEmailConsumer(new NullLogger<SendEmailConsumer>(), _mockEmailClient);
 	}
 
-	[Fact(Skip = "This test takes ~35 minutes to execute for some reason. Should be fixed.")]
+	[Fact]
 	public async Task Consume_ShouldSendEmailSuccessfully()
 	{
 		// Arrange
