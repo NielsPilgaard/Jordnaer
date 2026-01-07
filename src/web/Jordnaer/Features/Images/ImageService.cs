@@ -43,6 +43,21 @@ public interface IImageService
 		Stream fileStream,
 		CancellationToken cancellationToken = default);
 
+	/// <summary>
+	/// Uploads a temporary preview image with automatic deletion after a specified number of days.
+	/// </summary>
+	/// <param name="blobName"></param>
+	/// <param name="containerName"></param>
+	/// <param name="fileStream"></param>
+	/// <param name="expirationDays">Number of days until the blob is automatically deleted (default: 90)</param>
+	/// <param name="cancellationToken"></param>
+	Task<string> UploadTemporaryImageAsync(
+		string blobName,
+		string containerName,
+		Stream fileStream,
+		int expirationDays = 90,
+		CancellationToken cancellationToken = default);
+
 	Task DeleteImageAsync(
 		string blobName,
 		string containerName,
@@ -78,6 +93,37 @@ public class ImageService(
 		using var stream = new MemoryStream(fileBytes);
 
 		return await UploadImageAsync(blobName, containerName, stream, cancellationToken);
+	}
+
+	public async Task<string> UploadTemporaryImageAsync(
+		string blobName,
+		string containerName,
+		Stream fileStream,
+		int expirationDays = 90,
+		CancellationToken cancellationToken = default)
+	{
+		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+		await containerClient.CreateIfNotExistsAsync(
+			publicAccessType: PublicAccessType.Blob,
+			cancellationToken: cancellationToken);
+
+		var blobClient = containerClient.GetBlobClient(blobName);
+
+		// Set metadata to mark this as a temporary preview
+		var metadata = new Dictionary<string, string>
+		{
+			{ "preview", "true" },
+			{ "expiresAt", DateTime.UtcNow.AddDays(expirationDays).ToString("O") }
+		};
+
+		var uploadOptions = new BlobUploadOptions
+		{
+			Metadata = metadata
+		};
+
+		await blobClient.UploadAsync(fileStream, uploadOptions, cancellationToken);
+
+		return blobClient.Uri.AbsoluteUri;
 	}
 
 	public async Task DeleteImageAsync(string blobName, string containerName,

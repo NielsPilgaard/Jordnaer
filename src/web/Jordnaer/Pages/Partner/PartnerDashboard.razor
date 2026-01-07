@@ -37,7 +37,7 @@
 
 		@* Time Period Selector *@
 		<MudPaper Class="pa-4 mb-6" Elevation="2">
-			<MudStack Row Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.Center">
+			<MudStack Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.Center">
 				<MudText Typo="Typo.body1" Class="font-open-sans-semibold">Tidsperiode:</MudText>
 				<MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" OverrideStyles="false">
 					<MudButton OnClick="() => SelectTimePeriod(7)"
@@ -121,11 +121,11 @@
 		</MudGrid>
 
 		@* Analytics Chart *@
-		@if (_analytics?.DailyAnalytics.Any() == true)
+		@if (_analytics?.DailyAnalytics.Count > 0)
 		{
 			<MudPaper Class="pa-4 mb-8" Elevation="2">
 				<MudText Typo="Typo.h6" Class="mb-4">Daglig statistik</MudText>
-				@if (_analytics.DailyAnalytics.Count >= 3)
+				@if (_analytics.DailyAnalytics.Count <= 3)
 				{
 					<MudAlert Severity="Severity.Info" Class="my-4">
 						Graf vises kun når der er data for mindst 3 dage
@@ -197,23 +197,6 @@
 								</div>
 							}
 
-							<MudDivider Class="my-2" />
-
-							<MudText Typo="Typo.subtitle2">Upload nyt billede:</MudText>
-							<MudFileUpload @ref="_adImageUpload" T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
-								@bind-Files="_adImage" MaximumFileCount="1">
-								<ActivatorContent>
-									<MudButton Variant="Variant.Filled" Color="Color.Primary"
-										StartIcon="@Icons.Material.Filled.CloudUpload">
-										Vælg Annonce Billede
-									</MudButton>
-								</ActivatorContent>
-							</MudFileUpload>
-							@if (_adImage is not null)
-							{
-								<MudChip T="string" OnClose="ClearAdImage">@_adImage.Name</MudChip>
-							}
-
 							@if (!string.IsNullOrEmpty(_partner.PendingAdImageUrl))
 							{
 								<MudAlert Severity="Severity.Warning" Dense Class="mt-2">
@@ -224,6 +207,9 @@
 							<MudText Typo="Typo.caption" Color="Color.Secondary">
 								Max 5MB. Formater: PNG, JPG, WEBP
 							</MudText>
+
+							<MudFileUpload @ref="_adImageUpload" T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
+								@bind-Files="_adImage" MaximumFileCount="1" Hidden />
 						</MudStack>
 					</MudItem>
 
@@ -236,13 +222,23 @@
 							</MudText>
 
 							@* Mock search result with ad preview *@
-							<div style="max-width: 300px;">
+							<div style="max-width: 300px; position: relative;">
 								@if (!string.IsNullOrEmpty(GetPreviewAdImageUrl()))
 								{
-									<AdCard Link="@(_partner.Link)"
-										ImagePath="@GetPreviewAdImageUrl()"
-										ImageAlt="@(_partner.Name + " annonce")"
-										IsPreview="true" />
+									<div style="position: relative; max-height: 500px; overflow: auto;">
+										<AdCard Link="@(_partner.Link)"
+											ImagePath="@GetPreviewAdImageUrl()"
+											ImageAlt="@(_partner.Name + " annonce")"
+											IsPreview="true" />
+										@if (_adImage is not null)
+										{
+											<MudIconButton Icon="@Icons.Material.Filled.Close"
+												Color="Color.Error"
+												Size="Size.Small"
+												OnClick="ClearAdImage"
+												Style="position: absolute; top: 8px; left: 8px; background-color: white; z-index: 10;" />
+										}
+									</div>
 								}
 								else
 								{
@@ -277,20 +273,15 @@
 								Denne information vises på <MudLink Href="/partners" Target="_blank">partnersiden</MudLink>
 							</MudText>
 
-							<MudTextField @bind-Value="_pendingName" Label="Partner Navn"
-								Placeholder="@_partner.Name" MaxLength="128"
-								Variant="Variant.Outlined"
-								HelperText="Lad tomt for at beholde nuværende" />
-
 							<MudTextField @bind-Value="_pendingDescription" Label="Beskrivelse"
 								Placeholder="@_partner.Description" MaxLength="500" Lines="4"
 								Variant="Variant.Outlined"
-								HelperText="Lad tomt for at beholde nuværende" />
+								HelperText="Lad det stå tomt for at beholde nuværende" />
 
 							<MudTextField @bind-Value="_pendingLink" Label="Website Link"
 								Placeholder="@_partner.Link"
 								Variant="Variant.Outlined"
-								HelperText="Lad tomt for at beholde nuværende" />
+								HelperText="Lad det stå tomt for at beholde nuværende" />
 
 							<MudDivider Class="my-2" />
 
@@ -313,7 +304,8 @@
 							</MudFileUpload>
 							@if (_logoImage is not null)
 							{
-								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; }">@_logoImage.Name</MudChip>
+								var logoName = _logoImage.Name;
+								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; }">@logoName</MudChip>
 							}
 
 							@if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
@@ -331,7 +323,7 @@
 							<MudText Typo="Typo.subtitle2">Forhåndsvisning på partnersiden:</MudText>
 
 							<div style="max-width: 300px;" class="text-center">
-								<PartnerCard Partner="@GetPreviewPartner()" />
+								<PartnerCard Partner="@GetPreviewPartner()" IsPreview="true"/>
 							</div>
 						</MudStack>
 					</MudItem>
@@ -367,7 +359,6 @@
 	private int _selectedDays = 30;
 	private IBrowserFile? _adImage;
 	private IBrowserFile? _logoImage;
-	private string? _pendingName;
 	private string? _pendingDescription;
 	private string? _pendingLink;
 	private bool _uploading;
@@ -394,31 +385,44 @@
 	{
 		if (!firstRender)
 		{
-			// Update preview URLs when files are selected
-			if (_adImage is not null && _adImagePreviewUrl is null)
+			// Upload preview images when files are selected
+			if (_adImage is not null && _adImagePreviewUrl is null && _partner is not null)
 			{
-				_adImagePreviewUrl = await CreateObjectUrlAsync(_adImage);
+				_adImagePreviewUrl = await UploadPreviewImageAsync(_adImage);
 				StateHasChanged();
 			}
-			if (_logoImage is not null && _logoPreviewUrl is null)
+			if (_logoImage is not null && _logoPreviewUrl is null && _partner is not null)
 			{
-				_logoPreviewUrl = await CreateObjectUrlAsync(_logoImage);
+				_logoPreviewUrl = await UploadPreviewImageAsync(_logoImage);
 				StateHasChanged();
 			}
 		}
 	}
 
-	private async Task<string?> CreateObjectUrlAsync(IBrowserFile file)
+	private async Task<string?> UploadPreviewImageAsync(IBrowserFile file)
 	{
+		if (_partner is null)
+		{
+			return null;
+		}
+
 		try
 		{
-			var buffer = new byte[file.Size];
-			await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).ReadAsync(buffer);
-			var base64 = Convert.ToBase64String(buffer);
-			return $"data:{file.ContentType};base64,{base64}";
+			var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+			var result = await PartnerService.UploadPreviewImageAsync(_partner.Id, stream, file.Name);
+
+			return result.Match<string?>(
+				url => url,
+				error =>
+				{
+					Snackbar.Add(error.Value, Severity.Error);
+					return null;
+				}
+			);
 		}
-		catch
+		catch (Exception ex)
 		{
+			Snackbar.Add($"Fejl ved upload af forhåndsvisning", Severity.Error);
 			return null;
 		}
 	}
@@ -493,7 +497,6 @@
 	{
 		return _adImage is not null ||
 			_logoImage is not null ||
-			!string.IsNullOrWhiteSpace(_pendingName) ||
 			!string.IsNullOrWhiteSpace(_pendingDescription) ||
 			!string.IsNullOrWhiteSpace(_pendingLink);
 	}
@@ -514,7 +517,6 @@
 
 	private string? GetPreviewName()
 	{
-		if (!string.IsNullOrWhiteSpace(_pendingName)) return _pendingName;
 		if (_partner?.PendingName is not null) return _partner.PendingName;
 		return _partner?.Name;
 	}
@@ -589,7 +591,7 @@
 				_partner.Id,
 				adImageStream,
 				adImageFileName,
-				_pendingName,
+				null,
 				_pendingDescription,
 				logoStream,
 				logoFileName,
@@ -602,7 +604,6 @@
 					Snackbar.Add("Ændringer sendt til godkendelse!", Severity.Success);
 					_adImage = null;
 					_logoImage = null;
-					_pendingName = null;
 					_pendingDescription = null;
 					_pendingLink = null;
 					_adImagePreviewUrl = null;

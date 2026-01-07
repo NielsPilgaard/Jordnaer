@@ -18,6 +18,7 @@ public interface IPartnerService
 	Task<PartnerAnalyticsDto> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default);
+	Task<OneOf<string, Error<string>>> UploadPreviewImageAsync(Guid partnerId, Stream imageStream, string fileName, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? link, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
@@ -179,6 +180,65 @@ public class PartnerService(
 		{
 			logger.LogError(ex, "Failed to record click for partner {PartnerId}", partnerId);
 			return new Error<string>("Failed to record click");
+		}
+	}
+
+	public async Task<OneOf<string, Error<string>>> UploadPreviewImageAsync(
+		Guid partnerId,
+		Stream imageStream,
+		string fileName,
+		CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		try
+		{
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+			var partner = await context.Partners
+				.AsNoTracking()
+				.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
+
+			if (partner is null)
+			{
+				return new Error<string>("Partner not found");
+			}
+
+			// Validate that the current user owns this partner
+			if (partner.UserId != currentUser.Id)
+			{
+				return new Error<string>("Unauthorized");
+			}
+
+			// Validate file size
+			if (imageStream.Length > MaxImageSizeBytes)
+			{
+				return new Error<string>("Image exceeds maximum size of 5MB");
+			}
+
+			// Validate file extension
+			if (!string.IsNullOrEmpty(fileName))
+			{
+				var extension = Path.GetExtension(fileName).ToLowerInvariant();
+				if (!AllowedImageFormats.Contains(extension))
+				{
+					return new Error<string>($"Image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+				}
+			}
+
+			// Upload as temporary preview with 90-day expiration
+			var previewUrl = await imageService.UploadTemporaryImageAsync(
+				$"{partnerId}_preview_{Guid.NewGuid():N}.webp",
+				PartnerAdsContainer,
+				imageStream,
+				expirationDays: 90,
+				cancellationToken);
+
+			return previewUrl;
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to upload preview image for partner {PartnerId}", partnerId);
+			return new Error<string>("Failed to upload preview image");
 		}
 	}
 
