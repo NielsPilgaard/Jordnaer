@@ -1,6 +1,8 @@
+@inject IPartnerService PartnerService
+
 @if (!string.IsNullOrEmpty(Partner.Link))
 {
-    <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None">
+    <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None" OnClick="HandleClickAsync">
         <MudCard Elevation="5" Class="mt-5 card-hover" Style="max-width: 300px">
             <MudCardContent>
                 @if (!string.IsNullOrEmpty(Partner.LogoUrl))
@@ -23,4 +25,20 @@
 {
     [Parameter]
     public required Partner Partner { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Partner.Id != Guid.Empty)
+        {
+            await PartnerService.RecordImpressionAsync(Partner.Id);
+        }
+    }
+
+    private async Task HandleClickAsync()
+    {
+        if (Partner.Id != Guid.Empty)
+        {
+            await PartnerService.RecordClickAsync(Partner.Id);
+        }
+    }
 }
