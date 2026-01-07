@@ -19,9 +19,9 @@ public interface IPartnerService
 	Task<PartnerAnalyticsDto> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> UploadPendingImagesAsync(Guid partnerId, Stream? mobileImageStream, string? mobileImageFileName, Stream? desktopImageStream, string? desktopImageFileName, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> ApproveImagesAsync(Guid partnerId, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> RejectImagesAsync(Guid partnerId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? link, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 }
 
 public class PartnerService(
@@ -183,12 +183,15 @@ public class PartnerService(
 		}
 	}
 
-	public async Task<OneOf<Success, Error<string>>> UploadPendingImagesAsync(
+	public async Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(
 		Guid partnerId,
-		Stream? mobileImageStream,
-		string? mobileImageFileName,
-		Stream? desktopImageStream,
-		string? desktopImageFileName,
+		Stream? adImageStream,
+		string? adImageFileName,
+		string? name,
+		string? description,
+		Stream? logoStream,
+		string? logoFileName,
+		string? link,
 		CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
@@ -209,64 +212,87 @@ public class PartnerService(
 				return new Error<string>("Unauthorized");
 			}
 
-			// Upload mobile image if provided
-			if (mobileImageStream is not null)
+			var hasChanges = false;
+
+			// Upload ad image if provided
+			if (adImageStream is not null)
 			{
-				if (mobileImageStream.Length > MaxImageSizeBytes)
+				if (adImageStream.Length > MaxImageSizeBytes)
 				{
-					return new Error<string>("Mobile image exceeds maximum size of 5MB");
+					return new Error<string>("Ad image exceeds maximum size of 5MB");
 				}
 
 				// Validate file extension
-				if (!string.IsNullOrEmpty(mobileImageFileName))
+				if (!string.IsNullOrEmpty(adImageFileName))
 				{
-					var extension = Path.GetExtension(mobileImageFileName).ToLowerInvariant();
+					var extension = Path.GetExtension(adImageFileName).ToLowerInvariant();
 					if (!AllowedImageFormats.Contains(extension))
 					{
-						return new Error<string>($"Mobile image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+						return new Error<string>($"Ad image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
 					}
 				}
 
-				var mobileImageUrl = await imageService.UploadImageAsync(
-					$"{partnerId}_mobile_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
+				var adImageUrl = await imageService.UploadImageAsync(
+					$"{partnerId}_ad_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
 					PartnerAdsContainer,
-					mobileImageStream,
+					adImageStream,
 					cancellationToken);
 
-				partner.PendingMobileImageUrl = mobileImageUrl;
+				partner.PendingAdImageUrl = adImageUrl;
+				hasChanges = true;
 			}
 
-			// Upload desktop image if provided
-			if (desktopImageStream is not null)
+			// Upload logo if provided
+			if (logoStream is not null)
 			{
-				if (desktopImageStream.Length > MaxImageSizeBytes)
+				if (logoStream.Length > MaxImageSizeBytes)
 				{
-					return new Error<string>("Desktop image exceeds maximum size of 5MB");
+					return new Error<string>("Logo exceeds maximum size of 5MB");
 				}
 
 				// Validate file extension
-				if (!string.IsNullOrEmpty(desktopImageFileName))
+				if (!string.IsNullOrEmpty(logoFileName))
 				{
-					var extension = Path.GetExtension(desktopImageFileName).ToLowerInvariant();
+					var extension = Path.GetExtension(logoFileName).ToLowerInvariant();
 					if (!AllowedImageFormats.Contains(extension))
 					{
-						return new Error<string>($"Desktop image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+						return new Error<string>($"Logo format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
 					}
 				}
 
-				var desktopImageUrl = await imageService.UploadImageAsync(
-					$"{partnerId}_desktop_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
+				var logoUrl = await imageService.UploadImageAsync(
+					$"{partnerId}_logo_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
 					PartnerAdsContainer,
-					desktopImageStream,
+					logoStream,
 					cancellationToken);
 
-				partner.PendingDesktopImageUrl = desktopImageUrl;
+				partner.PendingLogoUrl = logoUrl;
+				hasChanges = true;
 			}
 
-			if (mobileImageStream is not null || desktopImageStream is not null)
+			// Update text fields
+			if (!string.IsNullOrWhiteSpace(name))
 			{
-				partner.HasPendingImageApproval = true;
-				partner.LastImageUpdateUtc = DateTime.UtcNow;
+				partner.PendingName = name.Trim();
+				hasChanges = true;
+			}
+
+			if (!string.IsNullOrWhiteSpace(description))
+			{
+				partner.PendingDescription = description.Trim();
+				hasChanges = true;
+			}
+
+			if (!string.IsNullOrWhiteSpace(link))
+			{
+				partner.PendingLink = link.Trim();
+				hasChanges = true;
+			}
+
+			if (hasChanges)
+			{
+				partner.HasPendingApproval = true;
+				partner.LastUpdateUtc = DateTime.UtcNow;
 				context.Partners.Update(partner);
 				await context.SaveChangesAsync(cancellationToken);
 
@@ -276,16 +302,16 @@ public class PartnerService(
 				return new Success();
 			}
 
-			return new Error<string>("No images provided");
+			return new Error<string>("No changes provided");
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Failed to upload pending images for partner {PartnerId}", partnerId);
-			return new Error<string>("Failed to upload images");
+			logger.LogError(ex, "Failed to upload pending changes for partner {PartnerId}", partnerId);
+			return new Error<string>("Failed to upload changes");
 		}
 	}
 
-	public async Task<OneOf<Success, Error<string>>> ApproveImagesAsync(Guid partnerId, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
@@ -305,35 +331,53 @@ public class PartnerService(
 				return new Error<string>("Partner not found");
 			}
 
-			// Delete old mobile image if new one is being approved
-			if (!string.IsNullOrEmpty(partner.MobileImageUrl) && !string.IsNullOrEmpty(partner.PendingMobileImageUrl))
+			// Delete old ad image if new one is being approved
+			if (!string.IsNullOrEmpty(partner.AdImageUrl) && !string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
-				var mobileImageName = Path.GetFileName(new Uri(partner.MobileImageUrl).LocalPath);
-				await imageService.DeleteImageAsync(mobileImageName, PartnerAdsContainer, cancellationToken);
+				var adImageName = Path.GetFileName(new Uri(partner.AdImageUrl).LocalPath);
+				await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
 			}
 
-			// Delete old desktop image if new one is being approved
-			if (!string.IsNullOrEmpty(partner.DesktopImageUrl) && !string.IsNullOrEmpty(partner.PendingDesktopImageUrl))
+			// Delete old logo if new one is being approved
+			if (!string.IsNullOrEmpty(partner.LogoUrl) && !string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
-				var desktopImageName = Path.GetFileName(new Uri(partner.DesktopImageUrl).LocalPath);
-				await imageService.DeleteImageAsync(desktopImageName, PartnerAdsContainer, cancellationToken);
+				var logoName = Path.GetFileName(new Uri(partner.LogoUrl).LocalPath);
+				await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
 			}
 
-			// Move pending images to active
-			if (!string.IsNullOrEmpty(partner.PendingMobileImageUrl))
+			// Move pending changes to active
+			if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
-				partner.MobileImageUrl = partner.PendingMobileImageUrl;
-				partner.PendingMobileImageUrl = null;
+				partner.AdImageUrl = partner.PendingAdImageUrl;
+				partner.PendingAdImageUrl = null;
 			}
 
-			if (!string.IsNullOrEmpty(partner.PendingDesktopImageUrl))
+			if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
-				partner.DesktopImageUrl = partner.PendingDesktopImageUrl;
-				partner.PendingDesktopImageUrl = null;
+				partner.LogoUrl = partner.PendingLogoUrl;
+				partner.PendingLogoUrl = null;
 			}
 
-			partner.HasPendingImageApproval = false;
-			partner.LastImageUpdateUtc = DateTime.UtcNow;
+			if (!string.IsNullOrEmpty(partner.PendingName))
+			{
+				partner.Name = partner.PendingName;
+				partner.PendingName = null;
+			}
+
+			if (!string.IsNullOrEmpty(partner.PendingDescription))
+			{
+				partner.Description = partner.PendingDescription;
+				partner.PendingDescription = null;
+			}
+
+			if (!string.IsNullOrEmpty(partner.PendingLink))
+			{
+				partner.Link = partner.PendingLink;
+				partner.PendingLink = null;
+			}
+
+			partner.HasPendingApproval = false;
+			partner.LastUpdateUtc = DateTime.UtcNow;
 
 			await context.SaveChangesAsync(cancellationToken);
 
@@ -341,12 +385,12 @@ public class PartnerService(
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Failed to approve images for partner {PartnerId}", partnerId);
-			return new Error<string>("Failed to approve images");
+			logger.LogError(ex, "Failed to approve changes for partner {PartnerId}", partnerId);
+			return new Error<string>("Failed to approve changes");
 		}
 	}
 
-	public async Task<OneOf<Success, Error<string>>> RejectImagesAsync(Guid partnerId, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
@@ -366,22 +410,27 @@ public class PartnerService(
 				return new Error<string>("Partner not found");
 			}
 
-			// Delete pending images
-			if (!string.IsNullOrEmpty(partner.PendingMobileImageUrl))
+			// Delete pending ad image
+			if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
-				var mobileImageName = Path.GetFileName(new Uri(partner.PendingMobileImageUrl).LocalPath);
-				await imageService.DeleteImageAsync(mobileImageName, PartnerAdsContainer, cancellationToken);
-				partner.PendingMobileImageUrl = null;
+				var adImageName = Path.GetFileName(new Uri(partner.PendingAdImageUrl).LocalPath);
+				await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+				partner.PendingAdImageUrl = null;
 			}
 
-			if (!string.IsNullOrEmpty(partner.PendingDesktopImageUrl))
+			// Delete pending logo
+			if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
-				var desktopImageName = Path.GetFileName(new Uri(partner.PendingDesktopImageUrl).LocalPath);
-				await imageService.DeleteImageAsync(desktopImageName, PartnerAdsContainer, cancellationToken);
-				partner.PendingDesktopImageUrl = null;
+				var logoName = Path.GetFileName(new Uri(partner.PendingLogoUrl).LocalPath);
+				await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+				partner.PendingLogoUrl = null;
 			}
 
-			partner.HasPendingImageApproval = false;
+			// Clear pending text fields
+			partner.PendingName = null;
+			partner.PendingDescription = null;
+			partner.PendingLink = null;
+			partner.HasPendingApproval = false;
 
 			await context.SaveChangesAsync(cancellationToken);
 
@@ -389,8 +438,8 @@ public class PartnerService(
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Failed to reject images for partner {PartnerId}", partnerId);
-			return new Error<string>("Failed to reject images");
+			logger.LogError(ex, "Failed to reject changes for partner {PartnerId}", partnerId);
+			return new Error<string>("Failed to reject changes");
 		}
 	}
 }
