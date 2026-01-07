@@ -58,13 +58,16 @@
     <RowTemplate>
         <MudTd DataLabel="Navn">@context.Name</MudTd>
         <MudTd DataLabel="Beskrivelse">
-            @if (context.Description.Length > 100)
+            @if (!string.IsNullOrEmpty(context.Description))
             {
-                @(context.Description.Substring(0, 100) + "...")
-            }
-            else
-            {
-                @context.Description
+                @if (context.Description.Length > 100)
+                {
+                    @(context.Description.Substring(0, 100) + "...")
+                }
+                else
+                {
+                    @context.Description
+                }
             }
         </MudTd>
         <MudTd DataLabel="Status">
@@ -131,10 +134,10 @@
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
 
-        if (x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(x.Name) && x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (x.Description.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;

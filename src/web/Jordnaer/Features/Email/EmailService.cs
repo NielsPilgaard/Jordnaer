@@ -1,3 +1,4 @@
+using System.Net;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Shared;
@@ -163,34 +164,41 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 		{
-			changesList.Add($"<li><a href=\"{partner.PendingAdImageUrl}\">Nyt annonce billede</a></li>");
+			var encodedUrl = WebUtility.HtmlEncode(partner.PendingAdImageUrl);
+			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt annonce billede</a></li>");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 		{
-			changesList.Add($"<li><a href=\"{partner.PendingLogoUrl}\">Nyt logo</a></li>");
+			var encodedUrl = WebUtility.HtmlEncode(partner.PendingLogoUrl);
+			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt logo</a></li>");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingName))
 		{
-			changesList.Add($"<li>Nyt navn: {partner.PendingName}</li>");
+			var encodedName = WebUtility.HtmlEncode(partner.PendingName);
+			changesList.Add($"<li>Nyt navn: {encodedName}</li>");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingDescription))
 		{
-			changesList.Add($"<li>Ny beskrivelse: {partner.PendingDescription}</li>");
+			var encodedDescription = WebUtility.HtmlEncode(partner.PendingDescription);
+			changesList.Add($"<li>Ny beskrivelse: {encodedDescription}</li>");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingLink))
 		{
-			changesList.Add($"<li>Nyt link: {partner.PendingLink}</li>");
+			var encodedLink = WebUtility.HtmlEncode(partner.PendingLink);
+			changesList.Add($"<li>Nyt link: {encodedLink}</li>");
 		}
+
+		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
 
 		var email = new SendEmail
 		{
 			Subject = $"Ny partner godkendelse: {partnerName}",
 			HtmlContent = $"""
-						  <h4>Partner <b>{partnerName}</b> har uploadet nye ændringer til godkendelse</h4>
+						  <h4>Partner <b>{encodedPartnerName}</b> har uploadet nye ændringer til godkendelse</h4>
 
 						  <p>Ændringer:</p>
 						  <ul>
@@ -218,18 +226,22 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		var loginUrl = $"{options.Value.BaseUrl}/Account/Login";
 		var dashboardUrl = $"{options.Value.BaseUrl}/partner/dashboard";
 
+		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
+		var encodedEmail = WebUtility.HtmlEncode(email);
+		var encodedTemporaryPassword = WebUtility.HtmlEncode(temporaryPassword);
+
 		var welcomeEmail = new SendEmail
 		{
 			Subject = "Velkommen som partner på Mini Møder",
 			HtmlContent = $"""
-						  <h4>Velkommen som partner på Mini Møder, {partnerName}!</h4>
+						  <h4>Velkommen som partner på Mini Møder, {encodedPartnerName}!</h4>
 
 						  <p>Din partnerkonto er blevet oprettet. Du kan nu logge ind og administrere dine partner-annoncer.</p>
 
 						  <h5>Login oplysninger:</h5>
 						  <ul>
-						      <li><strong>Email:</strong> {email}</li>
-						      <li><strong>Midlertidigt kodeord:</strong> <code>{temporaryPassword}</code></li>
+						      <li><strong>Email:</strong> {encodedEmail}</li>
+						      <li><strong>Midlertidigt kodeord:</strong> <code>{encodedTemporaryPassword}</code></li>
 						  </ul>
 
 						  <p><strong>VIGTIGT:</strong> Af sikkerhedsmæssige årsager bedes du ændre dit kodeord efter første login.</p>
@@ -245,7 +257,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 						  {EmailConstants.Signature}
 						  """,
-			To = [new EmailRecipient { Email = email, DisplayName = partnerName }]
+			To = [new EmailRecipient { Email = email, DisplayName = encodedPartnerName }]
 		};
 
 		await publishEndpoint.Publish(welcomeEmail, cancellationToken);

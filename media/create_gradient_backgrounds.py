@@ -3,7 +3,7 @@ import os
 
 # Instagram story dimensions
 WIDTH = 1024
-HEIGHT = 1024
+HEIGHT = 1920
 
 # Jordnaer colors
 JORDNAER_COLORS = {
@@ -47,7 +47,7 @@ def create_gradient_background(base_color, output_path, gradient_intensity=0.15)
         color = adjust_brightness(base_rgb, factor)
         draw.line([(0, y), (WIDTH, y)], fill=color)
 
-    img.save(output_path, 'PNG', quality=95)
+    img.save(output_path, 'PNG', optimize=True)
     print(f"Created: {output_path}")
 
 # Create output directory if it doesn't exist

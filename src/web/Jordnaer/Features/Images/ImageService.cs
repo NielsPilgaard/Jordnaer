@@ -102,6 +102,11 @@ public class ImageService(
 		int expirationDays = 90,
 		CancellationToken cancellationToken = default)
 	{
+		if (expirationDays <= 0)
+		{
+			throw new ArgumentOutOfRangeException(nameof(expirationDays), "expirationDays must be greater than zero");
+		}
+
 		var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 		await containerClient.CreateIfNotExistsAsync(
 			publicAccessType: PublicAccessType.Blob,
@@ -121,7 +126,7 @@ public class ImageService(
 			Metadata = metadata
 		};
 
-		await blobClient.UploadAsync(fileStream, uploadOptions, cancellationToken);
+		await blobClient.UploadAsync(fileStream, overwrite: true, uploadOptions, cancellationToken);
 
 		return blobClient.Uri.AbsoluteUri;
 	}
