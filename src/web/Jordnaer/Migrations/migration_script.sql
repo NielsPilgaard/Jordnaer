@@ -897,7 +897,7 @@ GO
 BEGIN TRANSACTION;
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
 )
 BEGIN
     CREATE TABLE [Partners] (
@@ -906,21 +906,24 @@ BEGIN
         [Description] nvarchar(500) NOT NULL,
         [LogoUrl] nvarchar(max) NULL,
         [Link] nvarchar(max) NOT NULL,
-        [MobileImageUrl] nvarchar(max) NULL,
-        [DesktopImageUrl] nvarchar(max) NULL,
-        [PendingMobileImageUrl] nvarchar(max) NULL,
-        [PendingDesktopImageUrl] nvarchar(max) NULL,
-        [LastImageUpdateUtc] datetime2 NULL,
-        [HasPendingImageApproval] bit NOT NULL,
-        [UserId] nvarchar(max) NOT NULL,
-        [CreatedUtc] datetime2 NOT NULL,
-        CONSTRAINT [PK_Partners] PRIMARY KEY ([Id])
+        [AdImageUrl] nvarchar(max) NULL,
+        [PendingAdImageUrl] nvarchar(max) NULL,
+        [PendingName] nvarchar(128) NULL,
+        [PendingDescription] nvarchar(500) NULL,
+        [PendingLogoUrl] nvarchar(max) NULL,
+        [PendingLink] nvarchar(max) NULL,
+        [LastUpdateUtc] datetime2 NULL,
+        [HasPendingApproval] bit NOT NULL,
+        [UserId] nvarchar(450) NOT NULL,
+        [CreatedUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+        CONSTRAINT [PK_Partners] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_Partners_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
     );
 END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
 )
 BEGIN
     CREATE TABLE [PartnerAnalytics] (
@@ -936,7 +939,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_PartnerAnalytics_PartnerId_Date] ON [PartnerAnalytics] ([PartnerId], [Date]);
@@ -944,7 +947,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260106215849_Add_Partners'
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_Partners_Name] ON [Partners] ([Name]);
@@ -952,48 +955,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260106215849_Add_Partners'
-)
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260106215849_Add_Partners', N'10.0.1');
-END;
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
-)
-BEGIN
-    DECLARE @var4 nvarchar(max);
-    SELECT @var4 = QUOTENAME([d].[name])
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'UserId');
-    IF @var4 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var4 + ';');
-    ALTER TABLE [Partners] ALTER COLUMN [UserId] nvarchar(450) NOT NULL;
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
-)
-BEGIN
-    DECLARE @var5 nvarchar(max);
-    SELECT @var5 = QUOTENAME([d].[name])
-    FROM [sys].[default_constraints] [d]
-    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
-    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'CreatedUtc');
-    IF @var5 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var5 + ';');
-    ALTER TABLE [Partners] ADD DEFAULT (GETUTCDATE()) FOR [CreatedUtc];
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_Partners_UserId] ON [Partners] ([UserId]);
@@ -1001,96 +963,11 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
-)
-BEGIN
-    ALTER TABLE [Partners] ADD CONSTRAINT [FK_Partners_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE;
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107204756_UpdatePartnerModel'
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260107204756_UpdatePartnerModel', N'10.0.1');
-END;
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[PendingMobileImageUrl]', N'PendingLogoUrl', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[PendingDesktopImageUrl]', N'PendingLink', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[MobileImageUrl]', N'PendingAdImageUrl', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[LastImageUpdateUtc]', N'LastUpdateUtc', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[HasPendingImageApproval]', N'HasPendingApproval', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[DesktopImageUrl]', N'AdImageUrl', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    ALTER TABLE [Partners] ADD [PendingDescription] nvarchar(500) NULL;
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    ALTER TABLE [Partners] ADD [PendingName] nvarchar(128) NULL;
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
-)
-BEGIN
-    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo', N'10.0.1');
+    VALUES (N'20260107220351_Add_Partners_And_Analytics', N'10.0.1');
 END;
 
 COMMIT;

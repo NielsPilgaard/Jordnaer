@@ -13,8 +13,8 @@ using NetTopologySuite.Geometries;
 namespace Jordnaer.Server.Migrations
 {
     [DbContext(typeof(JordnaerDbContext))]
-    [Migration("20260106215849_Add_Partners")]
-    partial class Add_Partners
+    [Migration("20260107220351_Add_Partners_And_Analytics")]
+    partial class Add_Partners_And_Analytics
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -365,21 +365,23 @@ namespace Jordnaer.Server.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AdImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("DesktopImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("HasPendingImageApproval")
+                    b.Property<bool>("HasPendingApproval")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("LastImageUpdateUtc")
+                    b.Property<DateTime?>("LastUpdateUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Link")
@@ -389,27 +391,39 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MobileImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<string>("PendingDesktopImageUrl")
+                    b.Property<string>("PendingAdImageUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PendingMobileImageUrl")
+                    b.Property<string>("PendingDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PendingLink")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingLogoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Partners");
@@ -845,6 +859,15 @@ namespace Jordnaer.Server.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Partner", b =>
+                {
+                    b.HasOne("Jordnaer.Database.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("Jordnaer.Shared.Partner", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.PartnerAnalytics", b =>
