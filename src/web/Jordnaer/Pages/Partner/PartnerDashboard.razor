@@ -1,11 +1,7 @@
 @page "/partner/dashboard"
+
 @attribute [Authorize(Policy = AuthorizationPolicies.PartnerAccess)]
-@using Jordnaer.Features.Authentication
-@using Jordnaer.Features.Dashboard
-@using Jordnaer.Features.Partners
-@using Jordnaer.Features.Ad
-@using Jordnaer.Shared
-@using static Jordnaer.Features.Partners.PartnerService
+
 @inject IPartnerService PartnerService
 @inject CurrentUser CurrentUser
 @inject ISnackbar Snackbar
@@ -41,28 +37,24 @@
 
 		@* Time Period Selector *@
 		<MudPaper Class="pa-4 mb-6" Elevation="2">
-			<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-				<MudText Typo="Typo.h6">Tidsperiode:</MudText>
-				<MudButtonGroup Color="Color.Primary">
+			<MudStack Row Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.Center">
+				<MudText Typo="Typo.body1" Class="font-open-sans-semibold">Tidsperiode:</MudText>
+				<MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" OverrideStyles="false">
 					<MudButton OnClick="() => SelectTimePeriod(7)"
-						Variant="@(_selectedDays == 7 ? Variant.Filled : Variant.Outlined)"
-						Color="Color.Primary">
-						7 dage
+						Variant="@(_selectedDays == 7 ? Variant.Filled : Variant.Outlined)">
+						7 DAGE
 					</MudButton>
 					<MudButton OnClick="() => SelectTimePeriod(30)"
-						Variant="@(_selectedDays == 30 ? Variant.Filled : Variant.Outlined)"
-						Color="Color.Primary">
-						30 dage
+						Variant="@(_selectedDays == 30 ? Variant.Filled : Variant.Outlined)">
+						30 DAGE
 					</MudButton>
 					<MudButton OnClick="() => SelectTimePeriod(90)"
-						Variant="@(_selectedDays == 90 ? Variant.Filled : Variant.Outlined)"
-						Color="Color.Primary">
-						90 dage
+						Variant="@(_selectedDays == 90 ? Variant.Filled : Variant.Outlined)">
+						90 DAGE
 					</MudButton>
 					<MudButton OnClick="() => SelectTimePeriod(365)"
-						Variant="@(_selectedDays == 365 ? Variant.Filled : Variant.Outlined)"
-						Color="Color.Primary">
-						Alt
+						Variant="@(_selectedDays == 365 ? Variant.Filled : Variant.Outlined)">
+						ALT
 					</MudButton>
 				</MudButtonGroup>
 			</MudStack>
@@ -133,11 +125,39 @@
 		{
 			<MudPaper Class="pa-4 mb-8" Elevation="2">
 				<MudText Typo="Typo.h6" Class="mb-4">Daglig statistik</MudText>
-				<MudChart ChartType="ChartType.Line"
-					ChartSeries="@_chartSeries"
-					XAxisLabels="@_xAxisLabels"
-					Width="100%"
-					Height="300px" />
+				@if (_analytics.DailyAnalytics.Count >= 3)
+				{
+					<MudAlert Severity="Severity.Info" Class="my-4">
+						Graf vises kun når der er data for mindst 3 dage
+					</MudAlert>
+					<MudSimpleTable Dense>
+						<thead>
+							<tr>
+								<th>Dato</th>
+								<th>Impressions</th>
+								<th>Clicks</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var daily in _analytics.DailyAnalytics)
+							{
+								<tr>
+									<td>@daily.Date.ToString("dd/MM/yyyy")</td>
+									<td>@daily.Impressions</td>
+									<td>@daily.Clicks</td>
+								</tr>
+							}
+						</tbody>
+					</MudSimpleTable>
+				}
+				else
+				{
+					<MudChart ChartType="ChartType.Line"
+						ChartSeries="@_chartSeries"
+						XAxisLabels="@_xAxisLabels"
+						Width="100%"
+						Height="300px" />
+				}
 			</MudPaper>
 		}
 		else
@@ -180,7 +200,7 @@
 							<MudDivider Class="my-2" />
 
 							<MudText Typo="Typo.subtitle2">Upload nyt billede:</MudText>
-							<MudFileUpload T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
+							<MudFileUpload @ref="_adImageUpload" T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
 								@bind-Files="_adImage" MaximumFileCount="1">
 								<ActivatorContent>
 									<MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -191,7 +211,7 @@
 							</MudFileUpload>
 							@if (_adImage is not null)
 							{
-								<MudChip T="string" OnClose="() => { _adImage = null; _adImagePreviewUrl = null; }">@_adImage.Name</MudChip>
+								<MudChip T="string" OnClose="ClearAdImage">@_adImage.Name</MudChip>
 							}
 
 							@if (!string.IsNullOrEmpty(_partner.PendingAdImageUrl))
@@ -221,15 +241,16 @@
 								{
 									<AdCard Link="@(_partner.Link)"
 										ImagePath="@GetPreviewAdImageUrl()"
-										ImageAlt="@(_partner.Name + " annonce")" />
+										ImageAlt="@(_partner.Name + " annonce")"
+										IsPreview="true" />
 								}
 								else
 								{
-									<MudCard Elevation="2" Style="border: 2px dashed #ccc;">
+									<MudCard Elevation="2" Style="border: 2px dashed #ccc; cursor: pointer;" @onclick="OpenAdImageUpload">
 										<MudCardContent>
 											<MudStack AlignItems="AlignItems.Center" Spacing="2" Style="min-height: 200px;" Justify="Justify.Center">
 												<MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Secondary" />
-												<MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+												<MudText Typo="Typo.body2" Color="Color.Primary" Align="Align.Center">
 													Upload et billede for at se forhåndsvisning
 												</MudText>
 											</MudStack>
@@ -309,7 +330,7 @@
 						<MudStack Spacing="2">
 							<MudText Typo="Typo.subtitle2">Forhåndsvisning på partnersiden:</MudText>
 
-							<div style="max-width: 300px;">
+							<div style="max-width: 300px;" class="text-center">
 								<PartnerCard Partner="@GetPreviewPartner()" />
 							</div>
 						</MudStack>
@@ -352,6 +373,7 @@
 	private bool _uploading;
 	private string? _adImagePreviewUrl;
 	private string? _logoPreviewUrl;
+	private MudFileUpload<IBrowserFile>? _adImageUpload;
 
 	private List<ChartSeries> _chartSeries = [];
 	private string[] _xAxisLabels = [];
@@ -452,6 +474,18 @@
 	{
 		_selectedDays = days;
 		await LoadAnalyticsAsync();
+		StateHasChanged();
+	}
+
+	private async Task OpenAdImageUpload()
+	{
+		await (_adImageUpload?.OpenFilePickerAsync() ?? Task.CompletedTask);
+	}
+
+	private void ClearAdImage()
+	{
+		_adImage = null;
+		_adImagePreviewUrl = null;
 		StateHasChanged();
 	}
 

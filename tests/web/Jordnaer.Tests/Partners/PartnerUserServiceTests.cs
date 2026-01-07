@@ -84,11 +84,14 @@ public class PartnerUserServiceTests : IAsyncLifetime
 
 		_userManager.FindByEmailAsync(request.Email).Returns((ApplicationUser?)null);
 		_userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>())
-			.Returns(callInfo =>
+			.Returns(async callInfo =>
 			{
 				var user = callInfo.ArgAt<ApplicationUser>(0);
 				user.Id = createdUser.Id;
-				return Task.FromResult(IdentityResult.Success);
+				// Actually insert the user into the database to satisfy foreign key constraint
+				await _context.Users.AddAsync(createdUser);
+				await _context.SaveChangesAsync();
+				return IdentityResult.Success;
 			});
 
 		_userRoleService.AddRoleToUserAsync(createdUser.Id, AppRoles.Partner)
@@ -263,11 +266,14 @@ public class PartnerUserServiceTests : IAsyncLifetime
 
 		_userManager.FindByEmailAsync(request.Email).Returns((ApplicationUser?)null);
 		_userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>())
-			.Returns(callInfo =>
+			.Returns(async callInfo =>
 			{
 				var user = callInfo.ArgAt<ApplicationUser>(0);
 				user.Id = createdUser.Id;
-				return Task.FromResult(IdentityResult.Success);
+				// Actually insert the user into the database to satisfy foreign key constraint
+				await _context.Users.AddAsync(createdUser);
+				await _context.SaveChangesAsync();
+				return IdentityResult.Success;
 			});
 
 		_userRoleService.AddRoleToUserAsync(createdUser.Id, AppRoles.Partner)
@@ -302,11 +308,14 @@ public class PartnerUserServiceTests : IAsyncLifetime
 
 		_userManager.FindByEmailAsync(request.Email).Returns((ApplicationUser?)null);
 		_userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>())
-			.Returns(callInfo =>
+			.Returns(async callInfo =>
 			{
 				var user = callInfo.ArgAt<ApplicationUser>(0);
 				user.Id = createdUser.Id;
-				return Task.FromResult(IdentityResult.Success);
+				// Actually insert the user into the database to satisfy foreign key constraint
+				await _context.Users.AddAsync(createdUser);
+				await _context.SaveChangesAsync();
+				return IdentityResult.Success;
 			});
 
 		_userRoleService.AddRoleToUserAsync(createdUser.Id, AppRoles.Partner)
@@ -351,11 +360,14 @@ public class PartnerUserServiceTests : IAsyncLifetime
 
 		_userManager.FindByEmailAsync(request.Email).Returns((ApplicationUser?)null);
 		_userManager.CreateAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>())
-			.Returns(callInfo =>
+			.Returns(async callInfo =>
 			{
 				var user = callInfo.ArgAt<ApplicationUser>(0);
 				user.Id = createdUser.Id;
-				return Task.FromResult(IdentityResult.Success);
+				// Actually insert the user into the database to satisfy foreign key constraint
+				await _context.Users.AddAsync(createdUser);
+				await _context.SaveChangesAsync();
+				return IdentityResult.Success;
 			});
 
 		_userRoleService.AddRoleToUserAsync(createdUser.Id, AppRoles.Partner)
@@ -384,6 +396,10 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			UserName = _faker.Internet.Email()
 		};
 
+		// Add user to database first to satisfy foreign key constraint
+		_context.Users.Add(user);
+		await _context.SaveChangesAsync();
+
 		var partner = new Partner
 		{
 			Id = Guid.NewGuid(),
@@ -394,7 +410,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			CreatedUtc = DateTime.UtcNow
 		};
 
-		await _context.Partners.AddAsync(partner);
+		_context.Partners.Add(partner);
 		await _context.SaveChangesAsync();
 
 		_userManager.FindByIdAsync(userId).Returns(user);

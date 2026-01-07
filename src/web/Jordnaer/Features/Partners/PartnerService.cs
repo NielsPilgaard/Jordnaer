@@ -7,7 +7,6 @@ using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
-using Serilog;
 
 namespace Jordnaer.Features.Partners;
 

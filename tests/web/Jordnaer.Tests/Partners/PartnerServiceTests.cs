@@ -27,6 +27,8 @@ public class PartnerServiceTests : IAsyncLifetime
 	private readonly IImageService _imageService = Substitute.For<IImageService>();
 	private readonly IEmailService _emailService = Substitute.For<IEmailService>();
 	private readonly string _userProfileId;
+	private const string OtherUserId = "test-other-user-partner-service";
+	private const string SecondPartnerId = "test-second-partner-user";
 
 	private readonly Faker<Partner> _partnerFaker = new Faker<Partner>("en")
 		.RuleFor(s => s.Id, _ => Guid.NewGuid())
@@ -34,8 +36,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		.RuleFor(s => s.Description, f => f.Lorem.Sentence())
 		.RuleFor(s => s.Link, f => f.Internet.Url())
 		.RuleFor(s => s.LogoUrl, f => f.Image.PicsumUrl())
-		.RuleFor(s => s.MobileImageUrl, f => f.Image.PicsumUrl())
-		.RuleFor(s => s.DesktopImageUrl, f => f.Image.PicsumUrl())
+		.RuleFor(s => s.AdImageUrl, f => f.Image.PicsumUrl())
 		.RuleFor(s => s.CreatedUtc, f => f.Date.Past(1));
 
 	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
@@ -144,7 +145,7 @@ public class PartnerServiceTests : IAsyncLifetime
 	{
 		// Arrange
 		var partner1 = AddPartner();
-		var partner2 = AddPartner();
+		var partner2 = AddPartner(SecondPartnerId); // Use different user for second partner
 		await _context.SaveChangesAsync();
 
 		// Act
@@ -317,14 +318,14 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task UploadPendingImagesAsync_ReturnsError_WhenPartnerNotFound()
+	public async Task UploadPendingChangesAsync_ReturnsError_WhenPartnerNotFound()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingImagesAsync(partnerId, stream, "image.png", null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -332,17 +333,17 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task UploadPendingImagesAsync_ReturnsError_WhenUserNotAuthorized()
+	public async Task UploadPendingChangesAsync_ReturnsError_WhenUserNotAuthorized()
 	{
 		// Arrange
 		var partner = AddPartner();
-		partner.UserId = Guid.NewGuid().ToString(); // Different user
+		partner.UserId = OtherUserId; // Different user
 		await _context.SaveChangesAsync();
 
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, stream, "image.png", null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, stream, "image.png", null, null, null, null, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -350,15 +351,14 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task UploadPendingImagesAsync_UploadsImagesAndSendsEmail_WhenValid()
+	public async Task UploadPendingChangesAsync_UploadsImagesAndSendsEmail_WhenValid()
 	{
 		// Arrange
 		var partner = AddPartner();
 		partner.UserId = _userProfileId; // Same user as CurrentUser
 		await _context.SaveChangesAsync();
 
-		var mobileStream = new MemoryStream([1, 2, 3]);
-		var desktopStream = new MemoryStream([4, 5, 6]);
+		var adImageStream = new MemoryStream([1, 2, 3]);
 
 		_imageService.UploadImageAsync(
 			Arg.Any<string>(),
@@ -368,12 +368,12 @@ public class PartnerServiceTests : IAsyncLifetime
 			.Returns("https://example.com/image.png");
 
 		// Act
-		var result = await _partnerService.UploadPendingImagesAsync(partner.Id, mobileStream, "mobile.png", desktopStream, "desktop.png");
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
 
-		await _imageService.Received(2).UploadImageAsync(
+		await _imageService.Received(1).UploadImageAsync(
 			Arg.Any<string>(),
 			"partner-ads",
 			Arg.Any<Stream>(),
@@ -386,19 +386,18 @@ public class PartnerServiceTests : IAsyncLifetime
 
 		// Reload the entity from database to see changes made by the service
 		await _context.Entry(partner).ReloadAsync();
-		partner.HasPendingImageApproval.Should().BeTrue();
-		partner.PendingMobileImageUrl.Should().NotBeNullOrEmpty();
-		partner.PendingDesktopImageUrl.Should().NotBeNullOrEmpty();
+		partner.HasPendingApproval.Should().BeTrue();
+		partner.PendingAdImageUrl.Should().NotBeNullOrEmpty();
 	}
 
 	[Fact]
-	public async Task ApproveImagesAsync_ReturnsError_WhenPartnerNotFound()
+	public async Task ApproveChangesAsync_ReturnsError_WhenPartnerNotFound()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
 
 		// Act
-		var result = await _partnerService.ApproveImagesAsync(partnerId);
+		var result = await _partnerService.ApproveChangesAsync(partnerId);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -406,38 +405,35 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task ApproveImagesAsync_MovesImagesToActive_WhenValid()
+	public async Task ApproveChangesAsync_MovesImagesToActive_WhenValid()
 	{
 		// Arrange
 		var partner = AddPartner();
-		partner.PendingMobileImageUrl = "https://example.com/pending-mobile.png";
-		partner.PendingDesktopImageUrl = "https://example.com/pending-desktop.png";
-		partner.HasPendingImageApproval = true;
+		partner.PendingAdImageUrl = "https://example.com/pending-ad.png";
+		partner.HasPendingApproval = true;
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerService.ApproveImagesAsync(partner.Id);
+		var result = await _partnerService.ApproveChangesAsync(partner.Id);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
 
 		// Reload the entity from database to see changes made by the service
 		await _context.Entry(partner).ReloadAsync();
-		partner.MobileImageUrl.Should().Be("https://example.com/pending-mobile.png");
-		partner.DesktopImageUrl.Should().Be("https://example.com/pending-desktop.png");
-		partner.PendingMobileImageUrl.Should().BeNull();
-		partner.PendingDesktopImageUrl.Should().BeNull();
-		partner.HasPendingImageApproval.Should().BeFalse();
+		partner.AdImageUrl.Should().Be("https://example.com/pending-ad.png");
+		partner.PendingAdImageUrl.Should().BeNull();
+		partner.HasPendingApproval.Should().BeFalse();
 	}
 
 	[Fact]
-	public async Task RejectImagesAsync_ReturnsError_WhenPartnerNotFound()
+	public async Task RejectChangesAsync_ReturnsError_WhenPartnerNotFound()
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
 
 		// Act
-		var result = await _partnerService.RejectImagesAsync(partnerId);
+		var result = await _partnerService.RejectChangesAsync(partnerId);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -445,67 +441,90 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task RejectImagesAsync_DeletesPendingImages_WhenValid()
+	public async Task RejectChangesAsync_DeletesPendingImages_WhenValid()
 	{
 		// Arrange
 		var partner = AddPartner();
-		partner.PendingMobileImageUrl = "https://example.com/pending-mobile.png";
-		partner.PendingDesktopImageUrl = "https://example.com/pending-desktop.png";
-		partner.HasPendingImageApproval = true;
+		partner.PendingAdImageUrl = "https://example.com/pending-ad.png";
+		partner.HasPendingApproval = true;
 		await _context.SaveChangesAsync();
 
 		// Act
-		var result = await _partnerService.RejectImagesAsync(partner.Id);
+		var result = await _partnerService.RejectChangesAsync(partner.Id);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
 
-		await _imageService.Received(2).DeleteImageAsync(
+		await _imageService.Received(1).DeleteImageAsync(
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>());
 
 		// Reload the entity from database to see changes made by the service
 		await _context.Entry(partner).ReloadAsync();
-		partner.PendingMobileImageUrl.Should().BeNull();
-		partner.PendingDesktopImageUrl.Should().BeNull();
-		partner.HasPendingImageApproval.Should().BeFalse();
+		partner.PendingAdImageUrl.Should().BeNull();
+		partner.HasPendingApproval.Should().BeFalse();
 	}
 
-	private Partner AddPartner()
+	private Partner AddPartner(string? userId = null)
 	{
 		var partner = _partnerFaker.Generate();
-		partner.UserId = _userProfileId;
+		partner.UserId = userId ?? _userProfileId;
+		// Ensure unique name to avoid IX_Partners_Name unique index violations
+		partner.Name = $"{partner.Name} {Guid.NewGuid()}";
 		_context.Partners.Add(partner);
 		return partner;
 	}
 
 	public async Task InitializeAsync()
 	{
-		// Create the ApplicationUser that tests will reference
-		var user = new ApplicationUser
+		// Create the ApplicationUser that tests will reference (if not exists)
+		var existingUser = await _context.Users.FindAsync(_userProfileId);
+		if (existingUser == null)
 		{
-			Id = _userProfileId,
-			UserName = "test@example.com",
-			Email = "test@example.com",
-			EmailConfirmed = true
-		};
-		_context.Users.Add(user);
+			var user = new ApplicationUser
+			{
+				Id = _userProfileId,
+				UserName = "test@example.com",
+				Email = "test@example.com",
+				EmailConfirmed = true
+			};
+			_context.Users.Add(user);
+		}
+
+		// Create a second user for unauthorized tests (if not exists)
+		var existingOtherUser = await _context.Users.FindAsync(OtherUserId);
+		if (existingOtherUser == null)
+		{
+			var otherUser = new ApplicationUser
+			{
+				Id = OtherUserId,
+				UserName = "other@example.com",
+				Email = "other@example.com",
+				EmailConfirmed = true
+			};
+			_context.Users.Add(otherUser);
+		}
+
+		// Create a third user for tests that need multiple partners (if not exists)
+		var existingSecondPartner = await _context.Users.FindAsync(SecondPartnerId);
+		if (existingSecondPartner == null)
+		{
+			var secondPartner = new ApplicationUser
+			{
+				Id = SecondPartnerId,
+				UserName = "second@example.com",
+				Email = "second@example.com",
+				EmailConfirmed = true
+			};
+			_context.Users.Add(secondPartner);
+		}
+
 		await _context.SaveChangesAsync();
 	}
 
 	public async Task DisposeAsync()
 	{
-		// Clean up test data to ensure test isolation
-		_context.PartnerAnalytics.RemoveRange(_context.PartnerAnalytics);
-		_context.Partners.RemoveRange(_context.Partners);
-		var user = await _context.Users.FindAsync(_userProfileId);
-		if (user is not null)
-		{
-			_context.Users.Remove(user);
-		}
-
-		await _context.SaveChangesAsync();
 		await _context.DisposeAsync();
 	}
 }

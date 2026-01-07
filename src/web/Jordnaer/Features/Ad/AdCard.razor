@@ -1,4 +1,6 @@
-<MudLink Href="@Link" Target="_blank" Underline="Underline.None"
+@inject IPartnerService PartnerService
+
+<MudLink Href="@Link" Target="_blank" Underline="Underline.None" OnClick="HandleClickAsync"
     UserAttributes="@(new Dictionary<string, object> { { "rel", "noopener" } })">
     <div class="image-ad-wrapper">
         <div class="image-with-label">
@@ -19,11 +21,28 @@
     [Parameter, EditorRequired]
     public required string ImageAlt { get; set; }
 
-    protected override void OnAfterRender(bool firstRender)
+    [Parameter]
+    public bool IsPreview { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && !IsPreview)
         {
             JordnaerMetrics.AdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+
+            // TODO: Replace Guid.Empty with actual partner ID when migrating from hardcoded ads
+            // See tasks/02-migrate-hardcoded-ads-to-partner-system.md
+            await PartnerService.RecordImpressionAsync(Guid.Empty);
+        }
+    }
+
+    private async Task HandleClickAsync()
+    {
+        if (!IsPreview)
+        {
+            // TODO: Replace Guid.Empty with actual partner ID when migrating from hardcoded ads
+            // See tasks/02-migrate-hardcoded-ads-to-partner-system.md
+            await PartnerService.RecordClickAsync(Guid.Empty);
         }
     }
 }

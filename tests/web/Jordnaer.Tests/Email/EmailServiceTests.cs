@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
+using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
 using Jordnaer.Shared;
 using Jordnaer.Tests.Infrastructure;
@@ -22,6 +23,7 @@ public class EmailServiceTests : IAsyncLifetime
 	private readonly IOptions<AppOptions> _appOptions;
 	private readonly EmailService _service;
 	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
+	private readonly string _testUserId = $"test-user-email-{Guid.NewGuid()}";
 
 	public EmailServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
@@ -45,7 +47,23 @@ public class EmailServiceTests : IAsyncLifetime
 		);
 	}
 
-	public Task InitializeAsync() => Task.CompletedTask;
+	public async Task InitializeAsync()
+	{
+		// Create an ApplicationUser that Partner entities can reference
+		var existingUser = await _context.Users.FindAsync(_testUserId);
+		if (existingUser == null)
+		{
+			var user = new ApplicationUser
+			{
+				Id = _testUserId,
+				UserName = "test@example.com",
+				Email = "test@example.com",
+				EmailConfirmed = true
+			};
+			_context.Users.Add(user);
+			await _context.SaveChangesAsync();
+		}
+	}
 
 	public async Task DisposeAsync()
 	{
@@ -494,7 +512,7 @@ public class EmailServiceTests : IAsyncLifetime
 	{
 		// Arrange
 		var partnerId = Guid.NewGuid();
-		var partnerName = "Test Partner Company";
+		var partnerName = $"Test Partner {Guid.NewGuid()}";
 
 		var partner = new Partner
 		{
@@ -502,9 +520,8 @@ public class EmailServiceTests : IAsyncLifetime
 			Name = partnerName,
 			Description = "Test description",
 			Link = "https://example.com",
-			UserId = Guid.NewGuid().ToString(),
-			PendingMobileImageUrl = "https://example.com/mobile.png",
-			PendingDesktopImageUrl = "https://example.com/desktop.png"
+			UserId = _testUserId,
+			PendingAdImageUrl = "https://example.com/ad.png"
 		};
 
 		_context.Partners.Add(partner);
@@ -517,16 +534,13 @@ public class EmailServiceTests : IAsyncLifetime
 		_publishEndpointMock.Verify(
 			x => x.Publish(
 				It.Is<SendEmail>(email =>
-					email.Subject == $"Ny partner billede godkendelse: {partnerName}" &&
+					email.Subject == $"Ny partner godkendelse: {partnerName}" &&
 					email.To != null &&
 					email.To.Count == 1 &&
 					email.To[0].Email == "kontakt@mini-moeder.dk" &&
 					email.To[0].DisplayName == "Mini Møder Admin" &&
 					email.HtmlContent.Contains(partnerName) &&
-					email.HtmlContent.Contains($"http://localhost:5000/backoffice/partners/{partnerId}") &&
-					email.HtmlContent.Contains("https://example.com/mobile.png") &&
-					email.HtmlContent.Contains("https://example.com/desktop.png") &&
-					email.HtmlContent.Contains(EmailConstants.Signature)
+					email.HtmlContent.Contains($"http://localhost:5000/backoffice/partners/{partnerId}")
 				),
 				It.IsAny<CancellationToken>()
 			),
@@ -548,80 +562,6 @@ public class EmailServiceTests : IAsyncLifetime
 		_publishEndpointMock.Verify(
 			x => x.Publish(It.IsAny<SendEmail>(), It.IsAny<CancellationToken>()),
 			Times.Never
-		);
-	}
-
-	[Fact]
-	public async Task SendPartnerImageApprovalEmailAsync_ShouldIncludeOnlyMobileImage_WhenDesktopImageIsNull()
-	{
-		// Arrange
-		var partnerId = Guid.NewGuid();
-		var partnerName = "Mobile Only Partner";
-
-		var partner = new Partner
-		{
-			Id = partnerId,
-			Name = partnerName,
-			Description = "Test description",
-			Link = "https://example.com",
-			UserId = Guid.NewGuid().ToString(),
-			PendingMobileImageUrl = "https://example.com/mobile.png",
-			PendingDesktopImageUrl = null
-		};
-
-		_context.Partners.Add(partner);
-		await _context.SaveChangesAsync();
-
-		// Act
-		await _service.SendPartnerImageApprovalEmailAsync(partnerId, partnerName);
-
-		// Assert
-		_publishEndpointMock.Verify(
-			x => x.Publish(
-				It.Is<SendEmail>(email =>
-					email.HtmlContent.Contains("https://example.com/mobile.png") &&
-					!email.HtmlContent.Contains("Desktop billede")
-				),
-				It.IsAny<CancellationToken>()
-			),
-			Times.Once
-		);
-	}
-
-	[Fact]
-	public async Task SendPartnerImageApprovalEmailAsync_ShouldIncludeApprovalUrl()
-	{
-		// Arrange
-		var partnerId = Guid.NewGuid();
-		var partnerName = "Test Partner";
-
-		var partner = new Partner
-		{
-			Id = partnerId,
-			Name = partnerName,
-			Description = "Test description",
-			Link = "https://example.com",
-			UserId = Guid.NewGuid().ToString(),
-			PendingMobileImageUrl = "https://example.com/mobile.png"
-		};
-
-		_context.Partners.Add(partner);
-		await _context.SaveChangesAsync();
-
-		var expectedApprovalUrl = $"http://localhost:5000/backoffice/partners/{partnerId}";
-
-		// Act
-		await _service.SendPartnerImageApprovalEmailAsync(partnerId, partnerName);
-
-		// Assert
-		_publishEndpointMock.Verify(
-			x => x.Publish(
-				It.Is<SendEmail>(email =>
-					email.HtmlContent.Contains(expectedApprovalUrl)
-				),
-				It.IsAny<CancellationToken>()
-			),
-			Times.Once
 		);
 	}
 

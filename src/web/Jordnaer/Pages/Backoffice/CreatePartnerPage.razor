@@ -4,7 +4,6 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject ILogger<CreatePartnerPage> Logger
-@inject IJSRuntime JSRuntime
 
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 
@@ -118,32 +117,12 @@
 
             <MudStack Spacing="3">
                 <MudText Typo="Typo.body1">
-                    Partneren <strong>@_createdPartner.Email</strong> er blevet oprettet og en velkomst-email er sendt.
+                    Partneren <strong>@_createdPartner.Email</strong> er blevet oprettet succesfuldt.
                 </MudText>
 
-                <MudDivider />
-
-                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Login Oplysninger</MudText>
-                <MudStack Spacing="2" Class="pl-4">
+                <MudAlert Severity="Severity.Info" Class="mt-2">
                     <MudText Typo="Typo.body2">
-                        <strong>Email:</strong> @_createdPartner.Email
-                    </MudText>
-                    <MudText Typo="Typo.body2">
-                        <strong>Midlertidigt Kodeord:</strong>
-                        <MudChip T="string"
-                                 Size="Size.Small"
-                                 Color="Color.Warning"
-                                 OnClick="CopyPasswordToClipboard">
-                            @_createdPartner.TemporaryPassword
-                            <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small" Class="ml-2" />
-                        </MudChip>
-                    </MudText>
-                </MudStack>
-
-                <MudAlert Severity="Severity.Warning" Class="mt-2">
-                    <MudText Typo="Typo.body2">
-                        <strong>Sikkerhed:</strong> Gem dette kodeord sikkert eller send det direkte til partneren.
-                        Dette er den eneste gang du kan se det.
+                        <strong>Email sendt:</strong> Partneren har modtaget en velkomst-email med login oplysninger og midlertidigt kodeord.
                     </MudText>
                 </MudAlert>
 
@@ -242,24 +221,6 @@
         if (_createdPartner is not null)
         {
             NavigationManager.NavigateTo($"/backoffice/partners/{_createdPartner.PartnerId}");
-        }
-    }
-
-    private async Task CopyPasswordToClipboard()
-    {
-        if (_createdPartner is not null)
-        {
-            try
-            {
-                // Note: Clipboard API requires HTTPS or localhost
-                await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _createdPartner.TemporaryPassword);
-                Snackbar.Add("Kodeord kopieret til udklipsholder", Severity.Success);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Failed to copy password to clipboard");
-                Snackbar.Add("Kunne ikke kopiere til udklipsholder. Kopier venligst manuelt.", Severity.Warning);
-            }
         }
     }
 }

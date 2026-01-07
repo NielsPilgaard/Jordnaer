@@ -69,6 +69,12 @@ public static List<AdData> GetAdsForSearch(int count)
 }
 ```
 
+**Important**: `AdCard.razor` currently uses `Guid.Empty` for tracking impressions and clicks. During migration, you must:
+- [ ] Update `AdCard.razor` to accept a `PartnerId` parameter
+- [ ] Pass the actual partner ID when rendering ads
+- [ ] Remove the `Guid.Empty` hardcoded values
+- [ ] Remove the TODO comments from `AdCard.razor`
+
 **Migration Changes:**
 
 Replace hardcoded logic with database queries:

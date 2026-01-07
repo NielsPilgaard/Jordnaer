@@ -9,10 +9,6 @@
                 {
                     <MudImage Fluid Src="@Partner.LogoUrl" Alt="@($"{Partner.Name} logo")" />
                 }
-                @if (!string.IsNullOrEmpty(Partner.Name))
-                {
-                    <MudText Typo="Typo.h5">@Partner.Name</MudText>
-                }
                 @if (!string.IsNullOrEmpty(Partner.Description))
                 {
                     <MudText Class="mt-2" Typo="Typo.subtitle1">@Partner.Description</MudText>
@@ -26,9 +22,12 @@
     [Parameter]
     public required Partner Partner { get; set; }
 
+    [Parameter]
+    public bool IsPreview { get; set; } = false;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && Partner.Id != Guid.Empty)
+        if (firstRender && Partner.Id != Guid.Empty && !IsPreview)
         {
             await PartnerService.RecordImpressionAsync(Partner.Id);
         }
@@ -36,7 +35,7 @@
 
     private async Task HandleClickAsync()
     {
-        if (Partner.Id != Guid.Empty)
+        if (Partner.Id != Guid.Empty && !IsPreview)
         {
             await PartnerService.RecordClickAsync(Partner.Id);
         }
