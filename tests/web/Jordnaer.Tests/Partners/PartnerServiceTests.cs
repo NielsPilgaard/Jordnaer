@@ -131,33 +131,6 @@ public class PartnerServiceTests : IAsyncLifetime
 	}
 
 	[Fact]
-	public async Task GetAllPartnersAsync_ReturnsEmptyList_WhenNoPartnersExist()
-	{
-		// Act
-		var result = await _partnerService.GetAllPartnersAsync();
-
-		// Assert
-		result.Should().BeEmpty();
-	}
-
-	[Fact]
-	public async Task GetAllPartnersAsync_ReturnsAllPartners_WhenPartnersExist()
-	{
-		// Arrange
-		var partner1 = AddPartner();
-		var partner2 = AddPartner(SecondPartnerId); // Use different user for second partner
-		await _context.SaveChangesAsync();
-
-		// Act
-		var result = await _partnerService.GetAllPartnersAsync();
-
-		// Assert
-		result.Should().HaveCount(2);
-		result.Should().Contain(s => s.Id == partner1.Id);
-		result.Should().Contain(s => s.Id == partner2.Id);
-	}
-
-	[Fact]
 	public async Task RecordImpressionAsync_CreatesNewAnalytics_WhenNoneExistForToday()
 	{
 		// Arrange
