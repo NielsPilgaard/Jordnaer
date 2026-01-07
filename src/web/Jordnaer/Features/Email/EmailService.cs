@@ -159,30 +159,45 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		var approvalUrl = $"{options.Value.BaseUrl}/backoffice/partners/{partnerId}";
 
-		var imageLinks = new List<string>();
+		var changesList = new List<string>();
 
-		if (!string.IsNullOrEmpty(partner.PendingMobileImageUrl))
+		if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 		{
-			imageLinks.Add($"<li><a href=\"{partner.PendingMobileImageUrl}\">Mobil billede</a></li>");
+			changesList.Add($"<li><a href=\"{partner.PendingAdImageUrl}\">Nyt annonce billede</a></li>");
 		}
 
-		if (!string.IsNullOrEmpty(partner.PendingDesktopImageUrl))
+		if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 		{
-			imageLinks.Add($"<li><a href=\"{partner.PendingDesktopImageUrl}\">Desktop billede</a></li>");
+			changesList.Add($"<li><a href=\"{partner.PendingLogoUrl}\">Nyt logo</a></li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingName))
+		{
+			changesList.Add($"<li>Nyt navn: {partner.PendingName}</li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingDescription))
+		{
+			changesList.Add($"<li>Ny beskrivelse: {partner.PendingDescription}</li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingLink))
+		{
+			changesList.Add($"<li>Nyt link: {partner.PendingLink}</li>");
 		}
 
 		var email = new SendEmail
 		{
-			Subject = $"Ny partner billede godkendelse: {partnerName}",
+			Subject = $"Ny partner godkendelse: {partnerName}",
 			HtmlContent = $"""
-						  <h4>Partner <b>{partnerName}</b> har uploadet nye billeder til godkendelse</h4>
+						  <h4>Partner <b>{partnerName}</b> har uploadet nye ændringer til godkendelse</h4>
 
-						  <p>Se de nye billeder:</p>
+						  <p>Ændringer:</p>
 						  <ul>
-						  {string.Join("\n", imageLinks)}
+						  {string.Join("\n", changesList)}
 						  </ul>
 
-						  <p><a href="{approvalUrl}">Klik her for at godkende eller afvise billederne</a></p>
+						  <p><a href="{approvalUrl}">Klik her for at godkende eller afvise ændringerne</a></p>
 
 						  {EmailConstants.Signature}
 						  """,
