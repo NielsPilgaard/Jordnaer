@@ -1,7 +1,5 @@
-using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
-using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
 using Jordnaer.Shared;
 using Jordnaer.Tests.Infrastructure;
@@ -20,30 +18,27 @@ public class EmailServiceTests : IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
 	private readonly Mock<IPublishEndpoint> _publishEndpointMock;
-	private readonly IOptions<AppOptions> _appOptions;
 	private readonly EmailService _service;
-	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
 	private readonly string _testUserId = $"test-user-email-{Guid.NewGuid()}";
 
 	public EmailServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
-		_sqlServerContainer = sqlServerContainer;
-		_context = _sqlServerContainer.CreateContext();
+		_context = sqlServerContainer.CreateContext();
 
 		var contextFactoryMock = new Mock<IDbContextFactory<JordnaerDbContext>>();
 		contextFactoryMock
 			.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => _sqlServerContainer.CreateContext());
+			.ReturnsAsync(() => sqlServerContainer.CreateContext());
 
 		_publishEndpointMock = new Mock<IPublishEndpoint>();
 
-		_appOptions = Options.Create(new AppOptions { BaseUrl = "http://localhost:5000" });
+		var appOptions = Options.Create(new AppOptions { BaseUrl = "http://localhost:5000" });
 
 		_service = new EmailService(
 			_publishEndpointMock.Object,
 			contextFactoryMock.Object,
 			new NullLogger<EmailService>(),
-			_appOptions
+			appOptions
 		);
 	}
 
