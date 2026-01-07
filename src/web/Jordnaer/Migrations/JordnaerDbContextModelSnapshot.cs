@@ -362,6 +362,9 @@ namespace Jordnaer.Server.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AdImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -372,13 +375,10 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("DesktopImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("HasPendingImageApproval")
+                    b.Property<bool>("HasPendingApproval")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("LastImageUpdateUtc")
+                    b.Property<DateTime?>("LastUpdateUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Link")
@@ -388,19 +388,27 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("MobileImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<string>("PendingDesktopImageUrl")
+                    b.Property<string>("PendingAdImageUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PendingMobileImageUrl")
+                    b.Property<string>("PendingDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PendingLink")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingLogoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("UserId")
                         .IsRequired()

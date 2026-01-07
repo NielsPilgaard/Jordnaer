@@ -1019,3 +1019,80 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[PendingMobileImageUrl]', N'PendingLogoUrl', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[PendingDesktopImageUrl]', N'PendingLink', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[MobileImageUrl]', N'PendingAdImageUrl', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[LastImageUpdateUtc]', N'LastUpdateUtc', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[HasPendingImageApproval]', N'HasPendingApproval', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[DesktopImageUrl]', N'AdImageUrl', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [PendingDescription] nvarchar(500) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [PendingName] nvarchar(128) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260107215759_SimplifyPartnerFieldsAndAddPendingCardInfo', N'10.0.1');
+END;
+
+COMMIT;
+GO
+
