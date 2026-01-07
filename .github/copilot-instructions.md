@@ -5,7 +5,8 @@ Our project is called Jordnaer but has been rebranded to Mini Møder. This docum
 # Upon completion of an instruction, please:
 
 1. Run the tests to ensure nothing is broken
-2. Start CodeRabbit with the following command to generate a code review based on the latest committed changes:
+2. Authenticate with CodeRabbit (scripts/auth-coderabbat.bat) and generate a code review for the committed changes
+3. Start CodeRabbit with the following command to generate a code review based on the latest committed changes:
 
 `wsl -d Ubuntu bash -c "cd /mnt/c/Users/Niels/Documents/GitHub/Jordnaer && ~/.local/bin/coderabbit --prompt-only --type committed" > reviews/review-committed-$(date +%Y%m%d-%H%M%S).txt 2>&1`
 
