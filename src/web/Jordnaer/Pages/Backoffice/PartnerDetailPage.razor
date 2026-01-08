@@ -223,33 +223,38 @@ else
             <MudGrid Spacing="4">
                 @if (!string.IsNullOrEmpty(_partner.AdImageUrl))
                 {
-                    <MudItem xs="12" sm="6">
-                        <MudCard>
-                            <MudCardHeader>
-                                <CardHeaderContent>
-                                    <MudText Typo="Typo.subtitle1" Class="font-open-sans-bold">
-                                        Annonce Billede
-                                    </MudText>
-                                </CardHeaderContent>
-                            </MudCardHeader>
-                            <MudCardMedia Image="@_partner.AdImageUrl" Height="300" />
-                        </MudCard>
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle1" Class="font-open-sans-bold">
+                                <MudIcon Icon="@Icons.Material.Filled.Image" Class="mr-2" /> Annonce Billede
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Sådan vises annoncen i søgeresultater
+                            </MudText>
+                            <div style="max-width: 300px;">
+                                <AdCard Link="@_partner.Link"
+                                    ImagePath="@_partner.AdImageUrl"
+                                    ImageAlt="@(_partner.Name + " annonce")"
+                                    IsPreview="true" />
+                            </div>
+                        </MudStack>
                     </MudItem>
                 }
 
-                @if (!string.IsNullOrEmpty(_partner.LogoUrl))
+                @if (!string.IsNullOrEmpty(_partner.LogoUrl) || !string.IsNullOrEmpty(_partner.Description))
                 {
-                    <MudItem xs="12" sm="6">
-                        <MudCard>
-                            <MudCardHeader>
-                                <CardHeaderContent>
-                                    <MudText Typo="Typo.subtitle1" Class="font-open-sans-bold">
-                                        Partner Logo
-                                    </MudText>
-                                </CardHeaderContent>
-                            </MudCardHeader>
-                            <MudCardMedia Image="@_partner.LogoUrl" Height="300" />
-                        </MudCard>
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle1" Class="font-open-sans-bold">
+                                <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" /> Partner Kort
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Sådan vises partneren på partnersiden
+                            </MudText>
+                            <div style="max-width: 300px;">
+                                <PartnerCard Partner="@GetCurrentPartner()" IsPreview="true" />
+                            </div>
+                        </MudStack>
                     </MudItem>
                 }
 
