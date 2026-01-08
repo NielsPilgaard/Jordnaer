@@ -185,7 +185,7 @@
                 {
                     _createdPartner = success;
                     Snackbar.Add($"Partner '{_model.Name}' oprettet succesfuldt!", Severity.Success);
-                    Logger.LogInformation("Created partner account for {Email}", _model.Email);
+                    Logger.LogInformation("Created partner account for {Email}", new MaskedEmail(_model.Email));
                 },
                 error =>
                 {
@@ -196,7 +196,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Exception while creating partner account for {Email}", _model.Email);
+            Logger.LogError(ex, "Exception while creating partner account for {Email}", new MaskedEmail(_model.Email));
             Snackbar.Add("Der opstod en uventet fejl. Prøv igen senere.", Severity.Error);
         }
         finally

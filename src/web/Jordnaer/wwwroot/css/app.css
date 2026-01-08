@@ -540,9 +540,3 @@ body, p {
 .mobile-menu-toggle:checked ~ .backdrop {
     display: block;
 }
-
-/* Ensure dropdowns appear above backdrop */
-.profile-menu-dropdown,
-.mobile-menu-dropdown {
-    z-index: 1000;
-}

@@ -5,6 +5,7 @@
 @inject IPartnerService PartnerService
 @inject CurrentUser CurrentUser
 @inject ISnackbar Snackbar
+@inject ILogger<PartnerDashboard> Logger
 
 <PageTitle>Partner Dashboard - Mini Møder</PageTitle>
 
@@ -259,7 +260,7 @@
 							@if (_logoImage is not null)
 							{
 								var logoName = _logoImage.Name;
-								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; }">@logoName</MudChip>
+								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; _logoImageUploadAttempted = false; }">@logoName</MudChip>
 							}
 
 							@if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
@@ -319,6 +320,8 @@
 	private string? _adImagePreviewUrl;
 	private string? _logoPreviewUrl;
 	private MudFileUpload<IBrowserFile>? _adImageUpload;
+	private bool _adImageUploadAttempted;
+	private bool _logoImageUploadAttempted;
 
 	private List<ChartSeries> _chartSeries = [];
 	private string[] _xAxisLabels = [];
@@ -330,9 +333,20 @@
 			return;
 		}
 
-		await LoadPartnerDataAsync();
-		await LoadAnalyticsAsync();
-		_loading = false;
+		try
+		{
+			await LoadPartnerDataAsync();
+			await LoadAnalyticsAsync();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Failed to load partner dashboard for user {UserId}", CurrentUser.Id);
+			Snackbar.Add("Kunne ikke indlæse partner data. Prøv igen senere.", Severity.Error);
+		}
+		finally
+		{
+			_loading = false;
+		}
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -340,13 +354,15 @@
 		if (!firstRender)
 		{
 			// Upload preview images when files are selected
-			if (_adImage is not null && _adImagePreviewUrl is null && _partner is not null)
+			if (_adImage is not null && _adImagePreviewUrl is null && _partner is not null && !_adImageUploadAttempted)
 			{
+				_adImageUploadAttempted = true;
 				_adImagePreviewUrl = await UploadPreviewImageAsync(_adImage);
 				StateHasChanged();
 			}
-			if (_logoImage is not null && _logoPreviewUrl is null && _partner is not null)
+			if (_logoImage is not null && _logoPreviewUrl is null && _partner is not null && !_logoImageUploadAttempted)
 			{
+				_logoImageUploadAttempted = true;
 				_logoPreviewUrl = await UploadPreviewImageAsync(_logoImage);
 				StateHasChanged();
 			}
@@ -444,6 +460,7 @@
 	{
 		_adImage = null;
 		_adImagePreviewUrl = null;
+		_adImageUploadAttempted = false;
 		StateHasChanged();
 	}
 
@@ -562,6 +579,8 @@
 					_pendingLink = null;
 					_adImagePreviewUrl = null;
 					_logoPreviewUrl = null;
+					_adImageUploadAttempted = false;
+					_logoImageUploadAttempted = false;
 				},
 				error => Snackbar.Add(error.Value, Severity.Error)
 			);

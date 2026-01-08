@@ -54,7 +54,7 @@ cat > lifecycle-policy.json << 'EOF'
         },
         "filters": {
           "blobTypes": ["blockBlob"],
-          "prefixMatch": ["partner-ads/preview/"]
+          "prefixMatch": ["preview/"]
         }
       }
     }
@@ -79,7 +79,7 @@ resource "azurerm_storage_management_policy" "example" {
     name    = "delete-preview-images"
     enabled = true
     filters {
-      prefix_match = ["partner-ads/preview/"]
+      prefix_match = ["preview/"]
       blob_types   = ["blockBlob"]
     }
     actions {

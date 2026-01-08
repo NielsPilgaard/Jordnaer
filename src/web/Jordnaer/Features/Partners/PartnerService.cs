@@ -116,27 +116,38 @@ public class PartnerService(
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var today = DateTime.UtcNow.Date;
 
-			var analytics = await context.PartnerAnalytics
-				.FirstOrDefaultAsync(a => a.PartnerId == partnerId && a.Date == today, cancellationToken);
-
-			if (analytics is null)
+			// Attempt to insert a new record
+			var analytics = new PartnerAnalytics
 			{
-				analytics = new PartnerAnalytics
+				PartnerId = partnerId,
+				Date = today,
+				Impressions = 1,
+				Clicks = 0
+			};
+			context.PartnerAnalytics.Add(analytics);
+
+			try
+			{
+				await context.SaveChangesAsync(cancellationToken);
+				return new Success();
+			}
+			catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true ||
+			                                     ex.InnerException?.Message.Contains("duplicate") == true)
+			{
+				// Record already exists, increment instead
+				context.Entry(analytics).State = EntityState.Detached;
+
+				var existingAnalytics = await context.PartnerAnalytics
+					.FirstOrDefaultAsync(a => a.PartnerId == partnerId && a.Date == today, cancellationToken);
+
+				if (existingAnalytics is not null)
 				{
-					PartnerId = partnerId,
-					Date = today,
-					Impressions = 1,
-					Clicks = 0
-				};
-				context.PartnerAnalytics.Add(analytics);
-			}
-			else
-			{
-				analytics.Impressions++;
-			}
+					existingAnalytics.Impressions++;
+					await context.SaveChangesAsync(cancellationToken);
+				}
 
-			await context.SaveChangesAsync(cancellationToken);
-			return new Success();
+				return new Success();
+			}
 		}
 		catch (Exception ex)
 		{
@@ -154,27 +165,38 @@ public class PartnerService(
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var today = DateTime.UtcNow.Date;
 
-			var analytics = await context.PartnerAnalytics
-				.FirstOrDefaultAsync(a => a.PartnerId == partnerId && a.Date == today, cancellationToken);
-
-			if (analytics is null)
+			// Attempt to insert a new record
+			var analytics = new PartnerAnalytics
 			{
-				analytics = new PartnerAnalytics
+				PartnerId = partnerId,
+				Date = today,
+				Impressions = 0,
+				Clicks = 1
+			};
+			context.PartnerAnalytics.Add(analytics);
+
+			try
+			{
+				await context.SaveChangesAsync(cancellationToken);
+				return new Success();
+			}
+			catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true ||
+			                                     ex.InnerException?.Message.Contains("duplicate") == true)
+			{
+				// Record already exists, increment instead
+				context.Entry(analytics).State = EntityState.Detached;
+
+				var existingAnalytics = await context.PartnerAnalytics
+					.FirstOrDefaultAsync(a => a.PartnerId == partnerId && a.Date == today, cancellationToken);
+
+				if (existingAnalytics is not null)
 				{
-					PartnerId = partnerId,
-					Date = today,
-					Impressions = 0,
-					Clicks = 1
-				};
-				context.PartnerAnalytics.Add(analytics);
-			}
-			else
-			{
-				analytics.Clicks++;
-			}
+					existingAnalytics.Clicks++;
+					await context.SaveChangesAsync(cancellationToken);
+				}
 
-			await context.SaveChangesAsync(cancellationToken);
-			return new Success();
+				return new Success();
+			}
 		}
 		catch (Exception ex)
 		{

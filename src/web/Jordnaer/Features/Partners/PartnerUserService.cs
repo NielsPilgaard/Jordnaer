@@ -143,8 +143,24 @@ public sealed class PartnerUserService(
 		}
 		catch (Exception ex)
 		{
-			// Rollback: Delete the user account if partner/profile creation failed
+			// Rollback: Delete the user account and profile if partner/profile creation failed
 			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back user account.", new MaskedEmail(request.Email));
+
+			try
+			{
+				await using var rollbackContext = await contextFactory.CreateDbContextAsync(cancellationToken);
+				var profile = await rollbackContext.UserProfiles.FindAsync([user.Id], cancellationToken);
+				if (profile is not null)
+				{
+					rollbackContext.UserProfiles.Remove(profile);
+					await rollbackContext.SaveChangesAsync(cancellationToken);
+				}
+			}
+			catch (Exception cleanupEx)
+			{
+				logger.LogError(cleanupEx, "Failed to cleanup UserProfile during rollback for {Email}", new MaskedEmail(request.Email));
+			}
+
 			await userManager.DeleteAsync(user);
 			throw;
 		}
