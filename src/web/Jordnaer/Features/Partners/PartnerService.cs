@@ -225,12 +225,11 @@ public class PartnerService(
 				}
 			}
 
-			// Upload as temporary preview with 90-day expiration
-			var previewUrl = await imageService.UploadTemporaryImageAsync(
-				$"{partnerId}_preview_{Guid.NewGuid():N}.webp",
+			// Upload preview image (lifecycle policy will handle automatic deletion after 90 days)
+			var previewUrl = await imageService.UploadImageAsync(
+				$"preview/{partnerId}/{Guid.NewGuid():N}.webp",
 				PartnerAdsContainer,
 				imageStream,
-				expirationDays: 90,
 				cancellationToken);
 
 			return previewUrl;

@@ -71,7 +71,7 @@
 								<MudText Typo="Typo.h6">Impressions</MudText>
 							</MudStack>
 							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
-								@_analytics?.TotalImpressions.ToString("N0")
+								@(_analytics != null ? _analytics.TotalImpressions.ToString("N0") : "0")
 							</MudText>
 							<MudText Typo="Typo.body2" Color="Color.Secondary">
 								Antal gange din annonce er vist
@@ -90,7 +90,7 @@
 								<MudText Typo="Typo.h6">Clicks</MudText>
 							</MudStack>
 							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
-								@_analytics?.TotalClicks.ToString("N0")
+								@(_analytics != null ? _analytics.TotalClicks.ToString("N0") : "0")
 							</MudText>
 							<MudText Typo="Typo.body2" Color="Color.Secondary">
 								Antal gange der er klikket på din annonce
@@ -109,7 +109,7 @@
 								<MudText Typo="Typo.h6">CTR</MudText>
 							</MudStack>
 							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
-								@_analytics?.ClickThroughRate.ToString("F2")%
+								@(_analytics != null ? _analytics.ClickThroughRate.ToString("F2") : "0.00")%
 							</MudText>
 							<MudText Typo="Typo.body2" Color="Color.Secondary">
 								Click-through rate
@@ -408,7 +408,7 @@
 
 		try
 		{
-			var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+			using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
 			var result = await PartnerService.UploadPreviewImageAsync(_partner.Id, stream, file.Name);
 
 			return result.Match<string?>(
@@ -422,7 +422,7 @@
 		}
 		catch (Exception ex)
 		{
-			Snackbar.Add($"Fejl ved upload af forhåndsvisning", Severity.Error);
+			Snackbar.Add($"Fejl ved upload af forhåndsvisning: {ex.Message}", Severity.Error);
 			return null;
 		}
 	}
@@ -558,11 +558,11 @@
 		}
 
 		_uploading = true;
+		Stream? adImageStream = null;
+		Stream? logoStream = null;
 		try
 		{
-			Stream? adImageStream = null;
 			string? adImageFileName = null;
-			Stream? logoStream = null;
 			string? logoFileName = null;
 
 			if (_adImage is not null)
@@ -616,6 +616,8 @@
 		}
 		finally
 		{
+			adImageStream?.Dispose();
+			logoStream?.Dispose();
 			_uploading = false;
 		}
 	}
