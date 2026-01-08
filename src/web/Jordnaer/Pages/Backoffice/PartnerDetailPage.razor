@@ -100,81 +100,82 @@ else
                     Disse ændringer afventer din godkendelse
                 </MudAlert>
 
-                <MudGrid Spacing="4">
-                    @* Pending Text Fields *@
-                    @if (HasPendingTextChanges())
-                    {
-                        <MudItem xs="12">
-                            <MudText Typo="Typo.h6" Class="mb-3">Partner Information Ændringer</MudText>
-                            <MudStack Spacing="2">
-                                @if (!string.IsNullOrEmpty(_partner.PendingName))
-                                {
-                                    <MudAlert Severity="Severity.Info" Dense>
-                                        <MudText Typo="Typo.body2">
-                                            <strong>Nyt Navn:</strong> @_partner.PendingName
-                                            <br />
-                                            <strong>Nuværende:</strong> @_partner.Name
-                                        </MudText>
-                                    </MudAlert>
-                                }
-                                @if (!string.IsNullOrEmpty(_partner.PendingDescription))
-                                {
-                                    <MudAlert Severity="Severity.Info" Dense>
-                                        <MudText Typo="Typo.body2">
-                                            <strong>Ny Beskrivelse:</strong> @_partner.PendingDescription
-                                            <br />
-                                            <strong>Nuværende:</strong> @_partner.Description
-                                        </MudText>
-                                    </MudAlert>
-                                }
-                                @if (!string.IsNullOrEmpty(_partner.PendingLink))
-                                {
-                                    <MudAlert Severity="Severity.Info" Dense>
-                                        <MudText Typo="Typo.body2">
-                                            <strong>Nyt Link:</strong> @_partner.PendingLink
-                                            <br />
-                                            <strong>Nuværende:</strong> @_partner.Link
-                                        </MudText>
-                                    </MudAlert>
-                                }
-                            </MudStack>
-                        </MudItem>
-                    }
+                @* Pending Ad Image - Side by Side *@
+                @if (!string.IsNullOrEmpty(_partner.PendingAdImageUrl))
+                {
+                    <MudPaper Class="pa-4 mb-6" Elevation="1">
+                        <MudText Typo="Typo.h6" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Image" Class="mr-2" /> Annonce Billede
+                        </MudText>
+                        <MudGrid Spacing="4">
+                            <MudItem xs="12" md="6">
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Nuværende</MudText>
+                                    @if (!string.IsNullOrEmpty(_partner.AdImageUrl))
+                                    {
+                                        <div style="max-width: 300px;">
+                                            <AdCard Link="@_partner.Link"
+                                                ImagePath="@_partner.AdImageUrl"
+                                                ImageAlt="@(_partner.Name + " annonce")"
+                                                IsPreview="true" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <MudAlert Severity="Severity.Info" Dense>Intet billede</MudAlert>
+                                    }
+                                </MudStack>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Style="color: #ff9800;">Afventer godkendelse</MudText>
+                                    <div style="max-width: 300px;">
+                                        <AdCard Link="@_partner.Link"
+                                            ImagePath="@_partner.PendingAdImageUrl"
+                                            ImageAlt="@(_partner.Name + " annonce")"
+                                            IsPreview="true" />
+                                    </div>
+                                </MudStack>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                }
 
-                    @* Pending Ad Image *@
-                    @if (!string.IsNullOrEmpty(_partner.PendingAdImageUrl))
-                    {
-                        <MudItem xs="12" sm="6">
-                            <MudCard>
-                                <MudCardHeader>
-                                    <CardHeaderContent>
-                                        <MudText Typo="Typo.subtitle1" Class="font-open-sans-bold">
-                                            Annonce Billede (Afventer)
-                                        </MudText>
-                                    </CardHeaderContent>
-                                </MudCardHeader>
-                                <MudCardMedia Image="@_partner.PendingAdImageUrl" Height="300" />
-                            </MudCard>
-                        </MudItem>
-                    }
-
-                    @* Pending Logo *@
-                    @if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
-                    {
-                        <MudItem xs="12" sm="6">
-                            <MudCard>
-                                <MudCardHeader>
-                                    <CardHeaderContent>
-                                        <MudText Typo="Typo.subtitle1" Class="font-open-sans-bold">
-                                            Partner Logo (Afventer)
-                                        </MudText>
-                                    </CardHeaderContent>
-                                </MudCardHeader>
-                                <MudCardMedia Image="@_partner.PendingLogoUrl" Height="300" />
-                            </MudCard>
-                        </MudItem>
-                    }
-                </MudGrid>
+                @* Pending Partner Card - Side by Side *@
+                @if (HasPendingPartnerCardChanges())
+                {
+                    <MudPaper Class="pa-4 mb-6" Elevation="1">
+                        <MudText Typo="Typo.h6" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" /> Partner Kort
+                        </MudText>
+                        <MudGrid Spacing="4">
+                            <MudItem xs="12" md="6">
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Nuværende</MudText>
+                                    <div style="max-width: 300px;">
+                                        <PartnerCard Partner="@GetCurrentPartner()" IsPreview="true" />
+                                    </div>
+                                </MudStack>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudStack Spacing="2">
+                                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudText Typo="Typo.subtitle2" Style="color: #ff9800;">Afventer godkendelse</MudText>
+                                        @if (HasPendingTextChanges())
+                                        {
+                                            <MudTooltip Text="@GetPendingChangesText()">
+                                                <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Color="Color.Warning" />
+                                            </MudTooltip>
+                                        }
+                                    </MudStack>
+                                    <div style="max-width: 300px;">
+                                        <PartnerCard Partner="@GetPendingPartner()" IsPreview="true" />
+                                    </div>
+                                </MudStack>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                }
 
                 <MudStack Row Spacing="3" Class="mt-6">
                     <MudButton Variant="Variant.Filled"
@@ -347,25 +348,7 @@ else
         </MudGrid>
 
         @* Analytics Chart *@
-        @if (_analytics?.DailyAnalytics.Any() == true)
-        {
-            <MudPaper Class="pa-4 mb-8" Elevation="2">
-                <MudText Typo="Typo.h6" Class="mb-4">Daglig statistik</MudText>
-                <MudChart ChartType="ChartType.Line"
-                    ChartSeries="@_chartSeries"
-                    XAxisLabels="@_xAxisLabels"
-                    Width="100%"
-                    Height="300px" />
-            </MudPaper>
-        }
-        else
-        {
-            <MudPaper Class="pa-8 mb-8" Elevation="2">
-                <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Secondary">
-                    Ingen data for denne periode
-                </MudText>
-            </MudPaper>
-        }
+        <PartnerAnalyticsDisplay Analytics="_analytics" ChartSeries="_chartSeries" XAxisLabels="_xAxisLabels" />
     </MudContainer>
 }
 
@@ -458,6 +441,62 @@ else
         return !string.IsNullOrEmpty(_partner?.PendingName) ||
                !string.IsNullOrEmpty(_partner?.PendingDescription) ||
                !string.IsNullOrEmpty(_partner?.PendingLink);
+    }
+
+    private bool HasPendingPartnerCardChanges()
+    {
+        return HasPendingTextChanges() || !string.IsNullOrEmpty(_partner?.PendingLogoUrl);
+    }
+
+    private string GetPendingChangesText()
+    {
+        if (_partner is null) return string.Empty;
+
+        var changes = new List<string>();
+        if (!string.IsNullOrEmpty(_partner.PendingName))
+            changes.Add($"Navn: {_partner.Name} → {_partner.PendingName}");
+        if (!string.IsNullOrEmpty(_partner.PendingDescription))
+            changes.Add($"Beskrivelse opdateret");
+        if (!string.IsNullOrEmpty(_partner.PendingLink))
+            changes.Add($"Link: {_partner.Link} → {_partner.PendingLink}");
+        if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
+            changes.Add("Logo opdateret");
+
+        return string.Join("\n", changes);
+    }
+
+    private Partner GetCurrentPartner()
+    {
+        if (_partner is null)
+            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow };
+
+        return new Partner
+        {
+            Id = _partner.Id,
+            Name = _partner.Name,
+            Description = _partner.Description,
+            LogoUrl = _partner.LogoUrl,
+            Link = _partner.Link,
+            UserId = _partner.UserId,
+            CreatedUtc = _partner.CreatedUtc
+        };
+    }
+
+    private Partner GetPendingPartner()
+    {
+        if (_partner is null)
+            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow };
+
+        return new Partner
+        {
+            Id = _partner.Id,
+            Name = !string.IsNullOrEmpty(_partner.PendingName) ? _partner.PendingName : _partner.Name,
+            Description = !string.IsNullOrEmpty(_partner.PendingDescription) ? _partner.PendingDescription : _partner.Description,
+            LogoUrl = !string.IsNullOrEmpty(_partner.PendingLogoUrl) ? _partner.PendingLogoUrl : _partner.LogoUrl,
+            Link = !string.IsNullOrEmpty(_partner.PendingLink) ? _partner.PendingLink : _partner.Link,
+            UserId = _partner.UserId,
+            CreatedUtc = _partner.CreatedUtc
+        };
     }
 
     private async Task ApproveChangesAsync()

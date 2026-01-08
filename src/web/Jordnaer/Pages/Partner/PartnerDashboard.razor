@@ -121,53 +121,7 @@
 		</MudGrid>
 
 		@* Analytics Chart *@
-		@if (_analytics?.DailyAnalytics.Count > 0)
-		{
-			<MudPaper Class="pa-4 mb-8" Elevation="2">
-				<MudText Typo="Typo.h6" Class="mb-4">Daglig statistik</MudText>
-				@if (_analytics.DailyAnalytics.Count <= 3)
-				{
-					<MudAlert Severity="Severity.Info" Class="my-4">
-						Graf vises kun når der er data for mindst 3 dage
-					</MudAlert>
-					<MudSimpleTable Dense>
-						<thead>
-							<tr>
-								<th>Dato</th>
-								<th>Impressions</th>
-								<th>Clicks</th>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach (var daily in _analytics.DailyAnalytics)
-							{
-								<tr>
-									<td>@daily.Date.ToString("dd/MM/yyyy")</td>
-									<td>@daily.Impressions</td>
-									<td>@daily.Clicks</td>
-								</tr>
-							}
-						</tbody>
-					</MudSimpleTable>
-				}
-				else
-				{
-					<MudChart ChartType="ChartType.Line"
-						ChartSeries="@_chartSeries"
-						XAxisLabels="@_xAxisLabels"
-						Width="100%"
-						Height="300px" />
-				}
-			</MudPaper>
-		}
-		else
-		{
-			<MudPaper Class="pa-8 mb-8" Elevation="2">
-				<MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Secondary">
-					Ingen data for denne periode
-				</MudText>
-			</MudPaper>
-		}
+		<PartnerAnalyticsDisplay Analytics="_analytics" ChartSeries="_chartSeries" XAxisLabels="_xAxisLabels" />
 
 		@* Partner Information Management *@
 		<MudPaper Class="pa-6 mb-8" Elevation="2">

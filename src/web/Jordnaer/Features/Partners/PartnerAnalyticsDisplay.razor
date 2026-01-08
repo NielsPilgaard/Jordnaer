@@ -1,0 +1,59 @@
+@* Analytics Chart Section - Shared between Partner Dashboard and Backoffice *@
+@if (Analytics?.DailyAnalytics.Count > 0)
+{
+    <MudPaper Class="pa-4 mb-8" Elevation="2">
+        <MudText Typo="Typo.h6" Class="mb-4">Daglig statistik</MudText>
+        @if (Analytics.DailyAnalytics.Count <= 3)
+        {
+            <MudAlert Severity="Severity.Info" Class="my-4">
+                Graf vises kun når der er data for mindst 3 dage
+            </MudAlert>
+            <MudSimpleTable Dense>
+                <thead>
+                    <tr>
+                        <th>Dato</th>
+                        <th>Impressions</th>
+                        <th>Clicks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var daily in Analytics.DailyAnalytics)
+                    {
+                        <tr>
+                            <td>@daily.Date.ToString("dd/MM/yyyy")</td>
+                            <td>@daily.Impressions</td>
+                            <td>@daily.Clicks</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+        else
+        {
+            <MudChart ChartType="ChartType.Line"
+                ChartSeries="@ChartSeries"
+                XAxisLabels="@XAxisLabels"
+                Width="100%"
+                Height="300px" />
+        }
+    </MudPaper>
+}
+else
+{
+    <MudPaper Class="pa-8 mb-8" Elevation="2">
+        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Secondary">
+            Ingen data for denne periode
+        </MudText>
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public PartnerAnalyticsDto? Analytics { get; set; }
+
+    [Parameter]
+    public List<ChartSeries> ChartSeries { get; set; } = [];
+
+    [Parameter]
+    public string[] XAxisLabels { get; set; } = [];
+}
