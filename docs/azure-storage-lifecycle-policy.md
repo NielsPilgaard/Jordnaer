@@ -54,7 +54,7 @@ cat > lifecycle-policy.json << 'EOF'
         },
         "filters": {
           "blobTypes": ["blockBlob"],
-          "prefixMatch": ["partner-ads/preview/"]
+          "prefixMatch": ["preview/"]
         }
       }
     }
