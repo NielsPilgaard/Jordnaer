@@ -1060,3 +1060,24 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109224836_Remove_Partner_Name_Index'
+)
+BEGIN
+    DROP INDEX [IX_Partners_Name] ON [Partners];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109224836_Remove_Partner_Name_Index'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260109224836_Remove_Partner_Name_Index', N'10.0.1');
+END;
+
+COMMIT;
+GO
+

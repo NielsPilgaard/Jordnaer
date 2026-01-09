@@ -420,10 +420,6 @@ namespace Jordnaer.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasFilter("[Name] IS NOT NULL");
-
                     b.HasIndex("UserId")
                         .IsUnique();
 
