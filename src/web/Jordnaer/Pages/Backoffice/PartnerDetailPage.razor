@@ -84,6 +84,24 @@ else
                         </MudStack>
                     </MudItem>
                 }
+
+                <MudItem xs="12" md="6">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Tilladelser</MudText>
+                        <MudStack Row Spacing="2">
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(_partner.CanHavePartnerCard ? Color.Success : Color.Default)"
+                                     Icon="@(_partner.CanHavePartnerCard ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
+                                Partner Kort
+                            </MudChip>
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(_partner.CanHaveAd ? Color.Success : Color.Default)"
+                                     Icon="@(_partner.CanHaveAd ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
+                                Annoncer
+                            </MudChip>
+                        </MudStack>
+                    </MudStack>
+                </MudItem>
             </MudGrid>
         </MudPaper>
 

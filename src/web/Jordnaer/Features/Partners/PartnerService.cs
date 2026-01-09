@@ -131,20 +131,14 @@ public class PartnerService(
 				await context.SaveChangesAsync(cancellationToken);
 				return new Success();
 			}
-			catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true ||
-			                                     ex.InnerException?.Message.Contains("duplicate") == true)
+			catch (DbUpdateException)
 			{
-				// Record already exists, increment instead
+				// Record already exists, perform atomic increment
 				context.Entry(analytics).State = EntityState.Detached;
 
-				var existingAnalytics = await context.PartnerAnalytics
-					.FirstOrDefaultAsync(a => a.PartnerId == partnerId && a.Date == today, cancellationToken);
-
-				if (existingAnalytics is not null)
-				{
-					existingAnalytics.Impressions++;
-					await context.SaveChangesAsync(cancellationToken);
-				}
+				await context.PartnerAnalytics
+					.Where(a => a.PartnerId == partnerId && a.Date == today)
+					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Impressions, a => a.Impressions + 1), cancellationToken);
 
 				return new Success();
 			}
@@ -180,20 +174,14 @@ public class PartnerService(
 				await context.SaveChangesAsync(cancellationToken);
 				return new Success();
 			}
-			catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") == true ||
-			                                     ex.InnerException?.Message.Contains("duplicate") == true)
+			catch (DbUpdateException)
 			{
-				// Record already exists, increment instead
+				// Record already exists, perform atomic increment
 				context.Entry(analytics).State = EntityState.Detached;
 
-				var existingAnalytics = await context.PartnerAnalytics
-					.FirstOrDefaultAsync(a => a.PartnerId == partnerId && a.Date == today, cancellationToken);
-
-				if (existingAnalytics is not null)
-				{
-					existingAnalytics.Clicks++;
-					await context.SaveChangesAsync(cancellationToken);
-				}
+				await context.PartnerAnalytics
+					.Where(a => a.PartnerId == partnerId && a.Date == today)
+					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Clicks, a => a.Clicks + 1), cancellationToken);
 
 				return new Success();
 			}
@@ -237,14 +225,16 @@ public class PartnerService(
 				return new Error<string>("Image exceeds maximum size of 5MB");
 			}
 
-			// Validate file extension
-			if (!string.IsNullOrEmpty(fileName))
+			// Validate file name and extension
+			if (string.IsNullOrWhiteSpace(fileName))
 			{
-				var extension = Path.GetExtension(fileName).ToLowerInvariant();
-				if (!AllowedImageFormats.Contains(extension))
-				{
-					return new Error<string>($"Image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
-				}
+				return new Error<string>("File name is required");
+			}
+
+			var extension = Path.GetExtension(fileName).ToLowerInvariant();
+			if (!AllowedImageFormats.Contains(extension))
+			{
+				return new Error<string>($"Image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
 			}
 
 			// Upload preview image (lifecycle policy will handle automatic deletion after 90 days)
@@ -302,14 +292,16 @@ public class PartnerService(
 					return new Error<string>("Ad image exceeds maximum size of 5MB");
 				}
 
-				// Validate file extension
-				if (!string.IsNullOrEmpty(adImageFileName))
+				// Validate file name and extension
+				if (string.IsNullOrWhiteSpace(adImageFileName))
 				{
-					var extension = Path.GetExtension(adImageFileName).ToLowerInvariant();
-					if (!AllowedImageFormats.Contains(extension))
-					{
-						return new Error<string>($"Ad image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
-					}
+					return new Error<string>("Ad image file name is required");
+				}
+
+				var extension = Path.GetExtension(adImageFileName).ToLowerInvariant();
+				if (!AllowedImageFormats.Contains(extension))
+				{
+					return new Error<string>($"Ad image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
 				}
 
 				var adImageUrl = await imageService.UploadImageAsync(
@@ -330,14 +322,16 @@ public class PartnerService(
 					return new Error<string>("Logo exceeds maximum size of 5MB");
 				}
 
-				// Validate file extension
-				if (!string.IsNullOrEmpty(logoFileName))
+				// Validate file name and extension
+				if (string.IsNullOrWhiteSpace(logoFileName))
 				{
-					var extension = Path.GetExtension(logoFileName).ToLowerInvariant();
-					if (!AllowedImageFormats.Contains(extension))
-					{
-						return new Error<string>($"Logo format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
-					}
+					return new Error<string>("Logo file name is required");
+				}
+
+				var extension = Path.GetExtension(logoFileName).ToLowerInvariant();
+				if (!AllowedImageFormats.Contains(extension))
+				{
+					return new Error<string>($"Logo format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
 				}
 
 				var logoUrl = await imageService.UploadImageAsync(

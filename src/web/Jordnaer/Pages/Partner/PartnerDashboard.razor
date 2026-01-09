@@ -128,8 +128,10 @@
 		<MudPaper Class="pa-6 mb-8" Elevation="2">
 			<MudText Typo="Typo.h5" Class="mb-4 font-open-sans-bold">Partner Administration</MudText>
 
-			@* Ad Image Section *@
-			<MudPaper Class="pa-4 mb-6" Elevation="1">
+			@* Ad Image Section - Only show if partner has permission *@
+			@if (_partner.CanHaveAd)
+			{
+				<MudPaper Class="pa-4 mb-6" Elevation="1">
 				<MudText Typo="Typo.h6" Class="mb-4">
 					<MudIcon Icon="@Icons.Material.Filled.Image" Class="mr-2" /> Annonce Billede
 				</MudText>
@@ -213,9 +215,18 @@
 					</MudItem>
 				</MudGrid>
 			</MudPaper>
+			}
+			else
+			{
+				<MudAlert Severity="Severity.Info" Class="mb-6">
+					Din partnerkonto har ikke tilladelse til at uploade annoncer. Kontakt support hvis du har brug for denne funktion.
+				</MudAlert>
+			}
 
-			@* Partner Card Section *@
-			<MudPaper Class="pa-4 mb-6" Elevation="1">
+			@* Partner Card Section - Only show if partner has permission *@
+			@if (_partner.CanHavePartnerCard)
+			{
+				<MudPaper Class="pa-4 mb-6" Elevation="1">
 				<MudText Typo="Typo.h6" Class="mb-4">
 					<MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" /> Partner Kort Information
 				</MudText>
@@ -284,8 +295,17 @@
 					</MudItem>
 				</MudGrid>
 			</MudPaper>
+			}
+			else
+			{
+				<MudAlert Severity="Severity.Info" Class="mb-6">
+					Din partnerkonto har ikke tilladelse til at have et partner kort på partnersiden. Kontakt support hvis du har brug for denne funktion.
+				</MudAlert>
+			}
 
-			@* Submit Button *@
+			@* Submit Button - Only show if partner has any editable permissions *@
+			@if (_partner.CanHaveAd || _partner.CanHavePartnerCard)
+			{
 			<MudStack Row Class="mt-4 justify-center">
 				<MudButton Variant="Variant.Filled" Color="Color.Success"
 					OnClick="SubmitChangesAsync"
@@ -303,6 +323,7 @@
 					}
 				</MudButton>
 			</MudStack>
+			}
 		</MudPaper>
 	}
 </MudContainer>

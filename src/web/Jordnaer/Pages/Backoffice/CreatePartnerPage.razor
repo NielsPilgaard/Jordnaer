@@ -68,6 +68,26 @@
 
                 <MudDivider Class="my-4" />
 
+                <MudText Typo="Typo.h6" Class="mb-2">Partner Tilladelser</MudText>
+
+                <MudSwitch @bind-Value="_model.CanHavePartnerCard"
+                           Label="Tillad Partner Kort"
+                           Color="Color.Primary"
+                           Class="mb-2" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 ml-10">
+                    Hvis aktiveret, kan partneren vises på /partners siden med logo og beskrivelse
+                </MudText>
+
+                <MudSwitch @bind-Value="_model.CanHaveAd"
+                           Label="Tillad Annoncer"
+                           Color="Color.Primary"
+                           Class="mb-2" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 ml-10">
+                    Hvis aktiveret, kan partneren uploade annonce billeder der vises i søgeresultater
+                </MudText>
+
+                <MudDivider Class="my-4" />
+
                 <MudAlert Severity="Severity.Info" Class="mb-4">
                     <MudText Typo="Typo.body2">
                         <strong>Bemærk:</strong> Når du opretter partneren, vil systemet:
@@ -160,6 +180,8 @@
         public string Description { get; set; } = string.Empty;
         public string Link { get; set; } = string.Empty;
         public string? LogoUrl { get; set; }
+        public bool CanHavePartnerCard { get; set; } = true;
+        public bool CanHaveAd { get; set; } = true;
     }
 
     private async Task CreatePartnerAsync()
@@ -175,7 +197,9 @@
                 Email = _model.Email,
                 Description = _model.Description,
                 LogoUrl = string.IsNullOrWhiteSpace(_model.LogoUrl) ? null : _model.LogoUrl,
-                Link = _model.Link
+                Link = _model.Link,
+                CanHavePartnerCard = _model.CanHavePartnerCard,
+                CanHaveAd = _model.CanHaveAd
             };
 
             var result = await PartnerService.CreatePartnerAccountAsync(request);

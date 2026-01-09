@@ -28,6 +28,8 @@ public record CreatePartnerRequest
 	public required string Description { get; init; }
 	public string? LogoUrl { get; init; }
 	public required string Link { get; init; }
+	public bool CanHavePartnerCard { get; init; } = true;
+	public bool CanHaveAd { get; init; } = true;
 }
 
 public record CreatePartnerResult
@@ -115,7 +117,9 @@ public sealed class PartnerUserService(
 				Description = request.Description,
 				LogoUrl = request.LogoUrl,
 				Link = request.Link,
-				UserId = user.Id
+				UserId = user.Id,
+				CanHavePartnerCard = request.CanHavePartnerCard,
+				CanHaveAd = request.CanHaveAd
 			};
 
 			context.Partners.Add(partner);

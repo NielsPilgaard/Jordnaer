@@ -365,13 +365,18 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("AdImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("CanHaveAd")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanHavePartnerCard")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -382,14 +387,12 @@ namespace Jordnaer.Server.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Link")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -418,7 +421,8 @@ namespace Jordnaer.Server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Name] IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique();

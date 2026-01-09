@@ -11,21 +11,30 @@ public class Partner
 	[DatabaseGenerated(DatabaseGeneratedOption.None)]
 	public Guid Id { get; set; }
 
-	[Required]
+	/// <summary>
+	/// Partner name. Optional. Displayed on partner card if set, and <see cref="CanHavePartnerCard"/> is <c>true</c>.
+	/// </summary>
 	[MinLength(2, ErrorMessage = "Partner navn skal være mindst 2 karakterer langt.")]
 	[MaxLength(128, ErrorMessage = "Partner navn må højest være 128 karakterer langt.")]
-	public required string Name { get; set; }
+	public string? Name { get; set; }
 
-	[Required]
+	/// <summary>
+	/// Partner description. Optional. Displayed on partner card if set, and <see cref="CanHavePartnerCard"/> is <c>true</c>.
+	/// </summary>
 	[MaxLength(500, ErrorMessage = "Partner beskrivelse må højest være 500 karakterer lang.")]
-	public required string Description { get; set; }
+	public string? Description { get; set; }
 
+	/// <summary>
+	/// Partner logo URL. Optional. Displayed on partner card if set, and <see cref="CanHavePartnerCard"/> is <c>true</c>.
+	/// </summary>
 	[Url]
 	public string? LogoUrl { get; set; }
 
+	/// <summary>
+	/// Partner website link. Optional. Clicking on partner card directs to this if set, and <see cref="CanHavePartnerCard"/> is <c>true</c>.
+	/// </summary>
 	[Url]
-	[Required(ErrorMessage = "Partner link er påkrævet.")]
-	public required string Link { get; set; }
+	public string? Link { get; set; }
 
 	/// <summary>
 	/// Ad image URL (9:16 or 1:1 aspect ratio recommended)
@@ -79,7 +88,51 @@ public class Partner
 	[Required]
 	public required string UserId { get; set; }
 
+	/// <summary>
+	/// Whether this partner is allowed to have ad images
+	/// </summary>
+	public bool CanHaveAd { get; set; } = true;
+
+	/// <summary>
+	/// Whether this partner is allowed to have a partner card on the /partners page
+	/// </summary>
+	public bool CanHavePartnerCard { get; set; } = true;
+
 	public DateTime CreatedUtc { get; set; }
 
 	public List<PartnerAnalytics> Analytics { get; set; } = [];
+
+	/// <summary>
+	/// Determines if this partner has a partner card (displayed on /partners page)
+	/// </summary>
+	public bool HasPartnerCard => !string.IsNullOrWhiteSpace(Link) &&
+								   (!string.IsNullOrWhiteSpace(LogoUrl) || !string.IsNullOrWhiteSpace(Description));
+
+	/// <summary>
+	/// Determines if this partner has an ad image (for ad display)
+	/// </summary>
+	public bool HasAdImage => !string.IsNullOrWhiteSpace(AdImageUrl);
+
+	/// <summary>
+	/// Validates that the partner has at least one type of presence (partner card or ad image)
+	/// </summary>
+	public bool IsValid()
+	{
+		// Must have either a partner card (link + logo/description) or an ad image
+		var hasValidPartnerCard = HasPartnerCard;
+		var hasValidAdImage = HasAdImage;
+
+		if (!hasValidPartnerCard && !hasValidAdImage)
+		{
+			return false;
+		}
+
+		// If partner card is present, validate required fields
+		if (hasValidPartnerCard && string.IsNullOrWhiteSpace(Name))
+		{
+			return false;
+		}
+
+		return true;
+	}
 }
