@@ -23,8 +23,8 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Post> Posts { get; set; } = default!;
 	public DbSet<GroupPost> GroupPosts { get; set; } = default!;
 
-	public DbSet<Partner> Partners { get; set; }
-	public DbSet<PartnerAnalytics> PartnerAnalytics { get; set; }
+	public DbSet<Partner> Partners { get; set; } = default!;
+	public DbSet<PartnerAnalytics> PartnerAnalytics { get; set; } = default!;
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

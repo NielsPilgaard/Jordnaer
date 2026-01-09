@@ -1,4 +1,5 @@
 @inject IPartnerService PartnerService
+@inject ILogger<PartnerCard> Logger
 
 @* Only display partner card if the partner has card data (link + logo/description) *@
 @if (Partner.HasPartnerCard && !string.IsNullOrEmpty(Partner.Link))
@@ -28,9 +29,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await base.OnAfterRenderAsync(firstRender);
+
         if (firstRender && Partner.Id != Guid.Empty && !IsPreview)
         {
-            await PartnerService.RecordImpressionAsync(Partner.Id);
+            try
+            {
+                await PartnerService.RecordImpressionAsync(Partner.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to record impression for partner {PartnerId}", Partner.Id);
+            }
         }
     }
 
@@ -38,7 +48,14 @@
     {
         if (Partner.Id != Guid.Empty && !IsPreview)
         {
-            await PartnerService.RecordClickAsync(Partner.Id);
+            try
+            {
+                await PartnerService.RecordClickAsync(Partner.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to record click for partner {PartnerId}", Partner.Id);
+            }
         }
     }
 }

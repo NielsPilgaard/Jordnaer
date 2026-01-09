@@ -354,7 +354,7 @@ public class PartnerServiceTests : IAsyncLifetime
 
 		await _emailService.Received(1).SendPartnerImageApprovalEmailAsync(
 			partner.Id,
-			partner.Name,
+			Arg.Any<string>(),
 			Arg.Any<CancellationToken>());
 
 		// Reload the entity from database to see changes made by the service

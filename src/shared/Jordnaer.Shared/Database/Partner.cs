@@ -1,10 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Shared;
 
-[Index(nameof(Name), IsUnique = true)]
 public class Partner
 {
 	[Key]
@@ -51,6 +49,7 @@ public class Partner
 	/// <summary>
 	/// Pending partner name awaiting admin approval
 	/// </summary>
+	[MinLength(2, ErrorMessage = "Partner navn skal være mindst 2 karakterer langt.")]
 	[MaxLength(128)]
 	public string? PendingName { get; set; }
 
@@ -104,31 +103,31 @@ public class Partner
 
 	/// <summary>
 	/// Determines if this partner has a partner card (displayed on /partners page)
+	/// <para>
+	/// The link must be set, and at least one of logo URL, description, or name must be set.
+	/// </para>
 	/// </summary>
-	public bool HasPartnerCard => !string.IsNullOrWhiteSpace(Link) &&
-								   (!string.IsNullOrWhiteSpace(LogoUrl) || !string.IsNullOrWhiteSpace(Description));
+	public bool HasPartnerCard => CanHavePartnerCard &&
+								   !string.IsNullOrWhiteSpace(Link) &&
+								   (!string.IsNullOrWhiteSpace(LogoUrl) ||
+								   !string.IsNullOrWhiteSpace(Description) ||
+								   !string.IsNullOrWhiteSpace(Name));
 
 	/// <summary>
 	/// Determines if this partner has an ad image (for ad display)
 	/// </summary>
-	public bool HasAdImage => !string.IsNullOrWhiteSpace(AdImageUrl);
+	public bool HasAdImage => CanHaveAd && !string.IsNullOrWhiteSpace(AdImageUrl);
 
 	/// <summary>
 	/// Validates that the partner has at least one type of presence (partner card or ad image)
 	/// </summary>
 	public bool IsValid()
 	{
-		// Must have either a partner card (link + logo/description) or an ad image
+		// Must have either a partner card or an ad image
 		var hasValidPartnerCard = HasPartnerCard;
 		var hasValidAdImage = HasAdImage;
 
 		if (!hasValidPartnerCard && !hasValidAdImage)
-		{
-			return false;
-		}
-
-		// If partner card is present, validate required fields
-		if (hasValidPartnerCard && string.IsNullOrWhiteSpace(Name))
 		{
 			return false;
 		}

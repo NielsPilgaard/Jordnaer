@@ -56,7 +56,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Generate gradient backgrounds for each color
 for name, color in JORDNAER_COLORS.items():
-    output_path = os.path.join(output_dir, f'{name}_gradient_square.png')
+    output_path = os.path.join(output_dir, f'{name}_gradient_portrait.png')
     create_gradient_background(color, output_path)
 
 print(f"\nAll 6 gradient backgrounds created in: {output_dir}")

@@ -20,6 +20,6 @@ echo ========================================
 echo Authentication complete!
 echo ========================================
 echo.
-echo You can now use run-coderabbit.bat to analyze your code.
+echo You can now use coderabbit.bat to analyze your code.
 echo.
 pause

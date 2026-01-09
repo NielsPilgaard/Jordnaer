@@ -16,7 +16,7 @@ public interface IPartnerUserService
 		CreatePartnerRequest request,
 		CancellationToken cancellationToken = default);
 
-	Task<OneOf<Success, NotFound>> ResendWelcomeEmailAsync(
+	Task<OneOf<Success, NotFound, Error<string>>> ResendWelcomeEmailAsync(
 		string userId,
 		CancellationToken cancellationToken = default);
 }
@@ -170,7 +170,7 @@ public sealed class PartnerUserService(
 		}
 	}
 
-	public async Task<OneOf<Success, NotFound>> ResendWelcomeEmailAsync(
+	public async Task<OneOf<Success, NotFound, Error<string>>> ResendWelcomeEmailAsync(
 		string userId,
 		CancellationToken cancellationToken = default)
 	{
@@ -202,13 +202,14 @@ public sealed class PartnerUserService(
 		{
 			var errors = string.Join(", ", resetResult.Errors.Select(e => e.Description));
 			logger.LogError("Failed to reset password for user {UserId}. Errors: {Errors}", userId, errors);
-			throw new InvalidOperationException($"Failed to reset password: {errors}");
+			return new Error<string>($"Kunne ikke nulstille kodeord: {errors}");
 		}
 
-		// Resend welcome email
+		// Resend welcome email with null-safe partner name
+		var partnerName = partner.Name ?? "Partner";
 		await emailService.SendPartnerWelcomeEmailAsync(
 			user.Email!,
-			partner.Name,
+			partnerName,
 			newTemporaryPassword,
 			cancellationToken);
 

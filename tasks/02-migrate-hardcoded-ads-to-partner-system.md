@@ -9,7 +9,7 @@
 
 ## Context
 
-Currently, partner advertisements are hardcoded in `src/web/Jordnaer/Features/Ad/HardcodedAds.cs`. With the new partner/partner system (Task 01) now complete, we can migrate these hardcoded ads to the database-backed partner system once we have meaningful traffic to offer partners.
+Currently, partner advertisements are hardcoded in `src/web/Jordnaer/Features/Ad/HardcodedAds.cs`. With the new partner system (Task 01) now complete, we can migrate these hardcoded ads to the database-backed partner system once we have meaningful traffic to offer partners.
 
 **Current Hardcoded Ad:**
 
@@ -91,8 +91,9 @@ var ads = HardcodedAds.GetAdsForSearch(count);
 // With:
 var partners = await PartnerService.GetAllPartnersAsync();
 var activePartners = partners
-    .Where(s => !string.IsNullOrEmpty(s.MobileImageUrl) ||
-                !string.IsNullOrEmpty(s.DesktopImageUrl))
+    .Where(s => (!string.IsNullOrEmpty(s.MobileImageUrl) ||
+                !string.IsNullOrEmpty(s.DesktopImageUrl)) &&
+                !s.HasPendingApproval) // Only show approved ads
     .ToList();
 ```
 

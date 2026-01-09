@@ -370,8 +370,9 @@ public class PartnerService(
 				context.Partners.Update(partner);
 				await context.SaveChangesAsync(cancellationToken);
 
-				// Send notification email to admin
-				await emailService.SendPartnerImageApprovalEmailAsync(partner.Id, partner.Name, cancellationToken);
+				// Send notification email to admin with null-safe partner name
+				var displayName = partner.PendingName ?? partner.Name ?? "Unknown Partner";
+				await emailService.SendPartnerImageApprovalEmailAsync(partner.Id, displayName, cancellationToken);
 
 				return new Success();
 			}
@@ -408,15 +409,29 @@ public class PartnerService(
 			// Delete old ad image if new one is being approved
 			if (!string.IsNullOrEmpty(partner.AdImageUrl) && !string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
-				var adImageName = Path.GetFileName(new Uri(partner.AdImageUrl).LocalPath);
-				await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+				if (Uri.TryCreate(partner.AdImageUrl, UriKind.Absolute, out var adUri))
+				{
+					var adImageName = Path.GetFileName(adUri.LocalPath);
+					await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+				}
+				else
+				{
+					logger.LogWarning("Invalid ad image URL format: {AdImageUrl}", partner.AdImageUrl);
+				}
 			}
 
 			// Delete old logo if new one is being approved
 			if (!string.IsNullOrEmpty(partner.LogoUrl) && !string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
-				var logoName = Path.GetFileName(new Uri(partner.LogoUrl).LocalPath);
-				await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+				if (Uri.TryCreate(partner.LogoUrl, UriKind.Absolute, out var logoUri))
+				{
+					var logoName = Path.GetFileName(logoUri.LocalPath);
+					await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+				}
+				else
+				{
+					logger.LogWarning("Invalid logo URL format: {LogoUrl}", partner.LogoUrl);
+				}
 			}
 
 			// Move pending changes to active
@@ -487,16 +502,32 @@ public class PartnerService(
 			// Delete pending ad image
 			if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
-				var adImageName = Path.GetFileName(new Uri(partner.PendingAdImageUrl).LocalPath);
-				await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+				if (Uri.TryCreate(partner.PendingAdImageUrl, UriKind.Absolute, out var adUri))
+				{
+					var adImageName = Path.GetFileName(adUri.LocalPath);
+					await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+				}
+				else
+				{
+					logger.LogWarning("Invalid pending ad image URL format: {PendingAdImageUrl}", partner.PendingAdImageUrl);
+				}
+
 				partner.PendingAdImageUrl = null;
 			}
 
 			// Delete pending logo
 			if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
-				var logoName = Path.GetFileName(new Uri(partner.PendingLogoUrl).LocalPath);
-				await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+				if (Uri.TryCreate(partner.PendingLogoUrl, UriKind.Absolute, out var logoUri))
+				{
+					var logoName = Path.GetFileName(logoUri.LocalPath);
+					await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+				}
+				else
+				{
+					logger.LogWarning("Invalid pending logo URL format: {PendingLogoUrl}", partner.PendingLogoUrl);
+				}
+
 				partner.PendingLogoUrl = null;
 			}
 
