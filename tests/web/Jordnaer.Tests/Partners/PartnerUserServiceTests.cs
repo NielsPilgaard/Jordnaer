@@ -279,9 +279,12 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		_userRoleService.AddRoleToUserAsync(createdUser.Id, AppRoles.Partner)
 			.Returns(new OneOf.Types.Error<string>("Failed to add role"));
 
-		// Act & Assert
-		await Assert.ThrowsAsync<InvalidOperationException>(
-			() => _partnerUserService.CreatePartnerAccountAsync(request));
+		// Act
+		var result = await _partnerUserService.CreatePartnerAccountAsync(request);
+
+		// Assert - service catches exception and returns error result after rollback
+		result.IsT1.Should().BeTrue();
+		result.AsT1.Value.Should().Contain("Kunne ikke fuldføre oprettelse");
 
 		// Verify user was deleted (rollback)
 		await _userManager.Received(1).DeleteAsync(Arg.Any<ApplicationUser>());
@@ -414,8 +417,8 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		await _context.SaveChangesAsync();
 
 		_userManager.FindByIdAsync(userId).Returns(user);
-		_userManager.RemovePasswordAsync(user).Returns(IdentityResult.Success);
-		_userManager.AddPasswordAsync(user, Arg.Any<string>()).Returns(IdentityResult.Success);
+		_userManager.GeneratePasswordResetTokenAsync(user).Returns("reset-token");
+		_userManager.ResetPasswordAsync(user, "reset-token", Arg.Any<string>()).Returns(IdentityResult.Success);
 
 		// Act
 		var result = await _partnerUserService.ResendWelcomeEmailAsync(userId);
@@ -423,9 +426,9 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		// Assert
 		result.IsT0.Should().BeTrue();
 
-		// Verify password was reset
-		await _userManager.Received(1).RemovePasswordAsync(user);
-		await _userManager.Received(1).AddPasswordAsync(user, Arg.Any<string>());
+		// Verify password was reset using token-based reset
+		await _userManager.Received(1).GeneratePasswordResetTokenAsync(user);
+		await _userManager.Received(1).ResetPasswordAsync(user, "reset-token", Arg.Any<string>());
 
 		// Verify welcome email was sent
 		await _emailService.Received(1).SendPartnerWelcomeEmailAsync(
