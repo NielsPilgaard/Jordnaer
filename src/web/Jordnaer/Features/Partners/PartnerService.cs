@@ -14,8 +14,8 @@ public interface IPartnerService
 {
 	Task<OneOf<Partner, NotFound>> GetPartnerByIdAsync(Guid id, CancellationToken cancellationToken = default);
 	Task<OneOf<Partner, NotFound>> GetPartnerByUserIdAsync(string userId, CancellationToken cancellationToken = default);
-	Task<List<Partner>> GetAllPartnersAsync(CancellationToken cancellationToken = default);
-	Task<PartnerAnalyticsDto> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
+	Task<OneOf<List<Partner>, Error<string>>> GetAllPartnersAsync(CancellationToken cancellationToken = default);
+	Task<OneOf<PartnerAnalyticsDto, NotFound, Error<string>>> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<string, Error<string>>> UploadPreviewImageAsync(Guid partnerId, Stream imageStream, string fileName, CancellationToken cancellationToken = default);
@@ -65,46 +65,70 @@ public class PartnerService(
 			: partner;
 	}
 
-	public async Task<List<Partner>> GetAllPartnersAsync(CancellationToken cancellationToken = default)
+	public async Task<OneOf<List<Partner>, Error<string>>> GetAllPartnersAsync(CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		return await context.Partners
-			.AsNoTracking()
-			.OrderBy(s => s.Name)
-			.ToListAsync(cancellationToken);
+		try
+		{
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+			var partners = await context.Partners
+				.AsNoTracking()
+				.OrderBy(s => s.Name)
+				.ToListAsync(cancellationToken);
+			return partners;
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to get all partners");
+			return new Error<string>("Failed to retrieve partners");
+		}
 	}
 
-	public async Task<PartnerAnalyticsDto> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
+	public async Task<OneOf<PartnerAnalyticsDto, NotFound, Error<string>>> GetAnalyticsAsync(Guid partnerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
 
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-		var analytics = await context.PartnerAnalytics
-			.AsNoTracking()
-			.Where(a => a.PartnerId == partnerId && a.Date >= fromDate.Date && a.Date <= toDate.Date)
-			.OrderBy(a => a.Date)
-			.ToListAsync(cancellationToken);
-
-		var totalImpressions = analytics.Sum(a => a.Impressions);
-		var totalClicks = analytics.Sum(a => a.Clicks);
-		var ctr = totalImpressions > 0 ? (double)totalClicks / totalImpressions * 100 : 0;
-
-		return new PartnerAnalyticsDto
+		try
 		{
-			PartnerId = partnerId,
-			TotalImpressions = totalImpressions,
-			TotalClicks = totalClicks,
-			ClickThroughRate = Math.Round(ctr, 2),
-			DailyAnalytics = analytics.Select(a => new DailyAnalyticsDto
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+			// Verify partner exists
+			var partnerExists = await context.Partners.AnyAsync(p => p.Id == partnerId, cancellationToken);
+			if (!partnerExists)
 			{
-				Date = a.Date,
-				Impressions = a.Impressions,
-				Clicks = a.Clicks
-			}).ToList()
-		};
+				return new NotFound();
+			}
+
+			var analytics = await context.PartnerAnalytics
+				.AsNoTracking()
+				.Where(a => a.PartnerId == partnerId && a.Date >= fromDate.Date && a.Date <= toDate.Date)
+				.OrderBy(a => a.Date)
+				.ToListAsync(cancellationToken);
+
+			var totalImpressions = analytics.Sum(a => a.Impressions);
+			var totalClicks = analytics.Sum(a => a.Clicks);
+			var ctr = totalImpressions > 0 ? (double)totalClicks / totalImpressions * 100 : 0;
+
+			return new PartnerAnalyticsDto
+			{
+				PartnerId = partnerId,
+				TotalImpressions = totalImpressions,
+				TotalClicks = totalClicks,
+				ClickThroughRate = Math.Round(ctr, 2),
+				DailyAnalytics = analytics.Select(a => new DailyAnalyticsDto
+				{
+					Date = a.Date,
+					Impressions = a.Impressions,
+					Clicks = a.Clicks
+				}).ToList()
+			};
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to get analytics for partner {PartnerId}", partnerId);
+			return new Error<string>("Failed to retrieve analytics");
+		}
 	}
 
 	public async Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default)
@@ -215,6 +239,27 @@ public class PartnerService(
 
 		try
 		{
+			// Validate file name and extension first (before buffering)
+			if (string.IsNullOrWhiteSpace(fileName))
+			{
+				return new Error<string>("File name is required");
+			}
+
+			var extension = Path.GetExtension(fileName).ToLowerInvariant();
+			if (!AllowedImageFormats.Contains(extension))
+			{
+				return new Error<string>($"Image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+			}
+
+			// Buffer the stream to avoid issues with non-seekable streams and Stream.Length
+			var bufferResult = await BufferStreamAsync(imageStream, cancellationToken);
+			if (bufferResult.IsT1)
+			{
+				return bufferResult.AsT1;
+			}
+
+			using var bufferedStream = bufferResult.AsT0;
+
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var partner = await context.Partners
 				.AsNoTracking()
@@ -231,29 +276,11 @@ public class PartnerService(
 				return new Error<string>("Unauthorized");
 			}
 
-			// Validate file size
-			if (imageStream.Length > MaxImageSizeBytes)
-			{
-				return new Error<string>("Image exceeds maximum size of 5MB");
-			}
-
-			// Validate file name and extension
-			if (string.IsNullOrWhiteSpace(fileName))
-			{
-				return new Error<string>("File name is required");
-			}
-
-			var extension = Path.GetExtension(fileName).ToLowerInvariant();
-			if (!AllowedImageFormats.Contains(extension))
-			{
-				return new Error<string>($"Image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
-			}
-
 			// Upload preview image (lifecycle policy will handle automatic deletion after 90 days)
 			var previewUrl = await imageService.UploadImageAsync(
 				$"preview/{partnerId}/{Guid.NewGuid():N}{extension}",
 				PartnerAdsContainer,
-				imageStream,
+				bufferedStream,
 				cancellationToken);
 
 			return previewUrl;
@@ -262,6 +289,37 @@ public class PartnerService(
 		{
 			logger.LogError(ex, "Failed to upload preview image for partner {PartnerId}", partnerId);
 			return new Error<string>("Failed to upload preview image");
+		}
+	}
+
+	private static async Task<OneOf<MemoryStream, Error<string>>> BufferStreamAsync(Stream inputStream, CancellationToken cancellationToken)
+	{
+		var buffer = new MemoryStream();
+		var tempBuffer = new byte[81920]; // 80KB chunks
+		long totalBytesRead = 0;
+
+		try
+		{
+			int bytesRead;
+			while ((bytesRead = await inputStream.ReadAsync(tempBuffer, cancellationToken)) > 0)
+			{
+				totalBytesRead += bytesRead;
+				if (totalBytesRead > MaxImageSizeBytes)
+				{
+					buffer.Dispose();
+					return new Error<string>("Image exceeds maximum size of 5MB");
+				}
+
+				await buffer.WriteAsync(tempBuffer.AsMemory(0, bytesRead), cancellationToken);
+			}
+
+			buffer.Position = 0;
+			return buffer;
+		}
+		catch
+		{
+			buffer.Dispose();
+			throw;
 		}
 	}
 
@@ -295,65 +353,83 @@ public class PartnerService(
 			}
 
 			var hasChanges = false;
+			MemoryStream? bufferedAdImageStream = null;
+			MemoryStream? bufferedLogoStream = null;
 
-			// Upload ad image if provided
-			if (adImageStream is not null)
+			try
 			{
-				if (adImageStream.Length > MaxImageSizeBytes)
+				// Upload ad image if provided
+				if (adImageStream is not null)
 				{
-					return new Error<string>("Ad image exceeds maximum size of 5MB");
+					// Validate file name and extension first
+					if (string.IsNullOrWhiteSpace(adImageFileName))
+					{
+						return new Error<string>("Ad image file name is required");
+					}
+
+					var extension = Path.GetExtension(adImageFileName).ToLowerInvariant();
+					if (!AllowedImageFormats.Contains(extension))
+					{
+						return new Error<string>($"Ad image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+					}
+
+					// Buffer the stream to avoid issues with non-seekable streams
+					var bufferResult = await BufferStreamAsync(adImageStream, cancellationToken);
+					if (bufferResult.IsT1)
+					{
+						return new Error<string>($"Ad image: {bufferResult.AsT1.Value}");
+					}
+
+					bufferedAdImageStream = bufferResult.AsT0;
+
+					var adImageUrl = await imageService.UploadImageAsync(
+						$"{partnerId}_ad_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}",
+						PartnerAdsContainer,
+						bufferedAdImageStream,
+						cancellationToken);
+
+					partner.PendingAdImageUrl = adImageUrl;
+					hasChanges = true;
 				}
 
-				// Validate file name and extension
-				if (string.IsNullOrWhiteSpace(adImageFileName))
+				// Upload logo if provided
+				if (logoStream is not null)
 				{
-					return new Error<string>("Ad image file name is required");
+					// Validate file name and extension first
+					if (string.IsNullOrWhiteSpace(logoFileName))
+					{
+						return new Error<string>("Logo file name is required");
+					}
+
+					var extension = Path.GetExtension(logoFileName).ToLowerInvariant();
+					if (!AllowedImageFormats.Contains(extension))
+					{
+						return new Error<string>($"Logo format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
+					}
+
+					// Buffer the stream to avoid issues with non-seekable streams
+					var bufferResult = await BufferStreamAsync(logoStream, cancellationToken);
+					if (bufferResult.IsT1)
+					{
+						return new Error<string>($"Logo: {bufferResult.AsT1.Value}");
+					}
+
+					bufferedLogoStream = bufferResult.AsT0;
+
+					var logoUrl = await imageService.UploadImageAsync(
+						$"{partnerId}_logo_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}",
+						PartnerAdsContainer,
+						bufferedLogoStream,
+						cancellationToken);
+
+					partner.PendingLogoUrl = logoUrl;
+					hasChanges = true;
 				}
-
-				var extension = Path.GetExtension(adImageFileName).ToLowerInvariant();
-				if (!AllowedImageFormats.Contains(extension))
-				{
-					return new Error<string>($"Ad image format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
-				}
-
-				var adImageUrl = await imageService.UploadImageAsync(
-					$"{partnerId}_ad_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}",
-					PartnerAdsContainer,
-					adImageStream,
-					cancellationToken);
-
-				partner.PendingAdImageUrl = adImageUrl;
-				hasChanges = true;
 			}
-
-			// Upload logo if provided
-			if (logoStream is not null)
+			finally
 			{
-				if (logoStream.Length > MaxImageSizeBytes)
-				{
-					return new Error<string>("Logo exceeds maximum size of 5MB");
-				}
-
-				// Validate file name and extension
-				if (string.IsNullOrWhiteSpace(logoFileName))
-				{
-					return new Error<string>("Logo file name is required");
-				}
-
-				var extension = Path.GetExtension(logoFileName).ToLowerInvariant();
-				if (!AllowedImageFormats.Contains(extension))
-				{
-					return new Error<string>($"Logo format not allowed. Allowed formats: {string.Join(", ", AllowedImageFormats)}");
-				}
-
-				var logoUrl = await imageService.UploadImageAsync(
-					$"{partnerId}_logo_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}",
-					PartnerAdsContainer,
-					logoStream,
-					cancellationToken);
-
-				partner.PendingLogoUrl = logoUrl;
-				hasChanges = true;
+				bufferedAdImageStream?.Dispose();
+				bufferedLogoStream?.Dispose();
 			}
 
 			// Update text fields
