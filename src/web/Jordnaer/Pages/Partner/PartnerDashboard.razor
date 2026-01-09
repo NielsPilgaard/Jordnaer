@@ -379,13 +379,31 @@
 			if (_adImage is not null && _adImagePreviewUrl is null && _partner is not null && !_adImageUploadAttempted)
 			{
 				_adImageUploadAttempted = true;
-				_adImagePreviewUrl = await UploadPreviewImageAsync(_adImage);
+				var result = await UploadPreviewImageAsync(_adImage);
+				if (result is not null)
+				{
+					_adImagePreviewUrl = result;
+				}
+				else
+				{
+					// Reset flag to allow retry on failure
+					_adImageUploadAttempted = false;
+				}
 				StateHasChanged();
 			}
 			if (_logoImage is not null && _logoPreviewUrl is null && _partner is not null && !_logoImageUploadAttempted)
 			{
 				_logoImageUploadAttempted = true;
-				_logoPreviewUrl = await UploadPreviewImageAsync(_logoImage);
+				var result = await UploadPreviewImageAsync(_logoImage);
+				if (result is not null)
+				{
+					_logoPreviewUrl = result;
+				}
+				else
+				{
+					// Reset flag to allow retry on failure
+					_logoImageUploadAttempted = false;
+				}
 				StateHasChanged();
 			}
 		}
