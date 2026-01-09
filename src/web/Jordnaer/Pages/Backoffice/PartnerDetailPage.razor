@@ -491,7 +491,7 @@ else
     private Partner GetCurrentPartner()
     {
         if (_partner is null)
-            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow };
+            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow, CanHavePartnerCard = true, CanHaveAd = true };
 
         return new Partner
         {
@@ -501,14 +501,16 @@ else
             LogoUrl = _partner.LogoUrl,
             Link = _partner.Link,
             UserId = _partner.UserId,
-            CreatedUtc = _partner.CreatedUtc
+            CreatedUtc = _partner.CreatedUtc,
+            CanHavePartnerCard = _partner.CanHavePartnerCard,
+            CanHaveAd = _partner.CanHaveAd
         };
     }
 
     private Partner GetPendingPartner()
     {
         if (_partner is null)
-            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow };
+            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow, CanHavePartnerCard = true, CanHaveAd = true };
 
         return new Partner
         {
@@ -518,7 +520,9 @@ else
             LogoUrl = !string.IsNullOrEmpty(_partner.PendingLogoUrl) ? _partner.PendingLogoUrl : _partner.LogoUrl,
             Link = !string.IsNullOrEmpty(_partner.PendingLink) ? _partner.PendingLink : _partner.Link,
             UserId = _partner.UserId,
-            CreatedUtc = _partner.CreatedUtc
+            CreatedUtc = _partner.CreatedUtc,
+            CanHavePartnerCard = _partner.CanHavePartnerCard,
+            CanHaveAd = _partner.CanHaveAd
         };
     }
 

@@ -166,7 +166,7 @@ public sealed class PartnerUserService(
 			}
 
 			await userManager.DeleteAsync(user);
-			throw;
+			return new Error<string>($"Kunne ikke fuldføre oprettelse: {ex.Message}");
 		}
 	}
 
@@ -194,9 +194,9 @@ public sealed class PartnerUserService(
 		// Generate new temporary password
 		var newTemporaryPassword = GenerateSecurePassword();
 
-		// Remove old password and set new one
-		await userManager.RemovePasswordAsync(user);
-		var resetResult = await userManager.AddPasswordAsync(user, newTemporaryPassword);
+		// Use atomic password reset with token
+		var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+		var resetResult = await userManager.ResetPasswordAsync(user, resetToken, newTemporaryPassword);
 
 		if (!resetResult.Succeeded)
 		{

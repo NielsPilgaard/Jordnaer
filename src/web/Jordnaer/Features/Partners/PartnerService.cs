@@ -430,8 +430,8 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.AdImageUrl, UriKind.Absolute, out var adUri))
 				{
-					var adImageName = Path.GetFileName(adUri.LocalPath);
-					await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+					var adImageBlobPath = adUri.LocalPath.TrimStart('/');
+					await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
 				}
 				else
 				{
@@ -444,8 +444,8 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.LogoUrl, UriKind.Absolute, out var logoUri))
 				{
-					var logoName = Path.GetFileName(logoUri.LocalPath);
-					await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+					var logoBlobPath = logoUri.LocalPath.TrimStart('/');
+					await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
 				}
 				else
 				{
@@ -523,8 +523,8 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.PendingAdImageUrl, UriKind.Absolute, out var adUri))
 				{
-					var adImageName = Path.GetFileName(adUri.LocalPath);
-					await imageService.DeleteImageAsync(adImageName, PartnerAdsContainer, cancellationToken);
+					var adImageBlobPath = adUri.LocalPath.TrimStart('/');
+					await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
 				}
 				else
 				{
@@ -539,8 +539,8 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.PendingLogoUrl, UriKind.Absolute, out var logoUri))
 				{
-					var logoName = Path.GetFileName(logoUri.LocalPath);
-					await imageService.DeleteImageAsync(logoName, PartnerAdsContainer, cancellationToken);
+					var logoBlobPath = logoUri.LocalPath.TrimStart('/');
+					await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
 				}
 				else
 				{
