@@ -136,9 +136,15 @@ public class PartnerService(
 				// Record already exists, perform atomic increment
 				context.Entry(analytics).State = EntityState.Detached;
 
-				await context.PartnerAnalytics
+				var rowsAffected = await context.PartnerAnalytics
 					.Where(a => a.PartnerId == partnerId && a.Date == today)
 					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Impressions, a => a.Impressions + 1), cancellationToken);
+
+				if (rowsAffected == 0)
+				{
+					logger.LogError("Failed to increment impression for partner {PartnerId} on {Date}: no rows affected", partnerId, today);
+					return new Error<string>("Failed to record impression: analytics record not found");
+				}
 
 				return new Success();
 			}
@@ -179,9 +185,15 @@ public class PartnerService(
 				// Record already exists, perform atomic increment
 				context.Entry(analytics).State = EntityState.Detached;
 
-				await context.PartnerAnalytics
+				var rowsAffected = await context.PartnerAnalytics
 					.Where(a => a.PartnerId == partnerId && a.Date == today)
 					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Clicks, a => a.Clicks + 1), cancellationToken);
+
+				if (rowsAffected == 0)
+				{
+					logger.LogError("Failed to increment click for partner {PartnerId} on {Date}: no rows affected", partnerId, today);
+					return new Error<string>("Failed to record click: analytics record not found");
+				}
 
 				return new Success();
 			}
@@ -239,7 +251,7 @@ public class PartnerService(
 
 			// Upload preview image (lifecycle policy will handle automatic deletion after 90 days)
 			var previewUrl = await imageService.UploadImageAsync(
-				$"preview/{partnerId}/{Guid.NewGuid():N}.webp",
+				$"preview/{partnerId}/{Guid.NewGuid():N}{extension}",
 				PartnerAdsContainer,
 				imageStream,
 				cancellationToken);
@@ -305,7 +317,7 @@ public class PartnerService(
 				}
 
 				var adImageUrl = await imageService.UploadImageAsync(
-					$"{partnerId}_ad_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
+					$"{partnerId}_ad_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}",
 					PartnerAdsContainer,
 					adImageStream,
 					cancellationToken);
@@ -335,7 +347,7 @@ public class PartnerService(
 				}
 
 				var logoUrl = await imageService.UploadImageAsync(
-					$"{partnerId}_logo_{DateTime.UtcNow:yyyyMMddHHmmss}.webp",
+					$"{partnerId}_logo_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}",
 					PartnerAdsContainer,
 					logoStream,
 					cancellationToken);
@@ -359,7 +371,14 @@ public class PartnerService(
 
 			if (!string.IsNullOrWhiteSpace(link))
 			{
-				partner.PendingLink = link.Trim();
+				var trimmedLink = link.Trim();
+				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
+					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+				{
+					return new Error<string>("Ugyldig link URL");
+				}
+
+				partner.PendingLink = trimmedLink;
 				hasChanges = true;
 			}
 
