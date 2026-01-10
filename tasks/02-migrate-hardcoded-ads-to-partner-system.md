@@ -47,16 +47,53 @@ Once Moon Creative is onboarded and verified:
 
 ## Files Changed
 
+### Ad Provider Core
 | File | Change |
 |------|--------|
 | `Features/Ad/AdProvider.cs` | **New** - Unified ad provider |
-| `Features/Ad/WebApplicationBuilderExtensions.cs` | **New** - DI registration |
+| `Features/Ad/WebApplicationBuilderExtensions.cs` | **New** - DI registration for `IAdProvider` |
 | `Features/Ad/HardcodedAds.cs` | Added `PartnerId` to `AdData` |
 | `Program.cs` | Added `builder.AddAdServices()` |
+
+### Ad Display Components
+| File | Change |
+|------|--------|
 | `Features/UserSearch/UserSearchResultComponent.razor` | Uses `IAdProvider` |
 | `Features/Posts/PostSearchResultComponent.razor` | Uses `IAdProvider` |
 | `Features/GroupSearch/GroupSearchResultComponent.razor` | Uses `IAdProvider` |
 | `Pages/Posts/PostPage.razor` | Uses `IAdProvider` |
+
+### EF Core Migrations
+| File | Change |
+|------|--------|
+| `Migrations/*_AddPartnerAnalytics.cs` | Migration for partner analytics tables |
+| `Migrations/JordnaerDbContextModelSnapshot.cs` | Updated model snapshot |
+
+### Partner Services
+| File | Change |
+|------|--------|
+| `Features/Partner/PartnerService.cs` | Partner CRUD and analytics tracking |
+| `Features/Partner/PartnerOnboardingService.cs` | Partner onboarding workflow |
+| `Features/Partner/IPartnerService.cs` | Service interface |
+
+### Partner UI Components
+| File | Change |
+|------|--------|
+| `Pages/Partner/PartnerDashboard.razor` | Partner self-service dashboard |
+| `Pages/Partner/PartnerAnalyticsDisplay.razor` | Analytics chart component |
+| `Pages/Backoffice/PartnerManagementPage.razor` | Admin partner management |
+| `Pages/Backoffice/PartnerBackofficeController.cs` | Backoffice API endpoints |
+
+### Email & Notifications
+| File | Change |
+|------|--------|
+| `Features/Email/EmailService.cs` | Partner notification email methods |
+| `Features/Email/Templates/PartnerApproval.html` | Approval notification template |
+
+### DI Registration
+| File | Change |
+|------|--------|
+| `Features/Partner/ServiceCollectionExtensions.cs` | Registers `IPartnerService`, `PartnerOnboardingService` |
 
 ## Trigger
 

@@ -479,7 +479,7 @@
 		}
 
 		var toDate = DateTime.UtcNow;
-		var fromDate = toDate.AddDays(1 - _selectedDays);
+		var fromDate = toDate.AddDays(-_selectedDays);
 
 		var result = await PartnerService.GetAnalyticsAsync(_partner.Id, fromDate, toDate);
 		result.Switch(
