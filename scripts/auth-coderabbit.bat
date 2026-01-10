@@ -9,9 +9,6 @@ echo.
 echo This will open an interactive session to authenticate CodeRabbit.
 echo A browser window will open for you to log in.
 echo.
-echo Press any key to continue...
-pause > nul
-echo.
 
 wsl -d Ubuntu bash -c "~/.local/bin/coderabbit auth login"
 
