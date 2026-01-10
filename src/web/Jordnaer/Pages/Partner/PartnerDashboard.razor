@@ -55,7 +55,7 @@
 					</MudButton>
 					<MudButton OnClick="() => SelectTimePeriod(365)"
 						Variant="@(_selectedDays == 365 ? Variant.Filled : Variant.Outlined)">
-						ALT
+						365 DAGE
 					</MudButton>
 				</MudButtonGroup>
 			</MudStack>
@@ -110,7 +110,7 @@
 								<MudText Typo="Typo.h6">CTR</MudText>
 							</MudStack>
 							<MudText Typo="Typo.h3" Class="font-open-sans-bold">
-								@(_analytics != null ? _analytics.ClickThroughRate.ToString("F2") : "0.00")%
+								@(_analytics is not null ? $"{_analytics.ClickThroughRate:F2}%" : string.Empty)
 							</MudText>
 							<MudText Typo="Typo.body2" Color="Color.Secondary">
 								Click-through rate
@@ -199,7 +199,12 @@
 								}
 								else
 								{
-									<MudCard Elevation="2" Style="border: 2px dashed #ccc; cursor: pointer;" @onclick="OpenAdImageUpload">
+									<MudCard Elevation="2" Style="border: 2px dashed #ccc; cursor: pointer;"
+										@onclick="OpenAdImageUpload"
+										@onkeydown="HandleAdImageUploadKeyDown"
+										tabindex="0"
+										role="button"
+										aria-label="Upload annonce billede">
 										<MudCardContent>
 											<MudStack AlignItems="AlignItems.Center" Spacing="2" Style="min-height: 200px;" Justify="Justify.Center">
 												<MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Secondary" />
@@ -432,7 +437,8 @@
 		}
 		catch (Exception ex)
 		{
-			Snackbar.Add($"Fejl ved upload af forhåndsvisning: {ex.Message}", Severity.Error);
+			Logger.LogError(ex, "Failed to upload preview image for partner {PartnerId}", _partner.Id);
+			Snackbar.Add("Fejl ved upload af forhåndsvisning", Severity.Error);
 			return null;
 		}
 	}
@@ -459,41 +465,87 @@
 		}
 
 		var toDate = DateTime.UtcNow;
-		var fromDate = toDate.AddDays(-_selectedDays);
+		var fromDate = toDate.AddDays(1 - _selectedDays);
 
-		_analytics = await PartnerService.GetAnalyticsAsync(_partner.Id, fromDate, toDate);
-
-		// Update chart data
-		if (_analytics?.DailyAnalytics.Any() == true)
-		{
-			_xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
-
-			_chartSeries = new List<ChartSeries>
+		var result = await PartnerService.GetAnalyticsAsync(_partner.Id, fromDate, toDate);
+		result.Switch(
+			analytics =>
 			{
-				new ChartSeries
+				_analytics = analytics;
+
+				// Update chart data
+				if (_analytics.DailyAnalytics.Any())
 				{
-					Name = "Impressions",
-					Data = _analytics.DailyAnalytics.Select(a => (double)a.Impressions).ToArray()
-				},
-				new ChartSeries
-				{
-					Name = "Clicks",
-					Data = _analytics.DailyAnalytics.Select(a => (double)a.Clicks).ToArray()
+					_xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
+
+					_chartSeries =
+					[
+						new ChartSeries
+						{
+							Name = "Impressions",
+							Data = _analytics.DailyAnalytics.Select(a => (double)a.Impressions).ToArray()
+						},
+						new ChartSeries
+						{
+							Name = "Clicks",
+							Data = _analytics.DailyAnalytics.Select(a => (double)a.Clicks).ToArray()
+						}
+					];
 				}
-			};
-		}
+				else
+				{
+					_xAxisLabels = [];
+					_chartSeries = [];
+				}
+			},
+			notFound =>
+			{
+				_analytics = null;
+				_xAxisLabels = [];
+				_chartSeries = [];
+				Logger.LogWarning("Partner {PartnerId} not found when loading analytics", _partner.Id);
+			},
+			error =>
+			{
+				_analytics = null;
+				_xAxisLabels = [];
+				_chartSeries = [];
+				Logger.LogError("Failed to load analytics for partner {PartnerId}: {Error}", _partner.Id, error.Value);
+				Snackbar.Add("Kunne ikke hente analytics data", Severity.Error);
+			}
+		);
 	}
 
 	private async Task SelectTimePeriod(int days)
 	{
+		var previousDays = _selectedDays;
 		_selectedDays = days;
-		await LoadAnalyticsAsync();
+
+		try
+		{
+			await LoadAnalyticsAsync();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Failed to load analytics for time period {Days} days", days);
+			Snackbar.Add("Kunne ikke hente analytics data. Prøv igen senere.", Severity.Error);
+			_selectedDays = previousDays;
+		}
+
 		StateHasChanged();
 	}
 
 	private async Task OpenAdImageUpload()
 	{
 		await (_adImageUpload?.OpenFilePickerAsync() ?? Task.CompletedTask);
+	}
+
+	private async Task HandleAdImageUploadKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key is "Enter" or " ")
+		{
+			await OpenAdImageUpload();
+		}
 	}
 
 	private void ClearAdImage()
