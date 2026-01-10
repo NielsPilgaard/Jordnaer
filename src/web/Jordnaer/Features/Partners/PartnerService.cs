@@ -323,6 +323,24 @@ public class PartnerService(
 		}
 	}
 
+	private static string? ExtractBlobPathFromUri(Uri uri, string containerName)
+	{
+		// URI path is like "/PartnerAds/partnerId_ad_timestamp.jpg"
+		// We need to return "partnerId_ad_timestamp.jpg" (path relative to container)
+		var segments = uri.LocalPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+		// Find the container segment and return everything after it
+		var containerIndex = Array.FindIndex(segments, s => s.Equals(containerName, StringComparison.OrdinalIgnoreCase));
+		if (containerIndex >= 0 && containerIndex < segments.Length - 1)
+		{
+			return string.Join("/", segments.Skip(containerIndex + 1));
+		}
+
+		// Fallback: if container not found, return the path without leading slash
+		// This handles cases where the path might not include the container
+		return uri.LocalPath.TrimStart('/');
+	}
+
 	public async Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(
 		Guid partnerId,
 		Stream? adImageStream,
@@ -506,8 +524,11 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.AdImageUrl, UriKind.Absolute, out var adUri))
 				{
-					var adImageBlobPath = adUri.LocalPath.TrimStart('/');
-					await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
+					var adImageBlobPath = ExtractBlobPathFromUri(adUri, PartnerAdsContainer);
+					if (!string.IsNullOrEmpty(adImageBlobPath))
+					{
+						await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
+					}
 				}
 				else
 				{
@@ -520,8 +541,11 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.LogoUrl, UriKind.Absolute, out var logoUri))
 				{
-					var logoBlobPath = logoUri.LocalPath.TrimStart('/');
-					await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
+					var logoBlobPath = ExtractBlobPathFromUri(logoUri, PartnerAdsContainer);
+					if (!string.IsNullOrEmpty(logoBlobPath))
+					{
+						await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
+					}
 				}
 				else
 				{
@@ -599,8 +623,11 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.PendingAdImageUrl, UriKind.Absolute, out var adUri))
 				{
-					var adImageBlobPath = adUri.LocalPath.TrimStart('/');
-					await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
+					var adImageBlobPath = ExtractBlobPathFromUri(adUri, PartnerAdsContainer);
+					if (!string.IsNullOrEmpty(adImageBlobPath))
+					{
+						await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
+					}
 				}
 				else
 				{
@@ -615,8 +642,11 @@ public class PartnerService(
 			{
 				if (Uri.TryCreate(partner.PendingLogoUrl, UriKind.Absolute, out var logoUri))
 				{
-					var logoBlobPath = logoUri.LocalPath.TrimStart('/');
-					await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
+					var logoBlobPath = ExtractBlobPathFromUri(logoUri, PartnerAdsContainer);
+					if (!string.IsNullOrEmpty(logoBlobPath))
+					{
+						await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
+					}
 				}
 				else
 				{
