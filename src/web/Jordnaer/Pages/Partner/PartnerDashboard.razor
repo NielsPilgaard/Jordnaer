@@ -436,7 +436,7 @@
 				// Update chart data
 				if (_analytics.DailyAnalytics.Any())
 				{
-					_xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
+					_xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM", new CultureInfo("da-DK"))).ToArray();
 
 					_chartSeries =
 					[
