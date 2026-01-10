@@ -166,7 +166,7 @@
 							</MudText>
 
 							<MudFileUpload @ref="_adImageUpload" T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
-								@bind-Files="_adImage" MaximumFileCount="1" Hidden />
+								FilesChanged="OnAdImageSelectedAsync" MaximumFileCount="1" Hidden />
 						</MudStack>
 					</MudItem>
 
@@ -265,7 +265,7 @@
 							}
 
 							<MudFileUpload T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
-								@bind-Files="_logoImage" MaximumFileCount="1">
+								FilesChanged="OnLogoSelectedAsync" MaximumFileCount="1">
 								<ActivatorContent>
 									<MudButton Variant="Variant.Filled" Color="Color.Primary"
 										StartIcon="@Icons.Material.Filled.CloudUpload">
@@ -276,7 +276,7 @@
 							@if (_logoImage is not null)
 							{
 								var logoName = _logoImage.Name;
-								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; _logoImageUploadAttempted = false; }">@logoName</MudChip>
+								<MudChip T="string" OnClose="() => { _logoImage = null; _logoPreviewUrl = null; }">@logoName</MudChip>
 							}
 
 							@if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
@@ -346,8 +346,6 @@
 	private string? _adImagePreviewUrl;
 	private string? _logoPreviewUrl;
 	private MudFileUpload<IBrowserFile>? _adImageUpload;
-	private bool _adImageUploadAttempted;
-	private bool _logoImageUploadAttempted;
 
 	private List<ChartSeries> _chartSeries = [];
 	private string[] _xAxisLabels = [];
@@ -374,58 +372,6 @@
 		{
 			_loading = false;
 		}
-	}
-
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender || _partner is null)
-		{
-			return;
-		}
-
-		var changed = false;
-
-		if (await TryUploadPreviewIfNeededAsync(_adImage, _adImagePreviewUrl, _adImageUploadAttempted,
-			url => _adImagePreviewUrl = url, attempted => _adImageUploadAttempted = attempted))
-		{
-			changed = true;
-		}
-
-		if (await TryUploadPreviewIfNeededAsync(_logoImage, _logoPreviewUrl, _logoImageUploadAttempted,
-			url => _logoPreviewUrl = url, attempted => _logoImageUploadAttempted = attempted))
-		{
-			changed = true;
-		}
-
-		if (changed)
-		{
-			StateHasChanged();
-		}
-	}
-
-	private async Task<bool> TryUploadPreviewIfNeededAsync(
-		IBrowserFile? file,
-		string? currentPreviewUrl,
-		bool uploadAttempted,
-		Action<string> setPreviewUrl,
-		Action<bool> setUploadAttempted)
-	{
-		if (file is null || currentPreviewUrl is not null || uploadAttempted)
-		{
-			return false;
-		}
-
-		setUploadAttempted(true);
-		var result = await UploadPreviewImageAsync(file);
-		if (result is not null)
-		{
-			setPreviewUrl(result);
-			return true;
-		}
-
-		// Reset flag to allow retry on failure
-		setUploadAttempted(false);
-		return true; // Still return true to trigger StateHasChanged
 	}
 
 	private async Task<string?> UploadPreviewImageAsync(IBrowserFile file)
@@ -566,8 +512,27 @@
 	{
 		_adImage = null;
 		_adImagePreviewUrl = null;
-		_adImageUploadAttempted = false;
 		StateHasChanged();
+	}
+
+	private async Task OnAdImageSelectedAsync(IBrowserFile? file)
+	{
+		_adImage = file;
+		_adImagePreviewUrl = null;
+		if (file is not null)
+		{
+			_adImagePreviewUrl = await UploadPreviewImageAsync(file);
+		}
+	}
+
+	private async Task OnLogoSelectedAsync(IBrowserFile? file)
+	{
+		_logoImage = file;
+		_logoPreviewUrl = null;
+		if (file is not null)
+		{
+			_logoPreviewUrl = await UploadPreviewImageAsync(file);
+		}
 	}
 
 	private bool HasChanges()
@@ -690,8 +655,6 @@
 					_pendingLink = null;
 					_adImagePreviewUrl = null;
 					_logoPreviewUrl = null;
-					_adImageUploadAttempted = false;
-					_logoImageUploadAttempted = false;
 				},
 				error => Snackbar.Add(error.Value, Severity.Error)
 			);
