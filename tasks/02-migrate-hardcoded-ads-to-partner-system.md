@@ -2,282 +2,62 @@
 
 ## Status
 
-- **State**: Ready (waiting for 100+ active users)
+- **State**: Partially Complete
 - **Priority**: Medium
-- **Estimated Effort**: 1-2 hours
 - **Prerequisites**: Complete Task 01 (Partner Dashboard) ✅
 
-## Context
+## What's Done ✅
 
-Currently, partner advertisements are hardcoded in `src/web/Jordnaer/Features/Ad/HardcodedAds.cs`. With the new partner system (Task 01) now complete, we can migrate these hardcoded ads to the database-backed partner system once we have meaningful traffic to offer partners.
+The unified ad system is now in place:
 
-**Current Hardcoded Ad:**
+- **AdProvider service** (`src/web/Jordnaer/Features/Ad/AdProvider.cs`) - Combines hardcoded and partner ads
+- **AdData updated** - Now includes `PartnerId` for analytics tracking
+- **All ad display components updated** to use `IAdProvider` and pass `PartnerId` to `AdCard`
+- **Analytics tracking works** - Partner ads get impressions/clicks tracked automatically
 
-- **Partner**: Moon Creative
-- **Description**: Professionel webudvikling og design
-- **Image**: `images/ads/mooncreative_mobile.png`
-- **Link**: https://www.mooncreative.dk/
+## How It Works Now
 
-## Why Wait?
+1. `AdProvider.GetAdsAsync()` fetches partner ads from database + hardcoded ads
+2. Ads are shuffled and served together
+3. Partner ads include their `PartnerId`, hardcoded ads have `null`
+4. `AdCard` tracks impressions/clicks for partner ads via `PartnerService`
 
-We're intentionally delaying this migration until we have **100+ active users** because:
+## What Remains
 
-- Offering partner placement with low traffic feels like a false promise
-- It creates work for the partner without meaningful value
-- Better to wait until we can deliver actual ROI
-
-## Migration Steps
-
-When ready to migrate (>100 users), follow these steps:
-
-### 1. Contact Moon Creative
-
-- [ ] Reach out to Moon Creative contact
-- [ ] Explain the new partner dashboard system
-- [ ] Get their real email address for account creation
+### 1. Contact Moon Creative (when ready)
+- [ ] Reach out to Moon Creative
+- [ ] Get their email for account creation
 - [ ] Confirm they want to continue as a partner
 
 ### 2. Create Partner Account
+- [ ] Create account via `/backoffice/partners/create`
+- [ ] Have them upload their ad image via `/partner/dashboard`
+- [ ] Approve the image
 
-- [ ] Navigate to `/backoffice/partners/create`
-- [ ] Enter Moon Creative details:
-  - **Name**: Moon Creative
-  - **Email**: [their real email]
-  - **Description**: Professionel webudvikling og design
-  - **Link**: https://www.mooncreative.dk/
-  - **Logo URL**: [get their logo URL if available]
-- [ ] Save the temporary password securely
-- [ ] Send them the welcome email
-
-### 3. Upload Their Current Ad Image
-
-- [ ] Send Moon Creative their login credentials
-- [ ] Guide them to upload their current ad (`mooncreative_mobile.png`)
-  - They can upload via `/partner/dashboard`
-  - Or you can manually upload and approve as admin
-- [ ] Approve the image via `/backoffice/partners/{id}`
-
-### 4. Update Ad Display Logic
-
-Currently, ads are served from `HardcodedAds.cs`:
-
-```csharp
-// src/web/Jordnaer/Features/Ad/HardcodedAds.cs
-public static List<AdData> GetAdsForSearch(int count)
-{
-    // Returns hardcoded Moon Creative ad
-}
-```
-
-**Important**: `AdCard.razor` currently uses `Guid.Empty` for tracking impressions and clicks. During migration, you must:
-- [ ] Update `AdCard.razor` to accept a `PartnerId` parameter
-- [ ] Pass the actual partner ID when rendering ads
-- [ ] Remove the `Guid.Empty` hardcoded values
-- [ ] Remove the TODO comments from `AdCard.razor`
-
-**Migration Changes:**
-
-Replace hardcoded logic with database queries:
-
-**Option A: Simple Replacement**
-
-```csharp
-// In the component that uses GetAdsForSearch
-@inject IPartnerService PartnerService
-
-// Replace:
-var ads = HardcodedAds.GetAdsForSearch(count);
-
-// With:
-var partners = await PartnerService.GetAllPartnersAsync();
-var activePartners = partners
-    .Where(s => (!string.IsNullOrEmpty(s.MobileImageUrl) ||
-                !string.IsNullOrEmpty(s.DesktopImageUrl)) &&
-                !s.HasPendingApproval) // Only show approved ads
-    .ToList();
-```
-
-**Option B: Create AdService**
-
-```csharp
-// src/web/Jordnaer/Features/Ad/AdService.cs
-public interface IAdService
-{
-    Task<List<PartnerAd>> GetAdsForSearchAsync(int count, CancellationToken cancellationToken = default);
-}
-
-public record PartnerAd
-{
-    public Guid PartnerId { get; init; }
-    public string Name { get; init; }
-    public string? Description { get; init; }
-    public string? MobileImageUrl { get; init; }
-    public string? DesktopImageUrl { get; init; }
-    public string Link { get; init; }
-}
-
-public class AdService : IAdService
-{
-    private readonly IPartnerService _partnerService;
-
-    public async Task<List<PartnerAd>> GetAdsForSearchAsync(int count, CancellationToken cancellationToken = default)
-    {
-        var partners = await _partnerService.GetAllPartnersAsync(cancellationToken);
-
-        var activePartners = partners
-            .Where(s => (!string.IsNullOrEmpty(s.MobileImageUrl) || !string.IsNullOrEmpty(s.DesktopImageUrl))
-                        && !s.HasPendingImageApproval) // Only show approved ads
-            .ToList();
-
-        // Implement rotation/selection logic here
-        // For now, return all active partners up to count
-        return activePartners
-            .Take(count)
-            .Select(s => new PartnerAd
-            {
-                PartnerId = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                MobileImageUrl = s.MobileImageUrl,
-                DesktopImageUrl = s.DesktopImageUrl,
-                Link = s.Link
-            })
-            .ToList();
-    }
-}
-```
-
-### 5. Update Components Using Ads
-
-Find all usages of `HardcodedAds.GetAdsForSearch()`:
-
-```bash
-# Search for usages
-grep -r "GetAdsForSearch" --include="*.razor" --include="*.cs"
-```
-
-Update each component to use the new service or direct partner queries.
-
-### 6. Record Analytics
-
-Update ad display components to record impressions and clicks:
-
-```csharp
-// When displaying ad
-await PartnerService.RecordImpressionAsync(partnerId);
-
-// When user clicks ad
-await PartnerService.RecordClickAsync(partnerId);
-```
-
-### 7. Remove Hardcoded Files
-
-Once migration is complete and verified:
-
-- [ ] Delete `src/web/Jordnaer/Features/Ad/HardcodedAds.cs`
+### 3. Remove Hardcoded Ads
+Once Moon Creative is onboarded and verified:
+- [ ] Remove Moon Creative entry from `HardcodedAds._ads`
 - [ ] Delete `src/web/Jordnaer/wwwroot/images/ads/mooncreative_mobile.png`
-- [ ] Remove any related hardcoded ad infrastructure
-- [ ] Update documentation
+- [ ] Once no hardcoded ads remain, delete `HardcodedAds.cs`
 
-### 8. Verify Migration
+### 4. Verify
+- [ ] Moon Creative can log in and view analytics
+- [ ] Their ad displays correctly
+- [ ] Impressions and clicks are tracked
 
-- [ ] Verify Moon Creative can log in
-- [ ] Verify their ad displays correctly
-- [ ] Verify impressions are being tracked
-- [ ] Verify clicks are being tracked
-- [ ] Verify they can see analytics on their dashboard
-- [ ] Verify admin can see their data in `/backoffice/partners/{id}`
+## Files Changed
 
-## Future Enhancements (Post-Migration)
+| File | Change |
+|------|--------|
+| `Features/Ad/AdProvider.cs` | **New** - Unified ad provider |
+| `Features/Ad/WebApplicationBuilderExtensions.cs` | **New** - DI registration |
+| `Features/Ad/HardcodedAds.cs` | Added `PartnerId` to `AdData` |
+| `Program.cs` | Added `builder.AddAdServices()` |
+| `Features/UserSearch/UserSearchResultComponent.razor` | Uses `IAdProvider` |
+| `Features/Posts/PostSearchResultComponent.razor` | Uses `IAdProvider` |
+| `Features/GroupSearch/GroupSearchResultComponent.razor` | Uses `IAdProvider` |
+| `Pages/Posts/PostPage.razor` | Uses `IAdProvider` |
 
-Once the migration is complete, consider these improvements:
+## Trigger
 
-### Ad Rotation Logic
-
-- Fair rotation between multiple partners
-- Weighted rotation based on partnership tier (future feature)
-- A/B testing support
-
-### Ad Placement Optimization
-
-- Multiple ad sizes (mobile, desktop, banner, sidebar)
-- Contextual ad placement
-- Performance-based optimization
-
-### Partner Tiers (Task 04)
-
-- Basic tier: Limited impressions
-- Premium tier: Unlimited impressions
-- Featured tier: Priority placement
-
-## Technical Notes
-
-### Backward Compatibility
-
-Keep `HardcodedAds.cs` as a fallback during migration:
-
-```csharp
-public async Task<List<PartnerAd>> GetAdsForSearchAsync(int count)
-{
-    var partners = await GetActivePartners();
-
-    // Fallback to hardcoded ads if no partners available
-    if (!partners.Any())
-    {
-        return HardcodedAds.GetAdsForSearch(count)
-            .Select(ConvertToPartnerAd)
-            .ToList();
-    }
-
-    return partners;
-}
-```
-
-### Migration Checklist Files to Update
-
-- [ ] Find all `HardcodedAds.GetAdsForSearch()` usages
-- [ ] Update to use `IPartnerService` or new `IAdService`
-- [ ] Add impression tracking
-- [ ] Add click tracking
-- [ ] Test on staging environment first
-- [ ] Deploy to production
-- [ ] Monitor analytics for 1 week
-- [ ] Remove hardcoded files
-
-## Success Criteria
-
-- [ ] Moon Creative partner account created
-- [ ] Their ad image uploaded and approved
-- [ ] Ad displays correctly in all locations (mobile + desktop)
-- [ ] Impressions are tracked accurately
-- [ ] Clicks are tracked accurately
-- [ ] Moon Creative can view their analytics
-- [ ] No hardcoded ads remain in codebase
-- [ ] System supports multiple partners (future-proof)
-
-## Timeline
-
-**Trigger**: When active user count reaches 100+
-
-**Execution**:
-
-1. Day 1: Contact Moon Creative, create account
-2. Day 2-3: Help them upload images, verify system
-3. Day 4: Deploy migration changes
-4. Day 5-11: Monitor for 1 week
-5. Day 12: Remove hardcoded files if all good
-
-Total: ~2 weeks from start to complete cleanup
-
-## Related Tasks
-
-- ✅ **Task 01**: Partner Dashboard (Complete)
-- **Task 03**: Advertisement Management System (Future)
-- **Task 04**: User Subscriptions (Future)
-
-## Notes
-
-- Keep Moon Creative informed throughout the process
-- Offer support during their onboarding
-- Consider giving them early access as a thank you for being our first partner
-- Use their feedback to improve the partner experience before onboarding more partners
+When active user count reaches 100+ and we're ready to onboard partners.
