@@ -1,0 +1,64 @@
+@page "/partners"
+@page "/partnere"
+
+@using Jordnaer.Features.Partners
+@inject IPartnerService PartnerService
+
+<MetadataComponent Title="Partnere"
+                   Description="Mini Møder's partnere" />
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudPaper Elevation="3" Class="pa-10 mt-5 text-center" Style="@JordnaerPalette.WarmWhite.ToBackgroundColor()">
+
+        <h1 class="font-cherry-bomb-one" style="@JordnaerPalette.BlueBody.ToTextColor()">
+            Vore Partnere
+        </h1>
+
+        <MudDivider Class="mt-1 mb-5" />
+
+        <MudGrid Justify="Justify.SpaceEvenly">
+            @foreach (var partner in _allPartners)
+            {
+                <PartnerCard Partner="partner" />
+            }
+        </MudGrid>
+
+        <MiniDivider Color="MiniDividerColor.Green" Class="my-10" />
+
+        <h2 class="font-cherry-bomb-one text-center mt-5 mb-5" style="@JordnaerPalette.RedHeader.ToTextColor()">
+            Bliv Partner
+        </h2>
+
+        <MudText Typo="Typo.body1">
+	        At være partner med Mini Møder giver en unik mulighed for at støtte vores arbejde
+	        og samtidig opnå synlighed for dit brand.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">
+            Hvis du er interesseret i at høre mere om mulighederne for at blive partner,
+            er du meget velkommen til at kontakte os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.
+        </MudText>
+
+        <Bees Class="mt-8" Center />
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<Partner> _allPartners = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Start with hardcoded partners
+        _allPartners = [.. HardcodedPartners.Partners];
+
+        // Add dynamic partners from database
+        var result = await PartnerService.GetAllPartnersAsync();
+        result.Switch(
+            partners =>
+            {
+                var dynamicPartners = partners.Where(p => p.HasPartnerCard).ToList();
+                _allPartners.AddRange(dynamicPartners);
+            },
+            _ => { } // Ignore errors, just show hardcoded partners
+        );
+    }
+}

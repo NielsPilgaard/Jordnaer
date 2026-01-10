@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Email;
@@ -19,33 +18,47 @@ public class EmailServiceTests : IAsyncLifetime
 {
 	private readonly JordnaerDbContext _context;
 	private readonly Mock<IPublishEndpoint> _publishEndpointMock;
-	private readonly IOptions<AppOptions> _appOptions;
 	private readonly EmailService _service;
-	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
+	private readonly string _testUserId = $"test-user-email-{Guid.NewGuid()}";
 
 	public EmailServiceTests(SqlServerContainer<JordnaerDbContext> sqlServerContainer)
 	{
-		_sqlServerContainer = sqlServerContainer;
-		_context = _sqlServerContainer.CreateContext();
+		_context = sqlServerContainer.CreateContext();
 
 		var contextFactoryMock = new Mock<IDbContextFactory<JordnaerDbContext>>();
 		contextFactoryMock
 			.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => _sqlServerContainer.CreateContext());
+			.ReturnsAsync(() => sqlServerContainer.CreateContext());
 
 		_publishEndpointMock = new Mock<IPublishEndpoint>();
 
-		_appOptions = Options.Create(new AppOptions { BaseUrl = "http://localhost:5000" });
+		var appOptions = Options.Create(new AppOptions { BaseUrl = "http://localhost:5000" });
 
 		_service = new EmailService(
 			_publishEndpointMock.Object,
 			contextFactoryMock.Object,
 			new NullLogger<EmailService>(),
-			_appOptions
+			appOptions
 		);
 	}
 
-	public Task InitializeAsync() => Task.CompletedTask;
+	public async Task InitializeAsync()
+	{
+		// Create an ApplicationUser that Partner entities can reference
+		var existingUser = await _context.Users.FindAsync(_testUserId);
+		if (existingUser == null)
+		{
+			var user = new ApplicationUser
+			{
+				Id = _testUserId,
+				UserName = "test@example.com",
+				Email = "test@example.com",
+				EmailConfirmed = true
+			};
+			_context.Users.Add(user);
+			await _context.SaveChangesAsync();
+		}
+	}
 
 	public async Task DisposeAsync()
 	{
@@ -482,6 +495,68 @@ public class EmailServiceTests : IAsyncLifetime
 				It.IsAny<CancellationToken>()
 			),
 			Times.Once
+		);
+	}
+
+	#endregion
+
+	#region SendPartnerImageApprovalEmailAsync Tests
+
+	[Fact]
+	public async Task SendPartnerImageApprovalEmailAsync_ShouldPublishEmailToAdmin()
+	{
+		// Arrange
+		var partnerId = Guid.NewGuid();
+		var partnerName = $"Test Partner {Guid.NewGuid()}";
+
+		var partner = new Partner
+		{
+			Id = partnerId,
+			Name = partnerName,
+			Description = "Test description",
+			Link = "https://example.com",
+			UserId = _testUserId,
+			PendingAdImageUrl = "https://example.com/ad.png"
+		};
+
+		_context.Partners.Add(partner);
+		await _context.SaveChangesAsync();
+
+		// Act
+		await _service.SendPartnerImageApprovalEmailAsync(partnerId, partnerName);
+
+		// Assert
+		_publishEndpointMock.Verify(
+			x => x.Publish(
+				It.Is<SendEmail>(email =>
+					email.Subject == $"Ny partner godkendelse: {partnerName}" &&
+					email.To != null &&
+					email.To.Count == 1 &&
+					email.To[0].Email == "kontakt@mini-moeder.dk" &&
+					email.To[0].DisplayName == "Mini Møder Admin" &&
+					email.HtmlContent.Contains(partnerName) &&
+					email.HtmlContent.Contains($"http://localhost:5000/backoffice/partners/{partnerId}")
+				),
+				It.IsAny<CancellationToken>()
+			),
+			Times.Once
+		);
+	}
+
+	[Fact]
+	public async Task SendPartnerImageApprovalEmailAsync_ShouldNotPublishEmail_WhenPartnerNotFound()
+	{
+		// Arrange
+		var nonExistentPartnerId = Guid.NewGuid();
+		var partnerName = "Non-existent Partner";
+
+		// Act
+		await _service.SendPartnerImageApprovalEmailAsync(nonExistentPartnerId, partnerName);
+
+		// Assert
+		_publishEndpointMock.Verify(
+			x => x.Publish(It.IsAny<SendEmail>(), It.IsAny<CancellationToken>()),
+			Times.Never
 		);
 	}
 

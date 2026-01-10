@@ -23,6 +23,9 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Post> Posts { get; set; } = default!;
 	public DbSet<GroupPost> GroupPosts { get; set; } = default!;
 
+	public DbSet<Partner> Partners { get; set; } = default!;
+	public DbSet<PartnerAnalytics> PartnerAnalytics { get; set; } = default!;
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<Post>()
@@ -115,6 +118,26 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 				$"OR MONTH([{nameof(ChildProfile.DateOfBirth)}]) = MONTH(GETDATE()) " +
 				$"AND DAY([{nameof(ChildProfile.DateOfBirth)}]) > DAY(GETDATE()) " +
 				$"THEN 1 ELSE 0 END");
+
+		modelBuilder.Entity<Partner>()
+			.HasMany(partner => partner.Analytics)
+			.WithOne(analytics => analytics.Partner)
+			.HasForeignKey(analytics => analytics.PartnerId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<Partner>()
+			.HasOne<ApplicationUser>()
+			.WithOne()
+			.HasForeignKey<Partner>(partner => partner.UserId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<Partner>()
+			.Property(partner => partner.UserId)
+			.HasMaxLength(450);
+
+		modelBuilder.Entity<Partner>()
+			.Property(partner => partner.CreatedUtc)
+			.HasDefaultValueSql("GETUTCDATE()");
 
 		base.OnModelCreating(modelBuilder);
 	}

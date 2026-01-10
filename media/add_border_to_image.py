@@ -90,6 +90,11 @@ def add_border(image_path, output_path, color_name='yellow', border_size=None, m
     img = Image.open(image_path)
     original_width, original_height = img.size
 
+    # Convert to RGBA if the image has transparency
+    has_alpha = img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info)
+    if has_alpha and img.mode != 'RGBA':
+        img = img.convert('RGBA')
+
     # Get the border color
     if color_name not in JORDNAER_COLORS:
         raise ValueError(f"Color '{color_name}' not found. Available: {list(JORDNAER_COLORS.keys())}")
@@ -113,15 +118,46 @@ def add_border(image_path, output_path, color_name='yellow', border_size=None, m
     new_width = original_width + left + right
     new_height = original_height + top + bottom
 
-    # Create bordered image
-    bordered_img = Image.new('RGB', (new_width, new_height), border_color)
-    bordered_img.paste(img, (left, top))
+    # Create bordered image with transparency support if needed
+    if has_alpha:
+        # For transparent images, start with fully transparent canvas
+        bordered_img = Image.new('RGBA', (new_width, new_height), (0, 0, 0, 0))
+
+        # Draw colored border only in the margin areas
+        draw = ImageDraw.Draw(bordered_img)
+        border_rgba = border_color + (255,)
+
+        # Draw top border
+        if top > 0:
+            draw.rectangle([(0, 0), (new_width, top)], fill=border_rgba)
+        # Draw bottom border
+        if bottom > 0:
+            draw.rectangle([(0, new_height - bottom), (new_width, new_height)], fill=border_rgba)
+        # Draw left border
+        if left > 0:
+            draw.rectangle([(0, top), (left, new_height - bottom)], fill=border_rgba)
+        # Draw right border
+        if right > 0:
+            draw.rectangle([(new_width - right, top), (new_width, new_height - bottom)], fill=border_rgba)
+
+        # Paste the original image on top, preserving its transparency
+        bordered_img.paste(img, (left, top), img)
+    else:
+        # For opaque images, use RGB mode
+        bordered_img = Image.new('RGB', (new_width, new_height), border_color)
+        bordered_img.paste(img, (left, top))
 
     # Save the result with best quality
     # For PNG, no quality parameter needed (lossless)
     # For JPEG, use quality=100 for best quality
     save_kwargs = {}
     if output_path.lower().endswith(('.jpg', '.jpeg')):
+        # JPEG doesn't support transparency, so convert RGBA to RGB
+        if bordered_img.mode == 'RGBA':
+            # Create white background and composite
+            rgb_img = Image.new('RGB', bordered_img.size, (255, 255, 255))
+            rgb_img.paste(bordered_img, mask=bordered_img.split()[3])
+            bordered_img = rgb_img
         save_kwargs['quality'] = 100
         save_kwargs['subsampling'] = 0  # Disable chroma subsampling for best quality
 

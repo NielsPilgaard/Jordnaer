@@ -65,6 +65,7 @@
 	@* Mobile Navigation - Dropdown Menu *@
 	<div class="topbar-mobile-menu">
 		<input type="checkbox" id="mobile-menu-toggle" class="mobile-menu-toggle" />
+		<label for="mobile-menu-toggle" class="backdrop"></label>
 		<label for="mobile-menu-toggle" class="mobile-menu-button" aria-label="Toggle navigation menu">
 			<MudIcon Icon="@Icons.Material.Filled.Menu" Style="@JordnaerPalette.BlueBody.ToTextColor()" />
 		</label>
@@ -118,9 +119,39 @@
 
 	<AuthorizeView>
 		<Authorized>
+			@* Desktop Backoffice Dropdown (Admin Only) *@
+			<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="desktopBackofficeContext">
+				<Authorized>
+					<div class="topbar-desktop profile-dropdown">
+						<input type="checkbox" id="backoffice-menu-toggle" class="profile-menu-toggle" />
+						<label for="backoffice-menu-toggle" class="backdrop"></label>
+						<label for="backoffice-menu-toggle" class="profile-menu-button"
+							style="@JordnaerPalette.BlueBody.ToTextColor()">
+							<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="margin-right: 0.25rem;" />
+							<span class="font-open-sans-medium">Backoffice</span>
+							<MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Style="margin-left: 0.25rem;" />
+						</label>
+						<nav class="profile-menu-dropdown" aria-label="Backoffice menu"
+							onclick="document.getElementById('backoffice-menu-toggle').checked = false;">
+							<a href="/backoffice/users" class="@GetProfileMenuItemClass("/backoffice/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Brugere
+							</a>
+							<a href="/backoffice/partners" class="@GetProfileMenuItemClass("/backoffice/partners")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Partnere
+							</a>
+						</nav>
+					</div>
+				</Authorized>
+			</AuthorizeView>
+
 			@* Desktop Profile Dropdown *@
 			<div class="topbar-desktop profile-dropdown">
 				<input type="checkbox" id="profile-menu-toggle" class="profile-menu-toggle" />
+				<label for="profile-menu-toggle" class="backdrop"></label>
 				<label for="profile-menu-toggle" class="profile-menu-button"
 					style="@JordnaerPalette.BlueBody.ToTextColor()">
 					<MudIcon Icon="@Icons.Material.Filled.Person" Style="margin-right: 0.25rem;" />
@@ -134,6 +165,15 @@
 							Style="margin-right: 0.75rem;" />
 						Profil
 					</a>
+					<AuthorizeView Policy="@AuthorizationPolicies.PartnerAccess" Context="desktopPartnerContext">
+						<Authorized>
+							<a href="/partner/dashboard" class="@GetProfileMenuItemClass("/partner/dashboard")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Partner Dashboard
+							</a>
+						</Authorized>
+					</AuthorizeView>
 					<a href="/settings/notifications" class="@GetProfileMenuItemClass("/settings/notifications")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
@@ -144,15 +184,6 @@
 							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
 					</a>
-					<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="desktopAdminContext">
-						<Authorized>
-							<a href="/backoffice/users" class="@GetProfileMenuItemClass("/backoffice/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
-								<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small"
-									Style="margin-right: 0.75rem;" />
-								Backoffice
-							</a>
-						</Authorized>
-					</AuthorizeView>
 					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
@@ -161,12 +192,42 @@
 				</nav>
 			</div>
 
+			@* Mobile Backoffice Dropdown (Admin Only) *@
+			<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="mobileBackofficeContext">
+				<Authorized>
+					<div class="topbar-mobile profile-dropdown">
+						<input type="checkbox" id="backoffice-menu-toggle-mobile" class="profile-menu-toggle" />
+						<label for="backoffice-menu-toggle-mobile" class="backdrop"></label>
+						<label for="backoffice-menu-toggle-mobile" class="profile-menu-button"
+							style="@JordnaerPalette.BlueBody.ToTextColor()">
+							<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Medium" />
+							<MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" Style="margin-left: -0.25rem;" />
+						</label>
+						<nav class="profile-menu-dropdown" aria-label="Backoffice menu"
+							onclick="document.getElementById('backoffice-menu-toggle-mobile').checked = false;">
+							<a href="/backoffice/users" class="@GetProfileMenuItemClass("/backoffice/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Brugere
+							</a>
+							<a href="/backoffice/partners" class="@GetProfileMenuItemClass("/backoffice/partners")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Partnere
+							</a>
+						</nav>
+					</div>
+				</Authorized>
+			</AuthorizeView>
+
 			@* Mobile Profile Dropdown *@
 			<div class="topbar-mobile profile-dropdown">
 				<input type="checkbox" id="profile-menu-toggle-mobile" class="profile-menu-toggle" />
+				<label for="profile-menu-toggle-mobile" class="backdrop"></label>
 				<label for="profile-menu-toggle-mobile" class="profile-menu-button"
 					style="@JordnaerPalette.BlueBody.ToTextColor()">
 					<MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
+					<MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" Style="margin-left: -0.25rem;" />
 				</label>
 				<nav class="profile-menu-dropdown" aria-label="Profile menu"
 					onclick="document.getElementById('profile-menu-toggle-mobile').checked = false;">
@@ -175,6 +236,15 @@
 							Style="margin-right: 0.75rem;" />
 						Profil
 					</a>
+					<AuthorizeView Policy="@AuthorizationPolicies.PartnerAccess" Context="mobilePartnerContext">
+						<Authorized>
+							<a href="/partner/dashboard" class="@GetProfileMenuItemClass("/partner/dashboard")" style="@JordnaerPalette.BlueBody.ToTextColor()">
+								<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small"
+									Style="margin-right: 0.75rem;" />
+								Partner Dashboard
+							</a>
+						</Authorized>
+					</AuthorizeView>
 					<a href="/settings/notifications" class="@GetProfileMenuItemClass("/settings/notifications")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />
@@ -185,15 +255,6 @@
 							Style="margin-right: 0.75rem;" />
 						Kontoindstillinger
 					</a>
-					<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="mobileAdminContext">
-						<Authorized>
-							<a href="/backoffice/users" class="@GetProfileMenuItemClass("/backoffice/users")" style="@JordnaerPalette.BlueBody.ToTextColor()">
-								<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Size="Size.Small"
-									Style="margin-right: 0.75rem;" />
-								Backoffice
-							</a>
-						</Authorized>
-					</AuthorizeView>
 					<a href="/Account/Logout" class="profile-menu-item" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small"
 							Style="margin-right: 0.75rem;" />

@@ -31,7 +31,7 @@ public static class HardcodedAds
         var result = new List<AdData>();
 
         // Repeat ads to fill the requested count
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             result.Add(_ads[i % _ads.Count]);
         }
@@ -46,4 +46,8 @@ public record AdData
     public string? Description { get; init; }
     public required string ImagePath { get; init; }
     public required string Link { get; init; }
+    /// <summary>
+    /// Partner ID for analytics tracking. Null for hardcoded ads.
+    /// </summary>
+    public Guid? PartnerId { get; init; }
 }

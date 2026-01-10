@@ -27,6 +27,9 @@ public static class WebApplicationExtensions
 	/// <para>
 	/// This is necessary for correct OIDC redirects when using external login providers.
 	/// </para>
+	/// <para>
+	/// See /docs/forwarded-headers-azure.md for why we clear KnownProxies and KnownNetworks.
+	/// </para>
 	/// </summary>
 	/// <param name="app"></param>
 	/// <returns></returns>
@@ -37,7 +40,7 @@ public static class WebApplicationExtensions
 			ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
 		};
 
-		// Clear the default settings to allow forwarding from any proxy
+		// Intentionally clear for Azure App Service - see /docs/forwarded-headers-azure.md
 		forwardedHeadersOptions.KnownIPNetworks.Clear();
 		forwardedHeadersOptions.KnownProxies.Clear();
 

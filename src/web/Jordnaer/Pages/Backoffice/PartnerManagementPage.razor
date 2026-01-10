@@ -1,0 +1,163 @@
+@page "/backoffice/partners"
+
+@inject IPartnerService PartnerService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ILogger<PartnerManagementPage> Logger
+
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
+
+<MetadataComponent Title="Backoffice - Partner Administration"
+    Description="Administrer partnere og deres annoncer i systemet." />
+
+<MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Partner Administration</MudText>
+</MudStack>
+
+<MudDivider Class="mb-5" />
+
+<MudTable T="Partner"
+          Items="_partners"
+          ReadOnly="true"
+          Filter="_quickFilterFunc"
+          Bordered="true"
+          Loading="_isLoading"
+          Striped="true"
+          Hover="true"
+          OnRowClick="OnRowClick"
+          RowStyle="cursor: pointer;">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Partnere (@_partners.Count)</MudText>
+
+        <MudSpacer />
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   Href="/backoffice/partners/create"
+                   Class="mr-4">
+            Opret Partner
+        </MudButton>
+
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Søg partnere..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Small"
+                      Margin="Margin.Dense"
+                      Immediate="true" />
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh Style="@HeaderStyles">Navn</MudTh>
+        <MudTh Style="@HeaderStyles">Beskrivelse</MudTh>
+        <MudTh Style="@HeaderStyles">Status</MudTh>
+        <MudTh Style="@HeaderStyles">Oprettet</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd DataLabel="Navn">@context.Name</MudTd>
+        <MudTd DataLabel="Beskrivelse">
+            @if (!string.IsNullOrEmpty(context.Description))
+            {
+                @if (context.Description.Length > 100)
+                {
+                    @(context.Description.Substring(0, 100) + "...")
+                }
+                else
+                {
+                    @context.Description
+                }
+            }
+        </MudTd>
+        <MudTd DataLabel="Status">
+            @if (context.HasPendingApproval)
+            {
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Color="Color.Warning">
+                    Afventer godkendelse
+                </MudChip>
+            }
+            else
+            {
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Color="Color.Success">
+                    Aktiv
+                </MudChip>
+            }
+        </MudTd>
+        <MudTd DataLabel="Oprettet">@context.CreatedUtc.ToString("dd/MM/yyyy")</MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager PageSizeOptions="[10, 25, 50, 100]" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private List<Partner> _partners = [];
+    private bool _isLoading = true;
+    private const string HeaderStyles = "font-weight: 800; font-size: 1.2rem;";
+
+    // Search and filtering
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadPartnersAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load partners in backoffice");
+            Snackbar.Add("Kunne ikke hente partnere. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadPartnersAsync()
+    {
+        var result = await PartnerService.GetAllPartnersAsync();
+        result.Switch(
+            partners =>
+            {
+                _partners = partners.OrderByDescending(s => s.HasPendingApproval)
+                                   .ThenByDescending(s => s.CreatedUtc)
+                                   .ToList();
+            },
+            error =>
+            {
+                Logger.LogError("Failed to load partners: {Error}", error.Value);
+                Snackbar.Add("Kunne ikke hente partnere. Prøv igen senere.", Severity.Error);
+            }
+        );
+    }
+
+    private Func<Partner, bool> _quickFilterFunc => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (!string.IsNullOrEmpty(x.Name) && x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    };
+
+    private void OnRowClick(TableRowClickEventArgs<Partner> args)
+    {
+        if (args.Item is not null)
+        {
+            NavigationManager.NavigateTo($"/backoffice/partners/{args.Item.Id}");
+        }
+    }
+}
