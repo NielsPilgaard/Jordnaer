@@ -104,9 +104,18 @@ public sealed class PartnerUserService(
 
 			// Assign Partner role
 			var roleResult = await userRoleService.AddRoleToUserAsync(user.Id, AppRoles.Partner);
+			if (roleResult.IsT1) // NotFound
+			{
+				throw new InvalidOperationException($"User with ID '{user.Id}' was not found when assigning Partner role");
+			}
 			if (roleResult.IsT2) // Error
 			{
-				throw new InvalidOperationException("Failed to assign Partner role");
+				var error = roleResult.AsT2;
+				throw new InvalidOperationException($"Failed to assign Partner role: {error.Value}");
+			}
+			if (!roleResult.IsT0) // Ensure success before proceeding
+			{
+				throw new InvalidOperationException("Unexpected result when assigning Partner role");
 			}
 
 			// Create Partner record
