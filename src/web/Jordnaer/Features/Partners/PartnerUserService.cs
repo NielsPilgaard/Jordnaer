@@ -242,44 +242,28 @@ public sealed class PartnerUserService(
 		const string lowercase = "abcdefghijkmnpqrstuvwxyz"; // Removed l, o
 		const string digits = "23456789"; // Removed 0, 1
 		const string allChars = uppercase + lowercase + digits;
-
-		var password = new char[TemporaryPasswordLength + 3]; // +3 for hyphens
-		var position = 0;
-		var charIndex = 0; // Track character index without hyphens
-
-		for (var group = 0; group < 4; group++)
+		// Retry until we generate a password with at least one of each character type
+		while (true)
 		{
-			if (group > 0)
+			var chars = new char[TemporaryPasswordLength];
+
+			// Generate random characters
+			for (var i = 0; i < TemporaryPasswordLength; i++)
 			{
-				password[position++] = '-';
+				chars[i] = allChars[RandomNumberGenerator.GetInt32(allChars.Length)];
 			}
 
-			for (var i = 0; i < 4; i++)
-			{
-				// Ensure at least one of each character type in the password
-				// charIndex 0: uppercase, charIndex 1: lowercase, charIndex 2: digit
-				if (charIndex == 0)
-				{
-					password[position++] = uppercase[RandomNumberGenerator.GetInt32(uppercase.Length)];
-				}
-				else if (charIndex == 1)
-				{
-					password[position++] = lowercase[RandomNumberGenerator.GetInt32(lowercase.Length)];
-				}
-				else if (charIndex == 2)
-				{
-					password[position++] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
-				}
-				else
-				{
-					password[position++] = allChars[RandomNumberGenerator.GetInt32(allChars.Length)];
-				}
+			// Check if password contains at least one of each type
+			var hasUpper = chars.Any(c => uppercase.Contains(c));
+			var hasLower = chars.Any(c => lowercase.Contains(c));
+			var hasDigit = chars.Any(c => digits.Contains(c));
 
-				charIndex++;
+			if (hasUpper && hasLower && hasDigit)
+			{
+				// Format with hyphens: 4 groups of 4 characters
+				return $"{new string(chars, 0, 4)}-{new string(chars, 4, 4)}-{new string(chars, 8, 4)}-{new string(chars, 12, 4)}";
 			}
 		}
-
-		return new string(password);
 	}
 
 	private static bool IsValidEmail(string? email)
