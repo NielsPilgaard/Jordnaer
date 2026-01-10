@@ -378,40 +378,54 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (!firstRender)
+		if (firstRender || _partner is null)
 		{
-			// Upload preview images when files are selected
-			if (_adImage is not null && _adImagePreviewUrl is null && _partner is not null && !_adImageUploadAttempted)
-			{
-				_adImageUploadAttempted = true;
-				var result = await UploadPreviewImageAsync(_adImage);
-				if (result is not null)
-				{
-					_adImagePreviewUrl = result;
-				}
-				else
-				{
-					// Reset flag to allow retry on failure
-					_adImageUploadAttempted = false;
-				}
-				StateHasChanged();
-			}
-			if (_logoImage is not null && _logoPreviewUrl is null && _partner is not null && !_logoImageUploadAttempted)
-			{
-				_logoImageUploadAttempted = true;
-				var result = await UploadPreviewImageAsync(_logoImage);
-				if (result is not null)
-				{
-					_logoPreviewUrl = result;
-				}
-				else
-				{
-					// Reset flag to allow retry on failure
-					_logoImageUploadAttempted = false;
-				}
-				StateHasChanged();
-			}
+			return;
 		}
+
+		var changed = false;
+
+		if (await TryUploadPreviewIfNeededAsync(_adImage, _adImagePreviewUrl, _adImageUploadAttempted,
+			url => _adImagePreviewUrl = url, attempted => _adImageUploadAttempted = attempted))
+		{
+			changed = true;
+		}
+
+		if (await TryUploadPreviewIfNeededAsync(_logoImage, _logoPreviewUrl, _logoImageUploadAttempted,
+			url => _logoPreviewUrl = url, attempted => _logoImageUploadAttempted = attempted))
+		{
+			changed = true;
+		}
+
+		if (changed)
+		{
+			StateHasChanged();
+		}
+	}
+
+	private async Task<bool> TryUploadPreviewIfNeededAsync(
+		IBrowserFile? file,
+		string? currentPreviewUrl,
+		bool uploadAttempted,
+		Action<string> setPreviewUrl,
+		Action<bool> setUploadAttempted)
+	{
+		if (file is null || currentPreviewUrl is not null || uploadAttempted)
+		{
+			return false;
+		}
+
+		setUploadAttempted(true);
+		var result = await UploadPreviewImageAsync(file);
+		if (result is not null)
+		{
+			setPreviewUrl(result);
+			return true;
+		}
+
+		// Reset flag to allow retry on failure
+		setUploadAttempted(false);
+		return true; // Still return true to trigger StateHasChanged
 	}
 
 	private async Task<string?> UploadPreviewImageAsync(IBrowserFile file)
@@ -613,6 +627,16 @@
 		};
 	}
 
+	private bool ValidateFileSize(IBrowserFile? file, string fileType)
+	{
+		if (file is not null && file.Size > 5 * 1024 * 1024)
+		{
+			Snackbar.Add($"{fileType} er for stort (max 5MB)", Severity.Error);
+			return false;
+		}
+		return true;
+	}
+
 	private async Task SubmitChangesAsync()
 	{
 		if (_partner is null || !HasChanges())
@@ -625,27 +649,22 @@
 		Stream? logoStream = null;
 		try
 		{
+			if (!ValidateFileSize(_adImage, "Annonce billede") || !ValidateFileSize(_logoImage, "Logo"))
+			{
+				return;
+			}
+
 			string? adImageFileName = null;
 			string? logoFileName = null;
 
 			if (_adImage is not null)
 			{
-				if (_adImage.Size > 5 * 1024 * 1024)
-				{
-					Snackbar.Add("Annonce billede er for stort (max 5MB)", Severity.Error);
-					return;
-				}
 				adImageStream = _adImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
 				adImageFileName = _adImage.Name;
 			}
 
 			if (_logoImage is not null)
 			{
-				if (_logoImage.Size > 5 * 1024 * 1024)
-				{
-					Snackbar.Add("Logo er for stort (max 5MB)", Severity.Error);
-					return;
-				}
 				logoStream = _logoImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
 				logoFileName = _logoImage.Name;
 			}
