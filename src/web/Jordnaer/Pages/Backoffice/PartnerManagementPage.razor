@@ -123,10 +123,20 @@
 
     private async Task LoadPartnersAsync()
     {
-        _partners = await PartnerService.GetAllPartnersAsync();
-        _partners = _partners.OrderByDescending(s => s.HasPendingApproval)
-                            .ThenByDescending(s => s.CreatedUtc)
-                            .ToList();
+        var result = await PartnerService.GetAllPartnersAsync();
+        result.Switch(
+            partners =>
+            {
+                _partners = partners.OrderByDescending(s => s.HasPendingApproval)
+                                   .ThenByDescending(s => s.CreatedUtc)
+                                   .ToList();
+            },
+            error =>
+            {
+                Logger.LogError("Failed to load partners: {Error}", error.Value);
+                Snackbar.Add("Kunne ikke hente partnere. Prøv igen senere.", Severity.Error);
+            }
+        );
     }
 
     private Func<Partner, bool> _quickFilterFunc => x =>
