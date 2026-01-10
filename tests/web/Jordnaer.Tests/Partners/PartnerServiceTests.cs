@@ -244,11 +244,29 @@ public class PartnerServiceTests : IAsyncLifetime
 		var result = await _partnerService.GetAnalyticsAsync(partner.Id, fromDate, toDate);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.TotalImpressions.Should().Be(0);
-		result.TotalClicks.Should().Be(0);
-		result.ClickThroughRate.Should().Be(0);
-		result.DailyAnalytics.Should().BeEmpty();
+		result.IsT0.Should().BeTrue();
+		var analytics = result.AsT0;
+		analytics.Should().NotBeNull();
+		analytics.TotalImpressions.Should().Be(0);
+		analytics.TotalClicks.Should().Be(0);
+		analytics.ClickThroughRate.Should().Be(0);
+		analytics.DailyAnalytics.Should().BeEmpty();
+	}
+
+	[Fact]
+	public async Task GetAnalyticsAsync_ReturnsNotFound_WhenPartnerDoesNotExist()
+	{
+		// Arrange
+		var partnerId = Guid.NewGuid();
+		var fromDate = DateTime.UtcNow.AddDays(-7);
+		var toDate = DateTime.UtcNow;
+
+		// Act
+		var result = await _partnerService.GetAnalyticsAsync(partnerId, fromDate, toDate);
+
+		// Assert
+		result.IsT1.Should().BeTrue();
+		result.AsT1.Should().BeOfType<NotFound>();
 	}
 
 	[Fact]
@@ -283,11 +301,13 @@ public class PartnerServiceTests : IAsyncLifetime
 		var result = await _partnerService.GetAnalyticsAsync(partner.Id, fromDate, toDate);
 
 		// Assert
-		result.Should().NotBeNull();
-		result.TotalImpressions.Should().Be(300);
-		result.TotalClicks.Should().Be(15);
-		result.ClickThroughRate.Should().Be(5); // 15/300 * 100 = 5%
-		result.DailyAnalytics.Should().HaveCount(2);
+		result.IsT0.Should().BeTrue();
+		var analytics = result.AsT0;
+		analytics.Should().NotBeNull();
+		analytics.TotalImpressions.Should().Be(300);
+		analytics.TotalClicks.Should().Be(15);
+		analytics.ClickThroughRate.Should().Be(5); // 15/300 * 100 = 5%
+		analytics.DailyAnalytics.Should().HaveCount(2);
 	}
 
 	[Fact]
