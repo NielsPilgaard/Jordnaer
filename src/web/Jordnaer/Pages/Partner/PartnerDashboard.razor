@@ -140,30 +140,25 @@
 					@* Upload Controls *@
 					<MudItem xs="12" md="6">
 						<MudStack Spacing="3">
-							<MudText Typo="Typo.body2" Color="Color.Secondary">
-								<strong>Anbefalet format:</strong> 9:16 (portræt) - fx 1080x1920 eller 720x1280. 1:1 (kvadrat) er også acceptabelt.
-							</MudText>
-
-							@if (!string.IsNullOrEmpty(_partner.AdImageUrl))
-							{
-								<div>
-									<MudText Typo="Typo.subtitle2" Class="mb-2">Nuværende billede:</MudText>
-									<MudCard>
-										<MudCardMedia Image="@_partner.AdImageUrl" Height="300" />
-									</MudCard>
-								</div>
-							}
-
 							@if (!string.IsNullOrEmpty(_partner.PendingAdImageUrl))
 							{
-								<MudAlert Severity="Severity.Warning" Dense Class="mt-2">
+								<MudAlert Severity="Severity.Warning" Dense>
 									Du har et billede der afventer godkendelse
 								</MudAlert>
 							}
 
-							<MudText Typo="Typo.caption" Color="Color.Secondary">
-								Max 5MB. Formater: PNG, JPG, WEBP
+							<MudText Typo="Typo.body2" Color="Color.Secondary">
+								Anbefalet format: 9:16 eller 1:1
 							</MudText>
+							<MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+								 Max 5MB (PNG, JPG, WEBP)
+							</MudText>
+
+							<MudButton Variant="Variant.Filled" Color="Color.Primary"
+								StartIcon="@Icons.Material.Filled.CloudUpload"
+								OnClick="OpenAdImageUpload">
+								Vælg Annonce Billede
+							</MudButton>
 
 							<MudFileUpload @ref="_adImageUpload" T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
 								FilesChanged="OnAdImageSelectedAsync" MaximumFileCount="1" Hidden />
@@ -255,14 +250,6 @@
 								HelperText="Lad det stå tomt for at beholde nuværende" />
 
 							<MudDivider Class="my-2" />
-
-							<MudText Typo="Typo.subtitle2">Partner Logo:</MudText>
-							@if (!string.IsNullOrEmpty(_partner.LogoUrl))
-							{
-								<MudCard Style="max-width: 200px;">
-									<MudCardMedia Image="@_partner.LogoUrl" Height="100" />
-								</MudCard>
-							}
 
 							<MudFileUpload T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
 								FilesChanged="OnLogoSelectedAsync" MaximumFileCount="1">
