@@ -279,6 +279,9 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		_userRoleService.AddRoleToUserAsync(createdUser.Id, AppRoles.Partner)
 			.Returns(new OneOf.Types.Error<string>("Failed to add role"));
 
+		_userManager.DeleteAsync(Arg.Any<ApplicationUser>())
+			.Returns(IdentityResult.Success);
+
 		// Act
 		var result = await _partnerUserService.CreatePartnerAccountAsync(request);
 
