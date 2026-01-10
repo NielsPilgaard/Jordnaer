@@ -46,4 +46,8 @@ public record AdData
     public string? Description { get; init; }
     public required string ImagePath { get; init; }
     public required string Link { get; init; }
+    /// <summary>
+    /// Partner ID for analytics tracking. Null for hardcoded ads.
+    /// </summary>
+    public Guid? PartnerId { get; init; }
 }

@@ -5,6 +5,7 @@ using Jordnaer.Components;
 using Jordnaer.Components.Account;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
+using Jordnaer.Features.Ad;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Category;
 using Jordnaer.Features.Chat;
@@ -101,6 +102,7 @@ builder.AddGroupPostFeature();
 builder.AddPostSearchFeature();
 builder.AddSharingFeature();
 builder.AddPartnerServices();
+builder.AddAdServices();
 
 builder.AddMudBlazor();
 

@@ -1,6 +1,7 @@
 @using Jordnaer.Features.Ad
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
+@inject IAdProvider AdProvider
 
 @implements IDisposable
 
@@ -16,7 +17,8 @@
             <MudItem xs="12" sm="6" md="4" lg="3" id="@itemId">
                 @if (item.IsAd && item.Ad is not null)
                 {
-                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
+                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title"
+                            PartnerId="@(item.Ad.PartnerId ?? Guid.Empty)" />
                 }
                 else if (item.User is not null)
                 {
@@ -44,6 +46,7 @@
     public EventCallback<int> SelectedPageChanged { get; set; }
 
     private IDisposable? _locationChangingHandler;
+    private List<AdData> _ads = [];
 
     private record SearchResultItem
     {
@@ -52,15 +55,18 @@
         public AdData? Ad { get; init; }
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        // Pre-fetch ads asynchronously
+        var adCount = SearchResult.Users.Count > 0 ? 1 : 0;
+        _ads = await AdProvider.GetAdsAsync(adCount);
+    }
+
     private List<SearchResultItem> GetItemsWithAds()
     {
         var items = new List<SearchResultItem>();
 
-        // Always max 1 ad per page, regardless of result count
-        var adCount = SearchResult.Users.Count > 0 ? 1 : 0;
-        var ads = HardcodedAds.GetAdsForSearch(adCount);
-
-        if (ads.Count is 0 || SearchResult.Users.Count is 0)
+        if (_ads.Count is 0 || SearchResult.Users.Count is 0)
         {
             // No ads or no users, just return users (up to 12)
             items.AddRange(SearchResult.Users.Take(12).Select(u => new SearchResultItem { User = u }));
@@ -76,7 +82,7 @@
         {
             if (i == adPosition)
             {
-                items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
+                items.Add(new SearchResultItem { IsAd = true, Ad = _ads[0] });
             }
             else if (userIndex < SearchResult.Users.Count)
             {
@@ -111,7 +117,7 @@
     protected override void OnInitialized()
     {
         _locationChangingHandler = Navigation
-        .RegisterLocationChangingHandler(async _ => await SaveScrollPosition());
+            .RegisterLocationChangingHandler(async _ => await SaveScrollPosition());
     }
 
     public void Dispose()
