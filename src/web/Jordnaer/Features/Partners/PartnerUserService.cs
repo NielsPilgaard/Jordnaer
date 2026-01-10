@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
+using System.Net.Mail;
 using System.Security.Cryptography;
 
 namespace Jordnaer.Features.Partners;
@@ -62,7 +63,7 @@ public sealed class PartnerUserService(
 		}
 
 		// Validate email format
-		if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
+		if (!IsValidEmail(request.Email))
 		{
 			return new Error<string>("Ugyldig email adresse");
 		}
@@ -279,5 +280,23 @@ public sealed class PartnerUserService(
 		}
 
 		return new string(password);
+	}
+
+	private static bool IsValidEmail(string? email)
+	{
+		if (string.IsNullOrWhiteSpace(email))
+		{
+			return false;
+		}
+
+		try
+		{
+			var mailAddress = new MailAddress(email);
+			return mailAddress.Address == email;
+		}
+		catch (FormatException)
+		{
+			return false;
+		}
 	}
 }
