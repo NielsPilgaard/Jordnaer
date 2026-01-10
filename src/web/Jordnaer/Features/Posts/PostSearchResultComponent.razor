@@ -57,10 +57,23 @@
         public AdData? Ad { get; init; }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        var adCount = SearchResult.Posts.Count > 0 ? 1 : 0;
-        _ads = await AdProvider.GetAdsAsync(adCount);
+        await RefreshAdsAsync();
+    }
+
+    private async Task RefreshAdsAsync()
+    {
+        try
+        {
+            var adCount = SearchResult?.Posts?.Count > 0 ? 1 : 0;
+            _ads = await AdProvider.GetAdsAsync(adCount);
+        }
+        catch (Exception)
+        {
+            // Silently fail - ads are non-critical
+            _ads = [];
+        }
     }
 
     private List<SearchResultItem> GetItemsWithAds()

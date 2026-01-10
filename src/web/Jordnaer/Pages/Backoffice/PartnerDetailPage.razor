@@ -436,7 +436,7 @@ else
                 _analytics = analytics;
 
                 // Update chart data
-                if (_analytics.DailyAnalytics.Any())
+                if (_analytics?.DailyAnalytics?.Any() == true)
                 {
                     _xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
 
@@ -454,6 +454,11 @@ else
                         }
                     ];
                 }
+                else
+                {
+                    _xAxisLabels = [];
+                    _chartSeries = [];
+                }
             },
             notFound =>
             {
@@ -470,10 +475,10 @@ else
     private async Task SelectTimePeriod(int days)
     {
         var previousDays = _selectedDays;
-        _selectedDays = days;
 
         try
         {
+            _selectedDays = days;
             await LoadAnalyticsAsync();
         }
         catch (Exception ex)
@@ -482,8 +487,6 @@ else
             Snackbar.Add("Kunne ikke hente analytics data. Prøv igen senere.", Severity.Error);
             _selectedDays = previousDays;
         }
-
-        StateHasChanged();
     }
 
     private bool HasPendingTextChanges()

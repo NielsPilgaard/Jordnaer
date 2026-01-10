@@ -48,18 +48,25 @@
         }
     }
 
-    private async Task HandleClickAsync()
+    private Task HandleClickAsync()
     {
         if (!IsPreview && PartnerId != Guid.Empty)
         {
-            try
-            {
-                await PartnerService.RecordClickAsync(PartnerId);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Failed to record click for partner {PartnerId}", PartnerId);
-            }
+            // Fire-and-forget: Don't await since browser navigation cannot be blocked
+            _ = RecordClickInBackgroundAsync();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task RecordClickInBackgroundAsync()
+    {
+        try
+        {
+            await PartnerService.RecordClickAsync(PartnerId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to record click for partner {PartnerId}", PartnerId);
         }
     }
 }

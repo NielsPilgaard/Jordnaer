@@ -165,7 +165,13 @@ public sealed class PartnerUserService(
 				logger.LogError(cleanupEx, "Failed to cleanup UserProfile during rollback for {Email}", new MaskedEmail(request.Email));
 			}
 
-			await userManager.DeleteAsync(user);
+			var deleteResult = await userManager.DeleteAsync(user);
+			if (!deleteResult.Succeeded)
+			{
+				var deleteErrors = string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+				logger.LogError("Failed to delete user during rollback for {Email}. Errors: {Errors}", new MaskedEmail(request.Email), deleteErrors);
+			}
+
 			return new Error<string>($"Kunne ikke fuldføre oprettelse: {ex.Message}");
 		}
 	}

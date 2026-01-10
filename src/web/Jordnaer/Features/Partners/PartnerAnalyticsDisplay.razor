@@ -28,13 +28,19 @@
                 </tbody>
             </MudSimpleTable>
         }
-        else
+        else if (ChartSeries.Count > 0 && XAxisLabels.Length > 0 && XAxisLabels.Length == Analytics.DailyAnalytics.Count)
         {
             <MudChart ChartType="ChartType.Line"
                 ChartSeries="@ChartSeries"
                 XAxisLabels="@XAxisLabels"
                 Width="100%"
                 Height="300px" />
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning" Class="my-4">
+                Graf kunne ikke vises - data er ikke korrekt formateret
+            </MudAlert>
         }
     </MudPaper>
 }

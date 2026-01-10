@@ -44,18 +44,26 @@
         }
     }
 
-    private async Task HandleClickAsync()
+    private Task HandleClickAsync()
     {
         if (Partner.Id != Guid.Empty && !IsPreview)
         {
-            try
-            {
-                await PartnerService.RecordClickAsync(Partner.Id);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Failed to record click for partner {PartnerId}", Partner.Id);
-            }
+            // Fire-and-forget: Don't await since browser navigation cannot be blocked
+            // The click is recorded asynchronously while the user navigates to the partner link
+            _ = RecordClickInBackgroundAsync();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task RecordClickInBackgroundAsync()
+    {
+        try
+        {
+            await PartnerService.RecordClickAsync(Partner.Id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to record click for partner {PartnerId}", Partner.Id);
         }
     }
 }

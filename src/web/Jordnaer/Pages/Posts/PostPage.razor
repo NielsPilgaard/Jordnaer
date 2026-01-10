@@ -105,8 +105,17 @@
     {
         _currentUserId = CurrentUser?.Id;
 
-        // Load ads and recent posts
-        _ads = await AdProvider.GetAdsAsync(1);
+        // Load ads (non-critical, don't let failures block the page)
+        try
+        {
+            _ads = await AdProvider.GetAdsAsync(1);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load ads for posts page");
+            _ads = [];
+        }
+
         await LoadRecentPosts();
     }
 
