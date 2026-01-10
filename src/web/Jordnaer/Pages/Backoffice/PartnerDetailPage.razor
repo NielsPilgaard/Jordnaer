@@ -304,7 +304,7 @@ else
                     </MudButton>
                     <MudButton OnClick="() => SelectTimePeriod(365)"
                         Variant="@(_selectedDays == 365 ? Variant.Filled : Variant.Outlined)">
-                        Alt
+                        365 dage
                     </MudButton>
                 </MudButtonGroup>
             </MudStack>
@@ -359,7 +359,7 @@ else
                                 <MudText Typo="Typo.h6">CTR</MudText>
                             </MudStack>
                             <MudText Typo="Typo.h3" Class="font-open-sans-bold">
-                                @_analytics?.ClickThroughRate.ToString("F2")%
+                                @(_analytics is not null ? $"{_analytics.ClickThroughRate:F2}%" : string.Empty)
                             </MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">
                                 Click-through rate
@@ -429,33 +429,60 @@ else
         var toDate = DateTime.UtcNow;
         var fromDate = toDate.AddDays(-_selectedDays);
 
-        _analytics = await PartnerService.GetAnalyticsAsync(_partner.Id, fromDate, toDate);
-
-        // Update chart data
-        if (_analytics?.DailyAnalytics.Any() == true)
-        {
-            _xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
-
-            _chartSeries = new List<ChartSeries>
+        var result = await PartnerService.GetAnalyticsAsync(_partner.Id, fromDate, toDate);
+        result.Switch(
+            analytics =>
             {
-                new ChartSeries
+                _analytics = analytics;
+
+                // Update chart data
+                if (_analytics.DailyAnalytics.Any())
                 {
-                    Name = "Impressions",
-                    Data = _analytics.DailyAnalytics.Select(a => (double)a.Impressions).ToArray()
-                },
-                new ChartSeries
-                {
-                    Name = "Clicks",
-                    Data = _analytics.DailyAnalytics.Select(a => (double)a.Clicks).ToArray()
+                    _xAxisLabels = _analytics.DailyAnalytics.Select(a => a.Date.ToString("dd/MM")).ToArray();
+
+                    _chartSeries =
+                    [
+                        new ChartSeries
+                        {
+                            Name = "Impressions",
+                            Data = _analytics.DailyAnalytics.Select(a => (double)a.Impressions).ToArray()
+                        },
+                        new ChartSeries
+                        {
+                            Name = "Clicks",
+                            Data = _analytics.DailyAnalytics.Select(a => (double)a.Clicks).ToArray()
+                        }
+                    ];
                 }
-            };
-        }
+            },
+            notFound =>
+            {
+                Logger.LogWarning("Partner {PartnerId} not found when loading analytics", _partner.Id);
+            },
+            error =>
+            {
+                Logger.LogError("Failed to load analytics for partner {PartnerId}: {Error}", _partner.Id, error.Value);
+                Snackbar.Add("Kunne ikke hente analytics data", Severity.Error);
+            }
+        );
     }
 
     private async Task SelectTimePeriod(int days)
     {
+        var previousDays = _selectedDays;
         _selectedDays = days;
-        await LoadAnalyticsAsync();
+
+        try
+        {
+            await LoadAnalyticsAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load analytics for time period {Days} days", days);
+            Snackbar.Add("Kunne ikke hente analytics data. Prøv igen senere.", Severity.Error);
+            _selectedDays = previousDays;
+        }
+
         StateHasChanged();
     }
 
