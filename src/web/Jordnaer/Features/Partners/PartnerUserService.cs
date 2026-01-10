@@ -242,6 +242,7 @@ public sealed class PartnerUserService(
 		const string lowercase = "abcdefghijkmnpqrstuvwxyz"; // Removed l, o
 		const string digits = "23456789"; // Removed 0, 1
 		const string allChars = uppercase + lowercase + digits;
+
 		// Retry until we generate a password with at least one of each character type
 		while (true)
 		{
@@ -254,9 +255,9 @@ public sealed class PartnerUserService(
 			}
 
 			// Check if password contains at least one of each type
-			var hasUpper = chars.Any(c => uppercase.Contains(c));
-			var hasLower = chars.Any(c => lowercase.Contains(c));
-			var hasDigit = chars.Any(c => digits.Contains(c));
+			var hasUpper = chars.Any(uppercase.Contains);
+			var hasLower = chars.Any(lowercase.Contains);
+			var hasDigit = chars.Any(digits.Contains);
 
 			if (hasUpper && hasLower && hasDigit)
 			{
