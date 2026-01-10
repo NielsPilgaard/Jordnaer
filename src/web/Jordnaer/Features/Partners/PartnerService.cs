@@ -140,7 +140,17 @@ public class PartnerService(
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var today = DateTime.UtcNow.Date;
 
-			// Attempt to insert a new record
+			// Try to update existing record first (atomic increment)
+			var rowsAffected = await context.PartnerAnalytics
+				.Where(a => a.PartnerId == partnerId && a.Date == today)
+				.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Impressions, a => a.Impressions + 1), cancellationToken);
+
+			if (rowsAffected > 0)
+			{
+				return new Success();
+			}
+
+			// No existing record, try to insert a new one
 			var analytics = new PartnerAnalytics
 			{
 				PartnerId = partnerId,
@@ -157,16 +167,17 @@ public class PartnerService(
 			}
 			catch (DbUpdateException)
 			{
-				// Record already exists, perform atomic increment
+				// Race condition: another request inserted the record between our check and insert
+				// Detach the failed entity and retry the update
 				context.Entry(analytics).State = EntityState.Detached;
 
-				var rowsAffected = await context.PartnerAnalytics
+				rowsAffected = await context.PartnerAnalytics
 					.Where(a => a.PartnerId == partnerId && a.Date == today)
 					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Impressions, a => a.Impressions + 1), cancellationToken);
 
 				if (rowsAffected == 0)
 				{
-					logger.LogError("Failed to increment impression for partner {PartnerId} on {Date}: no rows affected", partnerId, today);
+					logger.LogError("Failed to increment impression for partner {PartnerId} on {Date}: no rows affected after retry", partnerId, today);
 					return new Error<string>("Failed to record impression: analytics record not found");
 				}
 
@@ -189,7 +200,17 @@ public class PartnerService(
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var today = DateTime.UtcNow.Date;
 
-			// Attempt to insert a new record
+			// Try to update existing record first (atomic increment)
+			var rowsAffected = await context.PartnerAnalytics
+				.Where(a => a.PartnerId == partnerId && a.Date == today)
+				.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Clicks, a => a.Clicks + 1), cancellationToken);
+
+			if (rowsAffected > 0)
+			{
+				return new Success();
+			}
+
+			// No existing record, try to insert a new one
 			var analytics = new PartnerAnalytics
 			{
 				PartnerId = partnerId,
@@ -206,16 +227,17 @@ public class PartnerService(
 			}
 			catch (DbUpdateException)
 			{
-				// Record already exists, perform atomic increment
+				// Race condition: another request inserted the record between our check and insert
+				// Detach the failed entity and retry the update
 				context.Entry(analytics).State = EntityState.Detached;
 
-				var rowsAffected = await context.PartnerAnalytics
+				rowsAffected = await context.PartnerAnalytics
 					.Where(a => a.PartnerId == partnerId && a.Date == today)
 					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Clicks, a => a.Clicks + 1), cancellationToken);
 
 				if (rowsAffected == 0)
 				{
-					logger.LogError("Failed to increment click for partner {PartnerId} on {Date}: no rows affected", partnerId, today);
+					logger.LogError("Failed to increment click for partner {PartnerId} on {Date}: no rows affected after retry", partnerId, today);
 					return new Error<string>("Failed to record click: analytics record not found");
 				}
 
