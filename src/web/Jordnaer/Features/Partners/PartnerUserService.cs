@@ -189,7 +189,8 @@ public sealed class PartnerUserService(
 		catch (Exception ex)
 		{
 			// Transaction will automatically rollback on dispose, but explicit rollback for clarity
-			await transaction.RollbackAsync(cancellationToken);
+			// Use CancellationToken.None to ensure rollback completes even if original token was cancelled
+			await transaction.RollbackAsync(CancellationToken.None);
 
 			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back.", new MaskedEmail(request.Email));
 
@@ -211,7 +212,8 @@ public sealed class PartnerUserService(
 				logger.LogError("Failed to delete user during rollback for {Email}. Errors: {Errors}", new MaskedEmail(request.Email), deleteErrors);
 			}
 
-			return new Error<string>($"Kunne ikke fuldføre oprettelse: {ex.Message}");
+			// Return generic error message - full details logged above
+			return new Error<string>("Kunne ikke fuldføre oprettelse af partnerkonto. Prøv igen senere.");
 		}
 	}
 
