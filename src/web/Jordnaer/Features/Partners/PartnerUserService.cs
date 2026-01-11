@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.Common;
 using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
@@ -54,18 +55,18 @@ public sealed class PartnerUserService(
 		CreatePartnerRequest request,
 		CancellationToken cancellationToken = default)
 	{
+		// Validate email format first
+		if (!IsValidEmail(request.Email))
+		{
+			return new Error<string>("Ugyldig email adresse");
+		}
+
 		// Check if user with this email already exists
 		var existingUser = await userManager.FindByEmailAsync(request.Email);
 		if (existingUser is not null)
 		{
 			logger.LogWarning("Attempted to create partner account with existing email: {Email}", new MaskedEmail(request.Email));
 			return new Error<string>("En bruger med denne email findes allerede");
-		}
-
-		// Validate email format
-		if (!IsValidEmail(request.Email))
-		{
-			return new Error<string>("Ugyldig email adresse");
 		}
 
 		// Validate URL format
@@ -86,38 +87,48 @@ public sealed class PartnerUserService(
 			EmailConfirmed = true // Auto-confirm admin-created accounts
 		};
 
-		var createResult = await userManager.CreateAsync(user, temporaryPassword);
+		IdentityResult createResult;
+		try
+		{
+			createResult = await userManager.CreateAsync(user, temporaryPassword);
+		}
+		catch (UniqueConstraintException)
+		{
+			// Race condition: another request created a user with this email between our check and create
+			logger.LogWarning("Race condition detected: user with email {Email} was created by another request", new MaskedEmail(request.Email));
+			return new Error<string>("En bruger med denne email findes allerede");
+		}
+
 		if (!createResult.Succeeded)
 		{
+			// Check if the error is due to duplicate email (Identity's built-in check)
+			if (createResult.Errors.Any(e => e.Code == "DuplicateEmail" || e.Code == "DuplicateUserName"))
+			{
+				logger.LogWarning("Duplicate email detected during user creation: {Email}", new MaskedEmail(request.Email));
+				return new Error<string>("En bruger med denne email findes allerede");
+			}
+
 			var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
 			logger.LogError("Failed to create partner user account. Errors: {Errors}", errors);
 			return new Error<string>($"Kunne ikke oprette brugerkonto: {errors}");
 		}
 
+		// Validate user.Email is not null after creation (defensive check)
+		if (string.IsNullOrEmpty(user.Email))
+		{
+			logger.LogError("User was created but Email is null for user {UserId}", user.Id);
+			await userManager.DeleteAsync(user);
+			return new Error<string>("Kunne ikke oprette brugerkonto: email er ugyldig");
+		}
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
 		try
 		{
-			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
 			// Create UserProfile
 			var userProfile = new UserProfile { Id = user.Id };
 			context.UserProfiles.Add(userProfile);
-			await context.SaveChangesAsync(cancellationToken);
-
-			// Assign Partner role
-			var roleResult = await userRoleService.AddRoleToUserAsync(user.Id, AppRoles.Partner);
-			if (roleResult.IsT1) // NotFound
-			{
-				throw new InvalidOperationException($"User with ID '{user.Id}' was not found when assigning Partner role");
-			}
-			if (roleResult.IsT2) // Error
-			{
-				var error = roleResult.AsT2;
-				throw new InvalidOperationException($"Failed to assign Partner role: {error.Value}");
-			}
-			if (!roleResult.IsT0) // Ensure success before proceeding
-			{
-				throw new InvalidOperationException("Unexpected result when assigning Partner role");
-			}
 
 			// Create Partner record
 			var partner = new Partner
@@ -131,11 +142,31 @@ public sealed class PartnerUserService(
 				CanHavePartnerCard = request.CanHavePartnerCard,
 				CanHaveAd = request.CanHaveAd
 			};
-
 			context.Partners.Add(partner);
+
 			await context.SaveChangesAsync(cancellationToken);
 
-			// Send welcome email
+			// Assign Partner role
+			var roleResult = await userRoleService.AddRoleToUserAsync(user.Id, AppRoles.Partner);
+			if (roleResult.IsT1) // NotFound
+			{
+				throw new InvalidOperationException($"User with ID '{user.Id}' was not found when assigning Partner role");
+			}
+
+			if (roleResult.IsT2) // Error
+			{
+				var error = roleResult.AsT2;
+				throw new InvalidOperationException($"Failed to assign Partner role: {error.Value}");
+			}
+
+			if (!roleResult.IsT0) // Ensure success before proceeding
+			{
+				throw new InvalidOperationException("Unexpected result when assigning Partner role");
+			}
+
+			await transaction.CommitAsync(cancellationToken);
+
+			// Send welcome email after successful commit (outside transaction)
 			await emailService.SendPartnerWelcomeEmailAsync(
 				user.Email,
 				request.Name,
@@ -157,24 +188,22 @@ public sealed class PartnerUserService(
 		}
 		catch (Exception ex)
 		{
-			// Rollback: Delete the user account and profile if partner/profile creation failed
-			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back user account.", new MaskedEmail(request.Email));
+			// Transaction will automatically rollback on dispose, but explicit rollback for clarity
+			await transaction.RollbackAsync(cancellationToken);
 
+			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back.", new MaskedEmail(request.Email));
+
+			// Rollback: Remove the Partner role if it was assigned
 			try
 			{
-				await using var rollbackContext = await contextFactory.CreateDbContextAsync(cancellationToken);
-				var profile = await rollbackContext.UserProfiles.FindAsync([user.Id], cancellationToken);
-				if (profile is not null)
-				{
-					rollbackContext.UserProfiles.Remove(profile);
-					await rollbackContext.SaveChangesAsync(cancellationToken);
-				}
+				await userRoleService.RemoveRoleFromUserAsync(user.Id, AppRoles.Partner);
 			}
-			catch (Exception cleanupEx)
+			catch (Exception roleCleanupEx)
 			{
-				logger.LogError(cleanupEx, "Failed to cleanup UserProfile during rollback for {Email}", new MaskedEmail(request.Email));
+				logger.LogError(roleCleanupEx, "Failed to remove Partner role during rollback for {Email}", new MaskedEmail(request.Email));
 			}
 
+			// Rollback: Delete the user account (UserProfile and Partner are rolled back by transaction)
 			var deleteResult = await userManager.DeleteAsync(user);
 			if (!deleteResult.Succeeded)
 			{
@@ -194,6 +223,13 @@ public sealed class PartnerUserService(
 		if (user is null)
 		{
 			return new NotFound();
+		}
+
+		// Validate user.Email is not null (defensive check for nullable Email property)
+		if (string.IsNullOrEmpty(user.Email))
+		{
+			logger.LogError("User {UserId} has null or empty email address", userId);
+			return new Error<string>("Brugerens email adresse er ugyldig");
 		}
 
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -224,7 +260,7 @@ public sealed class PartnerUserService(
 		// Resend welcome email with null-safe partner name
 		var partnerName = partner.Name ?? "Partner";
 		await emailService.SendPartnerWelcomeEmailAsync(
-			user.Email!,
+			user.Email,
 			partnerName,
 			newTemporaryPassword,
 			cancellationToken);
