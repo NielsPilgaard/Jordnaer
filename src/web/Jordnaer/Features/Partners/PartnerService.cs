@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.Common;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
@@ -9,6 +10,12 @@ using OneOf;
 using OneOf.Types;
 
 namespace Jordnaer.Features.Partners;
+
+public enum AnalyticsType
+{
+	Impression,
+	Click
+}
 
 public interface IPartnerService
 {
@@ -134,66 +141,23 @@ public class PartnerService(
 	public async Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
-
-		try
-		{
-			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-			var today = DateTime.UtcNow.Date;
-
-			// Try to update existing record first (atomic increment)
-			var rowsAffected = await context.PartnerAnalytics
-				.Where(a => a.PartnerId == partnerId && a.Date == today)
-				.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Impressions, a => a.Impressions + 1), cancellationToken);
-
-			if (rowsAffected > 0)
-			{
-				return new Success();
-			}
-
-			// No existing record, try to insert a new one
-			var analytics = new PartnerAnalytics
-			{
-				PartnerId = partnerId,
-				Date = today,
-				Impressions = 1,
-				Clicks = 0
-			};
-			context.PartnerAnalytics.Add(analytics);
-
-			try
-			{
-				await context.SaveChangesAsync(cancellationToken);
-				return new Success();
-			}
-			catch (DbUpdateException)
-			{
-				// Race condition: another request inserted the record between our check and insert
-				// Detach the failed entity and retry the update
-				context.Entry(analytics).State = EntityState.Detached;
-
-				rowsAffected = await context.PartnerAnalytics
-					.Where(a => a.PartnerId == partnerId && a.Date == today)
-					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Impressions, a => a.Impressions + 1), cancellationToken);
-
-				if (rowsAffected == 0)
-				{
-					logger.LogError("Failed to increment impression for partner {PartnerId} on {Date}: no rows affected after retry", partnerId, today);
-					return new Error<string>("Failed to record impression: analytics record not found");
-				}
-
-				return new Success();
-			}
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Failed to record impression for partner {PartnerId}", partnerId);
-			return new Error<string>("Failed to record impression");
-		}
+		return await RecordAnalyticsAsync(partnerId, AnalyticsType.Impression, cancellationToken);
 	}
 
 	public async Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
+		return await RecordAnalyticsAsync(partnerId, AnalyticsType.Click, cancellationToken);
+	}
+
+	private async Task<OneOf<Success, Error<string>>> RecordAnalyticsAsync(
+		Guid partnerId,
+		AnalyticsType analyticsType,
+		CancellationToken cancellationToken)
+	{
+		var incrementImpression = analyticsType == AnalyticsType.Impression;
+		var incrementClick = analyticsType == AnalyticsType.Click;
+		var analyticsTypeName = analyticsType.ToString().ToLowerInvariant();
 
 		try
 		{
@@ -203,20 +167,39 @@ public class PartnerService(
 			// Try to update existing record first (atomic increment)
 			var rowsAffected = await context.PartnerAnalytics
 				.Where(a => a.PartnerId == partnerId && a.Date == today)
-				.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Clicks, a => a.Clicks + 1), cancellationToken);
+				.ExecuteUpdateAsync(setters =>
+				{
+					if (incrementImpression)
+					{
+						setters.SetProperty(a => a.Impressions, a => a.Impressions + 1);
+					}
+
+					if (incrementClick)
+					{
+						setters.SetProperty(a => a.Clicks, a => a.Clicks + 1);
+					}
+				}, cancellationToken);
 
 			if (rowsAffected > 0)
 			{
 				return new Success();
 			}
 
-			// No existing record, try to insert a new one
+			// No existing record - validate partner exists before attempting insert
+			var partnerExists = await context.Partners.AnyAsync(p => p.Id == partnerId, cancellationToken);
+			if (!partnerExists)
+			{
+				logger.LogWarning("Attempted to record {AnalyticsType} for non-existent partner {PartnerId}", analyticsTypeName, partnerId);
+				return new Error<string>($"Partner with ID '{partnerId}' not found");
+			}
+
+			// Try to insert a new record
 			var analytics = new PartnerAnalytics
 			{
 				PartnerId = partnerId,
 				Date = today,
-				Impressions = 0,
-				Clicks = 1
+				Impressions = incrementImpression ? 1 : 0,
+				Clicks = incrementClick ? 1 : 0
 			};
 			context.PartnerAnalytics.Add(analytics);
 
@@ -225,7 +208,7 @@ public class PartnerService(
 				await context.SaveChangesAsync(cancellationToken);
 				return new Success();
 			}
-			catch (DbUpdateException)
+			catch (UniqueConstraintException)
 			{
 				// Race condition: another request inserted the record between our check and insert
 				// Detach the failed entity and retry the update
@@ -233,21 +216,37 @@ public class PartnerService(
 
 				rowsAffected = await context.PartnerAnalytics
 					.Where(a => a.PartnerId == partnerId && a.Date == today)
-					.ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Clicks, a => a.Clicks + 1), cancellationToken);
+					.ExecuteUpdateAsync(setters =>
+					{
+						if (incrementImpression)
+						{
+							setters.SetProperty(a => a.Impressions, a => a.Impressions + 1);
+						}
+
+						if (incrementClick)
+						{
+							setters.SetProperty(a => a.Clicks, a => a.Clicks + 1);
+						}
+					}, cancellationToken);
 
 				if (rowsAffected == 0)
 				{
-					logger.LogError("Failed to increment click for partner {PartnerId} on {Date}: no rows affected after retry", partnerId, today);
-					return new Error<string>("Failed to record click: analytics record not found");
+					logger.LogError("Failed to increment {AnalyticsType} for partner {PartnerId} on {Date}: no rows affected after retry", analyticsType, partnerId, today);
+					return new Error<string>($"Failed to record {analyticsTypeName}: analytics record not found");
 				}
 
 				return new Success();
 			}
+			catch (ReferenceConstraintException ex)
+			{
+				logger.LogError(ex, "Foreign key violation when recording {AnalyticsType} for partner {PartnerId}", analyticsTypeName, partnerId);
+				return new Error<string>($"Partner with ID '{partnerId}' not found");
+			}
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is not UniqueConstraintException and not ReferenceConstraintException)
 		{
-			logger.LogError(ex, "Failed to record click for partner {PartnerId}", partnerId);
-			return new Error<string>("Failed to record click");
+			logger.LogError(ex, "Failed to record {AnalyticsType} for partner {PartnerId}", analyticsTypeName, partnerId);
+			return new Error<string>($"Failed to record {analyticsTypeName}");
 		}
 	}
 
@@ -541,16 +540,15 @@ public class PartnerService(
 				return new Error<string>("Partner not found");
 			}
 
-			// Delete old ad image if new one is being approved
+			// Extract blob paths for old images that will be replaced (delete after successful DB commit)
+			string? oldAdImageBlobPath = null;
+			string? oldLogoBlobPath = null;
+
 			if (!string.IsNullOrEmpty(partner.AdImageUrl) && !string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
 				if (Uri.TryCreate(partner.AdImageUrl, UriKind.Absolute, out var adUri))
 				{
-					var adImageBlobPath = ExtractBlobPathFromUri(adUri, PartnerAdsContainer);
-					if (!string.IsNullOrEmpty(adImageBlobPath))
-					{
-						await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
-					}
+					oldAdImageBlobPath = ExtractBlobPathFromUri(adUri, PartnerAdsContainer);
 				}
 				else
 				{
@@ -558,16 +556,11 @@ public class PartnerService(
 				}
 			}
 
-			// Delete old logo if new one is being approved
 			if (!string.IsNullOrEmpty(partner.LogoUrl) && !string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
 				if (Uri.TryCreate(partner.LogoUrl, UriKind.Absolute, out var logoUri))
 				{
-					var logoBlobPath = ExtractBlobPathFromUri(logoUri, PartnerAdsContainer);
-					if (!string.IsNullOrEmpty(logoBlobPath))
-					{
-						await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
-					}
+					oldLogoBlobPath = ExtractBlobPathFromUri(logoUri, PartnerAdsContainer);
 				}
 				else
 				{
@@ -611,6 +604,31 @@ public class PartnerService(
 
 			await context.SaveChangesAsync(cancellationToken);
 
+			// Only delete old blobs after successful DB commit
+			if (!string.IsNullOrEmpty(oldAdImageBlobPath))
+			{
+				try
+				{
+					await imageService.DeleteImageAsync(oldAdImageBlobPath, PartnerAdsContainer, cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to delete old ad image blob {BlobPath} for partner {PartnerId}", oldAdImageBlobPath, partnerId);
+				}
+			}
+
+			if (!string.IsNullOrEmpty(oldLogoBlobPath))
+			{
+				try
+				{
+					await imageService.DeleteImageAsync(oldLogoBlobPath, PartnerAdsContainer, cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to delete old logo blob {BlobPath} for partner {PartnerId}", oldLogoBlobPath, partnerId);
+				}
+			}
+
 			return new Success();
 		}
 		catch (Exception ex)
@@ -640,51 +658,68 @@ public class PartnerService(
 				return new Error<string>("Partner not found");
 			}
 
-			// Delete pending ad image
+			// Extract blob paths before clearing the URLs (so we can delete after successful DB commit)
+			string? pendingAdImageBlobPath = null;
+			string? pendingLogoBlobPath = null;
+
 			if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 			{
 				if (Uri.TryCreate(partner.PendingAdImageUrl, UriKind.Absolute, out var adUri))
 				{
-					var adImageBlobPath = ExtractBlobPathFromUri(adUri, PartnerAdsContainer);
-					if (!string.IsNullOrEmpty(adImageBlobPath))
-					{
-						await imageService.DeleteImageAsync(adImageBlobPath, PartnerAdsContainer, cancellationToken);
-					}
+					pendingAdImageBlobPath = ExtractBlobPathFromUri(adUri, PartnerAdsContainer);
 				}
 				else
 				{
 					logger.LogWarning("Invalid pending ad image URL format: {PendingAdImageUrl}", partner.PendingAdImageUrl);
 				}
-
-				partner.PendingAdImageUrl = null;
 			}
 
-			// Delete pending logo
 			if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 			{
 				if (Uri.TryCreate(partner.PendingLogoUrl, UriKind.Absolute, out var logoUri))
 				{
-					var logoBlobPath = ExtractBlobPathFromUri(logoUri, PartnerAdsContainer);
-					if (!string.IsNullOrEmpty(logoBlobPath))
-					{
-						await imageService.DeleteImageAsync(logoBlobPath, PartnerAdsContainer, cancellationToken);
-					}
+					pendingLogoBlobPath = ExtractBlobPathFromUri(logoUri, PartnerAdsContainer);
 				}
 				else
 				{
 					logger.LogWarning("Invalid pending logo URL format: {PendingLogoUrl}", partner.PendingLogoUrl);
 				}
-
-				partner.PendingLogoUrl = null;
 			}
 
-			// Clear pending text fields
+			// Clear pending fields in DB first
+			partner.PendingAdImageUrl = null;
+			partner.PendingLogoUrl = null;
 			partner.PendingName = null;
 			partner.PendingDescription = null;
 			partner.PendingLink = null;
 			partner.HasPendingApproval = false;
 
 			await context.SaveChangesAsync(cancellationToken);
+
+			// Only delete blobs after successful DB commit
+			if (!string.IsNullOrEmpty(pendingAdImageBlobPath))
+			{
+				try
+				{
+					await imageService.DeleteImageAsync(pendingAdImageBlobPath, PartnerAdsContainer, cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to delete pending ad image blob {BlobPath} for partner {PartnerId}", pendingAdImageBlobPath, partnerId);
+				}
+			}
+
+			if (!string.IsNullOrEmpty(pendingLogoBlobPath))
+			{
+				try
+				{
+					await imageService.DeleteImageAsync(pendingLogoBlobPath, PartnerAdsContainer, cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to delete pending logo blob {BlobPath} for partner {PartnerId}", pendingLogoBlobPath, partnerId);
+				}
+			}
 
 			return new Success();
 		}
