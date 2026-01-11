@@ -146,7 +146,8 @@ public sealed class PartnerUserService(
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			// Assign Partner role
+			await transaction.CommitAsync(cancellationToken);
+
 			var roleResult = await userRoleService.AddRoleToUserAsync(user.Id, AppRoles.Partner);
 			if (roleResult.IsT1) // NotFound
 			{
@@ -163,8 +164,6 @@ public sealed class PartnerUserService(
 			{
 				throw new InvalidOperationException("Unexpected result when assigning Partner role");
 			}
-
-			await transaction.CommitAsync(cancellationToken);
 
 			// Send welcome email after successful commit (outside transaction)
 			await emailService.SendPartnerWelcomeEmailAsync(
@@ -188,11 +187,40 @@ public sealed class PartnerUserService(
 		}
 		catch (Exception ex)
 		{
-			// Transaction will automatically rollback on dispose, but explicit rollback for clarity
-			// Use CancellationToken.None to ensure rollback completes even if original token was cancelled
-			await transaction.RollbackAsync(CancellationToken.None);
-
 			logger.LogError(ex, "Failed to complete partner account creation for {Email}. Rolling back.", new MaskedEmail(request.Email));
+
+			// Check if transaction was already committed (role assignment failed after commit)
+			// If not committed, rollback; if committed, we need to clean up the committed data
+			try
+			{
+				await transaction.RollbackAsync(CancellationToken.None);
+			}
+			catch (InvalidOperationException)
+			{
+				// Transaction was already committed - need to manually clean up Partner and UserProfile
+				try
+				{
+					await using var cleanupContext = await contextFactory.CreateDbContextAsync(CancellationToken.None);
+					var partnerToDelete = await cleanupContext.Partners.FirstOrDefaultAsync(p => p.UserId == user.Id, CancellationToken.None);
+					if (partnerToDelete is not null)
+					{
+						cleanupContext.Partners.Remove(partnerToDelete);
+					}
+
+					var profileToDelete = await cleanupContext.UserProfiles.FirstOrDefaultAsync(p => p.Id == user.Id, CancellationToken.None);
+					if (profileToDelete is not null)
+					{
+						cleanupContext.UserProfiles.Remove(profileToDelete);
+					}
+
+					await cleanupContext.SaveChangesAsync(CancellationToken.None);
+				}
+				catch (Exception cleanupEx)
+				{
+					var maskedEmail = new MaskedEmail(request.Email);
+					logger.LogError(cleanupEx, "Failed to clean up Partner/UserProfile records for {Email}", maskedEmail);
+				}
+			}
 
 			// Rollback: Remove the Partner role if it was assigned
 			try
@@ -204,7 +232,7 @@ public sealed class PartnerUserService(
 				logger.LogError(roleCleanupEx, "Failed to remove Partner role during rollback for {Email}", new MaskedEmail(request.Email));
 			}
 
-			// Rollback: Delete the user account (UserProfile and Partner are rolled back by transaction)
+			// Rollback: Delete the user account
 			var deleteResult = await userManager.DeleteAsync(user);
 			if (!deleteResult.Succeeded)
 			{
