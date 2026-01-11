@@ -49,6 +49,8 @@
     public EventCallback OnPostUpdated { get; set; }
 
     private List<AdData> _ads = [];
+    private int _lastPostCount;
+    private int _lastPageNumber;
 
     private record SearchResultItem
     {
@@ -59,21 +61,27 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await RefreshAdsAsync();
+        // Only refresh ads when relevant parameters change
+        var currentPostCount = SearchResult?.Posts?.Count ?? 0;
+        var currentPageNumber = Filter?.PageNumber ?? 0;
+
+        if (_lastPostCount != currentPostCount || _lastPageNumber != currentPageNumber)
+        {
+            _lastPostCount = currentPostCount;
+            _lastPageNumber = currentPageNumber;
+            await RefreshAdsAsync();
+        }
     }
 
     private async Task RefreshAdsAsync()
     {
-        try
-        {
-            var adCount = SearchResult?.Posts?.Count > 0 ? 1 : 0;
-            _ads = await AdProvider.GetAdsAsync(adCount);
-        }
-        catch (Exception)
-        {
-            // Silently fail - ads are non-critical
-            _ads = [];
-        }
+        var adCount = SearchResult?.Posts?.Count > 0 ? 1 : 0;
+        var result = await AdProvider.GetAdsAsync(adCount);
+
+        _ads = result.Match(
+            ads => ads,
+            error => new List<AdData>() // Silently use empty list on error - ads are non-critical
+        );
     }
 
     private List<SearchResultItem> GetItemsWithAds()

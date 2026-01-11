@@ -45,6 +45,8 @@
 
     private IDisposable? _locationChangingHandler;
     private List<AdData> _ads = [];
+    private int _lastGroupCount;
+    private int _lastPageNumber;
 
     private record SearchResultItem
     {
@@ -55,21 +57,27 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await RefreshAdsAsync();
+        // Only refresh ads when relevant parameters change
+        var currentGroupCount = SearchResult?.Groups?.Count ?? 0;
+        var currentPageNumber = Filter?.PageNumber ?? 0;
+
+        if (_lastGroupCount != currentGroupCount || _lastPageNumber != currentPageNumber)
+        {
+            _lastGroupCount = currentGroupCount;
+            _lastPageNumber = currentPageNumber;
+            await RefreshAdsAsync();
+        }
     }
 
     private async Task RefreshAdsAsync()
     {
-        try
-        {
-            var adCount = SearchResult?.Groups?.Count > 0 ? 1 : 0;
-            _ads = await AdProvider.GetAdsAsync(adCount);
-        }
-        catch (Exception)
-        {
-            // Silently fail - ads are non-critical
-            _ads = [];
-        }
+        var adCount = SearchResult?.Groups?.Count > 0 ? 1 : 0;
+        var result = await AdProvider.GetAdsAsync(adCount);
+
+        _ads = result.Match(
+            ads => ads,
+            error => new List<AdData>() // Silently use empty list on error - ads are non-critical
+        );
     }
 
     private List<SearchResultItem> GetItemsWithAds()
