@@ -1,22 +1,24 @@
 using Jordnaer.Database;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
+using OneOf.Types;
 
 namespace Jordnaer.Features.Ad;
 
 public interface IAdProvider
 {
-	Task<List<AdData>> GetAdsAsync(int count, CancellationToken cancellationToken = default);
+	Task<OneOf<List<AdData>, Error<string>>> GetAdsAsync(int count, CancellationToken cancellationToken = default);
 }
 
 public class AdProvider(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	ILogger<AdProvider> logger) : IAdProvider
 {
-	public async Task<List<AdData>> GetAdsAsync(int count, CancellationToken cancellationToken = default)
+	public async Task<OneOf<List<AdData>, Error<string>>> GetAdsAsync(int count, CancellationToken cancellationToken = default)
 	{
 		if (count <= 0)
 		{
-			return [];
+			return new List<AdData>();
 		}
 
 		var allAds = new List<AdData>();
@@ -43,19 +45,20 @@ public class AdProvider(
 		catch (Exception ex)
 		{
 			logger.LogError(ex, "Failed to fetch partner ads from database");
+			return new Error<string>("Failed to fetch ads from database");
 		}
 
 		// Add hardcoded ads as fallback/supplement
 		var hardcodedAds = HardcodedAds.GetAdsForSearch(count);
 		allAds.AddRange(hardcodedAds);
 
-		if (allAds.Count == 0)
+		if (allAds.Count is 0)
 		{
-			return [];
+			return new List<AdData>();
 		}
 
 		// Shuffle to mix partner and hardcoded ads
-		var shuffled = allAds.OrderBy(_ => Random.Shared.Next()).ToList();
+		var shuffled = allAds.Shuffle().ToList();
 
 		// Return requested count, cycling if needed
 		var result = new List<AdData>();
