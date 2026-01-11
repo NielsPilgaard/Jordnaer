@@ -15,7 +15,8 @@
 		<PackageReference Include="HtmlSanitizer" Version="9.0.889" />
 		<PackageReference Include="Humanizer.Core.da" Version="3.0.1" />
 		<PackageReference Include="Markdig" Version="0.44.0" />
-		<PackageReference Include="MassTransit" Version="[8.5.7]" />
+		<!-- Pinned to v8.x: MassTransit v9+ requires a commercial license -->
+		<PackageReference Include="MassTransit" Version="8.*" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="10.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="10.0.1" />
