@@ -15,7 +15,8 @@
         <PackageReference Include="NetEscapades.EnumGenerators" Version="1.0.0-beta12" />
         <PackageReference Include="NetTopologySuite" Version="2.6.0" />
         <PackageReference Include="Refit.HttpClientFactory" Version="9.0.2" />
-        <PackageReference Include="MassTransit.Abstractions" Version="[8.5.7]" />
+		<!-- Pinned to v8.x: MassTransit v9+ requires a commercial license -->
+        <PackageReference Include="MassTransit.Abstractions" Version="8.*" />
     </ItemGroup>
 
     <ItemGroup>
