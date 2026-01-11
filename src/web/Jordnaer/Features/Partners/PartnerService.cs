@@ -81,7 +81,7 @@ public class PartnerService(
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var partners = await context.Partners
 				.AsNoTracking()
-				.OrderBy(s => s.Name)
+				.OrderBy(s => s.Name ?? string.Empty)
 				.ToListAsync(cancellationToken);
 			return partners;
 		}
@@ -391,6 +391,20 @@ public class PartnerService(
 				return new Error<string>("Unauthorized");
 			}
 
+			// Validate link URL first (before any uploads to avoid orphaned blobs)
+			string? validatedLink = null;
+			if (!string.IsNullOrWhiteSpace(link))
+			{
+				var trimmedLink = link.Trim();
+				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
+					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+				{
+					return new Error<string>("Ugyldig link URL");
+				}
+
+				validatedLink = trimmedLink;
+			}
+
 			var hasChanges = false;
 			MemoryStream? bufferedAdImageStream = null;
 			MemoryStream? bufferedLogoStream = null;
@@ -484,16 +498,9 @@ public class PartnerService(
 				hasChanges = true;
 			}
 
-			if (!string.IsNullOrWhiteSpace(link))
+			if (validatedLink is not null)
 			{
-				var trimmedLink = link.Trim();
-				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
-					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-				{
-					return new Error<string>("Ugyldig link URL");
-				}
-
-				partner.PendingLink = trimmedLink;
+				partner.PendingLink = validatedLink;
 				hasChanges = true;
 			}
 
