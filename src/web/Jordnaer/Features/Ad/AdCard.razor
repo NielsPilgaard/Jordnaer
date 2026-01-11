@@ -1,4 +1,7 @@
-<MudLink Href="@Link" Target="_blank" Underline="Underline.None"
+@inject IPartnerService PartnerService
+@inject ILogger<AdCard> Logger
+
+<MudLink Href="@Link" Target="_blank" Underline="Underline.None" OnClick="HandleClickAsync"
     UserAttributes="@(new Dictionary<string, object> { { "rel", "noopener" } })">
     <div class="image-ad-wrapper">
         <div class="image-with-label">
@@ -19,11 +22,51 @@
     [Parameter, EditorRequired]
     public required string ImageAlt { get; set; }
 
-    protected override void OnAfterRender(bool firstRender)
+    [Parameter]
+    public Guid PartnerId { get; set; } = Guid.Empty;
+
+    [Parameter]
+    public bool IsPreview { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && !IsPreview)
         {
             JordnaerMetrics.AdViewCounter.Add(1, new KeyValuePair<string, object?>("link", Link));
+
+            if (PartnerId != Guid.Empty)
+            {
+                try
+                {
+                    await PartnerService.RecordImpressionAsync(PartnerId);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to record impression for partner {PartnerId}", PartnerId);
+                }
+            }
+        }
+    }
+
+    private Task HandleClickAsync()
+    {
+        if (!IsPreview && PartnerId != Guid.Empty)
+        {
+            // Fire-and-forget: Don't await since browser navigation cannot be blocked
+            _ = RecordClickInBackgroundAsync();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task RecordClickInBackgroundAsync()
+    {
+        try
+        {
+            await PartnerService.RecordClickAsync(PartnerId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to record click for partner {PartnerId}", PartnerId);
         }
     }
 }

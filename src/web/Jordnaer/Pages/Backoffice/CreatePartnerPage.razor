@@ -1,0 +1,250 @@
+@page "/backoffice/partners/create"
+
+@inject IPartnerUserService PartnerService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ILogger<CreatePartnerPage> Logger
+
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
+
+<MetadataComponent Title="Backoffice - Opret Partner"
+    Description="Opret en ny partnerkonto med partner adgang." />
+
+<MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                   Color="Color.Primary"
+                   OnClick="NavigateToPartnerList" />
+    <MudText Typo="Typo.h4">Opret Ny Partner</MudText>
+</MudStack>
+
+<MudDivider Class="mb-5" />
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Class="pa-6" Elevation="2">
+        <EditForm Model="@_model" OnValidSubmit="CreatePartnerAsync">
+            <DataAnnotationsValidator />
+
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.h6" Class="mb-2">Partner Information</MudText>
+
+                <MudTextField @bind-Value="_model.Name"
+                              Label="Partner Navn"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Partner navn er påkrævet"
+                              HelperText="Navnet på virksomheden eller partneren"
+                              MaxLength="200" />
+
+                <MudTextField @bind-Value="_model.Email"
+                              Label="Email Adresse"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Email er påkrævet"
+                              Validation="@(new EmailAddressAttribute())"
+                              HelperText="Dette bliver brugernavnet til login"
+                              InputType="InputType.Email" />
+
+                <MudTextField @bind-Value="_model.Description"
+                              Label="Beskrivelse"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Beskrivelse er påkrævet"
+                              Lines="4"
+                              HelperText="Kort beskrivelse af partneren (vises ikke offentligt)" />
+
+                <MudTextField @bind-Value="_model.Link"
+                              Label="Website URL"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Website URL er påkrævet"
+                              HelperText="Partnernes hjemmeside (fx https://example.com)"
+                              InputType="InputType.Url" />
+
+                <MudTextField @bind-Value="_model.LogoUrl"
+                              Label="Logo URL (valgfrit)"
+                              Variant="Variant.Outlined"
+                              HelperText="Link til partner logo billede"
+                              InputType="InputType.Url" />
+
+                <MudDivider Class="my-4" />
+
+                <MudText Typo="Typo.h6" Class="mb-2">Partner Tilladelser</MudText>
+
+                <MudSwitch @bind-Value="_model.CanHavePartnerCard"
+                           Label="Tillad Partner Kort"
+                           Color="Color.Primary"
+                           Class="mb-2" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 ml-10">
+                    Hvis aktiveret, kan partneren vises på /partners siden med logo og beskrivelse
+                </MudText>
+
+                <MudSwitch @bind-Value="_model.CanHaveAd"
+                           Label="Tillad Annoncer"
+                           Color="Color.Primary"
+                           Class="mb-2" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 ml-10">
+                    Hvis aktiveret, kan partneren uploade annonce billeder der vises i søgeresultater
+                </MudText>
+
+                <MudDivider Class="my-4" />
+
+                <MudAlert Severity="Severity.Info" Class="mb-4">
+                    <MudText Typo="Typo.body2">
+                        <strong>Bemærk:</strong> Når du opretter partneren, vil systemet:
+                    </MudText>
+                    <ul style="margin-top: 8px; margin-bottom: 0;">
+                        <li>Oprette en brugerkonto med et autogenereret midlertidigt kodeord</li>
+                        <li>Tildele Partner-rollen til kontoen</li>
+                        <li>Oprette en partner-profil tilknyttet kontoen</li>
+                        <li>Sende en velkomst-email med login oplysninger</li>
+                    </ul>
+                </MudAlert>
+
+                <MudStack Row Spacing="3" Justify="Justify.SpaceBetween">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               OnClick="NavigateToPartnerList"
+                               Disabled="_isCreating">
+                        Annuller
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               ButtonType="ButtonType.Submit"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               Disabled="_isCreating">
+                        @if (_isCreating)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate Class="mr-2" />
+                            <text>Opretter...</text>
+                        }
+                        else
+                        {
+                            <text>Opret Partner</text>
+                        }
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+
+    @if (_createdPartner is not null)
+    {
+        <MudPaper Class="pa-6 mt-6" Elevation="2">
+            <MudAlert Severity="Severity.Success" Class="mb-4">
+                <MudText Typo="Typo.h6">Partner Oprettet!</MudText>
+            </MudAlert>
+
+            <MudStack Spacing="3">
+                <MudText Typo="Typo.body1">
+                    Partneren <strong>@_createdPartner.Email</strong> er blevet oprettet succesfuldt.
+                </MudText>
+
+                <MudAlert Severity="Severity.Info" Class="mt-2">
+                    <MudText Typo="Typo.body2">
+                        <strong>Email sendt:</strong> Partneren har modtaget en velkomst-email med login oplysninger og midlertidigt kodeord.
+                    </MudText>
+                </MudAlert>
+
+                <MudDivider Class="my-2" />
+
+                <MudStack Row Spacing="2">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Visibility"
+                               OnClick="ViewPartnerDetails">
+                        Se Partner Detaljer
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="ResetForm">
+                        Opret Endnu En Partner
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private CreatePartnerModel _model = new();
+    private bool _isCreating = false;
+    private CreatePartnerResult? _createdPartner = null;
+
+    private class CreatePartnerModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Link { get; set; } = string.Empty;
+        public string? LogoUrl { get; set; }
+        public bool CanHavePartnerCard { get; set; } = true;
+        public bool CanHaveAd { get; set; } = true;
+    }
+
+    private async Task CreatePartnerAsync()
+    {
+        _isCreating = true;
+        _createdPartner = null;
+
+        try
+        {
+            var request = new CreatePartnerRequest
+            {
+                Name = _model.Name,
+                Email = _model.Email,
+                Description = _model.Description,
+                LogoUrl = string.IsNullOrWhiteSpace(_model.LogoUrl) ? null : _model.LogoUrl,
+                Link = _model.Link,
+                CanHavePartnerCard = _model.CanHavePartnerCard,
+                CanHaveAd = _model.CanHaveAd
+            };
+
+            var result = await PartnerService.CreatePartnerAccountAsync(request);
+
+            result.Switch(
+                success =>
+                {
+                    _createdPartner = success;
+                    Snackbar.Add($"Partner '{_model.Name}' oprettet succesfuldt!", Severity.Success);
+                    Logger.LogInformation("Created partner account for {Email}", new MaskedEmail(_model.Email));
+                },
+                error =>
+                {
+                    Snackbar.Add(error.Value, Severity.Error);
+                    Logger.LogWarning("Failed to create partner account: {Error}", error.Value);
+                }
+            );
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception while creating partner account for {Email}", new MaskedEmail(_model.Email));
+            Snackbar.Add("Der opstod en uventet fejl. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isCreating = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        _model = new();
+        _createdPartner = null;
+    }
+
+    private void NavigateToPartnerList()
+    {
+        NavigationManager.NavigateTo("/backoffice/partners");
+    }
+
+    private void ViewPartnerDetails()
+    {
+        if (_createdPartner is not null)
+        {
+            NavigationManager.NavigateTo($"/backoffice/partners/{_createdPartner.PartnerId}");
+        }
+    }
+}

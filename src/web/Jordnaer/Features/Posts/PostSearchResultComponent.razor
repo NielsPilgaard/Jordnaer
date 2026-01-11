@@ -1,7 +1,7 @@
 @using Jordnaer.Features.Ad
 @inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
-
+@inject IAdProvider AdProvider
 
 <MudGrid Justify="Justify.Center" Class=mt-5>
     @{
@@ -12,7 +12,8 @@
         <MudItem xs="12">
             @if (item.IsAd && item.Ad is not null)
             {
-                <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
+                <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title"
+                        PartnerId="@(item.Ad.PartnerId ?? Guid.Empty)" />
             }
             else if (item.Post is not null)
             {
@@ -47,6 +48,10 @@
     [Parameter, EditorRequired]
     public EventCallback OnPostUpdated { get; set; }
 
+    private List<AdData> _ads = [];
+    private int _lastPostCount;
+    private int _lastPageNumber;
+
     private record SearchResultItem
     {
         public bool IsAd { get; init; }
@@ -54,15 +59,36 @@
         public AdData? Ad { get; init; }
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // Only refresh ads when relevant parameters change
+        var currentPostCount = SearchResult?.Posts?.Count ?? 0;
+        var currentPageNumber = Filter?.PageNumber ?? 0;
+
+        if (_lastPostCount != currentPostCount || _lastPageNumber != currentPageNumber)
+        {
+            _lastPostCount = currentPostCount;
+            _lastPageNumber = currentPageNumber;
+            await RefreshAdsAsync();
+        }
+    }
+
+    private async Task RefreshAdsAsync()
+    {
+        var adCount = SearchResult?.Posts?.Count > 0 ? 1 : 0;
+        var result = await AdProvider.GetAdsAsync(adCount);
+
+        _ads = result.Match(
+            ads => ads,
+            error => new List<AdData>() // Silently use empty list on error - ads are non-critical
+        );
+    }
+
     private List<SearchResultItem> GetItemsWithAds()
     {
         var items = new List<SearchResultItem>();
 
-        // Always max 1 ad per page, regardless of result count
-        var adCount = SearchResult.Posts.Count > 0 ? 1 : 0;
-        var ads = HardcodedAds.GetAdsForSearch(adCount);
-
-        if (ads.Count == 0 || SearchResult.Posts.Count == 0)
+        if (_ads.Count == 0 || SearchResult.Posts.Count == 0)
         {
             // No ads or no posts, just return posts (up to 12)
             items.AddRange(SearchResult.Posts.Take(12).Select(p => new SearchResultItem { Post = p }));
@@ -78,7 +104,7 @@
         {
             if (i == adPosition)
             {
-                items.Add(new SearchResultItem { IsAd = true, Ad = ads[0] });
+                items.Add(new SearchResultItem { IsAd = true, Ad = _ads[0] });
             }
             else if (postIndex < SearchResult.Posts.Count)
             {

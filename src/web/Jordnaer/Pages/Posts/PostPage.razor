@@ -3,6 +3,7 @@
 @using Jordnaer.Features.Posts
 @using Jordnaer.Features.Ad
 @inject PostSearchService PostSearchService
+@inject IAdProvider AdProvider
 @inject CurrentUser CurrentUser
 @inject ISnackbar Snackbar
 @inject ILogger<PostPage> Logger
@@ -35,7 +36,8 @@
             {
                 @if (item.IsAd && item.Ad is not null)
                 {
-                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title" />
+                    <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title"
+                            PartnerId="@(item.Ad.PartnerId ?? Guid.Empty)" />
                 }
                 else if (item.Post is not null)
                 {
@@ -86,6 +88,7 @@
 
 @code {
     private PostSearchResult _recentPosts = new();
+    private List<AdData> _ads = [];
 
     private bool _isLoading = false;
     private bool _isLoadingMore = false;
@@ -102,7 +105,17 @@
     {
         _currentUserId = CurrentUser?.Id;
 
-        // Load recent posts by default
+        // Load ads (non-critical, don't let failures block the page)
+        var adsResult = await AdProvider.GetAdsAsync(1);
+        _ads = adsResult.Match(
+            ads => ads,
+            error =>
+            {
+                Logger.LogWarning("Failed to load ads for posts page: {Error}", error.Value);
+                return new List<AdData>();
+            }
+        );
+
         await LoadRecentPosts();
     }
 
@@ -189,8 +202,7 @@
             return items;
         }
 
-        var ads = HardcodedAds.GetAdsForSearch(1);
-        if (ads.Count == 0)
+        if (_ads.Count == 0)
         {
             // No ads available, just return posts
             items.AddRange(_recentPosts.Posts.Select(p => new FeedItem { Post = p }));
@@ -207,7 +219,7 @@
             // Check if we should insert an ad before this post
             if (i > 0 && i % adInterval == adPositionInBatch)
             {
-                items.Add(new FeedItem { IsAd = true, Ad = ads[0] });
+                items.Add(new FeedItem { IsAd = true, Ad = _ads[0] });
             }
 
             items.Add(new FeedItem { Post = _recentPosts.Posts[i] });

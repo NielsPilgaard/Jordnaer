@@ -894,3 +894,190 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
+)
+BEGIN
+    CREATE TABLE [Partners] (
+        [Id] uniqueidentifier NOT NULL,
+        [Name] nvarchar(128) NOT NULL,
+        [Description] nvarchar(500) NOT NULL,
+        [LogoUrl] nvarchar(max) NULL,
+        [Link] nvarchar(max) NOT NULL,
+        [AdImageUrl] nvarchar(max) NULL,
+        [PendingAdImageUrl] nvarchar(max) NULL,
+        [PendingName] nvarchar(128) NULL,
+        [PendingDescription] nvarchar(500) NULL,
+        [PendingLogoUrl] nvarchar(max) NULL,
+        [PendingLink] nvarchar(max) NULL,
+        [LastUpdateUtc] datetime2 NULL,
+        [HasPendingApproval] bit NOT NULL,
+        [UserId] nvarchar(450) NOT NULL,
+        [CreatedUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+        CONSTRAINT [PK_Partners] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_Partners_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
+)
+BEGIN
+    CREATE TABLE [PartnerAnalytics] (
+        [Id] int NOT NULL IDENTITY,
+        [PartnerId] uniqueidentifier NOT NULL,
+        [Date] datetime2 NOT NULL,
+        [Impressions] int NOT NULL,
+        [Clicks] int NOT NULL,
+        CONSTRAINT [PK_PartnerAnalytics] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_PartnerAnalytics_Partners_PartnerId] FOREIGN KEY ([PartnerId]) REFERENCES [Partners] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_PartnerAnalytics_PartnerId_Date] ON [PartnerAnalytics] ([PartnerId], [Date]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Partners_Name] ON [Partners] ([Name]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Partners_UserId] ON [Partners] ([UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260107220351_Add_Partners_And_Analytics'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260107220351_Add_Partners_And_Analytics', N'10.0.1');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    DROP INDEX [IX_Partners_Name] ON [Partners];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    DECLARE @var4 nvarchar(max);
+    SELECT @var4 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'Name');
+    IF @var4 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var4 + ';');
+    ALTER TABLE [Partners] ALTER COLUMN [Name] nvarchar(128) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    DECLARE @var5 nvarchar(max);
+    SELECT @var5 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'Link');
+    IF @var5 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var5 + ';');
+    ALTER TABLE [Partners] ALTER COLUMN [Link] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    DECLARE @var6 nvarchar(max);
+    SELECT @var6 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Partners]') AND [c].[name] = N'Description');
+    IF @var6 IS NOT NULL EXEC(N'ALTER TABLE [Partners] DROP CONSTRAINT ' + @var6 + ';');
+    ALTER TABLE [Partners] ALTER COLUMN [Description] nvarchar(500) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [CanHaveAd] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [CanHavePartnerCard] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_Partners_Name] ON [Partners] ([Name]) WHERE [Name] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109222001_AddPartnerPermissions'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260109222001_AddPartnerPermissions', N'10.0.1');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109224836_Remove_Partner_Name_Index'
+)
+BEGIN
+    DROP INDEX [IX_Partners_Name] ON [Partners];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260109224836_Remove_Partner_Name_Index'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260109224836_Remove_Partner_Name_Index', N'10.0.1');
+END;
+
+COMMIT;
+GO
+

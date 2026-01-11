@@ -1,3 +1,4 @@
+using EntityFramework.Exceptions.SqlServer;
 using Grafana.OpenTelemetry;
 using HealthChecks.OpenTelemetry.Instrumentation;
 using Jordnaer.Database;
@@ -152,7 +153,8 @@ public static class WebApplicationBuilderExtensions
 
 		builder.Services.AddDbContextFactory<JordnaerDbContext>(
 				   optionsBuilder => optionsBuilder
-					   .UseSqlServer(connectionString, sqlOptions => sqlOptions.UseNetTopologySuite()),
+					   .UseSqlServer(connectionString, sqlOptions => sqlOptions.UseNetTopologySuite())
+					   .UseExceptionProcessor(),
 				   ServiceLifetime.Scoped);
 
 		builder.Services.AddHealthChecks().AddSqlServer(connectionString);

@@ -1,15 +1,15 @@
-@if (!string.IsNullOrEmpty(Partner.Link))
+@inject IPartnerService PartnerService
+@inject ILogger<PartnerCard> Logger
+
+@* Only display partner card if the partner has card data (link + logo/description) *@
+@if (Partner.HasPartnerCard && !string.IsNullOrEmpty(Partner.Link))
 {
-    <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None">
+    <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None" OnClick="HandleClickAsync">
         <MudCard Elevation="5" Class="mt-5 card-hover" Style="max-width: 300px">
             <MudCardContent>
                 @if (!string.IsNullOrEmpty(Partner.LogoUrl))
                 {
-                    <MudImage Fluid Src="@Partner.LogoUrl" Alt="@($"{Partner.Name} logo")" />
-                }
-                @if (!string.IsNullOrEmpty(Partner.Name))
-                {
-                    <MudText Typo="Typo.h5">@Partner.Name</MudText>
+                    <MudImage Fluid Src="@Partner.LogoUrl" Alt="@($"{Partner.Name ?? "Partner"} logo")" />
                 }
                 @if (!string.IsNullOrEmpty(Partner.Description))
                 {
@@ -23,4 +23,47 @@
 {
     [Parameter]
     public required Partner Partner { get; set; }
+
+    [Parameter]
+    public bool IsPreview { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender && Partner.Id != Guid.Empty && !IsPreview)
+        {
+            try
+            {
+                await PartnerService.RecordImpressionAsync(Partner.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to record impression for partner {PartnerId}", Partner.Id);
+            }
+        }
+    }
+
+    private Task HandleClickAsync()
+    {
+        if (Partner.Id != Guid.Empty && !IsPreview)
+        {
+            // Fire-and-forget: Don't await since browser navigation cannot be blocked
+            // The click is recorded asynchronously while the user navigates to the partner link
+            _ = RecordClickInBackgroundAsync();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task RecordClickInBackgroundAsync()
+    {
+        try
+        {
+            await PartnerService.RecordClickAsync(Partner.Id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to record click for partner {PartnerId}", Partner.Id);
+        }
+    }
 }

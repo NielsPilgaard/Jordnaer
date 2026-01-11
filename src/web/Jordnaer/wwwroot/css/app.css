@@ -517,3 +517,26 @@ body, p {
 .profile-menu-item:last-child {
     border-radius: 0 0 8px 8px;
 }
+
+/* ========================================
+   DROPDOWN BACKDROP
+   Click-to-close overlay for dropdowns
+   ======================================== */
+
+.backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 999;
+    cursor: default;
+}
+
+/* Show backdrop when any dropdown is open */
+.profile-menu-toggle:checked ~ .backdrop,
+.mobile-menu-toggle:checked ~ .backdrop {
+    display: block;
+}

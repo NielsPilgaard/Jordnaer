@@ -5,6 +5,7 @@ using Jordnaer.Components;
 using Jordnaer.Components.Account;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
+using Jordnaer.Features.Ad;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Category;
 using Jordnaer.Features.Chat;
@@ -16,6 +17,7 @@ using Jordnaer.Features.Images;
 using Jordnaer.Features.Membership;
 using Jordnaer.Features.GroupPosts;
 using Jordnaer.Features.Notifications;
+using Jordnaer.Features.Partners;
 using Jordnaer.Features.Posts;
 using Jordnaer.Features.PostSearch;
 using Jordnaer.Features.Sharing;
@@ -99,6 +101,8 @@ builder.AddPostFeature();
 builder.AddGroupPostFeature();
 builder.AddPostSearchFeature();
 builder.AddSharingFeature();
+builder.AddPartnerServices();
+builder.AddAdServices();
 
 builder.AddMudBlazor();
 

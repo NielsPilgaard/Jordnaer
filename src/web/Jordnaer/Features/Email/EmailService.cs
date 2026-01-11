@@ -1,3 +1,4 @@
+using System.Net;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Shared;
@@ -12,6 +13,8 @@ public interface IEmailService
 	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
 	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
 	Task SendGroupInviteEmail(string groupName, string userId, CancellationToken cancellationToken = default);
+	Task SendPartnerImageApprovalEmailAsync(Guid partnerId, string partnerName, CancellationToken cancellationToken = default);
+	Task SendPartnerWelcomeEmailAsync(string email, string partnerName, string temporaryPassword, CancellationToken cancellationToken = default);
 }
 
 public sealed class EmailService(IPublishEndpoint publishEndpoint,
@@ -134,5 +137,129 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);
+	}
+
+	public async Task SendPartnerImageApprovalEmailAsync(
+		Guid partnerId,
+		string partnerName,
+		CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var partner = await context.Partners
+			.AsNoTracking()
+			.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
+
+		if (partner is null)
+		{
+			logger.LogError("Partner {PartnerId} not found when trying to send approval email", partnerId);
+			return;
+		}
+
+		logger.LogInformation("Sending partner image approval email for partner {PartnerName} ({PartnerId})", partnerName, partnerId);
+
+		var approvalUrl = $"{options.Value.BaseUrl}/backoffice/partners/{partnerId}";
+
+		var changesList = new List<string>();
+
+		if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
+		{
+			var encodedUrl = WebUtility.HtmlEncode(partner.PendingAdImageUrl);
+			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt annonce billede</a></li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
+		{
+			var encodedUrl = WebUtility.HtmlEncode(partner.PendingLogoUrl);
+			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt logo</a></li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingName))
+		{
+			var encodedName = WebUtility.HtmlEncode(partner.PendingName);
+			changesList.Add($"<li>Nyt navn: {encodedName}</li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingDescription))
+		{
+			var encodedDescription = WebUtility.HtmlEncode(partner.PendingDescription);
+			changesList.Add($"<li>Ny beskrivelse: {encodedDescription}</li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingLink))
+		{
+			var encodedLink = WebUtility.HtmlEncode(partner.PendingLink);
+			changesList.Add($"<li>Nyt link: {encodedLink}</li>");
+		}
+
+		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
+
+		var email = new SendEmail
+		{
+			Subject = $"Ny partner godkendelse: {partnerName}",
+			HtmlContent = $"""
+						  <h4>Partner <b>{encodedPartnerName}</b> har uploadet nye ændringer til godkendelse</h4>
+
+						  <p>Ændringer:</p>
+						  <ul>
+						  {string.Join("\n", changesList)}
+						  </ul>
+
+						  <p><a href="{approvalUrl}">Klik her for at godkende eller afvise ændringerne</a></p>
+
+						  {EmailConstants.Signature}
+						  """,
+			To = [new EmailRecipient { Email = "kontakt@mini-moeder.dk", DisplayName = "Mini Møder Admin" }]
+		};
+
+		await publishEndpoint.Publish(email, cancellationToken);
+	}
+
+	public async Task SendPartnerWelcomeEmailAsync(
+		string email,
+		string partnerName,
+		string temporaryPassword,
+		CancellationToken cancellationToken = default)
+	{
+		logger.LogInformation("Sending partner welcome email to {Email} for partner {PartnerName}", new MaskedEmail(email), partnerName);
+
+		var loginUrl = $"{options.Value.BaseUrl}/Account/Login";
+		var dashboardUrl = $"{options.Value.BaseUrl}/partner/dashboard";
+
+		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
+		var encodedEmail = WebUtility.HtmlEncode(email);
+		var encodedTemporaryPassword = WebUtility.HtmlEncode(temporaryPassword);
+
+		var welcomeEmail = new SendEmail
+		{
+			Subject = "Velkommen som partner på Mini Møder",
+			HtmlContent = $"""
+						  <h4>Velkommen som partner på Mini Møder, {encodedPartnerName}!</h4>
+
+						  <p>Din partnerkonto er blevet oprettet. Du kan nu logge ind og administrere dine partner-annoncer.</p>
+
+						  <h5>Login oplysninger:</h5>
+						  <ul>
+						      <li><strong>Email:</strong> {encodedEmail}</li>
+						      <li><strong>Midlertidigt kodeord:</strong> <code>{encodedTemporaryPassword}</code></li>
+						  </ul>
+
+						  <p><strong>VIGTIGT:</strong> Af sikkerhedsmæssige årsager bedes du ændre dit kodeord efter første login.</p>
+
+						  <h5>Sådan kommer du i gang:</h5>
+						  <ol>
+						      <li><a href="{loginUrl}">Log ind med dine oplysninger</a></li>
+						      <li>Skift dit kodeord under <em>Profil i øverste højre hjørne → Kontoindstillinger → Adgangskode</em></li>
+						      <li>Gå til <a href="{dashboardUrl}">dit partner dashboard</a> for at uploade annoncer og se statistik</li>
+						  </ol>
+
+						  <p>Hvis du har spørgsmål eller brug for hjælp, er du velkommen til at kontakte os.</p>
+
+						  {EmailConstants.Signature}
+						  """,
+			To = [new EmailRecipient { Email = email, DisplayName = encodedPartnerName }]
+		};
+
+		await publishEndpoint.Publish(welcomeEmail, cancellationToken);
 	}
 }
