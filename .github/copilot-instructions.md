@@ -5,12 +5,17 @@ Our project is called Jordnaer but has been rebranded to Mini Møder. This docum
 # Upon completion of an instruction, please:
 
 1. Run the tests to ensure nothing is broken
-2. Authenticate with CodeRabbit (scripts/auth-coderabbit.bat) and generate a code review for the committed changes
-3. Start CodeRabbit with the following command to generate a code review based on the latest committed changes:
+2. Run CodeRabbit to generate a code review based on the latest committed changes:
 
-`wsl -d Ubuntu bash -c "cd $(pwd) && ~/.local/bin/coderabbit --prompt-only --type committed" > reviews/review-committed-$(date +%Y%m%d-%H%M%S).txt 2>&1`
+**Windows (recommended):**
 
-4. When CodeRabbit review is generated, please review and apply any relevant suggestions to improve code quality.
+```batch
+scripts\coderabbit.bat
+```
+
+The script handles authentication and runs the analysis. It requires manual intervention from the user. Check the `reviews/` folder for output.
+
+3. When CodeRabbit review is generated, please review and apply any relevant suggestions to improve code quality.
 
 ## Architecture
 
