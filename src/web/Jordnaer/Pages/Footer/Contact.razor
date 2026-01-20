@@ -11,52 +11,53 @@
     <MudContainer MaxWidth="MaxWidth.Small">
         <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.WarmWhite.ToBackgroundColor()">
 
-            <h1 class="font-cherry-bomb-one" style="@JordnaerPalette.BlueBody.ToTextColor()">Kontakt os</h1>
+		<h1 class="font-cherry-bomb-one" style="@JordnaerPalette.BlueBody.ToTextColor()">Kontakt os</h1>
 
-		    <MudDivider Class="mt-1 mb-5"/>
+		<MudDivider Class="mt-1 mb-5"/>
 
-		    <MudText Typo="Typo.body1">
-			    Har du spørgsmål, kommentarer eller forslag? Så skriv endelig!
-		    </MudText>
-		    <MudText Typo="Typo.body1" Class="my-3">
-			    Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
-		    </MudText>
+		<MudText Typo="Typo.body1">
+			Har du spørgsmål, kommentarer eller forslag? Så skriv endelig!
+		</MudText>
+		<MudText Typo="Typo.body1" Class="my-3">
+			Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
+		</MudText>
 
-		    <EditForm Model="_contactForm" OnValidSubmit="SubmitForm">
-			    <DataAnnotationsValidator/>
+		<EditForm Model="_contactForm" OnValidSubmit="SubmitForm">
+			<DataAnnotationsValidator/>
 
-			    <MudTextField AutoFocus
-			                  Label="Navn"
-			                  @bind-Value="_contactForm.Name"
-			                  For="() => _contactForm.Name"
-			                  FullWidth
-			                  Class="my-3"
-			                  name="name"/>
+			<MudTextField AutoFocus
+							Label="Navn"
+							@bind-Value="_contactForm.Name"
+							For="() => _contactForm.Name"
+							FullWidth
+							Class="my-3"
+							name="name"/>
 
-			    <MudTextField Label="Email"
-			                  @bind-Value="_contactForm.Email"
-			                  For="() => _contactForm.Email"
-			                  FullWidth
-			                  Class="my-3"
-			                  name="reg_email__"/>
+			<MudTextField Label="Email"
+							@bind-Value="_contactForm.Email"
+							For="() => _contactForm.Email"
+							FullWidth
+							Class="my-3"
+							name="reg_email__"/>
 
-			    <MudTextField Label="Besked"
-			                  @bind-Value="_contactForm.Message"
-			                  For="() => _contactForm.Message"
-			                  FullWidth
-			                  AutoGrow
-			                  Class="my-3"/>
+			<MudTextField Label="Besked"
+							@bind-Value="_contactForm.Message"
+							For="() => _contactForm.Message"
+							FullWidth
+							AutoGrow
+							Class="my-3"/>
 
-			    <MudButton FullWidth
-			               Variant="Variant.Filled"
-			               StartIcon="@Icons.Material.Filled.Send"
-			               Class="mt-3 rounded-pill"
-			               Style="@($"{JordnaerPalette.BlueBody.ToBackgroundColor()}; color: white; font-weight: bold;")"
-			               ButtonType="ButtonType.Submit">
-				    Send
-			    </MudButton>
-		    </EditForm>
-	    </MudPaper>
+			<MudButton FullWidth
+			           Variant="Variant.Filled"
+			           StartIcon="@Icons.Material.Filled.Send"
+			           Class="mt-3 rounded-pill"
+			           Style="@($"{JordnaerPalette.BlueBody.ToBackgroundColor()}; color: white; font-weight: bold;")"
+			           ButtonType="ButtonType.Submit"
+			           Disabled="_isSending">
+				Send
+			</MudButton>
+		</EditForm>
+	</MudPaper>
     </MudContainer>
 </MudLoading>
 
@@ -67,7 +68,11 @@
     private async Task SubmitForm()
     {
         _isSending = true;
-        await EmailService.SendEmailFromContactForm(_contactForm);
+        
+        StateHasChanged();
+
+		await EmailService.SendEmailFromContactForm(_contactForm);
+		await Task.Delay(1500);
 
         Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
             Severity.Success,

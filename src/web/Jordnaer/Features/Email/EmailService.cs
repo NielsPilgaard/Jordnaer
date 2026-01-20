@@ -11,6 +11,7 @@ namespace Jordnaer.Features.Email;
 public interface IEmailService
 {
 	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
+	Task SendEmailFromPartnerContactForm(PartnerContactForm partnerContactForm, CancellationToken cancellationToken = default);
 	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
 	Task SendGroupInviteEmail(string groupName, string userId, CancellationToken cancellationToken = default);
 	Task SendPartnerImageApprovalEmailAsync(Guid partnerId, string partnerName, CancellationToken cancellationToken = default);
@@ -37,6 +38,49 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 			Subject = subject,
 			ReplyTo = replyTo,
 			HtmlContent = contactForm.Message,
+			To = [EmailConstants.ContactEmail]
+		};
+
+		await publishEndpoint.Publish(email, cancellationToken);
+	}
+
+	public async Task SendEmailFromPartnerContactForm(
+		PartnerContactForm partnerContactForm,
+		CancellationToken cancellationToken = default)
+	{
+		var replyTo = new EmailRecipient { Email = partnerContactForm.Email, DisplayName = partnerContactForm.ContactPersonName };
+
+		var senderName = !string.IsNullOrWhiteSpace(partnerContactForm.CompanyName)
+			? partnerContactForm.CompanyName
+			: partnerContactForm.ContactPersonName;
+
+		var subject = $"Partner henvendelse fra {senderName}";
+
+		var companyInfo = !string.IsNullOrWhiteSpace(partnerContactForm.CompanyName)
+			? $"<p><strong>Firma:</strong> {WebUtility.HtmlEncode(partnerContactForm.CompanyName)}</p>"
+			: "";
+
+		var phoneInfo = !string.IsNullOrWhiteSpace(partnerContactForm.PhoneNumber)
+			? $"<p><strong>Telefon:</strong> {WebUtility.HtmlEncode(partnerContactForm.PhoneNumber)}</p>"
+			: "";
+
+		var htmlContent = $"""
+			<h4>Partner henvendelse</h4>
+
+			{companyInfo}
+			<p><strong>Kontaktperson:</strong> {WebUtility.HtmlEncode(partnerContactForm.ContactPersonName)}</p>
+			<p><strong>Email:</strong> {WebUtility.HtmlEncode(partnerContactForm.Email)}</p>
+			{phoneInfo}
+
+			<h5>Besked:</h5>
+			<p>{WebUtility.HtmlEncode(partnerContactForm.Message)}</p>
+			""";
+
+		var email = new SendEmail
+		{
+			Subject = subject,
+			ReplyTo = replyTo,
+			HtmlContent = htmlContent,
 			To = [EmailConstants.ContactEmail]
 		};
 
