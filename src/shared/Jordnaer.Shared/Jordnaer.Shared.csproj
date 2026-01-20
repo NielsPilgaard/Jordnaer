@@ -7,16 +7,16 @@
 
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.1.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.2.0" />
         <PackageReference Include="NetEscapades.EnumGenerators" Version="1.0.0-beta12" />
         <PackageReference Include="NetTopologySuite" Version="2.6.0" />
         <PackageReference Include="Refit.HttpClientFactory" Version="9.0.2" />
-		<!-- Pinned to v8.x: MassTransit v9+ requires a commercial license -->
-        <PackageReference Include="MassTransit.Abstractions" Version="8.*" />
+		<!-- Pinned to v8.5.7: MassTransit v9+ requires a commercial license -->
+        <PackageReference Include="MassTransit.Abstractions" Version="[8.5.7]" />
     </ItemGroup>
 
     <ItemGroup>
