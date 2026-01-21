@@ -54,7 +54,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 			? partnerContactForm.CompanyName
 			: partnerContactForm.ContactPersonName;
 
-		var subject = $"Partner henvendelse fra {senderName}";
+		var subject = $"Partner henvendelse fra {WebUtility.HtmlEncode(senderName)}";
 
 		var companyInfo = !string.IsNullOrWhiteSpace(partnerContactForm.CompanyName)
 			? $"<p><strong>Firma:</strong> {WebUtility.HtmlEncode(partnerContactForm.CompanyName)}</p>"
