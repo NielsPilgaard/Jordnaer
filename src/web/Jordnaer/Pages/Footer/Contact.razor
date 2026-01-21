@@ -68,18 +68,29 @@
     private async Task SubmitForm()
     {
         _isSending = true;
-        
+
         StateHasChanged();
 
-		await EmailService.SendEmailFromContactForm(_contactForm);
-		await Task.Delay(1500);
+        try
+        {
+            await EmailService.SendEmailFromContactForm(_contactForm);
+            await Task.Delay(1500);
 
-        Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
-            Severity.Success,
-            options => options.VisibleStateDuration = 5000);
+            Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
+                Severity.Success,
+                options => options.VisibleStateDuration = 5000);
 
-        _contactForm = new ContactForm();
-
-        _isSending = false;
+            _contactForm = new ContactForm();
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv venligst igen.",
+                Severity.Error,
+                options => options.VisibleStateDuration = 5000);
+        }
+        finally
+        {
+            _isSending = false;
+        }
     }
 }

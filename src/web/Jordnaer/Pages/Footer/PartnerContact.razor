@@ -73,6 +73,7 @@
         </EditForm>
     </MudPaper>
 </MudContainer>
+</MudLoading>
 
 @code {
     private PartnerContactForm _partnerContactForm = new();
@@ -84,15 +85,26 @@
 
         StateHasChanged();
 
-		await EmailService.SendEmailFromPartnerContactForm(_partnerContactForm);
-		await Task.Delay(1500);
+        try
+        {
+            await EmailService.SendEmailFromPartnerContactForm(_partnerContactForm);
+            await Task.Delay(1500);
 
-        Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
-            Severity.Success,
-            options => options.VisibleStateDuration = 5000);
+            Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
+                Severity.Success,
+                options => options.VisibleStateDuration = 5000);
 
-        _partnerContactForm = new PartnerContactForm();
-
-        _isSending = false;
+            _partnerContactForm = new PartnerContactForm();
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv venligst igen.",
+                Severity.Error,
+                options => options.VisibleStateDuration = 5000);
+        }
+        finally
+        {
+            _isSending = false;
+        }
     }
 }
