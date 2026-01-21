@@ -1,0 +1,110 @@
+@page "/partner-contact"
+@inject IEmailService EmailService
+@inject ISnackbar Snackbar
+
+@inherits ScrollToTopComponentBase
+
+<MetadataComponent Title="Bliv partner"
+                   Description="Kontakt Mini Møder for at blive partner" />
+
+<MudLoading @bind-Loading="_isSending" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Small">
+        <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.WarmWhite.ToBackgroundColor()">
+
+        <h1 class="font-cherry-bomb-one" style="@JordnaerPalette.BlueBody.ToTextColor()">Bliv partner</h1>
+
+        <MudDivider Class="mt-1 mb-5"/>
+
+        <MudText Typo="Typo.body1">
+            Er du interesseret i at samarbejde med Mini Møder? Vi er altid åbne for nye partnerskaber, sponsorater, donationer og samarbejder.
+        </MudText>
+        <MudText Typo="Typo.body1" Class="my-3">
+            Udfyld formularen nedenfor, og vi vil vende tilbage til dig så hurtigt som muligt.
+        </MudText>
+
+        <EditForm Model="_partnerContactForm" OnValidSubmit="SubmitForm">
+            <DataAnnotationsValidator/>
+
+            <MudTextField AutoFocus
+                            Label="Firmanavn"
+                            @bind-Value="_partnerContactForm.CompanyName"
+                            For="() => _partnerContactForm.CompanyName"
+                            FullWidth
+                            Class="my-3"
+                            name="company_name"/>
+
+            <MudTextField Label="Kontaktperson"
+                            @bind-Value="_partnerContactForm.ContactPersonName"
+                            For="() => _partnerContactForm.ContactPersonName"
+                            FullWidth
+                            Class="my-3"
+                            name="contact_name"/>
+
+            <MudTextField Label="Email"
+                            @bind-Value="_partnerContactForm.Email"
+                            For="() => _partnerContactForm.Email"
+                            FullWidth
+                            Class="my-3"
+                            name="reg_email__"/>
+
+            <MudTextField Label="Telefonnummer"
+                            @bind-Value="_partnerContactForm.PhoneNumber"
+                            For="() => _partnerContactForm.PhoneNumber"
+                            FullWidth
+                            Class="my-3"
+                            name="phone"/>
+
+            <MudTextField Label="Besked"
+                            @bind-Value="_partnerContactForm.Message"
+                            For="() => _partnerContactForm.Message"
+                            FullWidth
+                            AutoGrow
+                            Class="my-3"/>
+
+            <MudLoadingButton FullWidth
+                                Variant="Variant.Filled"
+                                StartIcon="@Icons.Material.Filled.Send"
+                                Class="mt-3 rounded-pill"
+                                Style="@($"{JordnaerPalette.BlueBody.ToBackgroundColor()}; color: white; font-weight: bold;")"
+                                ButtonType="ButtonType.Submit"
+                                Loading="_isSending">
+                Send
+            </MudLoadingButton>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+</MudLoading>
+
+@code {
+    private PartnerContactForm _partnerContactForm = new();
+    private bool _isSending = false;
+
+    private async Task SubmitForm()
+    {
+        _isSending = true;
+
+        StateHasChanged();
+
+        try
+        {
+            await EmailService.SendEmailFromPartnerContactForm(_partnerContactForm);
+            await Task.Delay(1500);
+
+            Snackbar.Add("Din besked er blevet sendt afsted og vil blive besvaret hurtigst muligt.",
+                Severity.Success,
+                options => options.VisibleStateDuration = 5000);
+
+            _partnerContactForm = new PartnerContactForm();
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv venligst igen.",
+                Severity.Error,
+                options => options.VisibleStateDuration = 5000);
+        }
+        finally
+        {
+            _isSending = false;
+        }
+    }
+}

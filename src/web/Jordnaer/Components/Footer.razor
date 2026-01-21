@@ -1,17 +1,49 @@
-<footer class="footer mud-elevation-5 d-flex flex-row justify-center @Class">
-    <div class="d-flex py-3">
-        <div class="px-sm-10 px-md-12 px-lg-14">
+<footer class="footer mud-elevation-5 d-flex justify-center align-center @Class">
+    <div class="d-flex flex-wrap justify-center py-3 gap-4">
+        <div class="d-flex flex-column px-4 px-sm-6 px-md-8">
             <MudNavLink Href="/about">Om</MudNavLink>
             <MudNavLink Href="/privacy">Privatlivspolitik</MudNavLink>
             <MudNavLink Href="/terms">Servicevilkår</MudNavLink>
         </div>
-        <div class="px-sm-10 px-md-12 px-lg-14">
+        <div class="d-flex flex-column px-4 px-sm-6 px-md-8">
             <MudNavLink Href="/contact">Kontakt</MudNavLink>
             <MudNavLink Href="/partnere">Partnere</MudNavLink>
+            <MudNavLink Href="/partner-contact">Bliv partner</MudNavLink>
             <MudNavLink Href="/operation">Drift</MudNavLink>
+        </div>
+        <div class="d-flex flex-column justify-center align-center px-4 px-sm-6 px-md-8">
+            <MudText Typo="Typo.body2" Class="mb-1">Følg os</MudText>
+            <div class="d-flex gap-2">
+                <MudIconButton Icon="@Icons.Custom.Brands.Facebook"
+                               Href="https://www.facebook.com/profile.php?id=100091813872285"
+                               Target="_blank"
+                               Rel="noopener noreferrer"
+                               aria-label="Besøg Mini Møder på Facebook"
+                               Size="Size.Medium"
+                               Style="color: #1877F2;"
+                               Class="social-icon" />
+                <MudIconButton Icon="@Icons.Custom.Brands.Instagram"
+                               Href="https://www.instagram.com/mini_moeder/"
+                               Target="_blank"
+                               Rel="noopener noreferrer"
+                               aria-label="Besøg Mini Møder på Instagram"
+                               Size="Size.Medium"
+                               Style="color: #E4405F;"
+                               Class="social-icon" />
+            </div>
         </div>
     </div>
 </footer>
+
+<style>
+    .social-icon {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .social-icon:hover {
+        transform: scale(1.1);
+    }
+</style>
 
 @code {
 
