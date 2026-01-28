@@ -5,7 +5,7 @@
 <MetadataComponent Title="Drift" Description="Hvordan Mini Møder drives, udvikles og vedligeholdes." />
 
 <MudContainer MaxWidth="MaxWidth.Medium">
-	<MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.LightBlue.ToBackgroundColor()">
+	<MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.WarmWhite.ToBackgroundColor()">
 
 		<h1 class="font-cherry-bomb-one text-center" style="@JordnaerPalette.BlueBody.ToTextColor()">
 			Drift
@@ -13,29 +13,29 @@
 
 		<MudDivider Class="mt-1 mb-5" />
 
-		<MudStack Row>
-			<MudStack>
-				<MudText Class="mt-1">Mini Møder er lavet af mig, Niels 🖐 med støtte og input fra min kone Josefine.
-				</MudText>
-				<MudText Class="mt-1">Jeg bygger Mini Møder i min fritid, oftest om aftenen når mine to unger er puttet.
-				</MudText>
-				<MudText Class="mt-1">Jeg står for udvikling, drift og vedligeholdelse af hele molevitten.</MudText>
-			</MudStack>
-		</MudStack>
+		<MudText Typo="Typo.body1">
+			Mini Møder er lavet af mig, Niels 🖐 med støtte og input fra min kone Josefine.
+		</MudText>
+		<MudText Typo="Typo.body1" Class="mt-3">
+			Jeg bygger Mini Møder i min fritid, oftest om aftenen når vi har puttet ungerne.
+		</MudText>
+		<MudText Typo="Typo.body1" Class="mt-3">
+			Jeg står for udvikling, drift og vedligeholdelse af hele molevitten.
+		</MudText>
 
-
-
-		<MudText Class="mt-5">Det er ikke helt gratis at drive Mini Møder. 
+		<MudText Typo="Typo.body1" Class="mt-5">
+			Det er ikke helt gratis at drive Mini Møder.
 			Hvis du vil støtte op om Mini Møder, er vi åbne over for donationer og partnerskaber.
 		</MudText>
 
-		<MudText Class="mt-5">Du kan komme i kontakt med os gennem vores <MudLink Href="/contact">kontaktformular
-			</MudLink>.</MudText>
+		<MudText Typo="Typo.body1" Class="mt-3">
+			Du kan komme i kontakt med os gennem vores <MudLink Href="/contact">kontaktformular</MudLink>.
+		</MudText>
 
-		<Bees Class="my-8" Center />
+		<MiniDivider Color="MiniDividerColor.Green" Class="my-8" Center />
 
-			<MudText Typo="Typo.h4" Class="mb-2">Virksomhedsoplysninger</MudText>
-		<MudText>
+		<MudText Typo="Typo.h5" Style="@JordnaerPalette.RedHeader.ToTextColor()">Virksomhedsoplysninger</MudText>
+		<MudText Typo="Typo.body1" Class="mt-3">
 			Mini Møder drives af:<br /><br />
 			<strong>
 				<MudLink Target="_blank" rel="noreferrer"
@@ -48,5 +48,7 @@
 			Tlf: <MudLink Href="tel:+4529917126">+45 29 91 71 26</MudLink>
 		</MudText>
 
-		</MudPaper>
-	</MudContainer>
+		<Bees Class="mt-8" Center />
+
+	</MudPaper>
+</MudContainer>

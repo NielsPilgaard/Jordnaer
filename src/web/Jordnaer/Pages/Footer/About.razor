@@ -4,11 +4,13 @@
 
 <MetadataComponent Title="Om" Description="Hvad er Mini Møder?" />
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="text-center">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="text-center">
     <MudPaper Elevation="3" Class="pa-10 mt-5" Style="@JordnaerPalette.WarmWhite.ToBackgroundColor()">
 
         <h1 class="font-cherry-bomb-one" style="@JordnaerPalette.BlueBody.ToTextColor()">Hvad er </h1>
         <img alt="Mini Møder Logo" src="images/minimoeder_logo_u_bier.png" height="160" style="margin-top: -30px" />
+
+        <MudDivider Class="mt-3 mb-5" />
 
         <MudText Typo="Typo.body1">
             Mini Møder er en hjemmeside til os, der ønsker at skabe nye relationer med andre børnefamilier.
@@ -23,13 +25,13 @@
             Vi vil gøre det nemmere for børn at finde nye venner.
         </MudText>
 
-        <MiniDivider Color="MiniDividerColor.Green" Class="mt-8 mb-3" Center />
+        <MiniDivider Color="MiniDividerColor.Green" Class="mt-8 mb-6" Center />
 
-         <h2 class="font-open-sans-medium mt-6 mb-2" style="@JordnaerPalette.RedHeader.ToTextColor()">
+         <MudText Typo="Typo.h5" Style="@JordnaerPalette.RedHeader.ToTextColor()">
              Hvorfor har vi skabt Mini Møder?
-         </h2>
+         </MudText>
 
-         <MudText Typo="Typo.body1" Class="mt-6">
+         <MudText Typo="Typo.body1" Class="mt-4">
              Vi har lavet Mini Møder fordi vi selv har manglet en konkret platform til at lede
              efter legegrupper til vores børn.
          </MudText>
