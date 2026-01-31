@@ -497,7 +497,7 @@ public class MembershipService(CurrentUser currentUser,
 			}
 			catch (Exception notificationException)
 			{
-				logger.LogError(notificationException, "Failed to send invite email to {Email} for group {GroupName}", email, group.Name);
+				logger.LogError(notificationException, "Failed to send invite email to {Email} for group {GroupName}", MaskedEmail.Mask(email), group.Name);
 			}
 
 			return new Success();
