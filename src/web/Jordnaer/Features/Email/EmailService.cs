@@ -14,6 +14,7 @@ public interface IEmailService
 	Task SendEmailFromPartnerContactForm(PartnerContactForm partnerContactForm, CancellationToken cancellationToken = default);
 	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
 	Task SendGroupInviteEmail(string groupName, string userId, CancellationToken cancellationToken = default);
+	Task SendGroupInviteEmailToNewUserAsync(string email, string groupName, string inviteToken, CancellationToken cancellationToken = default);
 	Task SendPartnerImageApprovalEmailAsync(Guid partnerId, string partnerName, CancellationToken cancellationToken = default);
 	Task SendPartnerWelcomeEmailAsync(string email, string partnerName, string temporaryPassword, CancellationToken cancellationToken = default);
 }
@@ -183,6 +184,37 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		await publishEndpoint.Publish(email, cancellationToken);
 	}
 
+	public async Task SendGroupInviteEmailToNewUserAsync(
+		string email,
+		string groupName,
+		string inviteToken,
+		CancellationToken cancellationToken = default)
+	{
+		logger.LogInformation("Sending group invite email to new user {Email} for group {GroupName}.", new MaskedEmail(email), groupName);
+
+		var registerUrl = $"{options.Value.BaseUrl}/Account/Register?inviteToken={Uri.EscapeDataString(inviteToken)}";
+		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+
+		var inviteEmail = new SendEmail
+		{
+			Subject = $"Du er inviteret til {groupName} på Mini Møder",
+			HtmlContent = $"""
+						  <h4>Du er blevet inviteret til at blive medlem af gruppen <b>{encodedGroupName}</b> på Mini Møder</h4>
+
+						  <p>Opret en gratis konto for at acceptere invitationen og komme i kontakt med andre forældre i gruppen.</p>
+
+						  <p><a href="{registerUrl}">Klik her for at oprette din konto og deltage i gruppen</a></p>
+
+						  <p><small>Denne invitation udløber om 7 dage.</small></p>
+
+						  {EmailConstants.Signature}
+						  """,
+			To = [new EmailRecipient { Email = email }]
+		};
+
+		await publishEndpoint.Publish(inviteEmail, cancellationToken);
+	}
+
 	public async Task SendPartnerImageApprovalEmailAsync(
 		Guid partnerId,
 		string partnerName,
@@ -230,10 +262,22 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 			changesList.Add($"<li>Ny beskrivelse: {encodedDescription}</li>");
 		}
 
-		if (!string.IsNullOrEmpty(partner.PendingLink))
+		if (!string.IsNullOrEmpty(partner.PendingPartnerPageLink))
 		{
-			var encodedLink = WebUtility.HtmlEncode(partner.PendingLink);
-			changesList.Add($"<li>Nyt link: {encodedLink}</li>");
+			var encodedLink = WebUtility.HtmlEncode(partner.PendingPartnerPageLink);
+			changesList.Add($"<li>Nyt partnerside link: {encodedLink}</li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingAdLink))
+		{
+			var encodedLink = WebUtility.HtmlEncode(partner.PendingAdLink);
+			changesList.Add($"<li>Nyt annonce link: {encodedLink}</li>");
+		}
+
+		if (!string.IsNullOrEmpty(partner.PendingAdLabelColor))
+		{
+			var encodedColor = WebUtility.HtmlEncode(partner.PendingAdLabelColor);
+			changesList.Add($"<li>Ny annonce label farve: {encodedColor}</li>");
 		}
 
 		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);

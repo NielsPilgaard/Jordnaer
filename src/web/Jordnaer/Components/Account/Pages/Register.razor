@@ -3,6 +3,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.EntityFrameworkCore
+@using Jordnaer.Features.Membership
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -12,6 +13,7 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject IDbContextFactory<JordnaerDbContext> DbContextFactory
+@inject IMembershipService MembershipService
 
 @attribute [Sitemap]
 
@@ -21,6 +23,20 @@
     <div class="account-paper">
         <h1 class="account-header">Opret en ny konto</h1>
 
+        @if (_hasValidInvite && _inviteGroupName is not null)
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-4" Variant="Variant.Outlined">
+                Du er blevet inviteret til gruppen <strong>@_inviteGroupName</strong>.
+                Opret din konto for at deltage i gruppen.
+            </MudAlert>
+        }
+        else if (_inviteError is not null)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4" Variant="Variant.Outlined">
+                @_inviteError
+            </MudAlert>
+        }
+
         <StatusMessage Message="@Message" />
 
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser"
@@ -28,8 +44,16 @@
             <DataAnnotationsValidator />
 
             <div class="form-floating">
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true"
-                    placeholder="navn@eksempel.com" id="email" autofocus />
+                @if (_hasValidInvite)
+                {
+                    <input type="email" class="form-control" value="@Input.Email" readonly id="email" />
+                    <input type="hidden" name="Input.Email" value="@Input.Email" />
+                }
+                else
+                {
+                    <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true"
+                        placeholder="navn@eksempel.com" id="email" autofocus />
+                }
                 <label for="email">Email</label>
                 <ValidationMessage For="() => Input.Email" class="validation-message" />
             </div>
@@ -110,6 +134,11 @@
     private bool _showPasswordValidation = false;
     private bool _showConfirmPasswordValidation = false;
 
+    private bool _hasValidInvite = false;
+    private string? _inviteGroupName;
+    private string? _inviteEmail;
+    private string? _inviteError;
+
     private bool PasswordLengthValid => Input.Password.Length >= 8;
     private bool PasswordUppercaseValid => Input.Password.Any(char.IsUpper);
     private bool PasswordLowercaseValid => Input.Password.Any(char.IsLower);
@@ -126,8 +155,37 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    [SupplyParameterFromQuery]
+    private string? InviteToken { get; set; }
+
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(InviteToken))
+        {
+            var result = await MembershipService.ValidateInviteTokenAsync(InviteToken);
+
+            result.Switch(
+                invite =>
+                {
+                    _hasValidInvite = true;
+                    _inviteGroupName = invite.Group?.Name;
+                    _inviteEmail = invite.Email;
+                    Input.Email = invite.Email;
+                },
+                notFound =>
+                {
+                    _inviteError = "Invitationen kunne ikke findes. Den kan være udløbet eller allerede brugt.";
+                },
+                error =>
+                {
+                    _inviteError = error.Value;
+                }
+            );
+        }
+    }
 
     protected override void OnParametersSet()
     {
@@ -165,26 +223,53 @@
 
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        // Build callback URL, including inviteToken if present
+        var callbackParams = new Dictionary<string, object?>
+        {
+            ["userId"] = userId,
+            ["code"] = code,
+            ["returnUrl"] = ReturnUrl
+        };
+        if (_hasValidInvite && !string.IsNullOrWhiteSpace(InviteToken))
+        {
+            callbackParams["inviteToken"] = InviteToken;
+        }
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-        NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-        new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+            callbackParams);
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
-            RedirectManager.RedirectTo(
-            "Account/RegisterConfirmation",
-            queryParameters: new Dictionary<string, object?> { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+            var confirmParams = new Dictionary<string, object?>
+            {
+                ["email"] = Input.Email,
+                ["returnUrl"] = ReturnUrl
+            };
+            if (_hasValidInvite && !string.IsNullOrWhiteSpace(InviteToken))
+            {
+                confirmParams["inviteToken"] = InviteToken;
+            }
+            RedirectManager.RedirectTo("Account/RegisterConfirmation", queryParameters: confirmParams);
         }
 
         await SignInManager.SignInAsync(user, isPersistent: false);
-        // Redirect to profile completion, passing ReturnUrl through
+        // Redirect to profile completion, passing ReturnUrl and inviteToken through
+        var profileParams = new Dictionary<string, object?>();
         if (!string.IsNullOrWhiteSpace(ReturnUrl))
         {
-            RedirectManager.RedirectTo(
-                "/CompleteProfile",
-                queryParameters: new Dictionary<string, object?> { ["returnUrl"] = ReturnUrl });
+            profileParams["returnUrl"] = ReturnUrl;
+        }
+        if (_hasValidInvite && !string.IsNullOrWhiteSpace(InviteToken))
+        {
+            profileParams["inviteToken"] = InviteToken;
+        }
+
+        if (profileParams.Count > 0)
+        {
+            RedirectManager.RedirectTo("/CompleteProfile", queryParameters: profileParams);
         }
         else
         {
