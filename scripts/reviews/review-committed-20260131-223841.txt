@@ -1,5 +1,0 @@
-Starting CodeRabbit review in plain text mode...
-
-[2026-01-31T21:39:02.252Z] ❌ REVIEW ERROR: Review failed: No files found for review
-Failed to start review: Review failed
-[error] stopping cli
