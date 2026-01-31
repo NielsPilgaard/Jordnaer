@@ -50,4 +50,8 @@ public record AdData
     /// Partner ID for analytics tracking. Null for hardcoded ads.
     /// </summary>
     public Guid? PartnerId { get; init; }
+    /// <summary>
+    /// Optional custom background color for the "Annonce" label (hex format like #FFFFFF).
+    /// </summary>
+    public string? LabelColor { get; init; }
 }
