@@ -514,7 +514,7 @@ public class EmailServiceTests : IAsyncLifetime
 			Id = partnerId,
 			Name = partnerName,
 			Description = "Test description",
-			Link = "https://example.com",
+			PartnerPageLink = "https://example.com",
 			UserId = _testUserId,
 			PendingAdImageUrl = "https://example.com/ad.png"
 		};

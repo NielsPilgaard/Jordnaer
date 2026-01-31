@@ -7,7 +7,7 @@
         <div class="image-with-label">
             <MudImage Src="@ImagePath" Alt="@ImageAlt" Class="ad-image"
                 Style="width: 100%; height: auto; border-radius: 8px;" loading="lazy" />
-            <div class="image-ad-label">Annonce</div>
+            <div class="image-ad-label" style="@GetLabelStyle()">Annonce</div>
         </div>
     </div>
 </MudLink>
@@ -27,6 +27,40 @@
 
     [Parameter]
     public bool IsPreview { get; set; } = false;
+
+    /// <summary>
+    /// Optional custom background color for the "Annonce" label (hex format like #FFFFFF).
+    /// If not set, uses the default semi-transparent dark background.
+    /// </summary>
+    [Parameter]
+    public string? LabelColor { get; set; }
+
+    private string GetLabelStyle()
+    {
+        if (string.IsNullOrWhiteSpace(LabelColor))
+        {
+            return string.Empty;
+        }
+
+        // Determine text color based on label background brightness
+        var textColor = IsLightColor(LabelColor) ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.9)";
+        return $"background-color: {LabelColor}; color: {textColor};";
+    }
+
+    private static bool IsLightColor(string hexColor)
+    {
+        // Parse hex color and calculate perceived brightness
+        if (hexColor.StartsWith('#') && hexColor.Length == 7)
+        {
+            var r = Convert.ToInt32(hexColor.Substring(1, 2), 16);
+            var g = Convert.ToInt32(hexColor.Substring(3, 2), 16);
+            var b = Convert.ToInt32(hexColor.Substring(5, 2), 16);
+            // Using perceived brightness formula
+            var brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            return brightness > 128;
+        }
+        return false;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -137,7 +137,7 @@ public sealed class PartnerUserService(
 				Name = request.Name,
 				Description = request.Description,
 				LogoUrl = request.LogoUrl,
-				Link = request.Link,
+				PartnerPageLink = request.Link,
 				UserId = user.Id,
 				CanHavePartnerCard = request.CanHavePartnerCard,
 				CanHaveAd = request.CanHaveAd

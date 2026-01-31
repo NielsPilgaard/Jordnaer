@@ -32,7 +32,20 @@ public class Partner
 	/// Partner website link. Optional. Clicking on partner card directs to this if set, and <see cref="CanHavePartnerCard"/> is <c>true</c>.
 	/// </summary>
 	[Url]
-	public string? Link { get; set; }
+	public string? PartnerPageLink { get; set; }
+
+	/// <summary>
+	/// Link used when users click on ads in search results. If not set, falls back to <see cref="PartnerPageLink"/>.
+	/// </summary>
+	[Url]
+	public string? AdLink { get; set; }
+
+	/// <summary>
+	/// Background color for the "Annonce" label on ads. Stores hex color like "#FFFFFF".
+	/// If not set, uses the default dark semi-transparent background.
+	/// </summary>
+	[MaxLength(7)]
+	public string? AdLabelColor { get; set; }
 
 	/// <summary>
 	/// Ad image URL (9:16 or 1:1 aspect ratio recommended)
@@ -66,10 +79,22 @@ public class Partner
 	public string? PendingLogoUrl { get; set; }
 
 	/// <summary>
-	/// Pending partner link awaiting admin approval
+	/// Pending partner page link awaiting admin approval
 	/// </summary>
 	[Url]
-	public string? PendingLink { get; set; }
+	public string? PendingPartnerPageLink { get; set; }
+
+	/// <summary>
+	/// Pending ad link awaiting admin approval
+	/// </summary>
+	[Url]
+	public string? PendingAdLink { get; set; }
+
+	/// <summary>
+	/// Pending ad label color awaiting admin approval
+	/// </summary>
+	[MaxLength(7)]
+	public string? PendingAdLabelColor { get; set; }
 
 	/// <summary>
 	/// Timestamp of the last update (UTC)
@@ -108,7 +133,7 @@ public class Partner
 	/// </para>
 	/// </summary>
 	public bool HasPartnerCard => CanHavePartnerCard &&
-								   !string.IsNullOrWhiteSpace(Link) &&
+								   !string.IsNullOrWhiteSpace(PartnerPageLink) &&
 								   (!string.IsNullOrWhiteSpace(LogoUrl) ||
 								   !string.IsNullOrWhiteSpace(Description) ||
 								   !string.IsNullOrWhiteSpace(Name));

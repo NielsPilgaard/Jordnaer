@@ -34,7 +34,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		.RuleFor(s => s.Id, _ => Guid.NewGuid())
 		.RuleFor(s => s.Name, f => f.Company.CompanyName())
 		.RuleFor(s => s.Description, f => f.Lorem.Sentence())
-		.RuleFor(s => s.Link, f => f.Internet.Url())
+		.RuleFor(s => s.PartnerPageLink, f => f.Internet.Url())
 		.RuleFor(s => s.LogoUrl, f => f.Image.PicsumUrl())
 		.RuleFor(s => s.AdImageUrl, f => f.Image.PicsumUrl())
 		.RuleFor(s => s.CreatedUtc, f => f.Date.Past(1));
@@ -318,7 +318,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null, null, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -336,7 +336,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, stream, "image.png", null, null, null, null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, stream, "image.png", null, null, null, null, null, null, null);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -361,7 +361,7 @@ public class PartnerServiceTests : IAsyncLifetime
 			.Returns("https://example.com/image.png");
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null, null, null);
 
 		// Assert
 		result.IsT0.Should().BeTrue();

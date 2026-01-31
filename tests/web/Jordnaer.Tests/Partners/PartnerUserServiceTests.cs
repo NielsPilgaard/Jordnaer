@@ -129,7 +129,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 		partner.Should().NotBeNull();
 		partner!.Name.Should().Be(request.Name);
 		partner.Description.Should().Be(request.Description);
-		partner.Link.Should().Be(request.Link);
+		partner.PartnerPageLink.Should().Be(request.Link);
 		partner.LogoUrl.Should().Be(request.LogoUrl);
 		partner.UserId.Should().Be(createdUser.Id);
 
@@ -411,7 +411,7 @@ public class PartnerUserServiceTests : IAsyncLifetime
 			Id = Guid.NewGuid(),
 			Name = _faker.Company.CompanyName(),
 			Description = _faker.Lorem.Sentence(),
-			Link = _faker.Internet.Url(),
+			PartnerPageLink = _faker.Internet.Url(),
 			UserId = userId,
 			CreatedUtc = DateTime.UtcNow
 		};

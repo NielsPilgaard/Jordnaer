@@ -35,8 +35,9 @@ public class AdProvider(
 					Title = p.Name ?? "Partner",
 					Description = p.Description,
 					ImagePath = p.AdImageUrl!,
-					Link = p.Link ?? "#",
-					PartnerId = p.Id
+					Link = p.AdLink ?? p.PartnerPageLink ?? "#",
+					PartnerId = p.Id,
+					LabelColor = p.AdLabelColor
 				})
 				.ToListAsync(cancellationToken);
 
