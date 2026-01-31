@@ -1,0 +1,28 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: src/web/Jordnaer/Features/Ad/AdCard.razor
+Line: 50 to 63
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Features/Ad/AdCard.razor around lines 50 - 63, The IsLightColor method can throw FormatException when Convert.ToInt32 encounters invalid hex characters; update IsLightColor to validate/parses safely by either using int.TryParse with NumberStyles.HexNumber (for r,g,b substrings) or wrapping the parse logic in a try-catch and returning a safe default (false) on failure, and ensure the method still checks the initial '#' and length before parsing; reference the IsLightColor method and the r/g/b parsing steps to locate and replace the parsing calls with safe parsing or exception handling.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Pages/Partner/PartnerDashboard.razor
+Line: 559 to 561
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Pages/Partner/PartnerDashboard.razor around lines 559 - 561, HasChanges() currently uses string.IsNullOrWhiteSpace(_pendingAdLabelColor) so clearing the color to the default (null) via the "Standard (mørk)" option is treated as no change; update the change-detection to distinguish "no selection" vs "explicit clear" by either: 1) use a sentinel value for the no-change state (e.g. "__NO_CHANGE__") instead of null and treat null as an explicit clear, or 2) add a boolean flag (e.g. _pendingAdLabelColorCleared) that is set when the user picks "Standard (mørk)" and include that flag in HasChanges() alongside comparison to the original AdLabelColor; modify all places that set/read _pendingAdLabelColor and HasChanges() accordingly to ensure explicit clears are detected.
+
+
+
+Review completed ✔
