@@ -27,6 +27,24 @@ Improve the profile image upload experience for users, child profiles, and group
 - [ChildProfilePicture.razor](src/web/Jordnaer/Features/Images/ChildProfilePicture.razor)
 - [GroupProfilePicture.razor](src/web/Jordnaer/Features/Groups/GroupProfilePicture.razor)
 
+### 0. Consolidate Components (Do First)
+**Goal:** Reduce code duplication by merging the three nearly-identical components into one.
+
+The three components share ~95% identical code. The minor visual differences (size, shape, colors) don't need to be preserved - standardizing them is fine.
+
+**Approach:**
+1. Create a single `ProfilePictureUpload` component that works for all profile types
+2. Standardize on consistent styling (e.g., 200x200px circle for all)
+3. Rename `ChildProfile.PictureUrl` → `ProfilePictureUrl` to match the others
+4. Use a delegate/callback pattern for the save operation since each type calls a different service method
+
+**Benefits:**
+- Single place to implement cropping, guidance, and preview features
+- Easier maintenance
+- Consistent behavior and appearance across all profile types
+
+**Recommendation:** Do this refactor first, then implement the new features once.
+
 ### 2. Upload Guide / Instructions
 **Goal:** Help users understand what makes a good profile picture.
 
