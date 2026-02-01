@@ -18,7 +18,7 @@ namespace Jordnaer.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -365,6 +365,13 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("AdImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AdLabelColor")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<string>("AdLink")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("CanHaveAd")
                         .HasColumnType("bit");
 
@@ -386,9 +393,6 @@ namespace Jordnaer.Server.Migrations
                     b.Property<DateTime?>("LastUpdateUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Link")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -396,15 +400,22 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<string>("PartnerPageLink")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PendingAdImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PendingAdLabelColor")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<string>("PendingAdLink")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PendingDescription")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("PendingLink")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PendingLogoUrl")
                         .HasColumnType("nvarchar(max)");
@@ -412,6 +423,9 @@ namespace Jordnaer.Server.Migrations
                     b.Property<string>("PendingName")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("PendingPartnerPageLink")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -452,6 +466,54 @@ namespace Jordnaer.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("PartnerAnalytics");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.PendingGroupInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AcceptedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("InvitedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("InvitedByUserId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("Email", "GroupId");
+
+                    b.ToTable("PendingGroupInvites");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.Post", b =>
@@ -876,6 +938,24 @@ namespace Jordnaer.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Partner");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.PendingGroupInvite", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Jordnaer.Shared.UserProfile", "InvitedByUser")
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Group");
+
+                    b.Navigation("InvitedByUser");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.Post", b =>
