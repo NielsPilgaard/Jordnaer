@@ -62,9 +62,16 @@ else
                 <MudItem xs="12" md="6">
                     <MudStack Spacing="2">
                         <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Partnerside Link</MudText>
-                        <MudLink Href="@_partner.PartnerPageLink" Target="_blank" Typo="Typo.body1">
-                            @_partner.PartnerPageLink
-                        </MudLink>
+                        @if (!string.IsNullOrWhiteSpace(_partner.PartnerPageLink))
+                        {
+                            <MudLink Href="@_partner.PartnerPageLink" Target="_blank" Typo="Typo.body1">
+                                @_partner.PartnerPageLink
+                            </MudLink>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body1" Color="Color.Secondary">Ingen side angivet</MudText>
+                        }
                     </MudStack>
                 </MudItem>
 

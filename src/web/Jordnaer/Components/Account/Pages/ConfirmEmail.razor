@@ -128,9 +128,11 @@
                 else
                 {
                     // Profile is complete - redirect to group or return URL
+                    // Validate ReturnUrl is a relative path to prevent open-redirect attacks
+                    var safeReturnUrl = Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative) ? ReturnUrl : "/";
                     var redirectUrl = !string.IsNullOrWhiteSpace(groupRedirectUrl)
                         ? groupRedirectUrl
-                        : (string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl);
+                        : safeReturnUrl;
                     RedirectManager.RedirectTo(redirectUrl);
                 }
             }

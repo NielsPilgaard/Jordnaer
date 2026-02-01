@@ -173,7 +173,7 @@
             result.Switch(
                 success =>
                 {
-                    Snackbar.Add($"Invitation sendt til {_inviteEmail}.", Severity.Success);
+                    Snackbar.Add($"Invitation sendt til {email}.", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(true));
                 },
                 error =>
