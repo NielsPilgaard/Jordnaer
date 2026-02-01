@@ -20,32 +20,16 @@ public static class HardcodedAds
             Title = "Hjemmeunger af Mie Storm",
             Description = "Hjemmeunger - En guide til livet uden institution",
             ImagePath = "images/ads/hjemmeunger.jpg",
-            Link = "https://muusmann-forlag.dk/hjemmeunger/"
+            Link = "https://muusmann-forlag.dk/hjemmeunger/",
+            LabelColor = "#3d3737"
         },
 
     ];
 
     /// <summary>
-    /// Get ads for user search results.
-    /// Returns multiple copies if needed to fill the requested count.
+    /// Get all available hardcoded ads.
     /// </summary>
-    public static List<AdData> GetAdsForSearch(int count)
-    {
-        if (count <= 0 || _ads.Count == 0)
-        {
-            return [];
-        }
-
-        var result = new List<AdData>();
-
-        // Repeat ads to fill the requested count
-        for (var i = 0; i < count; i++)
-        {
-            result.Add(_ads[i % _ads.Count]);
-        }
-
-        return result;
-    }
+    public static List<AdData> GetAll() => [.. _ads];
 }
 
 public record AdData

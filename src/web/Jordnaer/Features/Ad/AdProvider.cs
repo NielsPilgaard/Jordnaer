@@ -50,24 +50,19 @@ public class AdProvider(
 		}
 
 		// Add hardcoded ads as fallback/supplement
-		var hardcodedAds = HardcodedAds.GetAdsForSearch(count);
-		allAds.AddRange(hardcodedAds);
+		allAds.AddRange(HardcodedAds.GetAll());
+
+		// TODO: This is a prime use-case for caching.
 
 		if (allAds.Count is 0)
 		{
 			return new List<AdData>();
 		}
 
-		// Shuffle to mix partner and hardcoded ads
-		var shuffled = allAds.Shuffle().ToList();
-
-		// Return requested count, cycling if needed
-		var result = new List<AdData>();
-		for (var i = 0; i < count; i++)
-		{
-			result.Add(shuffled[i % shuffled.Count]);
-		}
-
-		return result;
+		// Randomly select the requested count of ads
+		return allAds
+			.Shuffle()
+			.Take(count)
+			.ToList();
 	}
 }
