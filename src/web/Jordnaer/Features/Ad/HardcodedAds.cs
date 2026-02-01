@@ -14,7 +14,15 @@ public static class HardcodedAds
             Description = "Professionel webudvikling og design",
             ImagePath = "images/ads/mooncreative_mobile.png",
             Link = "https://www.mooncreative.dk/"
-        }
+        },
+        new AdData
+        {
+            Title = "Hjemmeunger af Mie Storm",
+            Description = "Hjemmeunger - En guide til livet uden institution",
+            ImagePath = "images/ads/hjemmeunger.jpg",
+            Link = "https://muusmann-forlag.dk/hjemmeunger/"
+        },
+
     ];
 
     /// <summary>
