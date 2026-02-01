@@ -1,0 +1,58 @@
+Starting CodeRabbit review in plain text mode...
+
+Connecting to review service
+Setting up
+Analyzing
+Reviewing
+
+============================================================================
+File: src/web/Jordnaer/Components/Account/Pages/ConfirmEmail.razor
+Line: 88 to 91
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Components/Account/Pages/ConfirmEmail.razor around lines 88 - 91, The code sets groupRedirectUrl using Uri.EscapeDataString(invite.Group.Name) but only checks invite.Group for null; add a defensive check for invite.Group.Name (or use string.IsNullOrEmpty/IsNullOrWhiteSpace) before calling Uri.EscapeDataString to avoid ArgumentNullException. Modify the block in ConfirmEmail.razor that references invite.Group and groupRedirectUrl to verify invite.Group.Name is non-null (and non-empty if appropriate) and only then set groupRedirectUrl, otherwise leave it unset or provide a safe fallback.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Features/Membership/MembershipService.cs
+Line: 500
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Features/Membership/MembershipService.cs at line 500, The LogError call in MembershipService that logs the raw email (logger.LogError(notificationException, "Failed to send invite email to {Email} for group {GroupName}", email, group.Name)) exposes PII; change it to avoid logging the full email by replacing the template argument with a masked version or omitting it. Implement or call a small helper (e.g., MaskEmail(string email)) that returns a redacted string like "j*@domain.com" or just the domain, then update the LogError invocation to use the masked value or only group.Name (keep notificationException and the descriptive message) so the code uses logger.LogError(notificationException, "Failed to send invite email to {Email} for group {GroupName}", maskedEmail, group.Name) or logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", group.Name) depending on the chosen privacy level.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Features/Membership/InviteUserDialog.razor
+Line: 105 to 112
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Features/Membership/InviteUserDialog.razor around lines 105 - 112, The validation currently checks _inviteEmail as-is causing trimmed-but-padded addresses to fail; update the validation to trim before testing: change the condition that uses _inviteEmail (the getter/validator that returns string.IsNullOrWhiteSpace(_inviteEmail) || !IsValidEmail(_inviteEmail)) to operate on _inviteEmail.Trim(), and update IsValidEmail or its caller to validate the trimmed value so the same trimmed email is used both for enabling the button and when calling the invite service (references: _inviteEmail, IsValidEmail).
+
+
+
+============================================================================
+File: src/web/Jordnaer/Components/Account/Pages/Register.razor
+Line: 47 to 56
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Components/Account/Pages/Register.razor around lines 47 - 56, When _hasValidInvite is true you must enforce server-side that the posted Input.Email equals the invite email: in RegisterUser, at the start, check that _hasValidInvite && !string.Equals(Input.Email, _inviteEmail, StringComparison.OrdinalIgnoreCase) and if it fails add an error (e.g. ModelState/Validation message or set a local error flag) and abort the registration flow (return/stop further processing) so mismatched/forged hidden values are rejected; reference the _hasValidInvite, _inviteEmail, Input.Email and RegisterUser symbols when adding this check.
+
+
+
+============================================================================
+File: src/web/Jordnaer/Features/Membership/InviteUserDialog.razor
+Line: 163 to 167
+Type: potential_issue
+
+Prompt for AI Agent:
+In @src/web/Jordnaer/Features/Membership/InviteUserDialog.razor around lines 163 - 167, The defensive check currently validates _inviteEmail without trimming, causing inconsistent behavior; update InviteUserDialog.razor so the code trims the input first (e.g., var email = _inviteEmail?.Trim()) and then use that trimmed variable in the conditional and when calling IsValidEmail (replace references to _inviteEmail in this block with the trimmed email) and ensure _isInviting is set to false and return if the trimmed email is null/whitespace or invalid.
+
+
+
+Review completed ✔
