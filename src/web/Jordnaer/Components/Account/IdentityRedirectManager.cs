@@ -21,8 +21,8 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 	{
 		uri ??= "";
 
-		// Prevent open redirects.
-		if (!Uri.IsWellFormedUriString(uri, UriKind.Relative))
+		// Prevent open redirects (including scheme-relative URLs like "//evil.com")
+		if (!IsSafeRelativeUrl(uri))
 		{
 			uri = navigationManager.ToBaseRelativePath(uri);
 		}
@@ -31,6 +31,15 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 		// So as long as this is called from a statically rendered Identity component, the InvalidOperationException is never thrown.
 		navigationManager.NavigateTo(uri, forceLoad);
 		throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
+	}
+
+	private static bool IsSafeRelativeUrl(string url)
+	{
+		// Must be well-formed relative URI, start with "/" but not "//" or "\"
+		return Uri.IsWellFormedUriString(url, UriKind.Relative)
+			&& url.StartsWith('/')
+			&& !url.StartsWith("//")
+			&& !url.StartsWith('\\');
 	}
 
 	[DoesNotReturn]
