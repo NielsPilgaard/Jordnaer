@@ -158,7 +158,8 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 			.HasDefaultValueSql("GETUTCDATE()");
 
 		modelBuilder.Entity<PendingGroupInvite>()
-			.HasIndex(invite => new { invite.Email, invite.GroupId });
+			.HasIndex(invite => new { invite.Email, invite.GroupId })
+			.IsUnique();
 
 		modelBuilder.Entity<PendingGroupInvite>()
 			.HasIndex(invite => invite.TokenHash)

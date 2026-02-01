@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Jordnaer.Shared.Validation;
 
 namespace Jordnaer.Shared;
 
@@ -45,6 +46,7 @@ public class Partner
 	/// If not set, uses the default dark semi-transparent background.
 	/// </summary>
 	[MaxLength(7)]
+	[HexColor]
 	public string? AdLabelColor { get; set; }
 
 	/// <summary>
@@ -94,6 +96,7 @@ public class Partner
 	/// Pending ad label color awaiting admin approval
 	/// </summary>
 	[MaxLength(7)]
+	[HexColor]
 	public string? PendingAdLabelColor { get; set; }
 
 	/// <summary>

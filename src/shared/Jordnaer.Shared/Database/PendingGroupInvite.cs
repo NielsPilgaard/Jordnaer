@@ -20,7 +20,7 @@ public class PendingGroupInvite
 	public PendingInviteStatus Status { get; set; } = PendingInviteStatus.Pending;
 
 	public DateTime CreatedUtc { get; set; }
-	public DateTime ExpiresAtUtc { get; set; }
+	public required DateTime ExpiresAtUtc { get; set; }
 	public DateTime? AcceptedAtUtc { get; set; }
 
 	/// <summary>
