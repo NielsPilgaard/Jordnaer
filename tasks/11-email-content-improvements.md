@@ -1,0 +1,4 @@
+- standard layout
+- razor engine?
+- common mini møder fonts
+- logo
