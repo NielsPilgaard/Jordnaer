@@ -173,7 +173,7 @@
 							<MudStack Spacing="1">
 								<MudText Typo="Typo.body2">Annonce Label Farve</MudText>
 								<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-									<MudSelect T="string" @bind-Value="_pendingAdLabelColor" Label="Vælg farve"
+									<MudSelect T="string" Value="_pendingAdLabelColor" ValueChanged="OnAdLabelColorChanged" Label="Vælg farve"
 										Variant="Variant.Outlined" Dense>
 										<MudSelectItem Value="@((string?)null)">Standard (mørk)</MudSelectItem>
 										<MudSelectItem Value="@("#FFFFFF")">Lys (#FFFFFF)</MudSelectItem>
@@ -358,6 +358,7 @@
 	private string? _pendingPartnerPageLink;
 	private string? _pendingAdLink;
 	private string? _pendingAdLabelColor;
+	private bool _adLabelColorModified;
 	private bool _uploading;
 	private string? _adImagePreviewUrl;
 	private string? _logoPreviewUrl;
@@ -558,7 +559,13 @@
 			!string.IsNullOrWhiteSpace(_pendingDescription) ||
 			!string.IsNullOrWhiteSpace(_pendingPartnerPageLink) ||
 			!string.IsNullOrWhiteSpace(_pendingAdLink) ||
-			!string.IsNullOrWhiteSpace(_pendingAdLabelColor);
+			_adLabelColorModified;
+	}
+
+	private void OnAdLabelColorChanged(string? value)
+	{
+		_pendingAdLabelColor = value;
+		_adLabelColorModified = true;
 	}
 
 	private string? GetPreviewAdImageUrl()
@@ -690,6 +697,7 @@
 					_pendingPartnerPageLink = null;
 					_pendingAdLink = null;
 					_pendingAdLabelColor = null;
+					_adLabelColorModified = false;
 					_adImagePreviewUrl = null;
 					_logoPreviewUrl = null;
 				},

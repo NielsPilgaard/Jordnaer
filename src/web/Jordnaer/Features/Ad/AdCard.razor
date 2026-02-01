@@ -52,9 +52,12 @@
         // Parse hex color and calculate perceived brightness
         if (hexColor.StartsWith('#') && hexColor.Length == 7)
         {
-            var r = Convert.ToInt32(hexColor.Substring(1, 2), 16);
-            var g = Convert.ToInt32(hexColor.Substring(3, 2), 16);
-            var b = Convert.ToInt32(hexColor.Substring(5, 2), 16);
+            if (!int.TryParse(hexColor.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber, null, out var r) ||
+                !int.TryParse(hexColor.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber, null, out var g) ||
+                !int.TryParse(hexColor.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber, null, out var b))
+            {
+                return false;
+            }
             // Using perceived brightness formula
             var brightness = (r * 299 + g * 587 + b * 114) / 1000;
             return brightness > 128;

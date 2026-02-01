@@ -123,7 +123,7 @@
                         queryParams["inviteToken"] = InviteToken;
                     }
 
-                    RedirectManager.RedirectTo("/CompleteProfile", queryParameters: queryParams, forceLoad: true);
+                    RedirectManager.RedirectTo("/CompleteProfile", queryParameters: queryParams);
                 }
                 else
                 {
@@ -131,7 +131,7 @@
                     var redirectUrl = !string.IsNullOrWhiteSpace(groupRedirectUrl)
                         ? groupRedirectUrl
                         : (string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl);
-                    RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
+                    RedirectManager.RedirectTo(redirectUrl);
                 }
             }
             else
