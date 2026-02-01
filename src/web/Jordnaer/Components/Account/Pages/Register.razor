@@ -199,6 +199,13 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
+        // Server-side validation: when registering via invite, verify the email matches the invite
+        if (_hasValidInvite && !string.Equals(Input.Email, _inviteEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            _identityErrors = [new IdentityError { Description = "Email-adressen matcher ikke invitationen." }];
+            return;
+        }
+
         var user = new ApplicationUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

@@ -85,7 +85,7 @@
                     tokenResult.Switch(
                         invite =>
                         {
-                            if (invite.Group is not null)
+                            if (invite.Group is not null && !string.IsNullOrWhiteSpace(invite.Group.Name))
                             {
                                 groupRedirectUrl = $"/groups/{Uri.EscapeDataString(invite.Group.Name)}";
                             }

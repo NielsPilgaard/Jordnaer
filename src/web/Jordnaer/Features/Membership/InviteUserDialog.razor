@@ -102,7 +102,8 @@
             }
 
             // Tab 1: Invite by email
-            return string.IsNullOrWhiteSpace(_inviteEmail) || !IsValidEmail(_inviteEmail);
+            var trimmedEmail = _inviteEmail?.Trim();
+            return string.IsNullOrWhiteSpace(trimmedEmail) || !IsValidEmail(trimmedEmail);
         }
     }
 
@@ -160,13 +161,14 @@
         // Tab 1: Invite by email
         else
         {
-            if (string.IsNullOrWhiteSpace(_inviteEmail) || !IsValidEmail(_inviteEmail))
+            var email = _inviteEmail?.Trim();
+            if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
             {
                 _isInviting = false;
                 return;
             }
 
-            var result = await MembershipService.InviteByEmailAsync(GroupId, _inviteEmail.Trim(), CancellationToken);
+            var result = await MembershipService.InviteByEmailAsync(GroupId, email, CancellationToken);
 
             result.Switch(
                 success =>
