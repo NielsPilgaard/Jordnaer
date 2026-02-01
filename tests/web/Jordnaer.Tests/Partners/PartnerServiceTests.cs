@@ -318,7 +318,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null, null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null, null, null, false);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -361,7 +361,7 @@ public class PartnerServiceTests : IAsyncLifetime
 			.Returns("https://example.com/image.png");
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null, null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null, null, null, false);
 
 		// Assert
 		result.IsT0.Should().BeTrue();
@@ -381,6 +381,48 @@ public class PartnerServiceTests : IAsyncLifetime
 		await _context.Entry(partner).ReloadAsync();
 		partner.HasPendingApproval.Should().BeTrue();
 		partner.PendingAdImageUrl.Should().NotBeNullOrEmpty();
+	}
+
+	[Fact]
+	public async Task UploadPendingChangesAsync_ClearsAdLabelColor_WhenClearFlagIsTrue()
+	{
+		// Arrange
+		var partner = AddPartner();
+		partner.UserId = _userProfileId;
+		partner.AdLabelColor = "#FFFFFF"; // Existing color
+		await _context.SaveChangesAsync();
+
+		// Act
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, null, null, null, null, null, null, null, null, null, clearAdLabelColor: true);
+
+		// Assert
+		result.IsT0.Should().BeTrue();
+
+		await _context.Entry(partner).ReloadAsync();
+		partner.PendingAdLabelColor.Should().Be(string.Empty); // Empty string is the sentinel value
+		partner.HasPendingApproval.Should().BeTrue();
+	}
+
+	[Fact]
+	public async Task ApproveChangesAsync_ClearsAdLabelColor_WhenPendingIsEmpty()
+	{
+		// Arrange
+		var partner = AddPartner();
+		partner.AdLabelColor = "#FFFFFF"; // Existing color
+		partner.PendingAdLabelColor = string.Empty; // Sentinel for "clear"
+		partner.HasPendingApproval = true;
+		await _context.SaveChangesAsync();
+
+		// Act
+		var result = await _partnerService.ApproveChangesAsync(partner.Id);
+
+		// Assert
+		result.IsT0.Should().BeTrue();
+
+		await _context.Entry(partner).ReloadAsync();
+		partner.AdLabelColor.Should().BeNull(); // Color was cleared
+		partner.PendingAdLabelColor.Should().BeNull();
+		partner.HasPendingApproval.Should().BeFalse();
 	}
 
 	[Fact]

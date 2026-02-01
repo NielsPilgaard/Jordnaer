@@ -365,7 +365,7 @@
 	private string? _pendingPartnerPageLink;
 	private string? _pendingAdLink;
 	private string? _pendingAdLabelColor;
-	private bool _adLabelColorModified;
+	private bool _clearAdLabelColor;
 	private bool _uploading;
 	private string? _adImagePreviewUrl;
 	private string? _logoPreviewUrl;
@@ -576,13 +576,14 @@
 			!string.IsNullOrWhiteSpace(_pendingDescription) ||
 			!string.IsNullOrWhiteSpace(_pendingPartnerPageLink) ||
 			!string.IsNullOrWhiteSpace(_pendingAdLink) ||
-			_adLabelColorModified;
+			_clearAdLabelColor ||
+			!string.IsNullOrWhiteSpace(_pendingAdLabelColor);
 	}
 
 	private void OnAdLabelColorChanged(string? value)
 	{
 		_pendingAdLabelColor = value;
-		_adLabelColorModified = true;
+		_clearAdLabelColor = value is null;
 	}
 
 	private string? GetPreviewAdImageUrl()
@@ -701,7 +702,8 @@
 				logoFileName,
 				_pendingPartnerPageLink,
 				_pendingAdLink,
-				_pendingAdLabelColor
+				_pendingAdLabelColor,
+				_clearAdLabelColor
 			);
 
 			result.Switch(
@@ -714,7 +716,7 @@
 					_pendingPartnerPageLink = null;
 					_pendingAdLink = null;
 					_pendingAdLabelColor = null;
-					_adLabelColorModified = false;
+					_clearAdLabelColor = false;
 					_adImagePreviewUrl = null;
 					_logoPreviewUrl = null;
 				},

@@ -26,7 +26,7 @@ public interface IPartnerService
 	Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<string, Error<string>>> UploadPreviewImageAsync(Guid partnerId, Stream imageStream, string fileName, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? partnerPageLink, string? adLink, string? adLabelColor, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? partnerPageLink, string? adLink, string? adLabelColor, bool clearAdLabelColor, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 }
@@ -373,6 +373,7 @@ public class PartnerService(
 		string? partnerPageLink,
 		string? adLink,
 		string? adLabelColor,
+		bool clearAdLabelColor,
 		CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
@@ -538,7 +539,12 @@ public class PartnerService(
 				hasChanges = true;
 			}
 
-			if (validatedAdLabelColor is not null)
+			if (clearAdLabelColor)
+			{
+				partner.PendingAdLabelColor = string.Empty; // Use empty string as sentinel for "clear"
+				hasChanges = true;
+			}
+			else if (validatedAdLabelColor is not null)
 			{
 				partner.PendingAdLabelColor = validatedAdLabelColor;
 				hasChanges = true;
@@ -652,9 +658,10 @@ public class PartnerService(
 				partner.PendingAdLink = null;
 			}
 
-			if (!string.IsNullOrEmpty(partner.PendingAdLabelColor))
+			if (partner.PendingAdLabelColor is not null)
 			{
-				partner.AdLabelColor = partner.PendingAdLabelColor;
+				// Empty string means clear the color, otherwise set the new color
+				partner.AdLabelColor = string.IsNullOrEmpty(partner.PendingAdLabelColor) ? null : partner.PendingAdLabelColor;
 				partner.PendingAdLabelColor = null;
 			}
 
