@@ -61,12 +61,44 @@ else
 
                 <MudItem xs="12" md="6">
                     <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Link</MudText>
-                        <MudLink Href="@_partner.Link" Target="_blank" Typo="Typo.body1">
-                            @_partner.Link
-                        </MudLink>
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Partnerside Link</MudText>
+                        @if (!string.IsNullOrWhiteSpace(_partner.PartnerPageLink))
+                        {
+                            <MudLink Href="@_partner.PartnerPageLink" Target="_blank" rel="noopener" Typo="Typo.body1">
+                                @_partner.PartnerPageLink
+                            </MudLink>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body1" Color="Color.Secondary">Ingen side angivet</MudText>
+                        }
                     </MudStack>
                 </MudItem>
+
+                @if (!string.IsNullOrEmpty(_partner.AdLink))
+                {
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Annonce Link</MudText>
+                            <MudLink Href="@_partner.AdLink" Target="_blank" rel="noopener" Typo="Typo.body1">
+                                @_partner.AdLink
+                            </MudLink>
+                        </MudStack>
+                    </MudItem>
+                }
+
+                @if (!string.IsNullOrEmpty(_partner.AdLabelColor))
+                {
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Annonce Label Farve</MudText>
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                <div style="width: 24px; height: 24px; border-radius: 4px; background-color: @_partner.AdLabelColor; border: 1px solid #ccc;"></div>
+                                <MudText Typo="Typo.body1">@_partner.AdLabelColor</MudText>
+                            </MudStack>
+                        </MudStack>
+                    </MudItem>
+                }
 
                 <MudItem xs="12" md="6">
                     <MudStack Spacing="2">
@@ -132,9 +164,10 @@ else
                                     @if (!string.IsNullOrEmpty(_partner.AdImageUrl))
                                     {
                                         <div style="max-width: 300px;">
-                                            <AdCard Link="@_partner.Link"
+                                            <AdCard Link="@(_partner.AdLink ?? _partner.PartnerPageLink)"
                                                 ImagePath="@_partner.AdImageUrl"
                                                 ImageAlt="@(_partner.Name + " annonce")"
+                                                LabelColor="@_partner.AdLabelColor"
                                                 IsPreview="true" />
                                         </div>
                                     }
@@ -148,9 +181,10 @@ else
                                 <MudStack Spacing="2">
                                     <MudText Typo="Typo.subtitle2" Style="color: #ff9800;">Afventer godkendelse</MudText>
                                     <div style="max-width: 300px;">
-                                        <AdCard Link="@_partner.Link"
+                                        <AdCard Link="@(_partner.PendingAdLink ?? _partner.AdLink ?? _partner.PendingPartnerPageLink ?? _partner.PartnerPageLink)"
                                             ImagePath="@_partner.PendingAdImageUrl"
                                             ImageAlt="@(_partner.Name + " annonce")"
+                                            LabelColor="@(_partner.PendingAdLabelColor ?? _partner.AdLabelColor)"
                                             IsPreview="true" />
                                     </div>
                                 </MudStack>
@@ -250,9 +284,10 @@ else
                                 Sådan vises annoncen i søgeresultater
                             </MudText>
                             <div style="max-width: 300px;">
-                                <AdCard Link="@_partner.Link"
+                                <AdCard Link="@(_partner.AdLink ?? _partner.PartnerPageLink)"
                                     ImagePath="@_partner.AdImageUrl"
                                     ImageAlt="@(_partner.Name + " annonce")"
+                                    LabelColor="@_partner.AdLabelColor"
                                     IsPreview="true" />
                             </div>
                         </MudStack>
@@ -493,7 +528,9 @@ else
     {
         return !string.IsNullOrEmpty(_partner?.PendingName) ||
                !string.IsNullOrEmpty(_partner?.PendingDescription) ||
-               !string.IsNullOrEmpty(_partner?.PendingLink);
+               !string.IsNullOrEmpty(_partner?.PendingPartnerPageLink) ||
+               !string.IsNullOrEmpty(_partner?.PendingAdLink) ||
+               !string.IsNullOrEmpty(_partner?.PendingAdLabelColor);
     }
 
     private bool HasPendingPartnerCardChanges()
@@ -510,8 +547,12 @@ else
             changes.Add($"Navn: {_partner.Name} → {_partner.PendingName}");
         if (!string.IsNullOrEmpty(_partner.PendingDescription))
             changes.Add($"Beskrivelse opdateret");
-        if (!string.IsNullOrEmpty(_partner.PendingLink))
-            changes.Add($"Link: {_partner.Link} → {_partner.PendingLink}");
+        if (!string.IsNullOrEmpty(_partner.PendingPartnerPageLink))
+            changes.Add($"Partnerside Link: {_partner.PartnerPageLink} → {_partner.PendingPartnerPageLink}");
+        if (!string.IsNullOrEmpty(_partner.PendingAdLink))
+            changes.Add($"Annonce Link: {_partner.AdLink} → {_partner.PendingAdLink}");
+        if (!string.IsNullOrEmpty(_partner.PendingAdLabelColor))
+            changes.Add($"Annonce Label Farve: {_partner.AdLabelColor} → {_partner.PendingAdLabelColor}");
         if (!string.IsNullOrEmpty(_partner.PendingLogoUrl))
             changes.Add("Logo opdateret");
 
@@ -521,7 +562,7 @@ else
     private Partner GetCurrentPartner()
     {
         if (_partner is null)
-            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow, CanHavePartnerCard = true, CanHaveAd = true };
+            return new Partner { Id = Guid.Empty, Name = "", Description = "", PartnerPageLink = "#", UserId = "", CreatedUtc = DateTime.UtcNow, CanHavePartnerCard = true, CanHaveAd = true };
 
         return new Partner
         {
@@ -529,7 +570,7 @@ else
             Name = _partner.Name,
             Description = _partner.Description,
             LogoUrl = _partner.LogoUrl,
-            Link = _partner.Link,
+            PartnerPageLink = _partner.PartnerPageLink,
             UserId = _partner.UserId,
             CreatedUtc = _partner.CreatedUtc,
             CanHavePartnerCard = _partner.CanHavePartnerCard,
@@ -540,7 +581,7 @@ else
     private Partner GetPendingPartner()
     {
         if (_partner is null)
-            return new Partner { Id = Guid.Empty, Name = "", Description = "", Link = "#", UserId = "", CreatedUtc = DateTime.UtcNow, CanHavePartnerCard = true, CanHaveAd = true };
+            return new Partner { Id = Guid.Empty, Name = "", Description = "", PartnerPageLink = "#", UserId = "", CreatedUtc = DateTime.UtcNow, CanHavePartnerCard = true, CanHaveAd = true };
 
         return new Partner
         {
@@ -548,7 +589,7 @@ else
             Name = !string.IsNullOrEmpty(_partner.PendingName) ? _partner.PendingName : _partner.Name,
             Description = !string.IsNullOrEmpty(_partner.PendingDescription) ? _partner.PendingDescription : _partner.Description,
             LogoUrl = !string.IsNullOrEmpty(_partner.PendingLogoUrl) ? _partner.PendingLogoUrl : _partner.LogoUrl,
-            Link = !string.IsNullOrEmpty(_partner.PendingLink) ? _partner.PendingLink : _partner.Link,
+            PartnerPageLink = !string.IsNullOrEmpty(_partner.PendingPartnerPageLink) ? _partner.PendingPartnerPageLink : _partner.PartnerPageLink,
             UserId = _partner.UserId,
             CreatedUtc = _partner.CreatedUtc,
             CanHavePartnerCard = _partner.CanHavePartnerCard,
