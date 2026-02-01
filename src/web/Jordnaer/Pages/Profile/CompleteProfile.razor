@@ -126,6 +126,9 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    [SupplyParameterFromQuery]
+    private string? InviteToken { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (!RendererInfo.IsInteractive)
@@ -163,6 +166,16 @@
 
     private string GetSkipUrl()
     {
+        // When skipping with invite token, include it in the URL for later processing
+        if (!string.IsNullOrWhiteSpace(InviteToken))
+        {
+            // Include invite token so it can be processed later
+            var url = !string.IsNullOrWhiteSpace(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative)
+                ? ReturnUrl
+                : "/";
+            return $"{url}{(url.Contains('?') ? '&' : '?')}inviteToken={Uri.EscapeDataString(InviteToken)}";
+        }
+
         if (!string.IsNullOrWhiteSpace(ReturnUrl) && Uri.IsWellFormedUriString(ReturnUrl, UriKind.Relative))
         {
             return ReturnUrl;
@@ -295,10 +308,20 @@
         // Update cache
         ProfileCache.SetProfile(result.AsT0.Value);
 
-        // Redirect to step 2
-        var url = string.IsNullOrWhiteSpace(ReturnUrl)
-        ? "/CompleteProfileInterests"
-        : $"/CompleteProfileInterests?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+        // Redirect to step 2, passing both ReturnUrl and InviteToken
+        var queryParams = new List<string>();
+        if (!string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            queryParams.Add($"returnUrl={Uri.EscapeDataString(ReturnUrl)}");
+        }
+        if (!string.IsNullOrWhiteSpace(InviteToken))
+        {
+            queryParams.Add($"inviteToken={Uri.EscapeDataString(InviteToken)}");
+        }
+
+        var url = queryParams.Count > 0
+            ? $"/CompleteProfileInterests?{string.Join("&", queryParams)}"
+            : "/CompleteProfileInterests";
 
         NavigationManager.NavigateTo(url);
     }

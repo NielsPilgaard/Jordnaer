@@ -7,7 +7,7 @@
         <div class="image-with-label">
             <MudImage Src="@ImagePath" Alt="@ImageAlt" Class="ad-image"
                 Style="width: 100%; height: auto; border-radius: 8px;" loading="lazy" />
-            <div class="image-ad-label">Annonce</div>
+            <div class="image-ad-label" style="@GetLabelStyle()">Annonce</div>
         </div>
     </div>
 </MudLink>
@@ -27,6 +27,24 @@
 
     [Parameter]
     public bool IsPreview { get; set; } = false;
+
+    /// <summary>
+    /// Optional custom background color for the "Annonce" label (hex format like #FFFFFF).
+    /// If not set, uses the default semi-transparent dark background.
+    /// </summary>
+    [Parameter]
+    public string? LabelColor { get; set; }
+
+    private string GetLabelStyle()
+    {
+        if (string.IsNullOrWhiteSpace(LabelColor))
+        {
+            return string.Empty;
+        }
+
+        var textColor = ColorExtensions.GetContrastingTextColor(LabelColor);
+        return $"background-color: {LabelColor}; color: {textColor};";
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

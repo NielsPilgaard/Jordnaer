@@ -26,6 +26,8 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Partner> Partners { get; set; } = default!;
 	public DbSet<PartnerAnalytics> PartnerAnalytics { get; set; } = default!;
 
+	public DbSet<PendingGroupInvite> PendingGroupInvites { get; set; } = default!;
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<Post>()
@@ -137,6 +139,20 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 
 		modelBuilder.Entity<Partner>()
 			.Property(partner => partner.CreatedUtc)
+			.HasDefaultValueSql("GETUTCDATE()");
+
+		modelBuilder.Entity<PendingGroupInvite>()
+			.HasOne(invite => invite.Group)
+			.WithMany()
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<PendingGroupInvite>()
+			.HasOne(invite => invite.InvitedByUser)
+			.WithMany()
+			.OnDelete(DeleteBehavior.SetNull);
+
+		modelBuilder.Entity<PendingGroupInvite>()
+			.Property(invite => invite.CreatedUtc)
 			.HasDefaultValueSql("GETUTCDATE()");
 
 		base.OnModelCreating(modelBuilder);

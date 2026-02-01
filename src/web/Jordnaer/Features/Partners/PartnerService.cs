@@ -26,7 +26,7 @@ public interface IPartnerService
 	Task<OneOf<Success, Error<string>>> RecordImpressionAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RecordClickAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<string, Error<string>>> UploadPreviewImageAsync(Guid partnerId, Stream imageStream, string fileName, CancellationToken cancellationToken = default);
-	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? link, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? partnerPageLink, string? adLink, string? adLabelColor, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 }
@@ -370,7 +370,9 @@ public class PartnerService(
 		string? description,
 		Stream? logoStream,
 		string? logoFileName,
-		string? link,
+		string? partnerPageLink,
+		string? adLink,
+		string? adLabelColor,
 		CancellationToken cancellationToken = default)
 	{
 		logger.LogFunctionBegan();
@@ -391,18 +393,44 @@ public class PartnerService(
 				return new Error<string>("Unauthorized");
 			}
 
-			// Validate link URL first (before any uploads to avoid orphaned blobs)
-			string? validatedLink = null;
-			if (!string.IsNullOrWhiteSpace(link))
+			// Validate URLs first (before any uploads to avoid orphaned blobs)
+			string? validatedPartnerPageLink = null;
+			if (!string.IsNullOrWhiteSpace(partnerPageLink))
 			{
-				var trimmedLink = link.Trim();
+				var trimmedLink = partnerPageLink.Trim();
 				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
 					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
 				{
-					return new Error<string>("Ugyldig link URL");
+					return new Error<string>("Ugyldig partnerside link URL");
 				}
 
-				validatedLink = trimmedLink;
+				validatedPartnerPageLink = trimmedLink;
+			}
+
+			string? validatedAdLink = null;
+			if (!string.IsNullOrWhiteSpace(adLink))
+			{
+				var trimmedLink = adLink.Trim();
+				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
+					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+				{
+					return new Error<string>("Ugyldig annonce link URL");
+				}
+
+				validatedAdLink = trimmedLink;
+			}
+
+			// Validate ad label color (should be hex color like #FFFFFF)
+			string? validatedAdLabelColor = null;
+			if (!string.IsNullOrWhiteSpace(adLabelColor))
+			{
+				var trimmedColor = adLabelColor.Trim();
+				if (!System.Text.RegularExpressions.Regex.IsMatch(trimmedColor, "^#[0-9A-Fa-f]{6}$"))
+				{
+					return new Error<string>("Ugyldig farve. Brug hex format som #FFFFFF");
+				}
+
+				validatedAdLabelColor = trimmedColor;
 			}
 
 			var hasChanges = false;
@@ -498,9 +526,21 @@ public class PartnerService(
 				hasChanges = true;
 			}
 
-			if (validatedLink is not null)
+			if (validatedPartnerPageLink is not null)
 			{
-				partner.PendingLink = validatedLink;
+				partner.PendingPartnerPageLink = validatedPartnerPageLink;
+				hasChanges = true;
+			}
+
+			if (validatedAdLink is not null)
+			{
+				partner.PendingAdLink = validatedAdLink;
+				hasChanges = true;
+			}
+
+			if (validatedAdLabelColor is not null)
+			{
+				partner.PendingAdLabelColor = validatedAdLabelColor;
 				hasChanges = true;
 			}
 
@@ -600,10 +640,22 @@ public class PartnerService(
 				partner.PendingDescription = null;
 			}
 
-			if (!string.IsNullOrEmpty(partner.PendingLink))
+			if (!string.IsNullOrEmpty(partner.PendingPartnerPageLink))
 			{
-				partner.Link = partner.PendingLink;
-				partner.PendingLink = null;
+				partner.PartnerPageLink = partner.PendingPartnerPageLink;
+				partner.PendingPartnerPageLink = null;
+			}
+
+			if (!string.IsNullOrEmpty(partner.PendingAdLink))
+			{
+				partner.AdLink = partner.PendingAdLink;
+				partner.PendingAdLink = null;
+			}
+
+			if (!string.IsNullOrEmpty(partner.PendingAdLabelColor))
+			{
+				partner.AdLabelColor = partner.PendingAdLabelColor;
+				partner.PendingAdLabelColor = null;
 			}
 
 			partner.HasPendingApproval = false;
@@ -698,7 +750,9 @@ public class PartnerService(
 			partner.PendingLogoUrl = null;
 			partner.PendingName = null;
 			partner.PendingDescription = null;
-			partner.PendingLink = null;
+			partner.PendingPartnerPageLink = null;
+			partner.PendingAdLink = null;
+			partner.PendingAdLabelColor = null;
 			partner.HasPendingApproval = false;
 
 			await context.SaveChangesAsync(cancellationToken);

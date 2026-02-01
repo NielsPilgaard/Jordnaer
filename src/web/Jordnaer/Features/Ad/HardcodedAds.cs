@@ -14,30 +14,22 @@ public static class HardcodedAds
             Description = "Professionel webudvikling og design",
             ImagePath = "images/ads/mooncreative_mobile.png",
             Link = "https://www.mooncreative.dk/"
-        }
+        },
+        new AdData
+        {
+            Title = "Hjemmeunger af Mie Storm",
+            Description = "Hjemmeunger - En guide til livet uden institution",
+            ImagePath = "images/ads/hjemmeunger.jpg",
+            Link = "https://muusmann-forlag.dk/hjemmeunger/",
+            LabelColor = "#3d3737"
+        },
+
     ];
 
     /// <summary>
-    /// Get ads for user search results.
-    /// Returns multiple copies if needed to fill the requested count.
+    /// Get all available hardcoded ads.
     /// </summary>
-    public static List<AdData> GetAdsForSearch(int count)
-    {
-        if (count <= 0 || _ads.Count == 0)
-        {
-            return [];
-        }
-
-        var result = new List<AdData>();
-
-        // Repeat ads to fill the requested count
-        for (var i = 0; i < count; i++)
-        {
-            result.Add(_ads[i % _ads.Count]);
-        }
-
-        return result;
-    }
+    public static List<AdData> GetAll() => [.. _ads];
 }
 
 public record AdData
@@ -50,4 +42,8 @@ public record AdData
     /// Partner ID for analytics tracking. Null for hardcoded ads.
     /// </summary>
     public Guid? PartnerId { get; init; }
+    /// <summary>
+    /// Optional custom background color for the "Annonce" label (hex format like #FFFFFF).
+    /// </summary>
+    public string? LabelColor { get; init; }
 }

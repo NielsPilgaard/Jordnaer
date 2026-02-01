@@ -512,7 +512,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20231112182745_Initial', N'10.0.1');
+    VALUES (N'20231112182745_Initial', N'10.0.2');
 END;
 
 COMMIT;
@@ -541,7 +541,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'10.0.1');
+    VALUES (N'20231112191227_Add_UniqueName_ToGroup', N'10.0.2');
 END;
 
 COMMIT;
@@ -562,7 +562,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20240219081648_Add_ApplicationUser_Cookie', N'10.0.1');
+    VALUES (N'20240219081648_Add_ApplicationUser_Cookie', N'10.0.2');
 END;
 
 COMMIT;
@@ -656,7 +656,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20250220204935_Add_Posts_And_GroupPosts', N'10.0.1');
+    VALUES (N'20250220204935_Add_Posts_And_GroupPosts', N'10.0.2');
 END;
 
 COMMIT;
@@ -677,7 +677,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20250220210616_Add_ZipCodeIndex_On_Post', N'10.0.1');
+    VALUES (N'20250220210616_Add_ZipCodeIndex_On_Post', N'10.0.2');
 END;
 
 COMMIT;
@@ -718,7 +718,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20251218120748_Increase_Post_Text_Limit', N'10.0.1');
+    VALUES (N'20251218120748_Increase_Post_Text_Limit', N'10.0.2');
 END;
 
 COMMIT;
@@ -745,7 +745,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20251218130525_Remove_GroupPost_ZipCode', N'10.0.1');
+    VALUES (N'20251218130525_Remove_GroupPost_ZipCode', N'10.0.2');
 END;
 
 COMMIT;
@@ -782,7 +782,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20251222211350_Add_Location_Geography_Column', N'10.0.1');
+    VALUES (N'20251222211350_Add_Location_Geography_Column', N'10.0.2');
 END;
 
 COMMIT;
@@ -811,7 +811,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20251226115122_Unique_Username', N'10.0.1');
+    VALUES (N'20251226115122_Unique_Username', N'10.0.2');
 END;
 
 COMMIT;
@@ -832,7 +832,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20251229214906_Add_ZipCodeLocation_To_Groups', N'10.0.1');
+    VALUES (N'20251229214906_Add_ZipCodeLocation_To_Groups', N'10.0.2');
 END;
 
 COMMIT;
@@ -861,7 +861,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260102194640_Add_NotificationSettings', N'10.0.1');
+    VALUES (N'20260102194640_Add_NotificationSettings', N'10.0.2');
 END;
 
 COMMIT;
@@ -888,7 +888,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260102225429_Fix_GroupMembership_Defaults', N'10.0.1');
+    VALUES (N'20260102225429_Fix_GroupMembership_Defaults', N'10.0.2');
 END;
 
 COMMIT;
@@ -967,7 +967,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260107220351_Add_Partners_And_Analytics', N'10.0.1');
+    VALUES (N'20260107220351_Add_Partners_And_Analytics', N'10.0.2');
 END;
 
 COMMIT;
@@ -1054,7 +1054,7 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260109222001_AddPartnerPermissions', N'10.0.1');
+    VALUES (N'20260109222001_AddPartnerPermissions', N'10.0.2');
 END;
 
 COMMIT;
@@ -1075,7 +1075,121 @@ IF NOT EXISTS (
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260109224836_Remove_Partner_Name_Index', N'10.0.1');
+    VALUES (N'20260109224836_Remove_Partner_Name_Index', N'10.0.2');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[PendingLink]', N'PendingPartnerPageLink', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    EXEC sp_rename N'[Partners].[Link]', N'PendingAdLink', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [AdLabelColor] nvarchar(7) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [AdLink] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [PartnerPageLink] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [PendingAdLabelColor] nvarchar(7) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    CREATE TABLE [PendingGroupInvites] (
+        [Id] uniqueidentifier NOT NULL,
+        [GroupId] uniqueidentifier NOT NULL,
+        [Email] nvarchar(256) NOT NULL,
+        [TokenHash] nvarchar(128) NOT NULL,
+        [Status] int NOT NULL,
+        [CreatedUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+        [ExpiresAtUtc] datetime2 NOT NULL,
+        [AcceptedAtUtc] datetime2 NULL,
+        [InvitedByUserId] nvarchar(450) NULL,
+        CONSTRAINT [PK_PendingGroupInvites] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_PendingGroupInvites_Groups_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [Groups] ([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_PendingGroupInvites_UserProfiles_InvitedByUserId] FOREIGN KEY ([InvitedByUserId]) REFERENCES [UserProfiles] ([Id]) ON DELETE SET NULL
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_PendingGroupInvites_Email_GroupId] ON [PendingGroupInvites] ([Email], [GroupId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    CREATE INDEX [IX_PendingGroupInvites_GroupId] ON [PendingGroupInvites] ([GroupId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    CREATE INDEX [IX_PendingGroupInvites_InvitedByUserId] ON [PendingGroupInvites] ([InvitedByUserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_PendingGroupInvites_TokenHash] ON [PendingGroupInvites] ([TokenHash]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260201210247_PendingGroupInvite_And_Partner_Optimizations', N'10.0.2');
 END;
 
 COMMIT;

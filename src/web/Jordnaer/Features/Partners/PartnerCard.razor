@@ -2,9 +2,9 @@
 @inject ILogger<PartnerCard> Logger
 
 @* Only display partner card if the partner has card data (link + logo/description) *@
-@if (Partner.HasPartnerCard && !string.IsNullOrEmpty(Partner.Link))
+@if (Partner.HasPartnerCard && !string.IsNullOrEmpty(Partner.PartnerPageLink))
 {
-    <MudLink Href="@Partner.Link" Target="_blank" Underline="Underline.None" OnClick="HandleClickAsync">
+    <MudLink Href="@Partner.PartnerPageLink" Target="_blank" Underline="Underline.None" OnClick="HandleClickAsync">
         <MudCard Elevation="5" Class="mt-5 card-hover" Style="max-width: 300px">
             <MudCardContent>
                 @if (!string.IsNullOrEmpty(Partner.LogoUrl))

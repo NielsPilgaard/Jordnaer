@@ -3,10 +3,12 @@
 @using System.Text
 @using Microsoft.AspNetCore.WebUtilities
 @using Jordnaer.Features.Profile
+@using Jordnaer.Features.Membership
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IProfileService ProfileService
+@inject IMembershipService MembershipService
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ConfirmEmail> Logger
 
@@ -33,6 +35,9 @@
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? InviteToken { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,14 +73,65 @@
                 }
 
                 var isProfileComplete = profileCheckResult.AsT0.Value;
+
+                // Determine redirect based on invite token and profile completion
+                string? groupRedirectUrl = null;
+
+                // If there's an invite token and profile is complete, accept the invite now
+                if (!string.IsNullOrWhiteSpace(InviteToken))
+                {
+                    // Validate the token to get the group info for redirect
+                    var tokenResult = await MembershipService.ValidateInviteTokenAsync(InviteToken);
+                    tokenResult.Switch(
+                        invite =>
+                        {
+                            if (invite.Group is not null && !string.IsNullOrWhiteSpace(invite.Group.Name))
+                            {
+                                groupRedirectUrl = $"/groups/{Uri.EscapeDataString(invite.Group.Name)}";
+                            }
+                        },
+                        notFound => { /* Token not found - ignore */ },
+                        error => Logger.LogWarning("Invite token validation failed: {Error}", error.Value)
+                    );
+
+                    // If profile is complete, accept the invite now
+                    if (isProfileComplete)
+                    {
+                        var acceptResult = await MembershipService.AcceptPendingInviteAsync(user.Id, InviteToken);
+                        acceptResult.Switch(
+                            success => Logger.LogInformation("User {UserId} accepted pending group invite", user.Id),
+                            notFound => Logger.LogWarning("Pending invite not found for user {UserId}", user.Id),
+                            error => Logger.LogWarning("Failed to accept pending invite for user {UserId}: {Error}", user.Id, error.Value)
+                        );
+                    }
+                }
+
                 if (!isProfileComplete)
                 {
-                    RedirectManager.RedirectTo("/CompleteProfile", forceLoad: true);
+                    // Pass invite token through to profile completion flow
+                    var queryParams = new Dictionary<string, object?>();
+                    if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                    {
+                        queryParams["returnUrl"] = ReturnUrl;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(groupRedirectUrl))
+                    {
+                        queryParams["returnUrl"] = groupRedirectUrl;
+                    }
+                    if (!string.IsNullOrWhiteSpace(InviteToken))
+                    {
+                        queryParams["inviteToken"] = InviteToken;
+                    }
+
+                    RedirectManager.RedirectTo("/CompleteProfile", queryParameters: queryParams);
                 }
                 else
                 {
-                    var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
-                    RedirectManager.RedirectTo(redirectUrl, forceLoad: true);
+                    // Profile is complete - redirect to group or return URL
+                    var redirectUrl = !string.IsNullOrWhiteSpace(groupRedirectUrl)
+                        ? groupRedirectUrl
+                        : (!string.IsNullOrWhiteSpace(ReturnUrl) ? ReturnUrl : "/");
+                    RedirectManager.RedirectTo(redirectUrl);
                 }
             }
             else

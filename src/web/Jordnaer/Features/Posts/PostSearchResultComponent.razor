@@ -13,7 +13,7 @@
             @if (item.IsAd && item.Ad is not null)
             {
                 <AdCard Link="@item.Ad.Link" ImagePath="@item.Ad.ImagePath" ImageAlt="@item.Ad.Title"
-                        PartnerId="@(item.Ad.PartnerId ?? Guid.Empty)" />
+                        PartnerId="@(item.Ad.PartnerId ?? Guid.Empty)" LabelColor="@item.Ad.LabelColor" />
             }
             else if (item.Post is not null)
             {

@@ -162,6 +162,39 @@
 
 							<MudFileUpload @ref="_adImageUpload" T="IBrowserFile" Accept=".png,.jpg,.jpeg,.webp"
 								FilesChanged="OnAdImageSelectedAsync" MaximumFileCount="1" Hidden />
+
+							<MudDivider Class="my-2" />
+
+							<MudTextField @bind-Value="_pendingAdLink" Label="Annonce Link"
+								Placeholder="@(_partner.AdLink ?? _partner.PartnerPageLink)"
+								Variant="Variant.Outlined"
+								HelperText="Link når brugere klikker på annoncen. Lad det stå tomt for at bruge partnerside link." />
+
+							<MudStack Spacing="1">
+								<MudText Typo="Typo.body2">Annonce Label Farve</MudText>
+								<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+									<MudSelect T="string" Value="_pendingAdLabelColor" ValueChanged="OnAdLabelColorChanged" Label="Vælg farve"
+										Variant="Variant.Outlined" Dense>
+										<MudSelectItem Value="@((string?)null)">Standard (transparent)</MudSelectItem>
+										@foreach (var color in AdLabelColors)
+										{
+											<MudSelectItem Value="@color.Hex">
+												<div style="display: flex; align-items: center; gap: 8px;">
+													<div style="width: 16px; height: 16px; border-radius: 3px; background-color: @color.Hex; border: 1px solid #ccc;"></div>
+													@color.Name
+												</div>
+											</MudSelectItem>
+										}
+									</MudSelect>
+									@if (!string.IsNullOrEmpty(_pendingAdLabelColor))
+									{
+										<div style="width: 24px; height: 24px; border-radius: 4px; background-color: @_pendingAdLabelColor; border: 1px solid #ccc;"></div>
+									}
+								</MudStack>
+								<MudText Typo="Typo.caption" Color="Color.Secondary">
+									Vælg en farve der giver god kontrast mod dit annoncebillede
+								</MudText>
+							</MudStack>
 						</MudStack>
 					</MudItem>
 
@@ -178,9 +211,10 @@
 								@if (!string.IsNullOrEmpty(GetPreviewAdImageUrl()))
 								{
 									<div style="position: relative; max-height: 500px; overflow: auto;">
-										<AdCard Link="@(_partner.Link)"
+										<AdCard Link="@GetPreviewAdLink()"
 											ImagePath="@GetPreviewAdImageUrl()"
 											ImageAlt="@(_partner.Name + " annonce")"
+											LabelColor="@GetPreviewAdLabelColor()"
 											IsPreview="true" />
 										@if (_adImage is not null)
 										{
@@ -244,10 +278,10 @@
 								Variant="Variant.Outlined"
 								HelperText="Lad det stå tomt for at beholde nuværende" />
 
-							<MudTextField @bind-Value="_pendingLink" Label="Website Link"
-								Placeholder="@_partner.Link"
+							<MudTextField @bind-Value="_pendingPartnerPageLink" Label="Partnerside Link"
+								Placeholder="@_partner.PartnerPageLink"
 								Variant="Variant.Outlined"
-								HelperText="Lad det stå tomt for at beholde nuværende" />
+								HelperText="Link til din side på partnerkortet. Lad det stå tomt for at beholde nuværende" />
 
 							<MudDivider Class="my-2" />
 
@@ -328,7 +362,10 @@
 	private IBrowserFile? _adImage;
 	private IBrowserFile? _logoImage;
 	private string? _pendingDescription;
-	private string? _pendingLink;
+	private string? _pendingPartnerPageLink;
+	private string? _pendingAdLink;
+	private string? _pendingAdLabelColor;
+	private bool _adLabelColorModified;
 	private bool _uploading;
 	private string? _adImagePreviewUrl;
 	private string? _logoPreviewUrl;
@@ -336,6 +373,16 @@
 
 	private List<ChartSeries> _chartSeries = [];
 	private string[] _xAxisLabels = [];
+
+	private static readonly (string Hex, string Name)[] AdLabelColors =
+	[
+		("#FFFFFF", "Hvid"),
+		("#000000", "Sort"),
+		("#F5F5F5", "Lysegrå"),
+		("#424242", "Mørkegrå"),
+		("#FFF8E1", "Creme"),
+		("#E3F2FD", "Lyseblå")
+	];
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -527,7 +574,15 @@
 		return _adImage is not null ||
 			_logoImage is not null ||
 			!string.IsNullOrWhiteSpace(_pendingDescription) ||
-			!string.IsNullOrWhiteSpace(_pendingLink);
+			!string.IsNullOrWhiteSpace(_pendingPartnerPageLink) ||
+			!string.IsNullOrWhiteSpace(_pendingAdLink) ||
+			_adLabelColorModified;
+	}
+
+	private void OnAdLabelColorChanged(string? value)
+	{
+		_pendingAdLabelColor = value;
+		_adLabelColorModified = true;
 	}
 
 	private string? GetPreviewAdImageUrl()
@@ -557,11 +612,26 @@
 		return _partner?.Description;
 	}
 
-	private string? GetPreviewLink()
+	private string? GetPreviewPartnerPageLink()
 	{
-		if (!string.IsNullOrWhiteSpace(_pendingLink)) return _pendingLink;
-		if (_partner?.PendingLink is not null) return _partner.PendingLink;
-		return _partner?.Link;
+		if (!string.IsNullOrWhiteSpace(_pendingPartnerPageLink)) return _pendingPartnerPageLink;
+		if (_partner?.PendingPartnerPageLink is not null) return _partner.PendingPartnerPageLink;
+		return _partner?.PartnerPageLink;
+	}
+
+	private string? GetPreviewAdLink()
+	{
+		if (!string.IsNullOrWhiteSpace(_pendingAdLink)) return _pendingAdLink;
+		if (_partner?.PendingAdLink is not null) return _partner.PendingAdLink;
+		if (_partner?.AdLink is not null) return _partner.AdLink;
+		return GetPreviewPartnerPageLink();
+	}
+
+	private string? GetPreviewAdLabelColor()
+	{
+		if (!string.IsNullOrWhiteSpace(_pendingAdLabelColor)) return _pendingAdLabelColor;
+		if (_partner?.PendingAdLabelColor is not null) return _partner.PendingAdLabelColor;
+		return _partner?.AdLabelColor;
 	}
 
 	private Partner GetPreviewPartner()
@@ -573,7 +643,7 @@
 			Name = GetPreviewName() ?? "",
 			Description = GetPreviewDescription() ?? "",
 			LogoUrl = GetPreviewLogoUrl(),
-			Link = GetPreviewLink() ?? "#",
+			PartnerPageLink = GetPreviewPartnerPageLink() ?? "#",
 			UserId = _partner?.UserId ?? "",
 			CreatedUtc = _partner?.CreatedUtc ?? DateTime.UtcNow
 		};
@@ -629,7 +699,9 @@
 				_pendingDescription,
 				logoStream,
 				logoFileName,
-				_pendingLink
+				_pendingPartnerPageLink,
+				_pendingAdLink,
+				_pendingAdLabelColor
 			);
 
 			result.Switch(
@@ -639,7 +711,10 @@
 					_adImage = null;
 					_logoImage = null;
 					_pendingDescription = null;
-					_pendingLink = null;
+					_pendingPartnerPageLink = null;
+					_pendingAdLink = null;
+					_pendingAdLabelColor = null;
+					_adLabelColorModified = false;
 					_adImagePreviewUrl = null;
 					_logoPreviewUrl = null;
 				},
