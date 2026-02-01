@@ -2,6 +2,7 @@
 @using Jordnaer.Shared
 @using MudBlazor
 @using OneOf.Types
+@using System.ComponentModel.DataAnnotations
 
 @inherits CancellableComponent
 
@@ -12,38 +13,59 @@
     <DialogContent>
         <MudText Typo="Typo.h6" Class="mb-4">Inviter medlem til gruppen</MudText>
 
-        <UserSearchAutocomplete CurrentUserId="@CurrentUserId"
-                                UserSelected="@UserSelected"
-                                Disabled="@_isInviting"
-                                ShowUsername="true"
-                                AvatarSize="Size.Medium" />
+        <MudTabs @bind-ActivePanelIndex="_activeTab" Elevation="0" Rounded ApplyEffectsToContainer Class="mb-4">
+            <MudTabPanel Text="Søg efter bruger" Icon="@Icons.Material.Filled.PersonSearch">
+                <MudStack Class="pt-4">
+                    <UserSearchAutocomplete CurrentUserId="@CurrentUserId"
+                                            UserSelected="@UserSelected"
+                                            Disabled="@_isInviting"
+                                            ShowUsername="true"
+                                            AvatarSize="Size.Medium" />
 
-        @if (_selectedUser is not null)
-        {
-            <MudPaper Class="mt-4 pa-4" Elevation="0" Outlined>
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
-                    <MudAvatar Size="Size.Large">
-                        <MudImage Src="@_selectedUser.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
-                    </MudAvatar>
-                    <div>
-                        <MudText Typo="Typo.subtitle1">@_selectedUser.DisplayName</MudText>
-                        @if (!string.IsNullOrEmpty(_selectedUser.UserName))
-                        {
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">@@@_selectedUser.UserName</MudText>
-                        }
-                    </div>
-                    <MudSpacer />
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="ClearSelection" />
+                    @if (_selectedUser is not null)
+                    {
+                        <MudPaper Class="mt-4 pa-4" Elevation="0" Outlined>
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                                <MudAvatar Size="Size.Large">
+                                    <MudImage Src="@_selectedUser.ProfilePictureUrl" loading="lazy" Alt="Avatar" />
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.subtitle1">@_selectedUser.DisplayName</MudText>
+                                    @if (!string.IsNullOrEmpty(_selectedUser.UserName))
+                                    {
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@@@_selectedUser.UserName</MudText>
+                                    }
+                                </div>
+                                <MudSpacer />
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="ClearSelection" />
+                            </MudStack>
+                        </MudPaper>
+                    }
                 </MudStack>
-            </MudPaper>
-        }
+            </MudTabPanel>
+            <MudTabPanel Text="Inviter via email" Icon="@Icons.Material.Filled.Email">
+                <MudStack Class="pt-4">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                        Send en invitation til en person der endnu ikke er registreret på Mini Møder.
+                    </MudText>
+                    <MudTextField @bind-Value="_inviteEmail"
+                                  Label="Email-adresse"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Email"
+                                  Disabled="@_isInviting"
+                                  Validation="@(new EmailAddressAttribute { ErrorMessage = "Indtast venligst en gyldig email-adresse." })"
+                                  Immediate
+                                  HelperText="Personen modtager en email med invitation til at oprette en konto og deltage i gruppen." />
+                </MudStack>
+            </MudTabPanel>
+        </MudTabs>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel" Disabled="_isInviting">Annuller</MudButton>
         <MudButton Color="Color.Primary"
                    Variant="Variant.Filled"
                    OnClick="InviteUser"
-                   Disabled="@(_selectedUser is null || _isInviting)">
+                   Disabled="@(IsInviteButtonDisabled)">
             @if (_isInviting)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate />
@@ -63,7 +85,31 @@
     [Parameter] public required string CurrentUserId { get; set; }
 
     private UserSlim? _selectedUser;
+    private string _inviteEmail = string.Empty;
     private bool _isInviting;
+    private int _activeTab;
+
+    private bool IsInviteButtonDisabled
+    {
+        get
+        {
+            if (_isInviting) return true;
+
+            // Tab 0: Search for existing user
+            if (_activeTab == 0)
+            {
+                return _selectedUser is null;
+            }
+
+            // Tab 1: Invite by email
+            return string.IsNullOrWhiteSpace(_inviteEmail) || !IsValidEmail(_inviteEmail);
+        }
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        return new EmailAddressAttribute().IsValid(email);
+    }
 
     private Task UserSelected(UserSlim? user)
     {
@@ -84,27 +130,57 @@
 
     private async Task InviteUser()
     {
-        if (_selectedUser is null)
-        {
-            return;
-        }
-
         _isInviting = true;
 
-        var result = await MembershipService.InviteUserToGroupAsync(GroupId, _selectedUser.Id, CancellationToken);
-
-        result.Switch(
-            success =>
+        // Tab 0: Invite existing user
+        if (_activeTab == 0)
+        {
+            if (_selectedUser is null)
             {
-                Snackbar.Add($"{_selectedUser.DisplayName} er blevet inviteret til gruppen.", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(true));
-            },
-            error =>
-            {
-                Snackbar.Add(error.Value, Severity.Error);
                 _isInviting = false;
-                StateHasChanged();
+                return;
             }
-        );
+
+            var result = await MembershipService.InviteUserToGroupAsync(GroupId, _selectedUser.Id, CancellationToken);
+
+            result.Switch(
+                success =>
+                {
+                    Snackbar.Add($"{_selectedUser.DisplayName} er blevet inviteret til gruppen.", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                },
+                error =>
+                {
+                    Snackbar.Add(error.Value, Severity.Error);
+                    _isInviting = false;
+                    StateHasChanged();
+                }
+            );
+        }
+        // Tab 1: Invite by email
+        else
+        {
+            if (string.IsNullOrWhiteSpace(_inviteEmail) || !IsValidEmail(_inviteEmail))
+            {
+                _isInviting = false;
+                return;
+            }
+
+            var result = await MembershipService.InviteByEmailAsync(GroupId, _inviteEmail.Trim(), CancellationToken);
+
+            result.Switch(
+                success =>
+                {
+                    Snackbar.Add($"Invitation sendt til {_inviteEmail}.", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                },
+                error =>
+                {
+                    Snackbar.Add(error.Value, Severity.Error);
+                    _isInviting = false;
+                    StateHasChanged();
+                }
+            );
+        }
     }
 }
