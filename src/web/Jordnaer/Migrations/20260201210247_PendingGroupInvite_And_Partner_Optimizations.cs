@@ -6,28 +6,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Jordnaer.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class PartnerAdLinkAndLabelColor : Migration
+    public partial class PendingGroupInvite_And_Partner_Optimizations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Rename existing columns
-            migrationBuilder.RenameColumn(
-                name: "Link",
-                table: "Partners",
-                newName: "PartnerPageLink");
-
             migrationBuilder.RenameColumn(
                 name: "PendingLink",
                 table: "Partners",
                 newName: "PendingPartnerPageLink");
 
-            // Add new columns
-            migrationBuilder.AddColumn<string>(
-                name: "AdLink",
+            migrationBuilder.RenameColumn(
+                name: "Link",
                 table: "Partners",
-                type: "nvarchar(max)",
-                nullable: true);
+                newName: "PendingAdLink");
 
             migrationBuilder.AddColumn<string>(
                 name: "AdLabelColor",
@@ -37,7 +29,13 @@ namespace Jordnaer.Server.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "PendingAdLink",
+                name: "AdLink",
+                table: "Partners",
+                type: "nvarchar(max)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "PartnerPageLink",
                 table: "Partners",
                 type: "nvarchar(max)",
                 nullable: true);
@@ -55,13 +53,13 @@ namespace Jordnaer.Server.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     GroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TokenHash = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    TokenHash = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     ExpiresAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AcceptedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    InvitedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    InvitedByUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -83,7 +81,8 @@ namespace Jordnaer.Server.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_PendingGroupInvites_Email_GroupId",
                 table: "PendingGroupInvites",
-                columns: new[] { "Email", "GroupId" });
+                columns: new[] { "Email", "GroupId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PendingGroupInvites_GroupId",
@@ -108,33 +107,31 @@ namespace Jordnaer.Server.Migrations
             migrationBuilder.DropTable(
                 name: "PendingGroupInvites");
 
-            // Drop new columns
-            migrationBuilder.DropColumn(
-                name: "AdLink",
-                table: "Partners");
-
             migrationBuilder.DropColumn(
                 name: "AdLabelColor",
                 table: "Partners");
 
             migrationBuilder.DropColumn(
-                name: "PendingAdLink",
+                name: "AdLink",
+                table: "Partners");
+
+            migrationBuilder.DropColumn(
+                name: "PartnerPageLink",
                 table: "Partners");
 
             migrationBuilder.DropColumn(
                 name: "PendingAdLabelColor",
                 table: "Partners");
 
-            // Rename columns back
-            migrationBuilder.RenameColumn(
-                name: "PartnerPageLink",
-                table: "Partners",
-                newName: "Link");
-
             migrationBuilder.RenameColumn(
                 name: "PendingPartnerPageLink",
                 table: "Partners",
                 newName: "PendingLink");
+
+            migrationBuilder.RenameColumn(
+                name: "PendingAdLink",
+                table: "Partners",
+                newName: "Link");
         }
     }
 }

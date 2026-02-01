@@ -64,7 +64,7 @@ else
                         <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Partnerside Link</MudText>
                         @if (!string.IsNullOrWhiteSpace(_partner.PartnerPageLink))
                         {
-                            <MudLink Href="@_partner.PartnerPageLink" Target="_blank" Typo="Typo.body1">
+                            <MudLink Href="@_partner.PartnerPageLink" Target="_blank" rel="noopener" Typo="Typo.body1">
                                 @_partner.PartnerPageLink
                             </MudLink>
                         }
@@ -80,7 +80,7 @@ else
                     <MudItem xs="12" md="6">
                         <MudStack Spacing="2">
                             <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Annonce Link</MudText>
-                            <MudLink Href="@_partner.AdLink" Target="_blank" Typo="Typo.body1">
+                            <MudLink Href="@_partner.AdLink" Target="_blank" rel="noopener" Typo="Typo.body1">
                                 @_partner.AdLink
                             </MudLink>
                         </MudStack>

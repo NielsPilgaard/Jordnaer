@@ -1084,15 +1084,7 @@ GO
 BEGIN TRANSACTION;
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
-)
-BEGIN
-    EXEC sp_rename N'[Partners].[Link]', N'PartnerPageLink', 'COLUMN';
-END;
-
-IF NOT EXISTS (
-    SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     EXEC sp_rename N'[Partners].[PendingLink]', N'PendingPartnerPageLink', 'COLUMN';
@@ -1100,15 +1092,15 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
-    ALTER TABLE [Partners] ADD [AdLink] nvarchar(max) NULL;
+    EXEC sp_rename N'[Partners].[Link]', N'PendingAdLink', 'COLUMN';
 END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     ALTER TABLE [Partners] ADD [AdLabelColor] nvarchar(7) NULL;
@@ -1116,15 +1108,23 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
-    ALTER TABLE [Partners] ADD [PendingAdLink] nvarchar(max) NULL;
+    ALTER TABLE [Partners] ADD [AdLink] nvarchar(max) NULL;
 END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [PartnerPageLink] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     ALTER TABLE [Partners] ADD [PendingAdLabelColor] nvarchar(7) NULL;
@@ -1132,14 +1132,14 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     CREATE TABLE [PendingGroupInvites] (
         [Id] uniqueidentifier NOT NULL,
         [GroupId] uniqueidentifier NOT NULL,
-        [Email] nvarchar(450) NOT NULL,
-        [TokenHash] nvarchar(450) NOT NULL,
+        [Email] nvarchar(256) NOT NULL,
+        [TokenHash] nvarchar(128) NOT NULL,
         [Status] int NOT NULL,
         [CreatedUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
         [ExpiresAtUtc] datetime2 NOT NULL,
@@ -1153,15 +1153,15 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
-    CREATE INDEX [IX_PendingGroupInvites_Email_GroupId] ON [PendingGroupInvites] ([Email], [GroupId]);
+    CREATE UNIQUE INDEX [IX_PendingGroupInvites_Email_GroupId] ON [PendingGroupInvites] ([Email], [GroupId]);
 END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     CREATE INDEX [IX_PendingGroupInvites_GroupId] ON [PendingGroupInvites] ([GroupId]);
@@ -1169,7 +1169,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     CREATE INDEX [IX_PendingGroupInvites_InvitedByUserId] ON [PendingGroupInvites] ([InvitedByUserId]);
@@ -1177,7 +1177,7 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_PendingGroupInvites_TokenHash] ON [PendingGroupInvites] ([TokenHash]);
@@ -1185,11 +1185,11 @@ END;
 
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
-    WHERE [MigrationId] = N'20260201100059_PartnerAdLinkAndLabelColor'
+    WHERE [MigrationId] = N'20260201210247_PendingGroupInvite_And_Partner_Optimizations'
 )
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-    VALUES (N'20260201100059_PartnerAdLinkAndLabelColor', N'10.0.2');
+    VALUES (N'20260201210247_PendingGroupInvite_And_Partner_Optimizations', N'10.0.2');
 END;
 
 COMMIT;

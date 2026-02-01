@@ -13,8 +13,8 @@ using NetTopologySuite.Geometries;
 namespace Jordnaer.Server.Migrations
 {
     [DbContext(typeof(JordnaerDbContext))]
-    [Migration("20260201100059_PartnerAdLinkAndLabelColor")]
-    partial class PartnerAdLinkAndLabelColor
+    [Migration("20260201210247_PendingGroupInvite_And_Partner_Optimizations")]
+    partial class PendingGroupInvite_And_Partner_Optimizations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -487,7 +487,8 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("ExpiresAtUtc")
                         .HasColumnType("datetime2");
@@ -496,6 +497,7 @@ namespace Jordnaer.Server.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("InvitedByUserId")
+                        .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Status")
@@ -503,7 +505,8 @@ namespace Jordnaer.Server.Migrations
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.HasKey("Id");
 
@@ -514,7 +517,8 @@ namespace Jordnaer.Server.Migrations
                     b.HasIndex("TokenHash")
                         .IsUnique();
 
-                    b.HasIndex("Email", "GroupId");
+                    b.HasIndex("Email", "GroupId")
+                        .IsUnique();
 
                     b.ToTable("PendingGroupInvites");
                 });

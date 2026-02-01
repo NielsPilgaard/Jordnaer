@@ -144,26 +144,16 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 		modelBuilder.Entity<PendingGroupInvite>()
 			.HasOne(invite => invite.Group)
 			.WithMany()
-			.HasForeignKey(invite => invite.GroupId)
 			.OnDelete(DeleteBehavior.Cascade);
 
 		modelBuilder.Entity<PendingGroupInvite>()
 			.HasOne(invite => invite.InvitedByUser)
 			.WithMany()
-			.HasForeignKey(invite => invite.InvitedByUserId)
 			.OnDelete(DeleteBehavior.SetNull);
 
 		modelBuilder.Entity<PendingGroupInvite>()
 			.Property(invite => invite.CreatedUtc)
 			.HasDefaultValueSql("GETUTCDATE()");
-
-		modelBuilder.Entity<PendingGroupInvite>()
-			.HasIndex(invite => new { invite.Email, invite.GroupId })
-			.IsUnique();
-
-		modelBuilder.Entity<PendingGroupInvite>()
-			.HasIndex(invite => invite.TokenHash)
-			.IsUnique();
 
 		base.OnModelCreating(modelBuilder);
 	}
