@@ -175,9 +175,16 @@
 								<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
 									<MudSelect T="string" Value="_pendingAdLabelColor" ValueChanged="OnAdLabelColorChanged" Label="Vælg farve"
 										Variant="Variant.Outlined" Dense>
-										<MudSelectItem Value="@((string?)null)">Standard (mørk)</MudSelectItem>
-										<MudSelectItem Value="@("#FFFFFF")">Lys (#FFFFFF)</MudSelectItem>
-										<MudSelectItem Value="@("#000000")">Mørk (#000000)</MudSelectItem>
+										<MudSelectItem Value="@((string?)null)">Standard (transparent)</MudSelectItem>
+										@foreach (var color in AdLabelColors)
+										{
+											<MudSelectItem Value="@color.Hex">
+												<div style="display: flex; align-items: center; gap: 8px;">
+													<div style="width: 16px; height: 16px; border-radius: 3px; background-color: @color.Hex; border: 1px solid #ccc;"></div>
+													@color.Name
+												</div>
+											</MudSelectItem>
+										}
 									</MudSelect>
 									@if (!string.IsNullOrEmpty(_pendingAdLabelColor))
 									{
@@ -366,6 +373,16 @@
 
 	private List<ChartSeries> _chartSeries = [];
 	private string[] _xAxisLabels = [];
+
+	private static readonly (string Hex, string Name)[] AdLabelColors =
+	[
+		("#FFFFFF", "Hvid"),
+		("#000000", "Sort"),
+		("#F5F5F5", "Lysegrå"),
+		("#424242", "Mørkegrå"),
+		("#FFF8E1", "Creme"),
+		("#E3F2FD", "Lyseblå")
+	];
 
 	protected override async Task OnInitializedAsync()
 	{
