@@ -80,6 +80,9 @@
 </MudDialog>
 
 @code {
+    private const int SearchUserTab = 0;
+    private const int InviteByEmailTab = 1;
+
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public required Guid GroupId { get; set; }
     [Parameter] public required string CurrentUserId { get; set; }
@@ -95,13 +98,12 @@
         {
             if (_isInviting) return true;
 
-            // Tab 0: Search for existing user
-            if (_activeTab == 0)
+            if (_activeTab == SearchUserTab)
             {
                 return _selectedUser is null;
             }
 
-            // Tab 1: Invite by email
+            // InviteByEmailTab
             var trimmedEmail = _inviteEmail?.Trim();
             return string.IsNullOrWhiteSpace(trimmedEmail) || !IsValidEmail(trimmedEmail);
         }
@@ -133,8 +135,7 @@
     {
         _isInviting = true;
 
-        // Tab 0: Invite existing user
-        if (_activeTab == 0)
+        if (_activeTab == SearchUserTab)
         {
             if (_selectedUser is null)
             {
@@ -158,8 +159,7 @@
                 }
             );
         }
-        // Tab 1: Invite by email
-        else
+        else // InviteByEmailTab
         {
             var email = _inviteEmail?.Trim();
             if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
