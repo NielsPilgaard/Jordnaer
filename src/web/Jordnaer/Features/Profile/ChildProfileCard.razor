@@ -2,9 +2,9 @@
     <div class="d-flex flex-column flex-sm-row gap-4 align-start">
         <!-- Avatar -->
         <div class="d-flex justify-center flex-shrink-0" style="width: 100px;">
-            @if (!string.IsNullOrEmpty(Child.PictureUrl))
+            @if (!string.IsNullOrEmpty(Child.ProfilePictureUrl))
             {
-                <MudImage Src="@Child.PictureUrl" Style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
+                <MudImage Src="@Child.ProfilePictureUrl" Style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
                     Alt="@Child.DisplayName" />
             }
             else

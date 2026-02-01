@@ -1,59 +1,30 @@
-@inject ISnackbar Snackbar
+@using Jordnaer.Shared
 @inject IProfileImageService ProfileImageService
 
-<MudFileUpload T="IBrowserFile" Accept="image/jpeg, image/png" OnFilesChanged="OnInputFileChanged" MaximumFileCount="1"
-    Hidden="false" title="Klik her for at skifte billede" InputClass="absolute mud-height-full overflow-hidden z-20"
-    InputStyle="opacity:0;cursor: pointer">
-    <ActivatorContent>
-        <MudPaper Elevation="4" Class="rounded-circle d-flex align-center justify-center overflow-hidden"
-            Style="width: 200px; height: 200px;">
-            @if (!string.IsNullOrEmpty(ChildProfile.PictureUrl))
-            {
-                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Cover"
-                    Style="width: 100%; height: 100%;" Src="@ChildProfile.PictureUrl"
-                    Alt="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? "Billede af barn" : $"Billede af {ChildProfile.FirstName}")" />
-            }
-            else
-            {
-                <MudAvatar Style="width: 100%; height: 100%; font-size: 3rem;" Color="Color.Secondary">
-                    @ChildProfile.FirstName.FirstOrDefault()
-                </MudAvatar>
-            }
-        </MudPaper>
-    </ActivatorContent>
-</MudFileUpload>
+<ProfilePictureUpload
+    CurrentProfilePictureUrl="@ChildProfile.ProfilePictureUrl"
+    DisplayName="@($"{ChildProfile.FirstName} {ChildProfile.LastName}")"
+    DisplayInitial="@(ChildProfile.FirstName?.FirstOrDefault() ?? '?')"
+    ProfilePictureAltText="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? "Billede af barn" : $"Billede af {ChildProfile.FirstName}")"
+    OnSave="SaveChildProfilePicture"
+    OnImageChanged="OnImageChanged" />
 
 @code {
     [Parameter]
     public required ChildProfile ChildProfile { get; set; }
+
     [Parameter]
     public required EventCallback<ChildProfile> ChildProfileChanged { get; set; }
 
-    private BrowserFileValidator _browserFileValidator = new();
-
-    private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
+    private async Task<string> SaveChildProfilePicture(byte[] imageBytes)
     {
-        var validationResult = await _browserFileValidator.ValidateAsync(inputFileChange.File);
-        if (!validationResult.IsValid)
-        {
-            Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
-            return;
-        }
+        var uri = await ProfileImageService.SetChildProfilePictureAsync(new SetChildProfilePicture(ChildProfile, imageBytes));
+        ChildProfile.ProfilePictureUrl = uri;
+        return uri;
+    }
 
-        var contentType = inputFileChange.File.ContentType;
-        var resizedImageFile = await inputFileChange.File.RequestImageFileAsync(contentType, 200, 200);
-
-        using var ms = new MemoryStream();
-        await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
-        var bytes = ms.ToArray();
-
-        var setChildProfilePictureResult = await ProfileImageService.SetChildProfilePictureAsync(new
-        SetChildProfilePicture(ChildProfile, bytes));
-
-        ChildProfile.PictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
-
+    private async Task OnImageChanged()
+    {
         await ChildProfileChanged.InvokeAsync(ChildProfile);
-
-        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
     }
 }

@@ -1195,3 +1195,24 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201221320_RenameChildProfilePictureUrl'
+)
+BEGIN
+    EXEC sp_rename N'[ChildProfiles].[PictureUrl]', N'ProfilePictureUrl', 'COLUMN';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260201221320_RenameChildProfilePictureUrl'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260201221320_RenameChildProfilePictureUrl', N'10.0.2');
+END;
+
+COMMIT;
+GO
+

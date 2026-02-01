@@ -66,16 +66,16 @@ public class ProfileImageService(IDbContextFactory<JordnaerDbContext> contextFac
 		var currentChildProfile = await context.ChildProfiles.FindAsync([dto.ChildProfile.Id], cancellationToken);
 		if (currentChildProfile is null)
 		{
-			dto.ChildProfile.PictureUrl = uri;
+			dto.ChildProfile.ProfilePictureUrl = uri;
 			context.ChildProfiles.Add(dto.ChildProfile);
 			await context.SaveChangesAsync(cancellationToken);
 			return;
 		}
 
 		// Updating is only required if the pictureUrl is not already correct
-		if (currentChildProfile.PictureUrl != uri)
+		if (currentChildProfile.ProfilePictureUrl != uri)
 		{
-			currentChildProfile.PictureUrl = uri;
+			currentChildProfile.ProfilePictureUrl = uri;
 			context.Entry(currentChildProfile).State = EntityState.Modified;
 
 			await context.SaveChangesAsync(cancellationToken);

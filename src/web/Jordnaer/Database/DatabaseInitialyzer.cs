@@ -42,7 +42,7 @@ public static class SeedDatabase
 			.RuleFor(cp => cp.Gender, f => f.PickRandom<Gender>())
 			.RuleFor(cp => cp.DateOfBirth, f => f.Date.Between(DateTime.UtcNow.AddYears(-14), DateTime.UtcNow))
 			.RuleFor(cp => cp.Description, f => f.Lorem.Paragraphs(f.Random.Int(1, 5)))
-			.RuleFor(cp => cp.PictureUrl, f => f.Internet.Avatar());
+			.RuleFor(cp => cp.ProfilePictureUrl, f => f.Internet.Avatar());
 
 		var userFaker = new Faker<UserProfile>("nb_NO")
 			.RuleFor(u => u.Id, _ => NewId.NextGuid().ToString())
@@ -59,7 +59,7 @@ public static class SeedDatabase
 					.OrderBy(_ => f.Random.Int(0, categories.Count))
 					.Take(f.Random.Int(0, categories.Count))
 					.ToList())
-			.RuleFor(u => u.ChildProfiles, f => childProfileFaker.Generate(f.Random.Int(1, 3)))
+			.RuleFor(u => u.ChildProfiles, (f, u) => childProfileFaker.Generate(f.Random.Int(1, 3)))
 			.RuleFor(u => u.DateOfBirth, f => f.Date.Between(DateTime.UtcNow.AddYears(-70), DateTime.UtcNow.AddYears(-16)))
 			.RuleFor(u => u.ProfilePictureUrl, f => f.Internet.Avatar());
 

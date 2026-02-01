@@ -1,0 +1,264 @@
+@using Jordnaer.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<div class="profile-picture-upload-container">
+    @if (!_showCropper)
+    {
+        <MudFileUpload T="IBrowserFile" Accept="image/jpeg, image/png" OnFilesChanged="OnInputFileChanged" MaximumFileCount="1"
+            Hidden="false" title="Klik her for at skifte billede" InputClass="absolute mud-height-full overflow-hidden z-20"
+            InputStyle="opacity:0;cursor: pointer" @ref="_fileUpload">
+            <ActivatorContent>
+                <MudPaper Elevation="4" Class="rounded-circle d-flex align-center justify-center overflow-hidden"
+                    Style="width: 200px; height: 200px;">
+                    @if (!string.IsNullOrEmpty(CurrentProfilePictureUrl))
+                    {
+                        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Cover"
+                            Style="width: 100%; height: 100%;" Src="@CurrentProfilePictureUrl"
+                            Alt="@ProfilePictureAltText" />
+                    }
+                    else
+                    {
+                        <MudAvatar Style="width: 100%; height: 100%; font-size: 3rem;" Color="Color.Primary">
+                            @DisplayInitial
+                        </MudAvatar>
+                    }
+                </MudPaper>
+            </ActivatorContent>
+        </MudFileUpload>
+
+        <MudExpansionPanels Class="mt-4">
+            <MudExpansionPanel Text="Vejledning til upload af billede" Dense="true">
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <strong>Anbefalede billedkrav:</strong>
+                </MudText>
+                <MudList T="string" Dense="true">
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Image">
+                        <strong>Størrelse:</strong> Mindst 400x400 px for bedste kvalitet
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Photo">
+                        <strong>Format:</strong> JPEG eller PNG
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">
+                        <strong>Maks filstørrelse:</strong> 2 MB
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Face">
+                        <strong>Tips:</strong> Brug et tydeligt billede med godt lys, velegnet til familier
+                    </MudListItem>
+                </MudList>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+    else
+    {
+        <div class="cropper-container">
+            <MudText Typo="Typo.h6" Class="mb-3">Beskær dit billede</MudText>
+
+            @if (_showSizeWarning)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                    @_sizeWarningMessage
+                </MudAlert>
+            }
+
+            <div id="image-cropper-container" style="max-width: 100%; max-height: 400px; margin-bottom: 1rem;">
+                <img id="image-to-crop" src="@_originalImageDataUrl" style="max-width: 100%;" />
+            </div>
+
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Sådan vil dit billede se ud:</MudText>
+
+            <div class="preview-container mb-4" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <MudText Typo="Typo.caption">Profilkort (150x150)</MudText>
+                    <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: 150px; height: 150px;">
+                        <img id="preview-150" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </MudPaper>
+                </div>
+
+                <div style="text-align: center;">
+                    <MudText Typo="Typo.caption">Lille avatar (40x40)</MudText>
+                    <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: 40px; height: 40px;">
+                        <img id="preview-40" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </MudPaper>
+                </div>
+
+                <div style="text-align: center;">
+                    <MudText Typo="Typo.caption">Fuld profil (250x250)</MudText>
+                    <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: 250px; height: 250px;">
+                        <img id="preview-250" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </MudPaper>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCroppedImage" Disabled="_isSaving">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Gem billede
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" OnClick="CancelCrop" Disabled="_isSaving">
+                    Annuller
+                </MudButton>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? CurrentProfilePictureUrl { get; set; }
+
+    [Parameter]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [Parameter]
+    public char DisplayInitial { get; set; } = '?';
+
+    [Parameter]
+    public string ProfilePictureAltText { get; set; } = "Profilbillede";
+
+    [Parameter]
+    public required Func<byte[], Task<string>> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnImageChanged { get; set; }
+
+    private MudFileUpload<IBrowserFile>? _fileUpload;
+    private bool _showCropper = false;
+    private bool _isSaving = false;
+    private string? _originalImageDataUrl;
+    private string? _contentType;
+    private bool _showSizeWarning = false;
+    private string _sizeWarningMessage = string.Empty;
+
+    private static readonly BrowserFileValidator BrowserFileValidator = new();
+
+    private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
+    {
+        var validationResult = await BrowserFileValidator.ValidateAsync(inputFileChange.File);
+        if (!validationResult.IsValid)
+        {
+            Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
+            return;
+        }
+
+        _contentType = inputFileChange.File.ContentType;
+
+        // Read the original image to get dimensions and create data URL
+        using var ms = new MemoryStream();
+        var maxSize = BrowserFileValidator.MaxFileSize * 2; // Allow larger for initial read
+        await inputFileChange.File.OpenReadStream(maxSize).CopyToAsync(ms);
+        var bytes = ms.ToArray();
+        _originalImageDataUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
+
+        // Check image dimensions and show warnings
+        var dimensions = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", _originalImageDataUrl);
+        if (dimensions.Length == 2)
+        {
+            var width = dimensions[0];
+            var height = dimensions[1];
+
+            _showSizeWarning = false;
+            _sizeWarningMessage = string.Empty;
+
+            if (width < 200 || height < 200)
+            {
+                _showSizeWarning = true;
+                _sizeWarningMessage = $"Dit billede er {width}x{height} px, hvilket er mindre end anbefalede 400x400 px. Billedet kan se pixeleret ud.";
+            }
+            else if (width < 400 || height < 400)
+            {
+                _showSizeWarning = true;
+                _sizeWarningMessage = $"Dit billede er {width}x{height} px. For bedste kvalitet anbefaler vi mindst 400x400 px.";
+            }
+            else if (width > 4000 || height > 4000)
+            {
+                _showSizeWarning = true;
+                _sizeWarningMessage = $"Dit billede er {width}x{height} px, hvilket er meget stort. Det kan tage længere tid at behandle.";
+            }
+
+            if (Math.Abs(width - height) > Math.Min(width, height) * 0.1)
+            {
+                var aspectWarning = "Dit billede er ikke kvadratisk og vil blive beskåret.";
+                _sizeWarningMessage = _showSizeWarning
+                    ? $"{_sizeWarningMessage} {aspectWarning}"
+                    : aspectWarning;
+                _showSizeWarning = true;
+            }
+        }
+
+        _showCropper = true;
+        StateHasChanged();
+
+        // Initialize cropper after render
+        await Task.Delay(100);
+        await JSRuntime.InvokeVoidAsync("imageCropper.initializeCropper", "image-to-crop");
+    }
+
+    private async Task SaveCroppedImage()
+    {
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            // Get cropped image as base64
+            var croppedImageDataUrl = await JSRuntime.InvokeAsync<string>("imageCropper.getCroppedImage", 200, 200);
+
+            // Convert base64 to bytes
+            var base64Data = croppedImageDataUrl.Split(',')[1];
+            var bytes = Convert.FromBase64String(base64Data);
+
+            // Call the save callback
+            var uri = await OnSave(bytes);
+
+            // Update the display
+            CurrentProfilePictureUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
+
+            // Clean up cropper
+            await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
+            _showCropper = false;
+            _originalImageDataUrl = null;
+
+            await OnImageChanged.InvokeAsync();
+
+            Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Der opstod en fejl ved gemning af billedet: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CancelCrop()
+    {
+        await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
+        _showCropper = false;
+        _originalImageDataUrl = null;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_showCropper)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
+            }
+            catch
+            {
+                // Ignore errors during disposal
+            }
+        }
+    }
+}
