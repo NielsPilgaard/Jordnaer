@@ -2,24 +2,13 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
 
 <div class="profile-picture-upload-container">
-    @if (!_showCropper)
-    {
-        <ProfilePictureUploadButton CurrentProfilePictureUrl="@CurrentProfilePictureUrl"
-                                    DisplayInitial="@DisplayInitial"
-                                    ProfilePictureAltText="@ProfilePictureAltText"
-                                    OnFilesChanged="@OnInputFileChanged" />
-    }
-    else if (_originalImageDataUrl is not null)
-    {
-        <ImageCropper ImageDataUrl="@_originalImageDataUrl"
-                      ShowWarning="@_showSizeWarning"
-                      WarningMessage="@_sizeWarningMessage"
-                      IsSaving="@_isSaving"
-                      OnSave="@HandleCroppedImageSave"
-                      OnCancel="@HandleCancelCrop" />
-    }
+    <ProfilePictureUploadButton CurrentProfilePictureUrl="@CurrentProfilePictureUrl"
+                                DisplayInitial="@DisplayInitial"
+                                ProfilePictureAltText="@ProfilePictureAltText"
+                                OnFilesChanged="@OnInputFileChanged" />
 </div>
 
 @code {
@@ -41,12 +30,7 @@
     [Parameter]
     public EventCallback OnImageChanged { get; set; }
 
-    private bool _showCropper = false;
-    private bool _isSaving = false;
-    private string? _originalImageDataUrl;
     private string? _contentType;
-    private bool _showSizeWarning = false;
-    private string _sizeWarningMessage = string.Empty;
 
     private static readonly BrowserFileValidator BrowserFileValidator = new();
     private static readonly ImageDimensionValidator DimensionValidator = new();
@@ -69,21 +53,41 @@
             var maxSize = BrowserFileValidator.MaxFileSize * 2; // Allow larger for initial read
             await inputFileChange.File.OpenReadStream(maxSize).CopyToAsync(ms);
             var bytes = ms.ToArray();
-            _originalImageDataUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
+            var originalImageDataUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
 
             // Check image dimensions and show warnings
-            var dimensionArray = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", _originalImageDataUrl);
+            var dimensionArray = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", originalImageDataUrl);
+
+            bool showSizeWarning = false;
+            string sizeWarningMessage = string.Empty;
+
             if (dimensionArray is not null && dimensionArray.Length == 2)
             {
                 var dimensions = new ImageDimensions(dimensionArray[0], dimensionArray[1]);
                 var dimensionValidation = DimensionValidator.Validate(dimensions);
 
-                _showSizeWarning = dimensionValidation.ShowWarning;
-                _sizeWarningMessage = dimensionValidation.WarningMessage;
+                showSizeWarning = dimensionValidation.ShowWarning;
+                sizeWarningMessage = dimensionValidation.WarningMessage;
             }
 
-            _showCropper = true;
-            StateHasChanged();
+            // Open the cropper dialog
+            var parameters = new DialogParameters<ImageCropperDialog>
+            {
+                { x => x.ImageDataUrl, originalImageDataUrl },
+                { x => x.ShowWarning, showSizeWarning },
+                { x => x.WarningMessage, sizeWarningMessage },
+                { x => x.OnSave, EventCallback.Factory.Create<byte[]>(this, HandleCroppedImageSave) }
+            };
+
+            var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                CloseButton = true,
+                BackdropClick = false
+            };
+
+            await DialogService.ShowAsync<ImageCropperDialog>("Upload profilbillede", parameters, options);
         }
         catch (IOException ex)
         {
@@ -101,9 +105,6 @@
 
     private async Task HandleCroppedImageSave(byte[] bytes)
     {
-        _isSaving = true;
-        StateHasChanged();
-
         try
         {
             // Call the save callback
@@ -111,10 +112,6 @@
 
             // Update the display
             CurrentProfilePictureUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
-
-            // Clean up and hide cropper
-            _showCropper = false;
-            _originalImageDataUrl = null;
 
             await OnImageChanged.InvokeAsync();
 
@@ -124,18 +121,5 @@
         {
             Snackbar.Add($"Der opstod en fejl ved gemning af billedet: {ex.Message}", Severity.Error);
         }
-        finally
-        {
-            _isSaving = false;
-            StateHasChanged();
-        }
-    }
-
-    private Task HandleCancelCrop()
-    {
-        _showCropper = false;
-        _originalImageDataUrl = null;
-        StateHasChanged();
-        return Task.CompletedTask;
     }
 }

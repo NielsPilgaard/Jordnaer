@@ -29,25 +29,6 @@
     </ActivatorContent>
 </MudFileUpload>
 
-<MudExpansionPanels Class="mt-4">
-    <MudExpansionPanel Text="Vejledning til upload af billede" Dense="true">
-        <MudText Typo="Typo.body2" Class="mb-2">
-            <strong>Anbefalede billedkrav:</strong>
-        </MudText>
-        <MudList T="string" Dense="true" ReadOnly>
-            <MudListItem T="string" Icon="@Icons.Material.Filled.Image">
-                <strong>Størrelse:</strong> Mindst 400x400 px for bedste kvalitet
-            </MudListItem>
-            <MudListItem T="string" Icon="@Icons.Material.Filled.Photo">
-                <strong>Format:</strong> JPEG eller PNG
-            </MudListItem>
-            <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">
-                <strong>Maks filstørrelse:</strong> 2 MB
-            </MudListItem>
-        </MudList>
-    </MudExpansionPanel>
-</MudExpansionPanels>
-
 @code {
     [Parameter]
     public string? CurrentProfilePictureUrl { get; set; }
