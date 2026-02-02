@@ -4,7 +4,7 @@
 <ProfilePictureUpload
     CurrentProfilePictureUrl="@ChildProfile.ProfilePictureUrl"
     DisplayName="@($"{ChildProfile.FirstName} {ChildProfile.LastName}")"
-    DisplayInitial="@(ChildProfile.FirstName?.FirstOrDefault() ?? '?')"
+    DisplayInitial="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? '?' : ChildProfile.FirstName[0])"
     ProfilePictureAltText="@(string.IsNullOrEmpty(ChildProfile.FirstName) ? "Billede af barn" : $"Billede af {ChildProfile.FirstName}")"
     OnSave="SaveChildProfilePicture"
     OnImageChanged="OnImageChanged" />
