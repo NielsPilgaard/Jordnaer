@@ -24,7 +24,7 @@
         {
             <div style="text-align: center;">
                 <MudText Typo="Typo.caption">@preview.Label (@(preview.Size)x@(preview.Size))</MudText>
-                <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: @(preview.Size)px; height: @(preview.Size)px;">
+                <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="@($"width: {preview.Size}px; height: {preview.Size}px;")">
                     <img id="@preview.GetElementId(ComponentId)" style="width: 100%; height: 100%; object-fit: cover;" />
                 </MudPaper>
             </div>
