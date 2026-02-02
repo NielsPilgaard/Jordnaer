@@ -318,7 +318,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null, null, null, false);
+		var result = await _partnerService.UploadPendingChangesAsync(partnerId, stream, "image.png", null, null, null, null, null, null, null, false, clearAdLabelColor: false);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -336,7 +336,7 @@ public class PartnerServiceTests : IAsyncLifetime
 		var stream = new MemoryStream([1, 2, 3]);
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, stream, "image.png", null, null, null, null, null, null, null);
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, stream, "image.png", null, null, null, null, null, null, null, false, clearAdLabelColor: false);
 
 		// Assert
 		result.IsT1.Should().BeTrue();
@@ -361,7 +361,7 @@ public class PartnerServiceTests : IAsyncLifetime
 			.Returns("https://example.com/image.png");
 
 		// Act
-		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null, null, null, false);
+		var result = await _partnerService.UploadPendingChangesAsync(partner.Id, adImageStream, "ad.png", null, null, null, null, null, null, null, false, clearAdLabelColor: false);
 
 		// Assert
 		result.IsT0.Should().BeTrue();

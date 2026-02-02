@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject IDialogService DialogService
+@inject ILogger<ProfilePictureUpload> Logger
 
 <div class="profile-picture-upload-container">
     <ProfilePictureUploadButton CurrentProfilePictureUrl="@CurrentProfilePictureUrl"
@@ -99,18 +100,27 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Der opstod en uventet fejl: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "ProfilePictureUpload: error uploading profile picture");
+            Snackbar.Add("Der opstod en uventet fejl.", Severity.Error);
         }
     }
 
     private async Task HandleCroppedImageSave(byte[] bytes)
     {
-        // Call the save callback
-        var uri = await OnSave(bytes);
+        try
+        {
+            // Call the save callback
+            var uri = await OnSave(bytes);
 
-        // Trigger the image changed callback so parent can update
-        await OnImageChanged.InvokeAsync();
+            // Trigger the image changed callback so parent can update
+            await OnImageChanged.InvokeAsync();
 
-        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+            Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "ProfilePictureUpload: error saving cropped image");
+            Snackbar.Add("Kunne ikke gemme billedet.", Severity.Error);
+        }
     }
 }

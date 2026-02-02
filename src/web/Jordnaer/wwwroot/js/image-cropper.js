@@ -2,8 +2,7 @@
 // Requires Cropper.js library to be loaded
 
 window.imageCropper = {
-    cropper: null,
-    componentId: null,
+    croppers: new Map(), // Map of componentId -> { cropper, componentId }
 
     /**
      * Wait for Cropper.js library to be loaded
@@ -51,16 +50,14 @@ window.imageCropper = {
             return;
         }
 
-        // Store the component ID for preview updates
-        this.componentId = componentId;
-
-        // Destroy existing cropper if any
-        if (this.cropper) {
-            this.cropper.destroy();
+        // Destroy existing cropper for this component if any
+        const existingInstance = this.croppers.get(componentId);
+        if (existingInstance?.cropper) {
+            existingInstance.cropper.destroy();
         }
 
         // Initialize new cropper with square aspect ratio
-        this.cropper = new Cropper(image, {
+        const cropper = new Cropper(image, {
             aspectRatio: 1, // Square (1:1)
             viewMode: 1, // Restrict crop box to canvas
             dragMode: 'move',
@@ -75,22 +72,27 @@ window.imageCropper = {
             responsive: true,
             crop: (event) => {
                 // Update preview on crop change
-                this.updatePreviews();
+                this.updatePreviews(componentId);
             }
         });
+
+        // Store the cropper instance
+        this.croppers.set(componentId, { cropper, componentId });
     },
 
     /**
      * Update all preview images with the current crop
+     * @param {string} componentId - The component ID to update previews for
      */
-    updatePreviews: function () {
-        if (!this.cropper || !this.componentId) return;
+    updatePreviews: function (componentId) {
+        const instance = this.croppers.get(componentId);
+        if (!instance?.cropper) return;
 
         // Build preview IDs based on the component ID
         const previewSuffixes = ['40', '150', '250'];
-        const previewIds = previewSuffixes.map(suffix => `preview-${suffix}-${this.componentId}`);
+        const previewIds = previewSuffixes.map(suffix => `preview-${suffix}-${componentId}`);
 
-        const canvas = this.cropper.getCroppedCanvas();
+        const canvas = instance.cropper.getCroppedCanvas();
 
         if (!canvas) return;
 
@@ -106,17 +108,19 @@ window.imageCropper = {
 
     /**
      * Get the cropped image as a data URL
+     * @param {string} componentId - The component ID to get the cropped image from
      * @param {number} width - Target width for the cropped image
      * @param {number} height - Target height for the cropped image
      * @returns {string} Data URL of the cropped image
      */
-    getCroppedImage: function (width, height) {
-        if (!this.cropper) {
-            console.error('Cropper not initialized');
+    getCroppedImage: function (componentId, width, height) {
+        const instance = this.croppers.get(componentId);
+        if (!instance?.cropper) {
+            console.error('Cropper not initialized for component:', componentId);
             return '';
         }
 
-        const canvas = this.cropper.getCroppedCanvas({
+        const canvas = instance.cropper.getCroppedCanvas({
             width: width,
             height: height,
             imageSmoothingEnabled: true,
@@ -133,11 +137,13 @@ window.imageCropper = {
 
     /**
      * Destroy the cropper instance
+     * @param {string} componentId - The component ID to destroy the cropper for
      */
-    destroyCropper: function () {
-        if (this.cropper) {
-            this.cropper.destroy();
-            this.cropper = null;
+    destroyCropper: function (componentId) {
+        const instance = this.croppers.get(componentId);
+        if (instance?.cropper) {
+            instance.cropper.destroy();
+            this.croppers.delete(componentId);
         }
     },
 

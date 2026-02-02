@@ -25,7 +25,7 @@
             <div style="text-align: center;">
                 <MudText Typo="Typo.caption">@preview.Label (@(preview.Size)x@(preview.Size))</MudText>
                 <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="@($"width: {preview.Size}px; height: {preview.Size}px;")">
-                    <img id="@preview.GetElementId(ComponentId)" style="width: 100%; height: 100%; object-fit: cover;" />
+                    <img id="@(preview.GetElementId(ComponentId))" style="width: 100%; height: 100%; object-fit: cover;" />
                 </MudPaper>
             </div>
         }
@@ -65,7 +65,7 @@
     public EventCallback OnCancel { get; set; }
 
     private readonly string ComponentId = Guid.NewGuid().ToString("N");
-    private bool _cropperInitialized = false;
+    private string? _lastInitializedImageUrl = null;
 
     private string ImageCropperContainerId => $"image-cropper-container-{ComponentId}";
     private string ImageToCropId => $"image-to-crop-{ComponentId}";
@@ -74,12 +74,12 @@
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        if (!_cropperInitialized)
+        if (_lastInitializedImageUrl != ImageDataUrl)
         {
             try
             {
                 await JSRuntime.InvokeVoidAsync("imageCropper.initializeCropper", ImageToCropId, ComponentId);
-                _cropperInitialized = true;
+                _lastInitializedImageUrl = ImageDataUrl;
             }
             catch (Exception ex)
             {
@@ -95,6 +95,7 @@
             // Get cropped image as base64
             var croppedImageDataUrl = await JSRuntime.InvokeAsync<string>(
                 "imageCropper.getCroppedImage",
+                ComponentId,
                 ProfilePictureConstants.CroppedImageSize,
                 ProfilePictureConstants.CroppedImageSize
             );
@@ -141,11 +142,11 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_cropperInitialized)
+        if (_lastInitializedImageUrl is not null)
         {
             try
             {
-                await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
+                await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper", ComponentId);
             }
             catch
             {

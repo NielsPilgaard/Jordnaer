@@ -13,6 +13,15 @@ public class ImageDimensionValidator
 
     public DimensionValidationResult Validate(ImageDimensions dimensions)
     {
+        // Check for invalid or corrupt image dimensions
+        if (dimensions.Width <= 0 || dimensions.Height <= 0)
+        {
+            return new DimensionValidationResult(
+                ShowWarning: true,
+                WarningMessage: "Ugyldige billeddimensioner."
+            );
+        }
+
         var warnings = new List<string>();
 
         // Check for undersized images

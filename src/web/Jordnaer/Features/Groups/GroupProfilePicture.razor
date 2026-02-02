@@ -4,7 +4,7 @@
 <ProfilePictureUpload
     CurrentProfilePictureUrl="@(Group.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture)"
     DisplayName="@Group.Name"
-    DisplayInitial="@(Group.Name?.FirstOrDefault() ?? '?')"
+    DisplayInitial="@(string.IsNullOrEmpty(Group.Name) ? '?' : Group.Name[0])"
     ProfilePictureAltText="@(string.IsNullOrEmpty(Group.Name) ? "Profil billede" : $"{Group.Name}'s profil billede")"
     OnSave="SaveGroupProfilePicture"
     OnImageChanged="OnImageChanged" />
