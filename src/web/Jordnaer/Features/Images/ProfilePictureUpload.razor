@@ -73,7 +73,7 @@
 
             // Check image dimensions and show warnings
             var dimensionArray = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", _originalImageDataUrl);
-            if (dimensionArray.Length == 2)
+            if (dimensionArray is not null && dimensionArray.Length == 2)
             {
                 var dimensions = new ImageDimensions(dimensionArray[0], dimensionArray[1]);
                 var dimensionValidation = DimensionValidator.Validate(dimensions);

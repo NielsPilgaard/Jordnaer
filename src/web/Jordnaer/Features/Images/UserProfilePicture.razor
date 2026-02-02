@@ -5,7 +5,7 @@
 <ProfilePictureUpload
     CurrentProfilePictureUrl="@UserProfile.ProfilePictureUrl"
     DisplayName="@UserProfile.DisplayName"
-    DisplayInitial="@(UserProfile.FirstName?.FirstOrDefault() ?? '?')"
+    DisplayInitial="@(string.IsNullOrWhiteSpace(UserProfile.FirstName) ? '?' : UserProfile.FirstName[0])"
     ProfilePictureAltText="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")"
     OnSave="SaveUserProfilePicture"
     OnImageChanged="OnImageChanged" />
