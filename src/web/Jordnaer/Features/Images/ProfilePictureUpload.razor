@@ -1,111 +1,24 @@
 @using Jordnaer.Shared
 @using Microsoft.AspNetCore.Components.Forms
-@using MudBlazor
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
-@implements IAsyncDisposable
 
 <div class="profile-picture-upload-container">
     @if (!_showCropper)
     {
-        <MudFileUpload T="IBrowserFile" Accept="image/jpeg, image/png" OnFilesChanged="OnInputFileChanged" MaximumFileCount="1"
-            Hidden="false" title="Klik her for at skifte billede" InputClass="absolute mud-height-full overflow-hidden z-20"
-            InputStyle="opacity:0;cursor: pointer" @ref="_fileUpload">
-            <ActivatorContent>
-                <MudPaper Elevation="4" Class="rounded-circle d-flex align-center justify-center overflow-hidden"
-                    Style="width: 200px; height: 200px;">
-                    @if (!string.IsNullOrEmpty(CurrentProfilePictureUrl))
-                    {
-                        <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Cover"
-                            Style="width: 100%; height: 100%;" Src="@CurrentProfilePictureUrl"
-                            Alt="@ProfilePictureAltText" />
-                    }
-                    else
-                    {
-                        <MudAvatar Style="width: 100%; height: 100%; font-size: 3rem;" Color="Color.Primary">
-                            @DisplayInitial
-                        </MudAvatar>
-                    }
-                </MudPaper>
-            </ActivatorContent>
-        </MudFileUpload>
-
-        <MudExpansionPanels Class="mt-4">
-            <MudExpansionPanel Text="Vejledning til upload af billede" Dense="true">
-                <MudText Typo="Typo.body2" Class="mb-2">
-                    <strong>Anbefalede billedkrav:</strong>
-                </MudText>
-                <MudList T="string" Dense="true">
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Image">
-                        <strong>Størrelse:</strong> Mindst 400x400 px for bedste kvalitet
-                    </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Photo">
-                        <strong>Format:</strong> JPEG eller PNG
-                    </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">
-                        <strong>Maks filstørrelse:</strong> 2 MB
-                    </MudListItem>
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Face">
-                        <strong>Tips:</strong> Brug et tydeligt billede med godt lys, velegnet til familier
-                    </MudListItem>
-                </MudList>
-            </MudExpansionPanel>
-        </MudExpansionPanels>
+        <ProfilePictureUploadButton CurrentProfilePictureUrl="@CurrentProfilePictureUrl"
+                                    DisplayInitial="@DisplayInitial"
+                                    ProfilePictureAltText="@ProfilePictureAltText"
+                                    OnFilesChanged="@OnInputFileChanged" />
     }
-    else
+    else if (_originalImageDataUrl is not null)
     {
-        <div class="cropper-container">
-            <MudText Typo="Typo.h6" Class="mb-3">Beskær dit billede</MudText>
-
-            @if (_showSizeWarning)
-            {
-                <MudAlert Severity="Severity.Warning" Class="mb-3">
-                    @_sizeWarningMessage
-                </MudAlert>
-            }
-
-            <div id="@ImageCropperContainerId" style="max-width: 100%; max-height: 400px; margin-bottom: 1rem;">
-                <img id="@ImageToCropId" src="@_originalImageDataUrl" style="max-width: 100%;" />
-            </div>
-
-            <MudText Typo="Typo.subtitle2" Class="mb-2">Sådan vil dit billede se ud:</MudText>
-
-            <div class="preview-container mb-4" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                <div style="text-align: center;">
-                    <MudText Typo="Typo.caption">Profilkort (150x150)</MudText>
-                    <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: 150px; height: 150px;">
-                        <img id="@Preview150Id" style="width: 100%; height: 100%; object-fit: cover;" />
-                    </MudPaper>
-                </div>
-
-                <div style="text-align: center;">
-                    <MudText Typo="Typo.caption">Lille avatar (40x40)</MudText>
-                    <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: 40px; height: 40px;">
-                        <img id="@Preview40Id" style="width: 100%; height: 100%; object-fit: cover;" />
-                    </MudPaper>
-                </div>
-
-                <div style="text-align: center;">
-                    <MudText Typo="Typo.caption">Fuld profil (250x250)</MudText>
-                    <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="width: 250px; height: 250px;">
-                        <img id="@Preview250Id" style="width: 100%; height: 100%; object-fit: cover;" />
-                    </MudPaper>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveCroppedImage" Disabled="_isSaving">
-                    @if (_isSaving)
-                    {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                    }
-                    Gem billede
-                </MudButton>
-                <MudButton Variant="Variant.Outlined" OnClick="CancelCrop" Disabled="_isSaving">
-                    Annuller
-                </MudButton>
-            </div>
-        </div>
+        <ImageCropper ImageDataUrl="@_originalImageDataUrl"
+                      ShowWarning="@_showSizeWarning"
+                      WarningMessage="@_sizeWarningMessage"
+                      IsSaving="@_isSaving"
+                      OnSave="@HandleCroppedImageSave"
+                      OnCancel="@HandleCancelCrop" />
     }
 </div>
 
@@ -128,41 +41,15 @@
     [Parameter]
     public EventCallback OnImageChanged { get; set; }
 
-    private MudFileUpload<IBrowserFile>? _fileUpload;
     private bool _showCropper = false;
     private bool _isSaving = false;
     private string? _originalImageDataUrl;
     private string? _contentType;
     private bool _showSizeWarning = false;
     private string _sizeWarningMessage = string.Empty;
-    private readonly string _componentId = Guid.NewGuid().ToString("N");
-    private bool _cropperInitialized = false;
 
     private static readonly BrowserFileValidator BrowserFileValidator = new();
-
-    private string ImageCropperContainerId => $"image-cropper-container-{_componentId}";
-    private string ImageToCropId => $"image-to-crop-{_componentId}";
-    private string Preview150Id => $"preview-150-{_componentId}";
-    private string Preview40Id => $"preview-40-{_componentId}";
-    private string Preview250Id => $"preview-250-{_componentId}";
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (_showCropper && !_cropperInitialized)
-        {
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("imageCropper.initializeCropper", ImageToCropId);
-                _cropperInitialized = true;
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Der opstod en fejl ved initialisering af billedbeskæring: {ex.Message}", Severity.Error);
-            }
-        }
-    }
+    private static readonly ImageDimensionValidator DimensionValidator = new();
 
     private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
     {
@@ -185,43 +72,17 @@
             _originalImageDataUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
 
             // Check image dimensions and show warnings
-            var dimensions = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", _originalImageDataUrl);
-            if (dimensions.Length == 2)
+            var dimensionArray = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", _originalImageDataUrl);
+            if (dimensionArray.Length == 2)
             {
-                var width = dimensions[0];
-                var height = dimensions[1];
+                var dimensions = new ImageDimensions(dimensionArray[0], dimensionArray[1]);
+                var dimensionValidation = DimensionValidator.Validate(dimensions);
 
-                _showSizeWarning = false;
-                _sizeWarningMessage = string.Empty;
-
-                if (width < 200 || height < 200)
-                {
-                    _showSizeWarning = true;
-                    _sizeWarningMessage = $"Dit billede er {width}x{height} px, hvilket er mindre end anbefalede 400x400 px. Billedet kan se pixeleret ud.";
-                }
-                else if (width < 400 || height < 400)
-                {
-                    _showSizeWarning = true;
-                    _sizeWarningMessage = $"Dit billede er {width}x{height} px. For bedste kvalitet anbefaler vi mindst 400x400 px.";
-                }
-                else if (width > 4000 || height > 4000)
-                {
-                    _showSizeWarning = true;
-                    _sizeWarningMessage = $"Dit billede er {width}x{height} px, hvilket er meget stort. Det kan tage længere tid at behandle.";
-                }
-
-                if (Math.Abs(width - height) > Math.Min(width, height) * 0.1)
-                {
-                    var aspectWarning = "Dit billede er ikke kvadratisk og vil blive beskåret.";
-                    _sizeWarningMessage = _showSizeWarning
-                        ? $"{_sizeWarningMessage} {aspectWarning}"
-                        : aspectWarning;
-                    _showSizeWarning = true;
-                }
+                _showSizeWarning = dimensionValidation.ShowWarning;
+                _sizeWarningMessage = dimensionValidation.WarningMessage;
             }
 
             _showCropper = true;
-            _cropperInitialized = false;
             StateHasChanged();
         }
         catch (IOException ex)
@@ -238,53 +99,21 @@
         }
     }
 
-    private async Task SaveCroppedImage()
+    private async Task HandleCroppedImageSave(byte[] bytes)
     {
         _isSaving = true;
         StateHasChanged();
 
         try
         {
-            // Get cropped image as base64
-            var croppedImageDataUrl = await JSRuntime.InvokeAsync<string>("imageCropper.getCroppedImage", 200, 200);
-
-            // Validate the data URL
-            if (string.IsNullOrEmpty(croppedImageDataUrl))
-            {
-                Snackbar.Add("Det beskårne billede er tomt. Prøv venligst igen.", Severity.Error);
-                return;
-            }
-
-            var parts = croppedImageDataUrl.Split(',');
-            if (parts.Length < 2)
-            {
-                Snackbar.Add("Det beskårne billede har et ugyldigt format. Prøv venligst igen.", Severity.Error);
-                return;
-            }
-
-            // Convert base64 to bytes
-            var base64Data = parts[1];
-            byte[] bytes;
-            try
-            {
-                bytes = Convert.FromBase64String(base64Data);
-            }
-            catch (FormatException)
-            {
-                Snackbar.Add("Det beskårne billede kunne ikke behandles. Prøv venligst igen.", Severity.Error);
-                return;
-            }
-
             // Call the save callback
             var uri = await OnSave(bytes);
 
             // Update the display
             CurrentProfilePictureUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
 
-            // Clean up cropper
-            await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
+            // Clean up and hide cropper
             _showCropper = false;
-            _cropperInitialized = false;
             _originalImageDataUrl = null;
 
             await OnImageChanged.InvokeAsync();
@@ -302,27 +131,11 @@
         }
     }
 
-    private async Task CancelCrop()
+    private Task HandleCancelCrop()
     {
-        await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
         _showCropper = false;
-        _cropperInitialized = false;
         _originalImageDataUrl = null;
         StateHasChanged();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_showCropper)
-        {
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper");
-            }
-            catch
-            {
-                // Ignore errors during disposal
-            }
-        }
+        return Task.CompletedTask;
     }
 }
