@@ -3,17 +3,56 @@
 
 window.imageCropper = {
     cropper: null,
+    componentId: null,
+
+    /**
+     * Wait for Cropper.js library to be loaded
+     * @returns {Promise<boolean>} Promise that resolves when Cropper is available
+     */
+    waitForCropper: function () {
+        return new Promise((resolve, reject) => {
+            // If Cropper is already available, resolve immediately
+            if (typeof Cropper !== 'undefined') {
+                resolve(true);
+                return;
+            }
+
+            // Otherwise, wait up to 3 seconds for it to load
+            let attempts = 0;
+            const maxAttempts = 30; // 30 attempts * 100ms = 3 seconds
+
+            const checkInterval = setInterval(() => {
+                attempts++;
+
+                if (typeof Cropper !== 'undefined') {
+                    clearInterval(checkInterval);
+                    resolve(true);
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    reject(new Error('Cropper.js library failed to load within 3 seconds'));
+                }
+            }, 100);
+        });
+    },
 
     /**
      * Initialize Cropper.js on an image element
      * @param {string} imageElementId - The ID of the image element to crop
+     * @param {string} componentId - The component ID for finding preview elements
+     * @returns {Promise<void>} Promise that resolves when initialization is complete
      */
-    initializeCropper: function (imageElementId) {
+    initializeCropper: async function (imageElementId, componentId) {
+        // Wait for Cropper.js to be available
+        await this.waitForCropper();
+
         const image = document.getElementById(imageElementId);
         if (!image) {
             console.error('Image element not found:', imageElementId);
             return;
         }
+
+        // Store the component ID for preview updates
+        this.componentId = componentId;
 
         // Destroy existing cropper if any
         if (this.cropper) {
@@ -45,9 +84,12 @@ window.imageCropper = {
      * Update all preview images with the current crop
      */
     updatePreviews: function () {
-        if (!this.cropper) return;
+        if (!this.cropper || !this.componentId) return;
 
-        const previewIds = ['preview-40', 'preview-150', 'preview-250'];
+        // Build preview IDs based on the component ID
+        const previewSuffixes = ['40', '150', '250'];
+        const previewIds = previewSuffixes.map(suffix => `preview-${suffix}-${this.componentId}`);
+
         const canvas = this.cropper.getCroppedCanvas();
 
         if (!canvas) return;

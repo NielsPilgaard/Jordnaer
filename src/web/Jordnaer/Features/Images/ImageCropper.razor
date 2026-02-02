@@ -78,7 +78,7 @@
         {
             try
             {
-                await JSRuntime.InvokeVoidAsync("imageCropper.initializeCropper", ImageToCropId);
+                await JSRuntime.InvokeVoidAsync("imageCropper.initializeCropper", ImageToCropId, ComponentId);
                 _cropperInitialized = true;
             }
             catch (Exception ex)
