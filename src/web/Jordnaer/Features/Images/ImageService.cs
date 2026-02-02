@@ -10,7 +10,7 @@ namespace Jordnaer.Features.Images;
 public interface IImageService
 {
 	/// <summary>
-	/// Uploads an image to Azure Blob Storage and returns the url.
+	/// Uploads an image to Azure Blob Storage and returns the url with ETag for cache-busting.
 	/// <para>
 	/// If container <paramref name="containerName"/> already has a blob
 	/// with the name <paramref name="blobName"/>, it is overriden.
@@ -27,7 +27,7 @@ public interface IImageService
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Uploads an image to Azure Blob Storage and returns the url.
+	/// Uploads an image to Azure Blob Storage and returns the url with ETag for cache-busting.
 	/// <para>
 	/// If container <paramref name="containerName"/> already has a blob
 	/// with the name <paramref name="blobName"/>, it is overriden.
@@ -68,9 +68,13 @@ public class ImageService(
 
 		var blobClient = containerClient.GetBlobClient(blobName);
 
-		await blobClient.UploadAsync(fileStream, overwrite: true, cancellationToken);
+		var uploadResult = await blobClient.UploadAsync(fileStream, overwrite: true, cancellationToken);
 
-		return blobClient.Uri.AbsoluteUri;
+		// Get the ETag from the upload response
+		var etag = uploadResult.Value.ETag.ToString().Trim('"');
+
+		// Return URL with ETag as cache-busting query parameter
+		return $"{blobClient.Uri.AbsoluteUri}?v={etag}";
 	}
 
 	public async Task<string> UploadImageAsync(string blobName, string containerName, byte[] fileBytes, CancellationToken cancellationToken = default)

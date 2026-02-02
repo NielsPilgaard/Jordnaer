@@ -105,21 +105,12 @@
 
     private async Task HandleCroppedImageSave(byte[] bytes)
     {
-        try
-        {
-            // Call the save callback
-            var uri = await OnSave(bytes);
+        // Call the save callback
+        var uri = await OnSave(bytes);
 
-            // Update the display
-            CurrentProfilePictureUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
+        // Trigger the image changed callback so parent can update
+        await OnImageChanged.InvokeAsync();
 
-            await OnImageChanged.InvokeAsync();
-
-            Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Der opstod en fejl ved gemning af billedet: {ex.Message}", Severity.Error);
-        }
+        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
     }
 }
