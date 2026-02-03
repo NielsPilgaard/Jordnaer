@@ -73,8 +73,8 @@ public class ImageService(
 		// Get the ETag from the upload response
 		var etag = uploadResult.Value.ETag.ToString().Trim('"');
 
-		// Return URL with ETag as cache-busting query parameter
-		return $"{blobClient.Uri.AbsoluteUri}?v={etag}";
+		// Return URL with ETag as cache-busting query parameter (URL-encoded for safety)
+		return $"{blobClient.Uri.AbsoluteUri}?v={Uri.EscapeDataString(etag)}";
 	}
 
 	public async Task<string> UploadImageAsync(string blobName, string containerName, byte[] fileBytes, CancellationToken cancellationToken = default)
