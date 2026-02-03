@@ -5,7 +5,8 @@ Our project is called Jordnaer but has been rebranded to Mini Møder. This docum
 # Upon completion of an instruction, please:
 
 1. Run the tests to ensure nothing is broken
-2. Run CodeRabbit to generate a code review based on the latest committed changes:
+2. Make a list of things I need to acceptance test manually
+3. Run CodeRabbit to generate a code review based on the latest committed changes:
 
 **Windows (recommended):**
 
