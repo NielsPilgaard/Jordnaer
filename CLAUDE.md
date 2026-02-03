@@ -35,10 +35,9 @@ dotnet test tests/web/Jordnaer.Tests --filter FullyQualifiedName~YourTestName
 
 ```powershell
 # Create a new migration (from src/web/Jordnaer/)
-dotnet ef migrations add YourMigrationName
+./src/web/Jordnaer/add-migration.ps1 MigrationName
 
-# Apply migrations (automatic in Development via InitializeDatabaseAsync)
-dotnet ef database update
+# Do not apply the migration
 ```
 
 ### Code Review
@@ -174,8 +173,6 @@ public class SendEmailConsumer(ILogger<SendEmailConsumer> logger, EmailClient cl
     }
 }
 ```
-
-**Note**: Using in-memory transport with outbox pattern. Future plan: migrate to Azure Container Apps when chat reaches 100+ messages/hour.
 
 ### SignalR Pattern
 
