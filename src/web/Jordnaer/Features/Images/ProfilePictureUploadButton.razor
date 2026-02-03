@@ -1,0 +1,46 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+
+<MudFileUpload T="IBrowserFile"
+               Accept="image/jpeg, image/png"
+               OnFilesChanged="OnFilesChanged"
+               MaximumFileCount="1"
+               Hidden="false"
+               title="Klik her for at skifte billede"
+               InputClass="absolute mud-height-full overflow-hidden z-20"
+               InputStyle="opacity:0;cursor: pointer"
+               @ref="_fileUpload">
+    <ActivatorContent>
+        <MudPaper Elevation="4" Class="rounded-circle d-flex align-center justify-center overflow-hidden"
+                  Style="width: 200px; height: 200px;">
+            @if (!string.IsNullOrEmpty(CurrentProfilePictureUrl))
+            {
+                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Cover"
+                          Style="width: 100%; height: 100%;" Src="@CurrentProfilePictureUrl"
+                          Alt="@ProfilePictureAltText" />
+            }
+            else
+            {
+                <MudAvatar Style="width: 100%; height: 100%; font-size: 3rem;" Color="Color.Primary">
+                    @DisplayInitial
+                </MudAvatar>
+            }
+        </MudPaper>
+    </ActivatorContent>
+</MudFileUpload>
+
+@code {
+    [Parameter]
+    public string? CurrentProfilePictureUrl { get; set; }
+
+    [Parameter]
+    public char DisplayInitial { get; set; } = '?';
+
+    [Parameter]
+    public string ProfilePictureAltText { get; set; } = "Profilbillede";
+
+    [Parameter]
+    public EventCallback<InputFileChangeEventArgs> OnFilesChanged { get; set; }
+
+    private MudFileUpload<IBrowserFile>? _fileUpload;
+}

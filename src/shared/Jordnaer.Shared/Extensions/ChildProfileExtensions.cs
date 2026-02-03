@@ -10,7 +10,7 @@ public static class ChildProfileExtensions
         mapInto.FirstName = mapFrom.FirstName;
         mapInto.LastName = mapFrom.LastName;
         mapInto.Gender = mapFrom.Gender;
-        mapInto.PictureUrl = mapFrom.PictureUrl;
+        mapInto.ProfilePictureUrl = mapFrom.ProfilePictureUrl;
         mapInto.Id = mapFrom.Id;
         mapInto.Age = mapFrom.Age;
     }
@@ -21,7 +21,7 @@ public static class ChildProfileExtensions
             FirstName = childProfile.FirstName,
             LastName = childProfile.LastName,
             Gender = childProfile.Gender,
-            PictureUrl = childProfile.PictureUrl,
+            ProfilePictureUrl = childProfile.ProfilePictureUrl,
             DateOfBirth = childProfile.DateOfBirth,
             Description = childProfile.Description,
             Age = childProfile.Age

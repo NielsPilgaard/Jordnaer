@@ -1,0 +1,186 @@
+@using MudBlazor
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+@implements IAsyncDisposable
+
+<MudDialog>
+    <DialogContent>
+        <div class="cropper-dialog-container">
+            <MudText Typo="Typo.h6" Class="mb-3">Beskær dit billede</MudText>
+
+            @if (ShowWarning)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                    @WarningMessage
+                </MudAlert>
+            }
+
+            <div id="@ImageCropperContainerId" style="max-width: 100%; max-height: 400px; margin-bottom: 1rem;">
+                <img id="@ImageToCropId" src="@ImageDataUrl" alt="Billede til beskæring" style="max-width: 100%;" />
+            </div>
+
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Sådan vil dit billede se ud:</MudText>
+
+            <div class="preview-container mb-4" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                @foreach (var preview in ProfilePictureConstants.PreviewSizes)
+                {
+                    <div style="text-align: center;">
+                        <MudText Typo="Typo.caption">@preview.Label (@(preview.Size)x@(preview.Size))</MudText>
+                        <MudPaper Elevation="2" Class="rounded-circle overflow-hidden" Style="@($"width: {preview.Size}px; height: {preview.Size}px;")">
+                            <img id="@preview.GetElementId(ComponentId)" alt="" style="width: 100%; height: 100%; object-fit: cover;" />
+                        </MudPaper>
+                    </div>
+                }
+            </div>
+
+            <MudExpansionPanels Class="mb-3">
+                <MudExpansionPanel Text="Vejledning til upload af billede" Dense="true">
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Anbefalede billedkrav:</strong>
+                    </MudText>
+                    <MudList T="string" Dense="true" ReadOnly>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Image">
+                            <strong class="mr-2">Størrelse:</strong> Mindst 400x400 px for bedste kvalitet
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Photo">
+                            <strong class="mr-2">Format:</strong> JPEG eller PNG
+                        </MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">
+                            <strong class="mr-2">Maks filstørrelse:</strong> 2 MB
+                        </MudListItem>
+                    </MudList>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="HandleCancel" Disabled="IsSaving">
+            Annuller
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSave" Disabled="IsSaving">
+            @if (IsSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Gem billede
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public required string ImageDataUrl { get; set; }
+
+    [Parameter]
+    public bool ShowWarning { get; set; }
+
+    [Parameter]
+    public string WarningMessage { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public EventCallback<byte[]> OnSave { get; set; }
+
+    private readonly string ComponentId = Guid.NewGuid().ToString("N");
+    private bool _cropperInitialized = false;
+    private bool IsSaving { get; set; } = false;
+
+    private string ImageCropperContainerId => $"image-cropper-container-{ComponentId}";
+    private string ImageToCropId => $"image-to-crop-{ComponentId}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (!_cropperInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("imageCropper.initializeCropper", ImageToCropId, ComponentId);
+                _cropperInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Der opstod en fejl ved initialisering af billedbeskæring: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        IsSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            // Get cropped image as base64
+            var croppedImageDataUrl = await JSRuntime.InvokeAsync<string>(
+                "imageCropper.getCroppedImage",
+                ComponentId,
+                ProfilePictureConstants.CroppedImageSize,
+                ProfilePictureConstants.CroppedImageSize
+            );
+
+            // Validate the data URL
+            if (string.IsNullOrEmpty(croppedImageDataUrl))
+            {
+                Snackbar.Add("Det beskårne billede er tomt. Prøv venligst igen.", Severity.Error);
+                return;
+            }
+
+            var parts = croppedImageDataUrl.Split(',');
+            if (parts.Length < 2)
+            {
+                Snackbar.Add("Det beskårne billede har et ugyldigt format. Prøv venligst igen.", Severity.Error);
+                return;
+            }
+
+            // Convert base64 to bytes
+            var base64Data = parts[1];
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(base64Data);
+            }
+            catch (FormatException)
+            {
+                Snackbar.Add("Det beskårne billede kunne ikke behandles. Prøv venligst igen.", Severity.Error);
+                return;
+            }
+
+            await OnSave.InvokeAsync(bytes);
+            MudDialog?.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Der opstod en fejl: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleCancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_cropperInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("imageCropper.destroyCropper", ComponentId);
+            }
+            catch
+            {
+                // Ignore errors during disposal
+            }
+        }
+    }
+}

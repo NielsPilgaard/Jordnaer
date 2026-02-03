@@ -1,63 +1,31 @@
 @using Jordnaer.Models
 @using Jordnaer.Shared
-@using Microsoft.AspNetCore.Components.Forms
-@using MudBlazor
-@inject ISnackbar Snackbar
 @inject IProfileImageService ProfileImageService
 
-<MudFileUpload T="IBrowserFile" Accept="image/jpeg, image/png" OnFilesChanged="OnInputFileChanged" MaximumFileCount="1"
-    Hidden="false" title="Klik her for at skifte billede" InputClass="absolute mud-height-full overflow-hidden z-20"
-    InputStyle="opacity:0;cursor: pointer">
-    <ActivatorContent>
-        <MudPaper Elevation="4" Class="rounded-circle d-flex align-center justify-center overflow-hidden"
-            Style="width: 250px; height: 250px;">
-            @if (!string.IsNullOrEmpty(UserProfile.ProfilePictureUrl))
-            {
-                <MudImage ObjectPosition="ObjectPosition.Center" ObjectFit="ObjectFit.Cover"
-                    Style="width: 100%; height: 100%;" Src="@UserProfile.ProfilePictureUrl"
-                    Alt="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")" />
-            }
-            else
-            {
-                <MudAvatar Style="width: 100%; height: 100%; font-size: 4rem;" Color="Color.Primary">
-                    @UserProfile.FirstName?.FirstOrDefault()
-                </MudAvatar>
-            }
-        </MudPaper>
-    </ActivatorContent>
-</MudFileUpload>
+<ProfilePictureUpload
+    CurrentProfilePictureUrl="@UserProfile.ProfilePictureUrl"
+    DisplayName="@UserProfile.DisplayName"
+    DisplayInitial="@(string.IsNullOrWhiteSpace(UserProfile.FirstName) ? '?' : UserProfile.FirstName[0])"
+    ProfilePictureAltText="@(string.IsNullOrEmpty(UserProfile.FirstName) ? "Avatar" : $"Billede af {UserProfile.FirstName}")"
+    OnSave="SaveUserProfilePicture"
+    OnImageChanged="OnImageChanged" />
 
 @code {
     [Parameter]
     public required UserProfile UserProfile { get; set; }
+
     [Parameter]
     public required EventCallback<UserProfile> UserProfileChanged { get; set; }
 
-    private static readonly BrowserFileValidator BrowserFileValidator = new();
-
-    private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
+    private async Task<string> SaveUserProfilePicture(byte[] imageBytes)
     {
-        var validationResult = await BrowserFileValidator.ValidateAsync(inputFileChange.File);
-        if (!validationResult.IsValid)
-        {
-            Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
-            return;
-        }
+        var uri = await ProfileImageService.SetUserProfilePictureAsync(new SetUserProfilePicture(UserProfile, imageBytes));
+        UserProfile.ProfilePictureUrl = uri;
+        return uri;
+    }
 
-        var contentType = inputFileChange.File.ContentType;
-        var resizedImageFile = await inputFileChange.File.RequestImageFileAsync(contentType, 200, 200);
-
-        using var ms = new MemoryStream();
-        await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
-        var bytes = ms.ToArray();
-
-        var setUserProfilePictureResponse = await ProfileImageService.SetUserProfilePictureAsync(new
-        SetUserProfilePicture(UserProfile, bytes));
-
-        UserProfile.ProfilePictureUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
-
+    private async Task OnImageChanged()
+    {
         await UserProfileChanged.InvokeAsync(UserProfile);
-
-        Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
     }
 }

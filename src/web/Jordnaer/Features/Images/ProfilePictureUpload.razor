@@ -1,0 +1,126 @@
+@using Jordnaer.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
+@inject ILogger<ProfilePictureUpload> Logger
+
+<div class="profile-picture-upload-container">
+    <ProfilePictureUploadButton CurrentProfilePictureUrl="@CurrentProfilePictureUrl"
+                                DisplayInitial="@DisplayInitial"
+                                ProfilePictureAltText="@ProfilePictureAltText"
+                                OnFilesChanged="@OnInputFileChanged" />
+</div>
+
+@code {
+    [Parameter]
+    public string? CurrentProfilePictureUrl { get; set; }
+
+    [Parameter]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [Parameter]
+    public char DisplayInitial { get; set; } = '?';
+
+    [Parameter]
+    public string ProfilePictureAltText { get; set; } = "Profilbillede";
+
+    [Parameter]
+    public required Func<byte[], Task<string>> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnImageChanged { get; set; }
+
+    private string? _contentType;
+
+    private static readonly BrowserFileValidator BrowserFileValidator = new();
+    private static readonly ImageDimensionValidator DimensionValidator = new();
+
+    private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
+    {
+        var validationResult = await BrowserFileValidator.ValidateAsync(inputFileChange.File);
+        if (!validationResult.IsValid)
+        {
+            Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
+            return;
+        }
+
+        _contentType = inputFileChange.File.ContentType;
+
+        try
+        {
+            // Read the original image to get dimensions and create data URL
+            using var ms = new MemoryStream();
+            var maxSize = BrowserFileValidator.MaxFileSize * 2; // Allow larger for initial read
+            await inputFileChange.File.OpenReadStream(maxSize).CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            var originalImageDataUrl = $"data:{_contentType};base64,{Convert.ToBase64String(bytes)}";
+
+            // Check image dimensions and show warnings
+            var dimensionArray = await JSRuntime.InvokeAsync<int[]>("imageCropper.getImageDimensions", originalImageDataUrl);
+
+            bool showSizeWarning = false;
+            string sizeWarningMessage = string.Empty;
+
+            if (dimensionArray is not null && dimensionArray.Length == 2)
+            {
+                var dimensions = new ImageDimensions(dimensionArray[0], dimensionArray[1]);
+                var dimensionValidation = DimensionValidator.Validate(dimensions);
+
+                showSizeWarning = dimensionValidation.ShowWarning;
+                sizeWarningMessage = dimensionValidation.WarningMessage;
+            }
+
+            // Open the cropper dialog
+            var parameters = new DialogParameters<ImageCropperDialog>
+            {
+                { x => x.ImageDataUrl, originalImageDataUrl },
+                { x => x.ShowWarning, showSizeWarning },
+                { x => x.WarningMessage, sizeWarningMessage },
+                { x => x.OnSave, EventCallback.Factory.Create<byte[]>(this, HandleCroppedImageSave) }
+            };
+
+            var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                CloseButton = true,
+                BackdropClick = false
+            };
+
+            await DialogService.ShowAsync<ImageCropperDialog>("Upload profilbillede", parameters, options);
+        }
+        catch (IOException ex)
+        {
+            Snackbar.Add($"Der opstod en fejl ved læsning af filen: {ex.Message}", Severity.Error);
+        }
+        catch (OutOfMemoryException)
+        {
+            Snackbar.Add("Filen er for stor til at blive behandlet. Prøv venligst med en mindre fil.", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "ProfilePictureUpload: error uploading profile picture");
+            Snackbar.Add("Der opstod en uventet fejl.", Severity.Error);
+        }
+    }
+
+    private async Task HandleCroppedImageSave(byte[] bytes)
+    {
+        try
+        {
+            // Call the save callback
+            var uri = await OnSave(bytes);
+
+            // Trigger the image changed callback so parent can update
+            await OnImageChanged.InvokeAsync();
+
+            Snackbar.Add("Billedet er blevet gemt.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "ProfilePictureUpload: error saving cropped image");
+            Snackbar.Add("Kunne ikke gemme billedet.", Severity.Error);
+        }
+    }
+}

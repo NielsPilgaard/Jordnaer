@@ -12,7 +12,7 @@ public class ChildProfileDto
 
     public string? Description { get; set; }
 
-    public string PictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
+    public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;
 
     public int? Age { get; set; }
 

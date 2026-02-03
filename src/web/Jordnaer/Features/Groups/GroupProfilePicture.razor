@@ -1,47 +1,30 @@
-@inject ISnackbar Snackbar
+@using Jordnaer.Shared
 @inject IProfileImageService ProfileImageService
 
-<MudFileUpload T="IBrowserFile" Accept="image/jpeg, image/png" OnFilesChanged="OnInputFileChanged" MaximumFileCount="1"
-    Hidden="false" title="Klik her for at skifte billede" Class="flex-1"
-    InputClass="absolute mud-height-full overflow-hidden z-20" InputStyle="opacity:0;cursor: pointer">
-    <ActivatorContent>
-        <MudImage ObjectPosition="ObjectPosition.Center" Style="border-radius: 10%" loading="lazy" Fluid
-            Class="editable-image" Src="@(Group.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture)"
-            Alt="@(string.IsNullOrEmpty(Group.Name) ? "Profil billede" : $"{Group.Name}'s profil billede'")" />
-    </ActivatorContent>
-</MudFileUpload>
+<ProfilePictureUpload
+    CurrentProfilePictureUrl="@(Group.ProfilePictureUrl ?? ProfileConstants.Default_Profile_Picture)"
+    DisplayName="@Group.Name"
+    DisplayInitial="@(string.IsNullOrEmpty(Group.Name) ? '?' : Group.Name[0])"
+    ProfilePictureAltText="@(string.IsNullOrEmpty(Group.Name) ? "Profil billede" : $"{Group.Name}'s profil billede")"
+    OnSave="SaveGroupProfilePicture"
+    OnImageChanged="OnImageChanged" />
 
 @code {
     [Parameter]
     public required Group Group { get; set; }
+
     [Parameter]
     public required EventCallback<Group> GroupChanged { get; set; }
 
-    private static readonly BrowserFileValidator BrowserFileValidator = new();
-
-    private async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChange)
+    private async Task<string> SaveGroupProfilePicture(byte[] imageBytes)
     {
-        var validationResult = await BrowserFileValidator.ValidateAsync(inputFileChange.File);
-        if (!validationResult.IsValid)
-        {
-            Snackbar.Add(string.Join(" ", validationResult.Errors), Severity.Error);
-            return;
-        }
+        var uri = await ProfileImageService.SetGroupProfilePictureAsync(new SetGroupProfilePicture(Group, imageBytes));
+        Group.ProfilePictureUrl = uri;
+        return uri;
+    }
 
-        var contentType = inputFileChange.File.ContentType;
-        var resizedImageFile = await inputFileChange.File.RequestImageFileAsync(contentType, 200, 200);
-
-        using var ms = new MemoryStream();
-        await resizedImageFile.OpenReadStream(BrowserFileValidator.MaxFileSize).CopyToAsync(ms);
-        var bytes = ms.ToArray();
-
-        // TODO: This should be restricted based on policy
-        // Upload the image and get the URI
-        var imageUri = await ProfileImageService.SetGroupProfilePictureAsync(new SetGroupProfilePicture(Group, bytes));
-
-        Group.ProfilePictureUrl = imageUri;
+    private async Task OnImageChanged()
+    {
         await GroupChanged.InvokeAsync(Group);
-
-        Snackbar.Add("Billedet er blevet uploadet.", Severity.Success);
     }
 }
