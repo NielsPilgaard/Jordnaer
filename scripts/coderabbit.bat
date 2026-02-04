@@ -4,15 +4,26 @@ setlocal EnableDelayedExpansion
 REM CodeRabbit Runner with Authentication and Auto-Setup
 REM Just run: scripts\coderabbit.bat
 
-REM Color codes (ANSI escape sequences work in Windows 10+)
-set "GREEN=[92m"
-set "RED=[91m"
-set "YELLOW=[93m"
-set "BLUE=[94m"
-set "RESET=[0m"
-set "BOLD=[1m"
-set "CHECKMARK=✓"
-set "CROSS=✗"
+REM Set UTF-8 code page for proper Unicode display
+chcp 65001 >nul 2>&1
+
+REM Get the directory where this script is located (remove trailing backslash)
+set "SCRIPT_DIR=%~dp0"
+set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+REM Enable ANSI escape sequences (Windows 10+)
+reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
+
+REM Create ESC character for ANSI codes
+for /F %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
+
+REM Color codes (ANSI escape sequences)
+set "GREEN=%ESC%[92m"
+set "RED=%ESC%[91m"
+set "YELLOW=%ESC%[93m"
+set "BLUE=%ESC%[94m"
+set "RESET=%ESC%[0m"
+set "BOLD=%ESC%[1m"
 
 echo %BLUE%========================================%RESET%
 echo %BOLD%CodeRabbit CLI%RESET%
@@ -60,7 +71,7 @@ if errorlevel 1 (
 )
 
 REM Check if libsecret and gnome-keyring are installed, install if not
-wsl -d Ubuntu bash -c "dpkg -l libsecret-1-0 gnome-keyring dbus-x11 2>/dev/null | grep -q '^ii.*libsecret-1-0' && dpkg -l gnome-keyring 2>/dev/null | grep -q '^ii'"
+wsl -d Ubuntu bash -c "dpkg -s libsecret-1-0 gnome-keyring dbus-x11 >/dev/null 2>&1"
 if errorlevel 1 (
     echo %YELLOW%○ Installing authentication dependencies...%RESET%
     echo   (This enables persistent login so you don't need to authenticate every time)
@@ -78,14 +89,14 @@ if errorlevel 1 (
         REM Setup keyring startup script
         echo %YELLOW%○ Configuring persistent authentication...%RESET%
 
-        REM Convert Windows path to WSL path
-        for /f "usebackq tokens=*" %%i in (`wsl -d Ubuntu wslpath -a "%CD%"`) do set "WSL_PATH=%%i"
+        REM Convert script directory to WSL path
+        for /f "usebackq tokens=*" %%i in (`wsl -d Ubuntu wslpath -a "%SCRIPT_DIR%"`) do set "WSL_SCRIPT_DIR=%%i"
 
-        REM Copy and install the startup script
-        wsl -d Ubuntu bash -c "mkdir -p ~/.local/bin && cp '!WSL_PATH!/scripts/start-keyring.sh' ~/.local/bin/start-keyring.sh && chmod +x ~/.local/bin/start-keyring.sh"
+        REM Copy and install the startup script (convert CRLF to LF)
+        wsl -d Ubuntu bash -c "mkdir -p ~/.local/bin && tr -d '\r' < '%WSL_SCRIPT_DIR%/start-keyring.sh' > ~/.local/bin/start-keyring.sh && chmod +x ~/.local/bin/start-keyring.sh"
 
         REM Add to bashrc if not already present
-        wsl -d Ubuntu bash -c "if ! grep -q 'start-keyring.sh' ~/.bashrc 2>/dev/null; then echo '' >> ~/.bashrc && echo '# Start gnome-keyring for persistent authentication' >> ~/.bashrc && echo 'if [ -f ~/.local/bin/start-keyring.sh ]; then' >> ~/.bashrc && echo '    source ~/.local/bin/start-keyring.sh' >> ~/.bashrc && echo 'fi' >> ~/.bashrc; fi"
+        wsl -d Ubuntu bash -c "grep -q start-keyring.sh ~/.bashrc 2>/dev/null || echo -e '\n# Start gnome-keyring for persistent authentication\nif [ -f ~/.local/bin/start-keyring.sh ]; then\n    source ~/.local/bin/start-keyring.sh\nfi' >> ~/.bashrc"
 
         echo %GREEN%✓ Persistent authentication configured%RESET%
         echo %YELLOW%  Note: You may need to close and reopen your terminal for full effect%RESET%
@@ -95,8 +106,15 @@ if errorlevel 1 (
     echo %GREEN%✓ Authentication dependencies installed%RESET%
 )
 
+REM Always ensure start-keyring.sh is properly installed (handles CRLF issues)
+for /f "usebackq tokens=*" %%i in (`wsl -d Ubuntu wslpath -a "%SCRIPT_DIR%"`) do set "WSL_SCRIPT_DIR=%%i"
+wsl -d Ubuntu bash -c "mkdir -p ~/.local/bin && tr -d '\r' < '%WSL_SCRIPT_DIR%/start-keyring.sh' > ~/.local/bin/start-keyring.sh && chmod +x ~/.local/bin/start-keyring.sh" >nul 2>&1
+
+REM Add to bashrc if not already present
+wsl -d Ubuntu bash -c "grep -q start-keyring.sh ~/.bashrc 2>/dev/null || echo -e '\n# Start gnome-keyring for persistent authentication\nif [ -f ~/.local/bin/start-keyring.sh ]; then\n    source ~/.local/bin/start-keyring.sh\nfi' >> ~/.bashrc" >nul 2>&1
+
 REM Ensure keyring is started for this session
-wsl -d Ubuntu bash -c "if [ -f ~/.local/bin/start-keyring.sh ]; then source ~/.local/bin/start-keyring.sh; fi"
+wsl -d Ubuntu bash -c "source ~/.local/bin/start-keyring.sh 2>/dev/null || true"
 
 REM Check if reviews directory exists, create if not
 if not exist "reviews\" (
