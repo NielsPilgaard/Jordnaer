@@ -39,17 +39,17 @@ file class RadiusRequiredAttribute : ValidationAttribute
 	{
 		var postSearchFilter = (PostSearchFilter)validationContext.ObjectInstance;
 
-		if (postSearchFilter.WithinRadiusKilometers is null &&
-			string.IsNullOrEmpty(postSearchFilter.Location) &&
-			!postSearchFilter.Latitude.HasValue &&
-			!postSearchFilter.Longitude.HasValue)
+		// Check if location data exists
+		var hasLocation = !string.IsNullOrEmpty(postSearchFilter.Location) ||
+						  (postSearchFilter.Latitude.HasValue && postSearchFilter.Longitude.HasValue);
+
+		// Radius is only required when location is provided
+		if (hasLocation && postSearchFilter.WithinRadiusKilometers is null)
 		{
-			return ValidationResult.Success!;
+			return new ValidationResult("Radius skal vælges når et område er valgt.");
 		}
 
-		return postSearchFilter.WithinRadiusKilometers is null
-				   ? new ValidationResult("Radius skal vælges når et område er valgt.")
-				   : ValidationResult.Success!;
+		return ValidationResult.Success!;
 	}
 }
 
@@ -59,20 +59,17 @@ file class LocationRequiredAttribute : ValidationAttribute
 	{
 		var postSearchFilter = (PostSearchFilter)validationContext.ObjectInstance;
 
-		if (postSearchFilter.WithinRadiusKilometers is null &&
-			string.IsNullOrEmpty(postSearchFilter.Location) &&
-			!postSearchFilter.Latitude.HasValue &&
-			!postSearchFilter.Longitude.HasValue)
+		// Check if location data exists
+		var hasLocation = !string.IsNullOrEmpty(postSearchFilter.Location) ||
+						  (postSearchFilter.Latitude.HasValue && postSearchFilter.Longitude.HasValue);
+
+		// If no location is provided, search is valid (radius will be ignored)
+		// This allows searching without location even if radius slider has a value
+		if (!hasLocation)
 		{
 			return ValidationResult.Success!;
 		}
 
-		// Valid if either Location string is set OR lat/long coordinates are set
-		var hasLocation = !string.IsNullOrEmpty(postSearchFilter.Location) ||
-						  (postSearchFilter.Latitude.HasValue && postSearchFilter.Longitude.HasValue);
-
-		return !hasLocation
-				   ? new ValidationResult("Område skal vælges når en radius er valgt.")
-				   : ValidationResult.Success!;
+		return ValidationResult.Success!;
 	}
 }
