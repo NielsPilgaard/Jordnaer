@@ -16,6 +16,7 @@ public class Group
 	public string? ProfilePictureUrl { get; set; }
 
 	[Url]
+	[RegularExpression(@"^https?://.*", ErrorMessage = "URL skal starte med http:// eller https://")]
 	[MaxLength(500, ErrorMessage = "Hjemmeside URL må højest være 500 karakterer lang.")]
 	public string? WebsiteUrl { get; set; }
 

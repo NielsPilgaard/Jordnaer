@@ -214,6 +214,24 @@
         _addressLocation = string.Empty;
     }
 
+    private static string? NormalizeUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return url;
+        }
+
+        var trimmedUrl = url.Trim();
+
+        if (!trimmedUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+            !trimmedUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return "https://" + trimmedUrl;
+        }
+
+        return trimmedUrl;
+    }
+
     private async Task Update()
     {
         _isLoading = true;
@@ -224,6 +242,9 @@
             _isLoading = false;
             return;
         }
+
+        // Normalize website URL before submission
+        _group.WebsiteUrl = NormalizeUrl(_group.WebsiteUrl);
 
         // Sync selected categories back to group
         _group.Categories = _categories
