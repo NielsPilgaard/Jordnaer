@@ -15,6 +15,10 @@ public class Group
 	[Url]
 	public string? ProfilePictureUrl { get; set; }
 
+	[Url]
+	[MaxLength(500, ErrorMessage = "Hjemmeside URL må højest være 500 karakterer lang.")]
+	public string? WebsiteUrl { get; set; }
+
 	[MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
 	public string? Address { get; set; }
 

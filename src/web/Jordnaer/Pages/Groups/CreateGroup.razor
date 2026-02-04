@@ -73,6 +73,14 @@
                             Gruppens lokation hjælper andre med at finde grupper i deres område.
                         </MudAlert>
                     </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_group.WebsiteUrl"
+                                      For="() => _group.WebsiteUrl"
+                                      Label="Hjemmeside"
+                                      Placeholder="https://example.com"
+                                      Variant="Variant.Outlined"
+                                      HelperText="Link til gruppens hjemmeside (valgfrit)" />
+                    </MudItem>
                     <MudItem xs="12">
                         <MudText Typo="Typo.body1" Class="mb-2">Kategorier</MudText>
                         <CategorySelector @bind-Categories="_selectedCategoryNames" />
