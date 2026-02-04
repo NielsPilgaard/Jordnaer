@@ -234,7 +234,7 @@
                 @if (!string.IsNullOrWhiteSpace(_group?.WebsiteUrl))
                 {
                     <MudPaper Elevation="3" Class="pa-4">
-                        <MudLink Href="@_group.WebsiteUrl" Target="_blank" Class="d-flex align-center gap-2">
+                        <MudLink Href="@_group.WebsiteUrl" Target="_blank" UserAttributes="@(new Dictionary<string, object> { { "rel", "noopener" } })" Class="d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Filled.Language" Size="Size.Small" />
                             <MudText Typo="Typo.body1">Besøg hjemmeside</MudText>
                         </MudLink>

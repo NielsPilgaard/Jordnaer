@@ -531,6 +531,7 @@ public class GroupService(
 		currentGroup.ZipCodeLocation = updatedGroup.ZipCodeLocation;
 		currentGroup.ShortDescription = updatedGroup.ShortDescription;
 		currentGroup.Description = updatedGroup.Description;
+		currentGroup.WebsiteUrl = updatedGroup.WebsiteUrl;
 
 		currentGroup.Categories.Clear();
 		foreach (var categoryDto in updatedGroup.Categories)

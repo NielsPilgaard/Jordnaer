@@ -12,7 +12,6 @@ public record GroupSearchFilter
 	/// Only show group results within this many kilometers of the <see cref="Location"/>.
 	/// </summary>
 	[Range(1, 200, ErrorMessage = "Afstand skal være mellem 1 og 200 km")]
-	[LocationRequired]
 	public int? WithinRadiusKilometers { get; set; }
 
 	[RadiusRequired]
@@ -78,26 +77,6 @@ file class RadiusRequiredAttribute : ValidationAttribute
 		if (hasLocation && groupSearchFilter.WithinRadiusKilometers is null)
 		{
 			return new ValidationResult("Radius skal vælges når et område er valgt.");
-		}
-
-		return ValidationResult.Success!;
-	}
-}
-file class LocationRequiredAttribute : ValidationAttribute
-{
-	protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
-	{
-		var groupSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
-
-		// Check if location data exists
-		var hasLocation = !string.IsNullOrEmpty(groupSearchFilter.Location) ||
-						  (groupSearchFilter.Latitude.HasValue && groupSearchFilter.Longitude.HasValue);
-
-		// If no location is provided, search is valid (radius will be ignored)
-		// This allows searching without location even if radius slider has a value
-		if (!hasLocation)
-		{
-			return ValidationResult.Success!;
 		}
 
 		return ValidationResult.Success!;
