@@ -7,7 +7,7 @@ public class DataForsyningenOptions
     public const string SectionName = "DataForsyningen";
 
     [Url]
-    [Required(ErrorMessage = "Påkrævet.")]
+    [Required(ErrorMessage = "PÃ¥krÃ¦vet.")]
     public required string BaseUrl { get; set; }
 
     /// <summary>
