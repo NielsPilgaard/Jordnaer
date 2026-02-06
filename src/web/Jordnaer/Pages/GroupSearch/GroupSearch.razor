@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
 @inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
 
 @attribute [Sitemap]
 
@@ -11,7 +12,7 @@
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-    <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+    <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
 
     @if (!_hasSearched)
     {
@@ -81,7 +82,7 @@
             options =>
             {
                 options.VisibleStateDuration = 3500;
-                options.Icon = Icons.Material.Filled.ArrowDownward;
+                options.Icon = Icons.Material.Filled.CheckCircle;
                 options.CloseAfterNavigation = true;
             });
         }
@@ -92,11 +93,26 @@
         // Save to cache for restoration when navigating back
         Cache.SearchFilter = _filter;
         Cache.SearchResult = _searchResult;
+
+        // Clear scroll position since this is a new search
+        await ClearScrollPositionAsync();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
     {
         _filter.PageNumber = selectedPage;
         await Search();
+    }
+
+    private async Task ClearScrollPositionAsync()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("groupSearchScroll.clearScrollPosition");
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
     }
 }

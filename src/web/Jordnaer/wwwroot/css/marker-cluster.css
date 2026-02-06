@@ -1,0 +1,277 @@
+/**
+ * Custom marker cluster styles for Jordnaer
+ * Uses CSS custom properties for theming
+ */
+
+:root {
+    /* Jordnaer Map Colors - Using Design System */
+    --map-primary: #41556b;           /* MØDE blue - primary for markers */
+    --map-primary-alpha-50: rgba(65, 85, 107, 0.5);
+    --map-primary-alpha-60: rgba(65, 85, 107, 0.6);
+    --map-primary-alpha-85: rgba(65, 85, 107, 0.85);
+    --map-primary-alpha-90: rgba(65, 85, 107, 0.9);
+    --map-primary-hover: #324456;     /* Darker MØDE blue for hover */
+    --map-secondary: #878e64;         /* RO green */
+    --map-secondary-alpha-60: rgba(135, 142, 100, 0.6);
+    --map-secondary-alpha-90: rgba(135, 142, 100, 0.9);
+    --map-accent: #dbab45;            /* GLÆDE yellow */
+
+    /* Neutral Colors */
+    --neutral-333: #333;
+    --neutral-555: #555;
+    --neutral-666: #666;
+    --neutral-e0: #e0e0e0;
+    --neutral-f5: #f5f5f5;
+    --neutral-white: white;
+
+    /* Shadow */
+    --shadow-marker: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Base cluster marker styles */
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 50%;
+}
+
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 12px;
+    font-family: var(--font-body-bold), 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    color: var(--neutral-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Small clusters (< 10) */
+.marker-cluster-small {
+    background-color: var(--map-primary-alpha-50);
+}
+
+.marker-cluster-small div {
+    background-color: var(--map-primary-alpha-85);
+}
+
+/* Medium clusters (10-99) */
+.marker-cluster-medium {
+    background-color: var(--map-primary-alpha-60);
+}
+
+.marker-cluster-medium div {
+    background-color: var(--map-primary-alpha-90);
+    width: 36px;
+    height: 36px;
+    margin-left: 2px;
+    margin-top: 2px;
+    font-size: 13px;
+}
+
+/* Large clusters (100+) */
+.marker-cluster-large {
+    background-color: var(--map-secondary-alpha-60);
+}
+
+.marker-cluster-large div {
+    background-color: var(--map-secondary-alpha-90);
+    width: 42px;
+    height: 42px;
+    margin-left: 1px;
+    margin-top: 1px;
+    font-size: 14px;
+}
+
+/* Custom group marker styles */
+.group-marker-icon {
+    background-color: var(--map-primary);
+    border: 3px solid var(--neutral-white);
+    border-radius: 50%;
+    box-shadow: var(--shadow-marker);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.group-marker-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.group-marker-icon .group-marker-initial {
+    color: var(--neutral-white);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-body-bold), 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Popup styles */
+.group-popup {
+    min-width: 250px;
+    max-width: 300px;
+}
+
+.group-popup .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+}
+
+.group-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.group-popup-content {
+    font-family: var(--font-body-bold), 'Helvetica Neue', Arial, sans-serif;
+}
+
+.group-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: var(--neutral-f5);
+    border-bottom: 1px solid var(--neutral-e0);
+}
+
+.group-popup-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--map-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.group-popup-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.group-popup-avatar .group-initial {
+    color: var(--neutral-white);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.group-popup-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--neutral-333);
+    margin: 0;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.group-popup-body {
+    padding: 12px;
+}
+
+.group-popup-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--neutral-666);
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.group-popup-location svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.group-popup-description {
+    font-size: 13px;
+    color: var(--neutral-555);
+    line-height: 1.4;
+    margin-bottom: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.group-popup-website {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--neutral-666);
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.group-popup-website svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.group-popup-website a {
+    color: var(--map-primary);
+    text-decoration: none;
+    word-break: break-word;
+    transition: color 0.2s ease;
+}
+
+.group-popup-website a:hover {
+    color: var(--map-primary-hover);
+    text-decoration: underline;
+}
+
+.group-popup-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--map-primary);
+    color: var(--neutral-white);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.group-popup-link:hover {
+    background-color: var(--map-primary-hover);
+    color: var(--neutral-white);
+    text-decoration: none;
+}
+
+.group-popup-link svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Override Leaflet's default link color to ensure white text */
+.leaflet-popup-content .group-popup-link,
+.leaflet-popup-content .group-popup-link:visited,
+.leaflet-popup-content .group-popup-link:active {
+    color: var(--neutral-white) !important;
+}
+
+.leaflet-popup-content .group-popup-link:hover {
+    color: var(--neutral-white) !important;
+}

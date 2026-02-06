@@ -5,6 +5,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
 @inject IFeatureManager FeatureManager
+@inject GroupSearchResultCache Cache
 
 <MudContainer MaxWidth="MaxWidth.Medium">
 	<BackButton Href="/groups" />
@@ -19,8 +20,9 @@
 				{
 					@* New map-based search experience *@
 					<MudItem xs="12">
-						<MapSearchFilter @ref="_mapSearchFilter" RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
-							RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged" />
+						<MapSearchFilter @key="@("map-search-filter")" @ref="_mapSearchFilter" RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
+							RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged"
+							Groups="@_groupMarkers" SkipGeolocation="@(Cache.MapState is not null)" />
 					</MudItem>
 				}
 				else
@@ -49,18 +51,11 @@
 
 				<MudItem xs="12" Class="mt-6">
 
-					<MudButtonGroup OverrideStyles="false" Style="width: 100%;">
-						<MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
-							ButtonType="ButtonType.Submit" Size="Size.Large"
-							StartIcon="@Icons.Material.Filled.Search">
-							Søg
-						</MudButton>
-						<MudButton OnClick="ClearFilter" Color="Color.Default" Variant="Variant.Outlined"
-							ButtonType="ButtonType.Reset" Size="Size.Large"
-							StartIcon="@Icons.Material.Filled.Clear">
-							Ryd
-						</MudButton>
-					</MudButtonGroup>
+					<MudButton FullWidth Variant="Variant.Filled" Color="Color.Success"
+						ButtonType="ButtonType.Submit" Size="Size.Large"
+						StartIcon="@Icons.Material.Filled.Search">
+						Søg
+					</MudButton>
 
 				</MudItem>
 			</MudGrid>
@@ -68,10 +63,13 @@
 	</MudPaper>
 </MudContainer>
 
+@implements IDisposable
+
 @code
 {
 	private MapSearchFilter? _mapSearchFilter;
 	private bool _mapSearchEnabled = false;
+	private IDisposable? _locationChangingHandler;
 
 	[Parameter]
 	public required GroupSearchFilter Filter { get; set; }
@@ -82,27 +80,97 @@
 	[Parameter]
 	public required EventCallback OnValidSubmit { get; set; }
 
+	/// <summary>
+	/// Groups to display as markers on the map
+	/// </summary>
+	[Parameter]
+	public IEnumerable<GroupSlim>? Groups { get; set; }
+
 	private static readonly GroupSearchFilter DefaultFilter = new();
 
-	private bool _recentlyClearedForm = false;
-	private bool _disableSmartCompletionForZipCode => _recentlyClearedForm || Filter != DefaultFilter;
+	private bool _disableSmartCompletionForZipCode => Filter != DefaultFilter;
+
+	private List<GroupMarkerData>? _groupMarkers;
+	private IEnumerable<GroupSlim>? _previousGroups;
+
+	protected override void OnParametersSet()
+	{
+		// Early return if Groups reference hasn't changed
+		if (ReferenceEquals(Groups, _previousGroups))
+		{
+			return;
+		}
+
+		// Convert GroupSlim to GroupMarkerData for the map and materialize
+		_groupMarkers = Groups?
+			.Where(g => g.Latitude.HasValue && g.Longitude.HasValue)
+			.Select(g => new GroupMarkerData
+			{
+				Id = g.Id,
+				Name = g.Name,
+				ProfilePictureUrl = g.ProfilePictureUrl,
+				WebsiteUrl = g.WebsiteUrl,
+				ShortDescription = g.ShortDescription,
+				ZipCode = g.ZipCode,
+				City = g.City,
+				Latitude = g.Latitude!.Value,
+				Longitude = g.Longitude!.Value
+			})
+			.ToList();
+
+		_previousGroups = Groups;
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
 		_mapSearchEnabled = await FeatureManager.IsEnabledAsync(FeatureFlags.MapSearch);
+
+		// Register navigation handler to save map state when navigating away
+		if (_mapSearchEnabled)
+		{
+			_locationChangingHandler = Navigation.RegisterLocationChangingHandler(async _ =>
+			{
+				try
+				{
+					await SaveMapStateAsync();
+				}
+				catch (JSDisconnectedException)
+				{
+					// JS runtime disconnected during navigation - safe to ignore
+				}
+				catch (ObjectDisposedException)
+				{
+					// Component disposed during navigation - safe to ignore
+				}
+			});
+		}
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender && _mapSearchEnabled && _mapSearchFilter is not null)
 		{
-			// If we have lat/long in the filter from query string, set the map location
-			if (Filter.Latitude.HasValue && Filter.Longitude.HasValue && Filter.WithinRadiusKilometers.HasValue)
+			// Note: No delay needed here - RestoreMapStateAsync and SetLocationAsync
+			// have their own polling loops via WaitForMapInitializationAsync
+
+			// Restore from cached map state if available
+			if (Cache.MapState is not null)
+			{
+				await _mapSearchFilter.RestoreMapStateAsync(
+					Cache.MapState.MarkerLatitude,
+					Cache.MapState.MarkerLongitude,
+					Cache.MapState.ViewLatitude,
+					Cache.MapState.ViewLongitude,
+					Cache.MapState.Zoom,
+					Cache.MapState.AddressText);
+			}
+			// Otherwise if we have lat/long in the filter from query string, set the map location
+			else if (Filter.Latitude.HasValue && Filter.Longitude.HasValue && Filter.WithinRadiusKilometers.HasValue)
 			{
 				await _mapSearchFilter.SetLocationAsync(
-				Filter.Latitude.Value,
-				Filter.Longitude.Value,
-				13);
+					Filter.Latitude.Value,
+					Filter.Longitude.Value,
+					13);
 			}
 		}
 	}
@@ -128,29 +196,44 @@
 			await _mapSearchFilter.UpdateSearchRadiusAsync(
 			Filter.Latitude.Value,
 			Filter.Longitude.Value,
-			newRadius);
+			newRadius,
+			fitBounds: true);
 		}
 
 		await FilterChanged.InvokeAsync(Filter);
-	}
-
-	private async Task ClearFilter()
-	{
-		Filter = new GroupSearchFilter();
-		await FilterChanged.InvokeAsync(Filter);
-
-		// Clear the map location if using map search
-		if (_mapSearchEnabled && _mapSearchFilter is not null)
-		{
-			await _mapSearchFilter.ClearLocationAsync();
-		}
-
-		_recentlyClearedForm = true;
 	}
 
 	private void LocationChanged(string location)
 	{
 		Filter.Location = location;
 		Filter.WithinRadiusKilometers ??= 10;
+	}
+
+	private async Task SaveMapStateAsync()
+	{
+		if (_mapSearchFilter is not null && Filter.Latitude.HasValue && Filter.Longitude.HasValue)
+		{
+			var (viewState, addressText) = await _mapSearchFilter.GetMapStateAsync();
+
+			if (viewState is not null)
+			{
+				Cache.MapState = new MapState
+				{
+					// Save marker position from filter (where the search is centered)
+					MarkerLatitude = Filter.Latitude.Value,
+					MarkerLongitude = Filter.Longitude.Value,
+					// Save view position (what the user is looking at)
+					ViewLatitude = viewState.Latitude,
+					ViewLongitude = viewState.Longitude,
+					Zoom = viewState.Zoom,
+					AddressText = addressText
+				};
+			}
+		}
+	}
+
+	public void Dispose()
+	{
+		_locationChangingHandler?.Dispose();
 	}
 }

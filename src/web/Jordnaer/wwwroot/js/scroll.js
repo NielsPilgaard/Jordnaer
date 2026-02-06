@@ -184,5 +184,11 @@ window.groupSearchScroll = {
                 }
             });
         });
+    },
+
+    clearScrollPosition: function () {
+        sessionStorage.removeItem('groupSearch:scrollY');
+        sessionStorage.removeItem('groupSearch:visibleItemId');
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }
 };

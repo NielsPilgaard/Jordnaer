@@ -21,7 +21,7 @@ public interface ILeafletMapInterop
 	/// <summary>
 	/// Updates or creates a circle to show the search radius
 	/// </summary>
-	Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm);
+	Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm, bool fitBounds = false);
 
 	/// <summary>
 	/// Centers the map on a specific location
@@ -47,11 +47,58 @@ public interface ILeafletMapInterop
 	/// Disposes of a map instance
 	/// </summary>
 	Task<bool> DisposeMapAsync(string mapId);
+
+	/// <summary>
+	/// Updates group markers on the map with clustering support
+	/// </summary>
+	Task<bool> UpdateGroupMarkersAsync(string mapId, IEnumerable<GroupMarkerData> groups);
+
+	/// <summary>
+	/// Clears all group markers from the map
+	/// </summary>
+	Task<bool> ClearGroupMarkersAsync(string mapId);
+
+	/// <summary>
+	/// Fits the map view to show all group markers
+	/// </summary>
+	Task<bool> FitBoundsToMarkersAsync(string mapId, int padding = 50);
+
+	/// <summary>
+	/// Gets the current map view state (center and zoom)
+	/// </summary>
+	Task<MapViewState?> GetMapStateAsync(string mapId);
 }
 
-public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
+/// <summary>
+/// Data transfer object for group marker information
+/// </summary>
+public record GroupMarkerData
+{
+	public required Guid Id { get; init; }
+	public required string Name { get; init; }
+	public string? ProfilePictureUrl { get; init; }
+	public string? WebsiteUrl { get; init; }
+	public string? ShortDescription { get; init; }
+	public int? ZipCode { get; init; }
+	public string? City { get; init; }
+	public required double Latitude { get; init; }
+	public required double Longitude { get; init; }
+}
+
+/// <summary>
+/// Represents the current view state of a map
+/// </summary>
+public record MapViewState
+{
+	public required double Latitude { get; init; }
+	public required double Longitude { get; init; }
+	public required int Zoom { get; init; }
+}
+
+public class LeafletMapInterop(IJSRuntime jsRuntime, ILogger<LeafletMapInterop> logger) : ILeafletMapInterop
 {
 	private readonly IJSRuntime _jsRuntime = jsRuntime;
+	private readonly ILogger<LeafletMapInterop> _logger = logger;
 
 	public async Task<bool> InitializeMapAsync(string mapId, double lat, double lng, int zoom)
 	{
@@ -65,10 +112,10 @@ public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 			"leafletInterop.setupClickHandler", mapId, dotNetHelper);
 	}
 
-	public async Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm)
+	public async Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm, bool fitBounds = false)
 	{
 		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
-			"leafletInterop.updateSearchRadius", mapId, lat, lng, radiusKm);
+			"leafletInterop.updateSearchRadius", mapId, lat, lng, radiusKm, fitBounds);
 	}
 
 	public async Task<bool> CenterMapAsync(string mapId, double lat, double lng, int? zoom = null)
@@ -102,5 +149,37 @@ public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 	{
 		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
 			"leafletInterop.disposeMap", mapId);
+	}
+
+	public async Task<bool> UpdateGroupMarkersAsync(string mapId, IEnumerable<GroupMarkerData> groups)
+	{
+		var materialized = groups?.ToList() ?? [];
+		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			"leafletInterop.updateGroupMarkers", mapId, materialized);
+	}
+
+	public async Task<bool> ClearGroupMarkersAsync(string mapId)
+	{
+		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			"leafletInterop.clearGroupMarkers", mapId);
+	}
+
+	public async Task<bool> FitBoundsToMarkersAsync(string mapId, int padding = 50)
+	{
+		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			"leafletInterop.fitBoundsToMarkers", mapId, padding);
+	}
+
+	public async Task<MapViewState?> GetMapStateAsync(string mapId)
+	{
+		try
+		{
+			return await _jsRuntime.InvokeAsync<MapViewState?>("leafletInterop.getMapState", mapId);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex, "Failed to get map state for map {MapId}", mapId);
+			return null;
+		}
 	}
 }

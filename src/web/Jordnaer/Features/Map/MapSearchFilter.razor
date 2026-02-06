@@ -54,6 +54,7 @@
     private string? _addressText;
     private bool _isLoadingLocation = false;
     private bool _hasAttemptedGeolocation = false;
+    private IEnumerable<GroupMarkerData>? _previousGroups;
 
     [Parameter]
     public string MapId { get; set; } = $"map-search-{Guid.NewGuid()}";
@@ -80,6 +81,19 @@
         set;
     }
 
+    /// <summary>
+    /// Group data to display as markers on the map
+    /// </summary>
+    [Parameter]
+    public IEnumerable<GroupMarkerData>? Groups { get; set; }
+
+    /// <summary>
+    /// When true, skips automatic geolocation on first render.
+    /// Use this when restoring from cache to prevent geolocation from overriding restored state.
+    /// </summary>
+    [Parameter]
+    public bool SkipGeolocation { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && !_hasAttemptedGeolocation)
@@ -87,16 +101,22 @@
             _hasAttemptedGeolocation = true;
 
             // Wait for the map to initialize
-            var attempts = 0;
-            while (_mapComponent?.IsInitialized != true && attempts < 20)
-            {
-                await Task.Delay(50);
-                attempts++;
-            }
+            await WaitForMapInitializationAsync();
 
             if (_mapComponent?.IsInitialized == true)
             {
-                await TryGetUserLocation();
+                // Only attempt geolocation if we're not restoring state from cache or skipping explicitly
+                if (!SkipGeolocation)
+                {
+                    await TryGetUserLocation();
+                }
+
+                // Push initial group markers after map is initialized
+                if (Groups is not null)
+                {
+                    _previousGroups = Groups;
+                    await _mapComponent.UpdateGroupMarkersAsync(Groups);
+                }
             }
         }
     }
@@ -115,7 +135,7 @@
                 // User granted permission, update map to their location
                 if (_mapComponent is not null)
                 {
-                    await _mapComponent.CenterMapAsync(position.Latitude, position.Longitude, 13);
+                    await _mapComponent.CenterMapAsync(position.Latitude, position.Longitude, 10);
                     await _mapComponent.UpdateMarkerAsync(position.Latitude, position.Longitude);
                     await _mapComponent.UpdateSearchRadiusAsync(position.Latitude, position.Longitude, RadiusKm);
                 }
@@ -232,11 +252,11 @@
     /// Public method to update the search radius visualization
     /// Call this from parent when radius changes
     /// </summary>
-    public async Task UpdateSearchRadiusAsync(double lat, double lng, int radiusKm)
+    public async Task UpdateSearchRadiusAsync(double lat, double lng, int radiusKm, bool fitBounds = false)
     {
         if (_mapComponent is not null)
         {
-            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, radiusKm);
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, radiusKm, fitBounds);
         }
     }
 
@@ -276,6 +296,113 @@
             {
                 // Log but ignore errors - map might not be fully ready
                 Console.WriteLine($"Map clear error: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Public method to update group markers on the map
+    /// </summary>
+    public async Task UpdateGroupMarkersAsync(IEnumerable<GroupMarkerData> groups)
+    {
+        if (_mapComponent?.IsInitialized == true)
+        {
+            await _mapComponent.UpdateGroupMarkersAsync(groups);
+        }
+    }
+
+    /// <summary>
+    /// Public method to clear group markers from the map
+    /// </summary>
+    public async Task ClearGroupMarkersAsync()
+    {
+        if (_mapComponent?.IsInitialized == true)
+        {
+            await _mapComponent.ClearGroupMarkersAsync();
+        }
+    }
+
+    /// <summary>
+    /// Gets the current map state including view and address
+    /// </summary>
+    public async Task<(MapViewState? ViewState, string? AddressText)> GetMapStateAsync()
+    {
+        MapViewState? viewState = null;
+
+        if (_mapComponent?.IsInitialized == true)
+        {
+            viewState = await _mapComponent.GetMapStateAsync();
+        }
+
+        return (viewState, _addressText);
+    }
+
+    /// <summary>
+    /// Restores the map state from a previous session
+    /// </summary>
+    public async Task RestoreMapStateAsync(
+        double markerLatitude,
+        double markerLongitude,
+        double viewLatitude,
+        double viewLongitude,
+        int zoom,
+        string? addressText)
+    {
+        _addressText = addressText;
+
+        // Wait for map to be initialized
+        await WaitForMapInitializationAsync();
+
+        if (_mapComponent?.IsInitialized == true)
+        {
+            // Restore the marker at its correct position
+            await _mapComponent.UpdateMarkerAsync(markerLatitude, markerLongitude);
+            await _mapComponent.UpdateSearchRadiusAsync(markerLatitude, markerLongitude, RadiusKm);
+
+            // Restore the view to where the user was looking
+            await _mapComponent.CenterMapAsync(viewLatitude, viewLongitude, zoom);
+
+            // Note: We do NOT call OnLocationSearchChanged here because the Filter
+            // has already been restored from cache in the parent component.
+            // Calling it would overwrite the cached filter values.
+        }
+    }
+
+    /// <summary>
+    /// Helper method to wait for map initialization with polling
+    /// </summary>
+    private async Task WaitForMapInitializationAsync()
+    {
+        var attempts = 0;
+        while (_mapComponent?.IsInitialized != true && attempts < 20)
+        {
+            await Task.Delay(50);
+            attempts++;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Update group markers only when Groups parameter actually changes
+        if (_mapComponent?.IsInitialized == true)
+        {
+            // Materialize Groups once to avoid multiple enumeration
+            var groupsList = Groups?.ToList();
+
+            // Handle when groups are cleared (set to null or empty)
+            if (groupsList is null || groupsList.Count == 0)
+            {
+                if (_previousGroups is not null)
+                {
+                    _previousGroups = null;
+                    await _mapComponent.ClearGroupMarkersAsync();
+                }
+            }
+            // Handle when groups are updated
+            else if (Groups != _previousGroups)
+            {
+                _previousGroups = Groups;
+                await _mapComponent.UpdateGroupMarkersAsync(groupsList);
             }
         }
     }
