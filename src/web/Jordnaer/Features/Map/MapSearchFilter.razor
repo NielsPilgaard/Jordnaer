@@ -319,10 +319,26 @@
     protected override async Task OnParametersSetAsync()
     {
         // Update group markers only when Groups parameter actually changes
-        if (_mapComponent?.IsInitialized == true && Groups is not null && Groups != _previousGroups)
+        if (_mapComponent?.IsInitialized == true)
         {
-            _previousGroups = Groups;
-            await _mapComponent.UpdateGroupMarkersAsync(Groups);
+            // Handle when groups are cleared (set to null or empty)
+            if (Groups is null || !Groups.Any())
+            {
+                if (_previousGroups is not null)
+                {
+                    _previousGroups = null;
+                    await _mapComponent.ClearGroupMarkersAsync();
+                }
+            }
+            // Handle when groups are updated
+            else if (Groups != _previousGroups)
+            {
+                _previousGroups = Groups;
+                await _mapComponent.UpdateGroupMarkersAsync(Groups);
+
+                // Automatically fit the map to show all markers
+                await _mapComponent.FitBoundsToMarkersAsync();
+            }
         }
     }
 }
