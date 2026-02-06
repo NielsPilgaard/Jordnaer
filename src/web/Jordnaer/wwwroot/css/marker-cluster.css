@@ -4,16 +4,17 @@
  */
 
 :root {
-    /* Jordnaer Map Colors */
-    --jordnaer-primary: #594F8D;
-    --jordnaer-primary-alpha-50: rgba(89, 79, 141, 0.5);
-    --jordnaer-primary-alpha-60: rgba(89, 79, 141, 0.6);
-    --jordnaer-primary-alpha-85: rgba(89, 79, 141, 0.85);
-    --jordnaer-primary-alpha-90: rgba(89, 79, 141, 0.9);
-    --jordnaer-primary-hover: #483f73;
-    --jordnaer-green: #878e64;
-    --jordnaer-green-alpha-60: rgba(135, 142, 100, 0.6);
-    --jordnaer-green-alpha-90: rgba(135, 142, 100, 0.9);
+    /* Jordnaer Map Colors - Using Design System */
+    --map-primary: #41556b;           /* MØDE blue - primary for markers */
+    --map-primary-alpha-50: rgba(65, 85, 107, 0.5);
+    --map-primary-alpha-60: rgba(65, 85, 107, 0.6);
+    --map-primary-alpha-85: rgba(65, 85, 107, 0.85);
+    --map-primary-alpha-90: rgba(65, 85, 107, 0.9);
+    --map-primary-hover: #324456;     /* Darker MØDE blue for hover */
+    --map-secondary: #878e64;         /* RO green */
+    --map-secondary-alpha-60: rgba(135, 142, 100, 0.6);
+    --map-secondary-alpha-90: rgba(135, 142, 100, 0.9);
+    --map-accent: #dbab45;            /* GLÆDE yellow */
 
     /* Neutral Colors */
     --neutral-333: #333;
@@ -41,7 +42,7 @@
     text-align: center;
     border-radius: 50%;
     font-size: 12px;
-    font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+    font-family: var(--font-body-bold), 'Helvetica Neue', Arial, sans-serif;
     font-weight: 600;
     color: var(--neutral-white);
     display: flex;
@@ -51,20 +52,20 @@
 
 /* Small clusters (< 10) */
 .marker-cluster-small {
-    background-color: var(--jordnaer-primary-alpha-50);
+    background-color: var(--map-primary-alpha-50);
 }
 
 .marker-cluster-small div {
-    background-color: var(--jordnaer-primary-alpha-85);
+    background-color: var(--map-primary-alpha-85);
 }
 
 /* Medium clusters (10-99) */
 .marker-cluster-medium {
-    background-color: var(--jordnaer-primary-alpha-60);
+    background-color: var(--map-primary-alpha-60);
 }
 
 .marker-cluster-medium div {
-    background-color: var(--jordnaer-primary-alpha-90);
+    background-color: var(--map-primary-alpha-90);
     width: 36px;
     height: 36px;
     margin-left: 2px;
@@ -74,11 +75,11 @@
 
 /* Large clusters (100+) */
 .marker-cluster-large {
-    background-color: var(--jordnaer-green-alpha-60);
+    background-color: var(--map-secondary-alpha-60);
 }
 
 .marker-cluster-large div {
-    background-color: var(--jordnaer-green-alpha-90);
+    background-color: var(--map-secondary-alpha-90);
     width: 42px;
     height: 42px;
     margin-left: -1px;
@@ -88,7 +89,7 @@
 
 /* Custom group marker styles */
 .group-marker-icon {
-    background-color: var(--jordnaer-primary);
+    background-color: var(--map-primary);
     border: 3px solid var(--neutral-white);
     border-radius: 50%;
     box-shadow: var(--shadow-marker);
@@ -109,7 +110,7 @@
     color: var(--neutral-white);
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+    font-family: var(--font-body-bold), 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Popup styles */
@@ -130,7 +131,7 @@
 }
 
 .group-popup-content {
-    font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+    font-family: var(--font-body-bold), 'Helvetica Neue', Arial, sans-serif;
 }
 
 .group-popup-header {
@@ -146,7 +147,7 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background-color: var(--jordnaer-primary);
+    background-color: var(--map-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -210,11 +211,38 @@
     -webkit-box-orient: vertical;
 }
 
+.group-popup-website {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--neutral-666);
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.group-popup-website svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.group-popup-website a {
+    color: var(--map-primary);
+    text-decoration: none;
+    word-break: break-word;
+    transition: color 0.2s ease;
+}
+
+.group-popup-website a:hover {
+    color: var(--map-primary-hover);
+    text-decoration: underline;
+}
+
 .group-popup-link {
     display: flex;
     align-items: center;
     gap: 6px;
-    background-color: var(--jordnaer-primary);
+    background-color: var(--map-primary);
     color: var(--neutral-white);
     text-decoration: none;
     padding: 8px 16px;
@@ -227,7 +255,7 @@
 }
 
 .group-popup-link:hover {
-    background-color: var(--jordnaer-primary-hover);
+    background-color: var(--map-primary-hover);
     color: var(--neutral-white);
     text-decoration: none;
 }
@@ -235,4 +263,15 @@
 .group-popup-link svg {
     width: 16px;
     height: 16px;
+}
+
+/* Override Leaflet's default link color to ensure white text */
+.leaflet-popup-content .group-popup-link,
+.leaflet-popup-content .group-popup-link:visited,
+.leaflet-popup-content .group-popup-link:active {
+    color: var(--neutral-white) !important;
+}
+
+.leaflet-popup-content .group-popup-link:hover {
+    color: var(--neutral-white) !important;
 }

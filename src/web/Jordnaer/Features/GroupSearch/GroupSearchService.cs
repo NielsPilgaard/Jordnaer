@@ -46,11 +46,17 @@ public class GroupSearchService(
 							  .Select(group => new GroupSlim
 							  {
 								  ProfilePictureUrl = group.ProfilePictureUrl,
+								  WebsiteUrl = group.WebsiteUrl,
 								  Name = group.Name,
 								  ShortDescription = group.ShortDescription,
 								  Description = group.Description,
+								  Address = group.Address,
 								  ZipCode = group.ZipCode,
 								  City = group.City,
+								  Latitude = group.Location != null ? group.Location.Y : null,
+								  Longitude = group.Location != null ? group.Location.X : null,
+								  ZipCodeLatitude = group.ZipCodeLocation != null ? group.ZipCodeLocation.Y : null,
+								  ZipCodeLongitude = group.ZipCodeLocation != null ? group.ZipCodeLocation.X : null,
 								  Categories = group.Categories.Select(category => category.Name).ToArray(),
 								  MemberCount = group.Memberships.Count(e => e.MembershipStatus == MembershipStatus.Active),
 								  Id = group.Id

@@ -335,9 +335,6 @@
             {
                 _previousGroups = Groups;
                 await _mapComponent.UpdateGroupMarkersAsync(Groups);
-
-                // Automatically fit the map to show all markers
-                await _mapComponent.FitBoundsToMarkersAsync();
             }
         }
     }

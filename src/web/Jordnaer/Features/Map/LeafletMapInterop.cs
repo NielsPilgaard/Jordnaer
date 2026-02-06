@@ -72,6 +72,7 @@ public record GroupMarkerData
 	public required Guid Id { get; init; }
 	public required string Name { get; init; }
 	public string? ProfilePictureUrl { get; init; }
+	public string? WebsiteUrl { get; init; }
 	public string? ShortDescription { get; init; }
 	public int? ZipCode { get; init; }
 	public string? City { get; init; }
