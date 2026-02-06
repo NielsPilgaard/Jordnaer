@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
 @inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
 
 @attribute [Sitemap]
 
@@ -53,6 +54,13 @@
             _searchResult = Cache.SearchResult;
             _hasSearched = true;
         }
+        else
+        {
+            // Ensure clean state if cache is empty
+            _filter = new GroupSearchFilter();
+            _searchResult = new GroupSearchResult();
+            _hasSearched = false;
+        }
     }
 
     private async Task Search()
@@ -81,7 +89,7 @@
             options =>
             {
                 options.VisibleStateDuration = 3500;
-                options.Icon = Icons.Material.Filled.ArrowDownward;
+                options.Icon = Icons.Material.Filled.CheckCircle;
                 options.CloseAfterNavigation = true;
             });
         }
@@ -92,11 +100,30 @@
         // Save to cache for restoration when navigating back
         Cache.SearchFilter = _filter;
         Cache.SearchResult = _searchResult;
+
+        // Clear scroll position since this is a new search
+        await ClearScrollPositionAsync();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
     {
         _filter.PageNumber = selectedPage;
         await Search();
+    }
+
+    private async Task ClearScrollPositionAsync()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("eval", @"
+                sessionStorage.removeItem('groupSearch:scrollY');
+                sessionStorage.removeItem('groupSearch:visibleItemId');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            ");
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
     }
 }

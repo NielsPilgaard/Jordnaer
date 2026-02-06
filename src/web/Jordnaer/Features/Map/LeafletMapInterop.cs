@@ -21,7 +21,7 @@ public interface ILeafletMapInterop
 	/// <summary>
 	/// Updates or creates a circle to show the search radius
 	/// </summary>
-	Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm);
+	Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm, bool fitBounds = false);
 
 	/// <summary>
 	/// Centers the map on a specific location
@@ -62,6 +62,11 @@ public interface ILeafletMapInterop
 	/// Fits the map view to show all group markers
 	/// </summary>
 	Task<bool> FitBoundsToMarkersAsync(string mapId, int padding = 50);
+
+	/// <summary>
+	/// Gets the current map view state (center and zoom)
+	/// </summary>
+	Task<MapViewState?> GetMapStateAsync(string mapId);
 }
 
 /// <summary>
@@ -80,6 +85,16 @@ public record GroupMarkerData
 	public required double Longitude { get; init; }
 }
 
+/// <summary>
+/// Represents the current view state of a map
+/// </summary>
+public record MapViewState
+{
+	public required double Latitude { get; init; }
+	public required double Longitude { get; init; }
+	public required int Zoom { get; init; }
+}
+
 public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 {
 	private readonly IJSRuntime _jsRuntime = jsRuntime;
@@ -96,10 +111,10 @@ public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 			"leafletInterop.setupClickHandler", mapId, dotNetHelper);
 	}
 
-	public async Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm)
+	public async Task<bool> UpdateSearchRadiusAsync(string mapId, double lat, double lng, int radiusKm, bool fitBounds = false)
 	{
 		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
-			"leafletInterop.updateSearchRadius", mapId, lat, lng, radiusKm);
+			"leafletInterop.updateSearchRadius", mapId, lat, lng, radiusKm, fitBounds);
 	}
 
 	public async Task<bool> CenterMapAsync(string mapId, double lat, double lng, int? zoom = null)
@@ -152,5 +167,17 @@ public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 	{
 		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
 			"leafletInterop.fitBoundsToMarkers", mapId, padding);
+	}
+
+	public async Task<MapViewState?> GetMapStateAsync(string mapId)
+	{
+		try
+		{
+			return await _jsRuntime.InvokeAsync<MapViewState?>("leafletInterop.getMapState", mapId);
+		}
+		catch
+		{
+			return null;
+		}
 	}
 }
