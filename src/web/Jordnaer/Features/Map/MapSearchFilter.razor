@@ -54,6 +54,7 @@
     private string? _addressText;
     private bool _isLoadingLocation = false;
     private bool _hasAttemptedGeolocation = false;
+    private IEnumerable<GroupMarkerData>? _previousGroups;
 
     [Parameter]
     public string MapId { get; set; } = $"map-search-{Guid.NewGuid()}";
@@ -80,6 +81,12 @@
         set;
     }
 
+    /// <summary>
+    /// Group data to display as markers on the map
+    /// </summary>
+    [Parameter]
+    public IEnumerable<GroupMarkerData>? Groups { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && !_hasAttemptedGeolocation)
@@ -97,6 +104,13 @@
             if (_mapComponent?.IsInitialized == true)
             {
                 await TryGetUserLocation();
+
+                // Push initial group markers after map is initialized
+                if (Groups is not null)
+                {
+                    _previousGroups = Groups;
+                    await _mapComponent.UpdateGroupMarkersAsync(Groups);
+                }
             }
         }
     }
@@ -277,6 +291,38 @@
                 // Log but ignore errors - map might not be fully ready
                 Console.WriteLine($"Map clear error: {ex.Message}");
             }
+        }
+    }
+
+    /// <summary>
+    /// Public method to update group markers on the map
+    /// </summary>
+    public async Task UpdateGroupMarkersAsync(IEnumerable<GroupMarkerData> groups)
+    {
+        if (_mapComponent?.IsInitialized == true)
+        {
+            await _mapComponent.UpdateGroupMarkersAsync(groups);
+        }
+    }
+
+    /// <summary>
+    /// Public method to clear group markers from the map
+    /// </summary>
+    public async Task ClearGroupMarkersAsync()
+    {
+        if (_mapComponent?.IsInitialized == true)
+        {
+            await _mapComponent.ClearGroupMarkersAsync();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Update group markers only when Groups parameter actually changes
+        if (_mapComponent?.IsInitialized == true && Groups is not null && Groups != _previousGroups)
+        {
+            _previousGroups = Groups;
+            await _mapComponent.UpdateGroupMarkersAsync(Groups);
         }
     }
 }

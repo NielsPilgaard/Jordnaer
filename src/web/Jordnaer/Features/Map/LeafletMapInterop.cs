@@ -47,6 +47,36 @@ public interface ILeafletMapInterop
 	/// Disposes of a map instance
 	/// </summary>
 	Task<bool> DisposeMapAsync(string mapId);
+
+	/// <summary>
+	/// Updates group markers on the map with clustering support
+	/// </summary>
+	Task<bool> UpdateGroupMarkersAsync(string mapId, IEnumerable<GroupMarkerData> groups);
+
+	/// <summary>
+	/// Clears all group markers from the map
+	/// </summary>
+	Task<bool> ClearGroupMarkersAsync(string mapId);
+
+	/// <summary>
+	/// Fits the map view to show all group markers
+	/// </summary>
+	Task<bool> FitBoundsToMarkersAsync(string mapId, int padding = 50);
+}
+
+/// <summary>
+/// Data transfer object for group marker information
+/// </summary>
+public record GroupMarkerData
+{
+	public required Guid Id { get; init; }
+	public required string Name { get; init; }
+	public string? ProfilePictureUrl { get; init; }
+	public string? ShortDescription { get; init; }
+	public int? ZipCode { get; init; }
+	public string? City { get; init; }
+	public required double Latitude { get; init; }
+	public required double Longitude { get; init; }
 }
 
 public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
@@ -102,5 +132,24 @@ public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 	{
 		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
 			"leafletInterop.disposeMap", mapId);
+	}
+
+	public async Task<bool> UpdateGroupMarkersAsync(string mapId, IEnumerable<GroupMarkerData> groups)
+	{
+		var materialized = groups?.ToList() ?? [];
+		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			"leafletInterop.updateGroupMarkers", mapId, materialized);
+	}
+
+	public async Task<bool> ClearGroupMarkersAsync(string mapId)
+	{
+		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			"leafletInterop.clearGroupMarkers", mapId);
+	}
+
+	public async Task<bool> FitBoundsToMarkersAsync(string mapId, int padding = 50)
+	{
+		return await _jsRuntime.InvokeVoidAsyncWithErrorHandling(
+			"leafletInterop.fitBoundsToMarkers", mapId, padding);
 	}
 }

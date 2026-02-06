@@ -127,6 +127,45 @@
 		await LeafletMapInterop.RemoveSearchRadiusAsync(MapId);
 	}
 
+	/// <summary>
+	/// Updates group markers on the map with clustering
+	/// </summary>
+	public async Task UpdateGroupMarkersAsync(IEnumerable<GroupMarkerData> groups)
+	{
+		if (!_isInitialized)
+		{
+			return;
+		}
+
+		await LeafletMapInterop.UpdateGroupMarkersAsync(MapId, groups);
+	}
+
+	/// <summary>
+	/// Clears all group markers from the map
+	/// </summary>
+	public async Task ClearGroupMarkersAsync()
+	{
+		if (!_isInitialized)
+		{
+			return;
+		}
+
+		await LeafletMapInterop.ClearGroupMarkersAsync(MapId);
+	}
+
+	/// <summary>
+	/// Fits the map view to show all group markers
+	/// </summary>
+	public async Task FitBoundsToMarkersAsync(int padding = 50)
+	{
+		if (!_isInitialized)
+		{
+			return;
+		}
+
+		await LeafletMapInterop.FitBoundsToMarkersAsync(MapId, padding);
+	}
+
 	public async ValueTask DisposeAsync()
 	{
 		if (_isInitialized)

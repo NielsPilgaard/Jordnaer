@@ -11,7 +11,7 @@
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-    <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+    <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
 
     @if (!_hasSearched)
     {

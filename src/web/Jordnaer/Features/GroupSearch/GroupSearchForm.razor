@@ -20,7 +20,8 @@
 					@* New map-based search experience *@
 					<MudItem xs="12">
 						<MapSearchFilter @ref="_mapSearchFilter" RadiusKm="@(Filter.WithinRadiusKilometers ?? 10)"
-							RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged" />
+							RadiusKmChanged="OnRadiusChanged" OnLocationSearchChanged="OnLocationSearchChanged"
+							Groups="@_groupMarkers" />
 					</MudItem>
 				}
 				else
@@ -82,10 +83,46 @@
 	[Parameter]
 	public required EventCallback OnValidSubmit { get; set; }
 
+	/// <summary>
+	/// Groups to display as markers on the map
+	/// </summary>
+	[Parameter]
+	public IEnumerable<GroupSlim>? Groups { get; set; }
+
 	private static readonly GroupSearchFilter DefaultFilter = new();
 
 	private bool _recentlyClearedForm = false;
 	private bool _disableSmartCompletionForZipCode => _recentlyClearedForm || Filter != DefaultFilter;
+
+	private List<GroupMarkerData>? _groupMarkers;
+	private IEnumerable<GroupSlim>? _previousGroups;
+
+	protected override void OnParametersSet()
+	{
+		// Early return if Groups reference hasn't changed
+		if (ReferenceEquals(Groups, _previousGroups))
+		{
+			return;
+		}
+
+		// Convert GroupSlim to GroupMarkerData for the map and materialize
+		_groupMarkers = Groups?
+			.Where(g => g.Latitude.HasValue && g.Longitude.HasValue)
+			.Select(g => new GroupMarkerData
+			{
+				Id = g.Id,
+				Name = g.Name,
+				ProfilePictureUrl = g.ProfilePictureUrl,
+				ShortDescription = g.ShortDescription,
+				ZipCode = g.ZipCode,
+				City = g.City,
+				Latitude = g.Latitude!.Value,
+				Longitude = g.Longitude!.Value
+			})
+			.ToList();
+
+		_previousGroups = Groups;
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
