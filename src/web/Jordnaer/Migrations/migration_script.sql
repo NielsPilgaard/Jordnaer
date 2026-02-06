@@ -1216,3 +1216,24 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260204154220_AddWebsiteUrlToGroups'
+)
+BEGIN
+    ALTER TABLE [Groups] ADD [WebsiteUrl] nvarchar(500) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260204154220_AddWebsiteUrlToGroups'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260204154220_AddWebsiteUrlToGroups', N'10.0.2');
+END;
+
+COMMIT;
+GO
+
