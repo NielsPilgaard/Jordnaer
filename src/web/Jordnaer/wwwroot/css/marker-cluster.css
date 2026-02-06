@@ -82,8 +82,8 @@
     background-color: var(--map-secondary-alpha-90);
     width: 42px;
     height: 42px;
-    margin-left: -1px;
-    margin-top: -1px;
+    margin-left: 1px;
+    margin-top: 1px;
     font-size: 14px;
 }
 

@@ -1,5 +1,6 @@
 @implements IAsyncDisposable
 @inject ILeafletMapInterop LeafletMapInterop
+@inject ILogger<LeafletMap> Logger
 
 <div id="@MapId" style="@MapStyle"></div>
 
@@ -94,7 +95,6 @@
 	public async Task UpdateMarkerAsync(double lat, double lng)
 	{
 		if (!_isInitialized) return;
-		
 
 		await LeafletMapInterop.UpdateMarkerAsync(MapId, lat, lng);
 	}
@@ -128,40 +128,55 @@
 	/// <summary>
 	/// Updates group markers on the map with clustering
 	/// </summary>
-	public async Task UpdateGroupMarkersAsync(IEnumerable<GroupMarkerData> groups)
+	public async Task<bool> UpdateGroupMarkersAsync(IEnumerable<GroupMarkerData> groups)
 	{
 		if (!_isInitialized)
 		{
-			return;
+			return false;
 		}
 
-		await LeafletMapInterop.UpdateGroupMarkersAsync(MapId, groups);
+		var success = await LeafletMapInterop.UpdateGroupMarkersAsync(MapId, groups);
+		if (!success)
+		{
+			Logger.LogWarning("Failed to update group markers on map {MapId}", MapId);
+		}
+		return success;
 	}
 
 	/// <summary>
 	/// Clears all group markers from the map
 	/// </summary>
-	public async Task ClearGroupMarkersAsync()
+	public async Task<bool> ClearGroupMarkersAsync()
 	{
 		if (!_isInitialized)
 		{
-			return;
+			return false;
 		}
 
-		await LeafletMapInterop.ClearGroupMarkersAsync(MapId);
+		var success = await LeafletMapInterop.ClearGroupMarkersAsync(MapId);
+		if (!success)
+		{
+			Logger.LogWarning("Failed to clear group markers on map {MapId}", MapId);
+		}
+		return success;
 	}
 
 	/// <summary>
 	/// Fits the map view to show all group markers
 	/// </summary>
-	public async Task FitBoundsToMarkersAsync(int padding = 50)
+	public async Task<bool> FitBoundsToMarkersAsync(int padding = 50)
 	{
 		if (!_isInitialized)
 		{
-			return;
+			return false;
 		}
 
-		await LeafletMapInterop.FitBoundsToMarkersAsync(MapId, padding);
+		var success = await LeafletMapInterop.FitBoundsToMarkersAsync(MapId, padding);
+		if (!success)
+		{
+			Logger.LogWarning("Failed to fit bounds to markers on map {MapId}", MapId);
+		}
+		return success;
 	}
 
 	/// <summary>

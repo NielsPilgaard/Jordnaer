@@ -115,11 +115,7 @@
     {
         try
         {
-            await JsRuntime.InvokeVoidAsync("eval", @"
-                sessionStorage.removeItem('groupSearch:scrollY');
-                sessionStorage.removeItem('groupSearch:visibleItemId');
-                window.scrollTo({ top: 0, behavior: 'instant' });
-            ");
+            await JsRuntime.InvokeVoidAsync("groupSearchScroll.clearScrollPosition");
         }
         catch
         {

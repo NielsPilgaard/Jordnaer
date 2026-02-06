@@ -95,9 +95,10 @@ public record MapViewState
 	public required int Zoom { get; init; }
 }
 
-public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
+public class LeafletMapInterop(IJSRuntime jsRuntime, ILogger<LeafletMapInterop> logger) : ILeafletMapInterop
 {
 	private readonly IJSRuntime _jsRuntime = jsRuntime;
+	private readonly ILogger<LeafletMapInterop> _logger = logger;
 
 	public async Task<bool> InitializeMapAsync(string mapId, double lat, double lng, int zoom)
 	{
@@ -175,8 +176,9 @@ public class LeafletMapInterop(IJSRuntime jsRuntime) : ILeafletMapInterop
 		{
 			return await _jsRuntime.InvokeAsync<MapViewState?>("leafletInterop.getMapState", mapId);
 		}
-		catch
+		catch (Exception ex)
 		{
+			_logger.LogWarning(ex, "Failed to get map state for map {MapId}", mapId);
 			return null;
 		}
 	}
