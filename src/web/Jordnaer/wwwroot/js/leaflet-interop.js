@@ -383,6 +383,11 @@ window.leafletInterop = {
                 return false;
             }
 
+            // Guard against null/undefined groups array
+            if (!groups) {
+                groups = [];
+            }
+
             // Remove existing cluster group if any
             if (mapInstance.markerClusterGroup) {
                 mapInstance.markerClusterGroup.clearLayers();
@@ -417,7 +422,7 @@ window.leafletInterop = {
             });
 
             // Add markers for each group
-            if (groups && groups.length > 0) {
+            if (groups.length > 0) {
                 groups.forEach(group => {
                     // Skip groups without valid coordinates
                     if (group.latitude == null || group.longitude == null ||
@@ -485,7 +490,12 @@ window.leafletInterop = {
         try {
             const mapInstance = this.maps[mapId];
             if (!mapInstance || !mapInstance.markerClusterGroup) {
-                console.error('Map or marker cluster group not found:', mapId);
+                return false;
+            }
+
+            // Check if there are any markers in the cluster group
+            const layerCount = mapInstance.markerClusterGroup.getLayers().length;
+            if (layerCount === 0) {
                 return false;
             }
 
