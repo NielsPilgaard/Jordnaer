@@ -12,8 +12,12 @@ public class Group
 	[DatabaseGenerated(DatabaseGeneratedOption.None)]
 	public Guid Id { get; set; }
 
-	[Url]
+	[Url(ErrorMessage = "Profil billede URL skal være en gyldig URL.")]
 	public string? ProfilePictureUrl { get; set; }
+
+	[Url(ErrorMessage = "Hjemmeside URL skal være en gyldig URL.")]
+	[MaxLength(500, ErrorMessage = "Hjemmeside URL må højest være 500 karakterer lang.")]
+	public string? WebsiteUrl { get; set; }
 
 	[MaxLength(500, ErrorMessage = "Adresse må højest være 500 karakterer langt.")]
 	public string? Address { get; set; }

@@ -56,6 +56,7 @@ public class GroupService(
 				ZipCodeLatitude = x.ZipCodeLocation != null ? x.ZipCodeLocation.Y : null,
 				ZipCodeLongitude = x.ZipCodeLocation != null ? x.ZipCodeLocation.X : null,
 				ProfilePictureUrl = x.ProfilePictureUrl,
+				WebsiteUrl = x.WebsiteUrl,
 				MemberCount = x.Memberships.Count(membership => membership.MembershipStatus == MembershipStatus.Active),
 				Categories = x.Categories.Select(category => category.Name).ToArray()
 			})
@@ -96,6 +97,7 @@ public class GroupService(
 					ZipCodeLatitude = x.Group.ZipCodeLocation != null ? x.Group.ZipCodeLocation.Y : null,
 					ZipCodeLongitude = x.Group.ZipCodeLocation != null ? x.Group.ZipCodeLocation.X : null,
 					ProfilePictureUrl = x.Group.ProfilePictureUrl,
+					WebsiteUrl = x.Group.WebsiteUrl,
 					MemberCount =
 						x.Group.Memberships.Count(membership =>
 							membership.MembershipStatus == MembershipStatus.Active),
@@ -529,6 +531,7 @@ public class GroupService(
 		currentGroup.ZipCodeLocation = updatedGroup.ZipCodeLocation;
 		currentGroup.ShortDescription = updatedGroup.ShortDescription;
 		currentGroup.Description = updatedGroup.Description;
+		currentGroup.WebsiteUrl = updatedGroup.WebsiteUrl;
 
 		currentGroup.Categories.Clear();
 		foreach (var categoryDto in updatedGroup.Categories)

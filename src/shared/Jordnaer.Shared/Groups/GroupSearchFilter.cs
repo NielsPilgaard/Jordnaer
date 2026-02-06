@@ -12,7 +12,6 @@ public record GroupSearchFilter
 	/// Only show group results within this many kilometers of the <see cref="Location"/>.
 	/// </summary>
 	[Range(1, 200, ErrorMessage = "Afstand skal være mellem 1 og 200 km")]
-	[LocationRequired]
 	public int? WithinRadiusKilometers { get; set; }
 
 	[RadiusRequired]
@@ -70,39 +69,16 @@ file class RadiusRequiredAttribute : ValidationAttribute
 	{
 		var groupSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
 
-		if (groupSearchFilter.WithinRadiusKilometers is null &&
-			string.IsNullOrEmpty(groupSearchFilter.Location) &&
-			!groupSearchFilter.Latitude.HasValue &&
-			!groupSearchFilter.Longitude.HasValue)
-		{
-			return ValidationResult.Success!;
-		}
-
-		return groupSearchFilter.WithinRadiusKilometers is null
-			? new ValidationResult("Radius skal vælges når et område er valgt.")
-			: ValidationResult.Success!;
-	}
-}
-file class LocationRequiredAttribute : ValidationAttribute
-{
-	protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
-	{
-		var groupSearchFilter = (GroupSearchFilter)validationContext.ObjectInstance;
-
-		if (groupSearchFilter.WithinRadiusKilometers is null &&
-			string.IsNullOrEmpty(groupSearchFilter.Location) &&
-			!groupSearchFilter.Latitude.HasValue &&
-			!groupSearchFilter.Longitude.HasValue)
-		{
-			return ValidationResult.Success!;
-		}
-
-		// Valid if either Location string is set OR lat/long coordinates are set
+		// Check if location data exists
 		var hasLocation = !string.IsNullOrEmpty(groupSearchFilter.Location) ||
 						  (groupSearchFilter.Latitude.HasValue && groupSearchFilter.Longitude.HasValue);
 
-		return !hasLocation
-			? new ValidationResult("Område skal vælges når en radius er valgt.")
-			: ValidationResult.Success!;
+		// Radius is only required when location is provided
+		if (hasLocation && groupSearchFilter.WithinRadiusKilometers is null)
+		{
+			return new ValidationResult("Radius skal vælges når et område er valgt.");
+		}
+
+		return ValidationResult.Success!;
 	}
 }

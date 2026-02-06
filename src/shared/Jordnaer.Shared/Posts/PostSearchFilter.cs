@@ -11,7 +11,6 @@ public class PostSearchFilter
 	/// Only show user results within this many kilometers of the <see cref="Location"/>.
 	/// </summary>
 	[Range(1, 50, ErrorMessage = "Afstand skal være mellem 1 og 50 km")]
-	[LocationRequired]
 	public int? WithinRadiusKilometers { get; set; }
 
 	[RadiusRequired]
@@ -39,40 +38,16 @@ file class RadiusRequiredAttribute : ValidationAttribute
 	{
 		var postSearchFilter = (PostSearchFilter)validationContext.ObjectInstance;
 
-		if (postSearchFilter.WithinRadiusKilometers is null &&
-			string.IsNullOrEmpty(postSearchFilter.Location) &&
-			!postSearchFilter.Latitude.HasValue &&
-			!postSearchFilter.Longitude.HasValue)
-		{
-			return ValidationResult.Success!;
-		}
-
-		return postSearchFilter.WithinRadiusKilometers is null
-				   ? new ValidationResult("Radius skal vælges når et område er valgt.")
-				   : ValidationResult.Success!;
-	}
-}
-
-file class LocationRequiredAttribute : ValidationAttribute
-{
-	protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
-	{
-		var postSearchFilter = (PostSearchFilter)validationContext.ObjectInstance;
-
-		if (postSearchFilter.WithinRadiusKilometers is null &&
-			string.IsNullOrEmpty(postSearchFilter.Location) &&
-			!postSearchFilter.Latitude.HasValue &&
-			!postSearchFilter.Longitude.HasValue)
-		{
-			return ValidationResult.Success!;
-		}
-
-		// Valid if either Location string is set OR lat/long coordinates are set
+		// Check if location data exists
 		var hasLocation = !string.IsNullOrEmpty(postSearchFilter.Location) ||
 						  (postSearchFilter.Latitude.HasValue && postSearchFilter.Longitude.HasValue);
 
-		return !hasLocation
-				   ? new ValidationResult("Område skal vælges når en radius er valgt.")
-				   : ValidationResult.Success!;
+		// Radius is only required when location is provided
+		if (hasLocation && postSearchFilter.WithinRadiusKilometers is null)
+		{
+			return new ValidationResult("Radius skal vælges når et område er valgt.");
+		}
+
+		return ValidationResult.Success!;
 	}
 }

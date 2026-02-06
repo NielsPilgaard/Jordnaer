@@ -8,6 +8,8 @@ public class GroupSlim
 
 	public string? ProfilePictureUrl { get; set; }
 
+	public string? WebsiteUrl { get; set; }
+
 	public required string ShortDescription { get; set; }
 	public required string? Description { get; set; }
 
