@@ -40,16 +40,6 @@ dotnet test tests/web/Jordnaer.Tests --filter FullyQualifiedName~YourTestName
 # Do not apply the migration
 ```
 
-### Code Review
-
-After completing work, run CodeRabbit for automated review:
-
-```batch
-scripts\coderabbit.bat
-```
-
-Review output appears in the `reviews/` folder. Apply relevant suggestions before committing.
-
 ## Architecture
 
 ### Technology Stack
@@ -224,14 +214,11 @@ app.MapHub<ChatHub>("/hubs/chat");
 5. Add Razor components in `Components/` if needed
 6. Write tests in `tests/web/Jordnaer.Tests/`
 7. Run tests: `dotnet test tests/web/Jordnaer.Tests --filter Category!=SkipInCi`
-8. Run CodeRabbit: `scripts\coderabbit.bat`
 
 ### After Completing Changes
 
 1. **Run tests** to ensure nothing is broken
 2. **Create acceptance test checklist** - identify what needs manual testing
-3. **Run CodeRabbit** via `scripts\coderabbit.bat` to generate code review
-4. **Review and apply** relevant CodeRabbit suggestions
 
 ## Critical Rules
 

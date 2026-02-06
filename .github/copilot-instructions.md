@@ -6,17 +6,6 @@ Our project is called Jordnaer but has been rebranded to Mini Møder. This docum
 
 1. Run the tests to ensure nothing is broken
 2. Make a list of things I need to acceptance test manually
-3. Run CodeRabbit to generate a code review based on the latest committed changes:
-
-**Windows (recommended):**
-
-```batch
-scripts\coderabbit.bat
-```
-
-The script handles authentication and runs the analysis. It requires manual intervention from the user. Check the `reviews/` folder for output.
-
-3. When CodeRabbit review is generated, please review and apply any relevant suggestions to improve code quality.
 
 ## Architecture
 
