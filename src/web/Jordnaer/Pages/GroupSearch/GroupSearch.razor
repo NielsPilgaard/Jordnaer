@@ -54,13 +54,6 @@
             _searchResult = Cache.SearchResult;
             _hasSearched = true;
         }
-        else
-        {
-            // Ensure clean state if cache is empty
-            _filter = new GroupSearchFilter();
-            _searchResult = new GroupSearchResult();
-            _hasSearched = false;
-        }
     }
 
     private async Task Search()

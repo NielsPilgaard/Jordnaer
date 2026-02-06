@@ -148,15 +148,10 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && _mapSearchEnabled)
+		if (firstRender && _mapSearchEnabled && _mapSearchFilter is not null)
 		{
-			// Small delay to ensure MapSearchFilter has rendered
-			await Task.Delay(100);
-
-			if (_mapSearchFilter is null)
-			{
-				return;
-			}
+			// Note: No delay needed here - RestoreMapStateAsync and SetLocationAsync
+			// have their own polling loops via WaitForMapInitializationAsync
 
 			// Restore from cached map state if available
 			if (Cache.MapState is not null)

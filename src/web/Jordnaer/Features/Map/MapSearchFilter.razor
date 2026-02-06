@@ -54,7 +54,6 @@
     private string? _addressText;
     private bool _isLoadingLocation = false;
     private bool _hasAttemptedGeolocation = false;
-    private bool _skipGeolocation = false;
     private IEnumerable<GroupMarkerData>? _previousGroups;
 
     [Parameter]
@@ -102,17 +101,12 @@
             _hasAttemptedGeolocation = true;
 
             // Wait for the map to initialize
-            var attempts = 0;
-            while (_mapComponent?.IsInitialized != true && attempts < 20)
-            {
-                await Task.Delay(50);
-                attempts++;
-            }
+            await WaitForMapInitializationAsync();
 
             if (_mapComponent?.IsInitialized == true)
             {
                 // Only attempt geolocation if we're not restoring state from cache or skipping explicitly
-                if (!_skipGeolocation && !SkipGeolocation)
+                if (!SkipGeolocation)
                 {
                     await TryGetUserLocation();
                 }
@@ -288,7 +282,6 @@
     public async Task ClearLocationAsync()
     {
         _addressText = null;
-        _skipGeolocation = false; // Reset flag so geolocation can run on next page load
 
         // Only attempt to clear if map has been initialized by LeafletMap
         if (_mapComponent?.IsInitialized == true)
@@ -358,12 +351,7 @@
         _addressText = addressText;
 
         // Wait for map to be initialized
-        var attempts = 0;
-        while (_mapComponent?.IsInitialized != true && attempts < 20)
-        {
-            await Task.Delay(50);
-            attempts++;
-        }
+        await WaitForMapInitializationAsync();
 
         if (_mapComponent?.IsInitialized == true)
         {
@@ -380,13 +368,29 @@
         }
     }
 
+    /// <summary>
+    /// Helper method to wait for map initialization with polling
+    /// </summary>
+    private async Task WaitForMapInitializationAsync()
+    {
+        var attempts = 0;
+        while (_mapComponent?.IsInitialized != true && attempts < 20)
+        {
+            await Task.Delay(50);
+            attempts++;
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         // Update group markers only when Groups parameter actually changes
         if (_mapComponent?.IsInitialized == true)
         {
+            // Materialize Groups once to avoid multiple enumeration
+            var groupsList = Groups?.ToList();
+
             // Handle when groups are cleared (set to null or empty)
-            if (Groups is null || !Groups.Any())
+            if (groupsList is null || groupsList.Count == 0)
             {
                 if (_previousGroups is not null)
                 {
@@ -398,7 +402,7 @@
             else if (Groups != _previousGroups)
             {
                 _previousGroups = Groups;
-                await _mapComponent.UpdateGroupMarkersAsync(Groups);
+                await _mapComponent.UpdateGroupMarkersAsync(groupsList);
             }
         }
     }
