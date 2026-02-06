@@ -21,8 +21,11 @@ Implement marker clustering functionality for group locations on the map search 
 
 ### 4. Marker Interaction
 - Clicking on an individual group marker should open a popup/tooltip
-- The popup should display relevant details about the group (e.g., name, description, member count)
-- Include a link in the popup to navigate to the full group page
+- The popup should display:
+  - Group image/profile picture
+  - Short description of the group
+  - Address/location information
+  - Clickable link to navigate to the full group page
 
 ## Implementation Steps
 
@@ -43,7 +46,9 @@ Implement marker clustering functionality for group locations on the map search 
 - [ ] Zooming out re-clusters markers appropriately
 - [ ] Cluster count numbers are clearly visible and accurate
 - [ ] Clicking an individual marker opens a popup with group details
-- [ ] Popup displays relevant group information (name, description, etc.)
+- [ ] Popup displays the group's image/profile picture
+- [ ] Popup displays the group's short description
+- [ ] Popup displays the group's address/location
 - [ ] Popup includes a clickable link to the group's full page
 - [ ] Performance is acceptable even with many group markers
 
