@@ -88,6 +88,25 @@
 
                 <MudDivider Class="my-4" />
 
+                <MudText Typo="Typo.h6" Class="mb-2">Visningsperiode</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                    Angiv en tidsperiode hvor partnerens annoncer og kort vises. Lad felterne stå tomme for ingen begrænsning.
+                </MudText>
+
+                <MudDatePicker @bind-Date="_model.DisplayStartDate"
+                               Label="Startdato (UTC)"
+                               Variant="Variant.Outlined"
+                               Clearable
+                               HelperText="Hvornår skal partneren begynde at blive vist? (tom = ingen begrænsning)" />
+
+                <MudDatePicker @bind-Date="_model.DisplayEndDate"
+                               Label="Slutdato (UTC)"
+                               Variant="Variant.Outlined"
+                               Clearable
+                               HelperText="Hvornår skal partneren stoppe med at blive vist? (tom = ingen begrænsning)" />
+
+                <MudDivider Class="my-4" />
+
                 <MudAlert Severity="Severity.Info" Class="mb-4">
                     <MudText Typo="Typo.body2">
                         <strong>Bemærk:</strong> Når du opretter partneren, vil systemet:
@@ -182,6 +201,8 @@
         public string? LogoUrl { get; set; }
         public bool CanHavePartnerCard { get; set; } = true;
         public bool CanHaveAd { get; set; } = true;
+        public DateTime? DisplayStartDate { get; set; }
+        public DateTime? DisplayEndDate { get; set; }
     }
 
     private async Task CreatePartnerAsync()
@@ -199,7 +220,13 @@
                 LogoUrl = string.IsNullOrWhiteSpace(_model.LogoUrl) ? null : _model.LogoUrl,
                 Link = _model.Link,
                 CanHavePartnerCard = _model.CanHavePartnerCard,
-                CanHaveAd = _model.CanHaveAd
+                CanHaveAd = _model.CanHaveAd,
+                DisplayStartUtc = _model.DisplayStartDate.HasValue
+                    ? DateTime.SpecifyKind(_model.DisplayStartDate.Value, DateTimeKind.Utc)
+                    : null,
+                DisplayEndUtc = _model.DisplayEndDate.HasValue
+                    ? DateTime.SpecifyKind(_model.DisplayEndDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc)
+                    : null
             };
 
             var result = await PartnerService.CreatePartnerAccountAsync(request);

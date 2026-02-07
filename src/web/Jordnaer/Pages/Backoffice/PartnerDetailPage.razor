@@ -1,9 +1,12 @@
 @page "/backoffice/partners/{id:guid}"
 
 @inject IPartnerService PartnerService
+@inject IPartnerUserService PartnerUserService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject ILogger<PartnerDetailPage> Logger
+
+@using System.ComponentModel.DataAnnotations
 
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 
@@ -32,109 +35,312 @@ else
     <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
         @* Partner Information Card *@
         <MudPaper Class="pa-6 mb-8" Elevation="2">
-            <MudText Typo="Typo.h5" Class="mb-4 font-open-sans-bold"
-                     Style="@JordnaerPalette.YellowBackground.ToTextColor()">
-                Partner Information
-            </MudText>
+            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                <MudText Typo="Typo.h5" Class="font-open-sans-bold"
+                         Style="@JordnaerPalette.YellowBackground.ToTextColor()">
+                    Partner Information
+                </MudText>
+                <MudStack Row Spacing="2">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Email"
+                               OnClick="ResendWelcomeEmailAsync"
+                               Disabled="_processing">
+                        Gensend Velkomst-email
+                    </MudButton>
+                    @if (!_isEditing)
+                    {
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   OnClick="StartEditing">
+                            Rediger
+                        </MudButton>
+                    }
+                </MudStack>
+            </MudStack>
 
-            <MudGrid Spacing="3">
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Navn</MudText>
-                        <MudText Typo="Typo.body1">@_partner.Name</MudText>
+            @if (_isEditing)
+            {
+                <EditForm Model="@_editModel" OnValidSubmit="SaveChangesAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <MudStack Spacing="4">
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_editModel.Name"
+                                              Label="Navn"
+                                              Variant="Variant.Outlined"
+                                              HelperText="Navnet på virksomheden eller partneren"
+                                              MaxLength="128" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Bruger ID</MudText>
+                                    <MudText Typo="Typo.body2">@_partner.UserId</MudText>
+                                </MudStack>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_editModel.Description"
+                                              Label="Beskrivelse"
+                                              Variant="Variant.Outlined"
+                                              Lines="4"
+                                              HelperText="Kort beskrivelse af partneren"
+                                              MaxLength="500" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_editModel.PartnerPageLink"
+                                              Label="Partnerside Link"
+                                              Variant="Variant.Outlined"
+                                              HelperText="Partnernes hjemmeside (fx https://example.com)"
+                                              InputType="InputType.Url" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_editModel.AdLink"
+                                              Label="Annonce Link"
+                                              Variant="Variant.Outlined"
+                                              HelperText="Link der åbnes ved klik på annoncen"
+                                              InputType="InputType.Url" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_editModel.AdLabelColor"
+                                              Label="Annonce Label Farve"
+                                              Variant="Variant.Outlined"
+                                              HelperText="Hex farve som #FFFFFF (tom = standard)"
+                                              MaxLength="7" />
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudDivider Class="my-2" />
+
+                        <MudText Typo="Typo.h6" Class="mb-2">Tilladelser</MudText>
+
+                        <MudSwitch @bind-Value="_editModel.CanHavePartnerCard"
+                                   Label="Tillad Partner Kort"
+                                   Color="Color.Primary"
+                                   Class="mb-2" />
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 ml-10">
+                            Hvis aktiveret, kan partneren vises på /partners siden med logo og beskrivelse
+                        </MudText>
+
+                        <MudSwitch @bind-Value="_editModel.CanHaveAd"
+                                   Label="Tillad Annoncer"
+                                   Color="Color.Primary"
+                                   Class="mb-2" />
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 ml-10">
+                            Hvis aktiveret, kan partneren uploade annonce billeder der vises i søgeresultater
+                        </MudText>
+
+                        <MudDivider Class="my-2" />
+
+                        <MudText Typo="Typo.h6" Class="mb-2">Visningsperiode</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                            Angiv en tidsperiode hvor partnerens annoncer og kort vises. Lad felterne stå tomme for ingen begrænsning.
+                        </MudText>
+
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="6">
+                                <MudDatePicker @bind-Date="_editModel.DisplayStartDate"
+                                               Label="Startdato (Danmark, lokal tid)"
+                                               Variant="Variant.Outlined"
+                                               Clearable
+                                               HelperText="Hvornår skal partneren begynde at blive vist? (tom = ingen begrænsning)" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudDatePicker @bind-Date="_editModel.DisplayEndDate"
+                                               Label="Slutdato (Danmark, lokal tid)"
+                                               Variant="Variant.Outlined"
+                                               Clearable
+                                               HelperText="Hvornår skal partneren stoppe med at blive vist? (tom = ingen begrænsning)" />
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudDivider Class="my-2" />
+
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="6">
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Oprettet</MudText>
+                                    <MudText Typo="Typo.body1">@_partner.CreatedUtc.ToString("dd/MM/yyyy HH:mm")</MudText>
+                                </MudStack>
+                            </MudItem>
+
+                            @if (_partner.LastUpdateUtc.HasValue)
+                            {
+                                <MudItem xs="12" md="6">
+                                    <MudStack Spacing="2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Sidste opdatering</MudText>
+                                        <MudText Typo="Typo.body1">@_partner.LastUpdateUtc.Value.ToString("dd/MM/yyyy HH:mm")</MudText>
+                                    </MudStack>
+                                </MudItem>
+                            }
+                        </MudGrid>
+
+                        <MudStack Row Spacing="3" Justify="Justify.FlexEnd" Class="mt-4">
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Default"
+                                       OnClick="CancelEditing"
+                                       Disabled="_processing">
+                                Annuller
+                            </MudButton>
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       ButtonType="ButtonType.Submit"
+                                       StartIcon="@Icons.Material.Filled.Save"
+                                       Disabled="_processing">
+                                @if (_processing)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate Class="mr-2" />
+                                    <text>Gemmer...</text>
+                                }
+                                else
+                                {
+                                    <text>Gem Ændringer</text>
+                                }
+                            </MudButton>
+                        </MudStack>
                     </MudStack>
-                </MudItem>
+                </EditForm>
+            }
+            else
+            {
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Navn</MudText>
+                            <MudText Typo="Typo.body1">@(_partner.Name ?? "Ikke angivet")</MudText>
+                        </MudStack>
+                    </MudItem>
 
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Bruger ID</MudText>
-                        <MudText Typo="Typo.body2">@_partner.UserId</MudText>
-                    </MudStack>
-                </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Bruger ID</MudText>
+                            <MudText Typo="Typo.body2">@_partner.UserId</MudText>
+                        </MudStack>
+                    </MudItem>
 
-                <MudItem xs="12">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Beskrivelse</MudText>
-                        <MudText Typo="Typo.body1">@_partner.Description</MudText>
-                    </MudStack>
-                </MudItem>
+                    <MudItem xs="12">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Beskrivelse</MudText>
+                            <MudText Typo="Typo.body1">@(_partner.Description ?? "Ikke angivet")</MudText>
+                        </MudStack>
+                    </MudItem>
 
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Partnerside Link</MudText>
-                        @if (!string.IsNullOrWhiteSpace(_partner.PartnerPageLink))
-                        {
-                            <MudLink Href="@_partner.PartnerPageLink" Target="_blank" rel="noopener" Typo="Typo.body1">
-                                @_partner.PartnerPageLink
-                            </MudLink>
-                        }
-                        else
-                        {
-                            <MudText Typo="Typo.body1" Color="Color.Secondary">Ingen side angivet</MudText>
-                        }
-                    </MudStack>
-                </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Partnerside Link</MudText>
+                            @if (!string.IsNullOrWhiteSpace(_partner.PartnerPageLink))
+                            {
+                                <MudLink Href="@_partner.PartnerPageLink" Target="_blank" rel="noopener" Typo="Typo.body1">
+                                    @_partner.PartnerPageLink
+                                </MudLink>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1" Color="Color.Secondary">Ingen side angivet</MudText>
+                            }
+                        </MudStack>
+                    </MudItem>
 
-                @if (!string.IsNullOrEmpty(_partner.AdLink))
-                {
                     <MudItem xs="12" md="6">
                         <MudStack Spacing="2">
                             <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Annonce Link</MudText>
-                            <MudLink Href="@_partner.AdLink" Target="_blank" rel="noopener" Typo="Typo.body1">
-                                @_partner.AdLink
-                            </MudLink>
+                            @if (!string.IsNullOrEmpty(_partner.AdLink))
+                            {
+                                <MudLink Href="@_partner.AdLink" Target="_blank" rel="noopener" Typo="Typo.body1">
+                                    @_partner.AdLink
+                                </MudLink>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1" Color="Color.Secondary">Ingen annonce link angivet</MudText>
+                            }
                         </MudStack>
                     </MudItem>
-                }
 
-                @if (!string.IsNullOrEmpty(_partner.AdLabelColor))
-                {
                     <MudItem xs="12" md="6">
                         <MudStack Spacing="2">
                             <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Annonce Label Farve</MudText>
-                            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                                <div style="width: 24px; height: 24px; border-radius: 4px; background-color: @_partner.AdLabelColor; border: 1px solid #ccc;"></div>
-                                <MudText Typo="Typo.body1">@_partner.AdLabelColor</MudText>
+                            @if (!string.IsNullOrEmpty(_partner.AdLabelColor))
+                            {
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                    <div style="width: 24px; height: 24px; border-radius: 4px; background-color: @_partner.AdLabelColor; border: 1px solid #ccc;"></div>
+                                    <MudText Typo="Typo.body1">@_partner.AdLabelColor</MudText>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1" Color="Color.Secondary">Standard</MudText>
+                            }
+                        </MudStack>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Oprettet</MudText>
+                            <MudText Typo="Typo.body1">@_partner.CreatedUtc.ToString("dd/MM/yyyy HH:mm")</MudText>
+                        </MudStack>
+                    </MudItem>
+
+                    @if (_partner.LastUpdateUtc.HasValue)
+                    {
+                        <MudItem xs="12" md="6">
+                            <MudStack Spacing="2">
+                                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Sidste opdatering</MudText>
+                                <MudText Typo="Typo.body1">@_partner.LastUpdateUtc.Value.ToString("dd/MM/yyyy HH:mm")</MudText>
+                            </MudStack>
+                        </MudItem>
+                    }
+
+                    <MudItem xs="12" md="6">
+                        <MudStack Spacing="2">
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Tilladelser</MudText>
+                            <MudStack Row Spacing="2">
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(_partner.CanHavePartnerCard ? Color.Success : Color.Default)"
+                                         Icon="@(_partner.CanHavePartnerCard ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
+                                    Partner Kort
+                                </MudChip>
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(_partner.CanHaveAd ? Color.Success : Color.Default)"
+                                         Icon="@(_partner.CanHaveAd ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
+                                    Annoncer
+                                </MudChip>
                             </MudStack>
                         </MudStack>
                     </MudItem>
-                }
 
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Oprettet</MudText>
-                        <MudText Typo="Typo.body1">@_partner.CreatedUtc.ToString("dd/MM/yyyy HH:mm")</MudText>
-                    </MudStack>
-                </MudItem>
-
-                @if (_partner.LastUpdateUtc.HasValue)
-                {
                     <MudItem xs="12" md="6">
                         <MudStack Spacing="2">
-                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Sidste opdatering</MudText>
-                            <MudText Typo="Typo.body1">@_partner.LastUpdateUtc.Value.ToString("dd/MM/yyyy HH:mm")</MudText>
+                            <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Visningsperiode</MudText>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body1">
+                                    Fra: @(_partner.DisplayStartUtc.HasValue ? _partner.DisplayStartUtc.Value.ToString("dd/MM/yyyy HH:mm") + " UTC" : "Ingen begrænsning")
+                                </MudText>
+                                <MudText Typo="Typo.body1">
+                                    Til: @(_partner.DisplayEndUtc.HasValue ? _partner.DisplayEndUtc.Value.ToString("dd/MM/yyyy HH:mm") + " UTC" : "Ingen begrænsning")
+                                </MudText>
+                                @{
+                                    var isActive = _partner.IsWithinDisplayWindow(DateTime.UtcNow);
+                                }
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(isActive ? Color.Success : Color.Error)"
+                                         Icon="@(isActive ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)">
+                                    @(isActive ? "Aktiv" : "Ikke synlig")
+                                </MudChip>
+                            </MudStack>
                         </MudStack>
                     </MudItem>
-                }
-
-                <MudItem xs="12" md="6">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Tilladelser</MudText>
-                        <MudStack Row Spacing="2">
-                            <MudChip T="string" Size="Size.Small"
-                                     Color="@(_partner.CanHavePartnerCard ? Color.Success : Color.Default)"
-                                     Icon="@(_partner.CanHavePartnerCard ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
-                                Partner Kort
-                            </MudChip>
-                            <MudChip T="string" Size="Size.Small"
-                                     Color="@(_partner.CanHaveAd ? Color.Success : Color.Default)"
-                                     Icon="@(_partner.CanHaveAd ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)">
-                                Annoncer
-                            </MudChip>
-                        </MudStack>
-                    </MudStack>
-                </MudItem>
-            </MudGrid>
+                </MudGrid>
+            }
         </MudPaper>
 
         @* Pending Changes Approval Section *@
@@ -418,10 +624,65 @@ else
     private PartnerAnalyticsDto? _analytics;
     private bool _loading = true;
     private bool _processing = false;
+    private bool _isEditing = false;
     private int _selectedDays = 30;
+    private EditPartnerModel _editModel = new();
+
+    private static readonly TimeZoneInfo _copenhagenTimeZone = GetCopenhagenTimeZone();
+
+    private static TimeZoneInfo GetCopenhagenTimeZone()
+    {
+        if (TimeZoneInfo.TryFindSystemTimeZoneById("Romance Standard Time", out var tz))
+            return tz;
+
+        if (TimeZoneInfo.TryFindSystemTimeZoneById("Europe/Copenhagen", out tz))
+            return tz;
+
+        return TimeZoneInfo.Utc;
+    }
 
     private List<ChartSeries> _chartSeries = [];
     private string[] _xAxisLabels = [];
+
+    private class EditPartnerModel : IValidatableObject
+    {
+        [MaxLength(128)]
+        public string? Name { get; set; }
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        [Url]
+        public string? PartnerPageLink
+        {
+            get => field;
+            set => field = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
+        [Url]
+        public string? AdLink
+        {
+            get => field;
+            set => field = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
+        [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Brug hex format som #FFFFFF")]
+        [MaxLength(7)]
+        public string? AdLabelColor { get; set; }
+
+        public bool CanHavePartnerCard { get; set; } = true;
+        public bool CanHaveAd { get; set; } = true;
+        public DateTime? DisplayStartDate { get; set; }
+        public DateTime? DisplayEndDate { get; set; }
+
+        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (DisplayStartDate.HasValue && DisplayEndDate.HasValue && DisplayStartDate.Value >= DisplayEndDate.Value)
+            {
+                yield return new System.ComponentModel.DataAnnotations.ValidationResult("Startdato skal være før slutdato", [nameof(DisplayStartDate), nameof(DisplayEndDate)]);
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -452,6 +713,119 @@ else
                 Snackbar.Add("Partner ikke fundet", Severity.Warning);
             }
         );
+    }
+
+    private void StartEditing()
+    {
+        if (_partner is null) return;
+
+        _editModel = new EditPartnerModel
+        {
+            Name = _partner.Name,
+            Description = _partner.Description,
+            PartnerPageLink = _partner.PartnerPageLink,
+            AdLink = _partner.AdLink,
+            AdLabelColor = _partner.AdLabelColor,
+            CanHavePartnerCard = _partner.CanHavePartnerCard,
+            CanHaveAd = _partner.CanHaveAd,
+            DisplayStartDate = _partner.DisplayStartUtc.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(_partner.DisplayStartUtc.Value, _copenhagenTimeZone).Date
+                : null,
+            DisplayEndDate = _partner.DisplayEndUtc.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(_partner.DisplayEndUtc.Value, _copenhagenTimeZone).Date
+                : null
+        };
+        _isEditing = true;
+    }
+
+    private void CancelEditing()
+    {
+        _isEditing = false;
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        if (_partner is null) return;
+
+        _processing = true;
+        try
+        {
+            var request = new UpdatePartnerRequest
+            {
+                Name = _editModel.Name,
+                Description = _editModel.Description,
+                PartnerPageLink = _editModel.PartnerPageLink,
+                AdLink = _editModel.AdLink,
+                AdLabelColor = _editModel.AdLabelColor,
+                CanHavePartnerCard = _editModel.CanHavePartnerCard,
+                CanHaveAd = _editModel.CanHaveAd,
+                DisplayStartUtc = _editModel.DisplayStartDate.HasValue
+                    ? TimeZoneInfo.ConvertTimeToUtc(
+                        DateTime.SpecifyKind(_editModel.DisplayStartDate.Value.Date, DateTimeKind.Unspecified),
+                        _copenhagenTimeZone)
+                    : null,
+                DisplayEndUtc = _editModel.DisplayEndDate.HasValue
+                    ? TimeZoneInfo.ConvertTimeToUtc(
+                        DateTime.SpecifyKind(_editModel.DisplayEndDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Unspecified),
+                        _copenhagenTimeZone)
+                    : null
+            };
+
+            var result = await PartnerService.UpdatePartnerAsync(_partner.Id, request);
+
+            result.Switch(
+                success =>
+                {
+                    Snackbar.Add("Partner opdateret!", Severity.Success);
+                    _isEditing = false;
+                },
+                notFound =>
+                {
+                    Snackbar.Add("Partner ikke fundet", Severity.Warning);
+                },
+                error => Snackbar.Add(error.Value, Severity.Error)
+            );
+
+            if (result.IsT0) // success
+            {
+                await LoadPartnerDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save partner changes for {PartnerId}", _partner.Id);
+            Snackbar.Add("Kunne ikke gemme ændringer. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private async Task ResendWelcomeEmailAsync()
+    {
+        if (_partner is null) return;
+
+        _processing = true;
+        try
+        {
+            var result = await PartnerUserService.ResendWelcomeEmailAsync(_partner.UserId);
+
+            result.Switch(
+                success => Snackbar.Add("Velkomst-email sendt med nyt midlertidigt kodeord!", Severity.Success),
+                notFound => Snackbar.Add("Partner bruger ikke fundet", Severity.Warning),
+                error => Snackbar.Add(error.Value, Severity.Error)
+            );
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to resend welcome email for partner {PartnerId}", _partner.Id);
+            Snackbar.Add("Kunne ikke sende velkomst-email. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
     }
 
     private async Task LoadAnalyticsAsync()

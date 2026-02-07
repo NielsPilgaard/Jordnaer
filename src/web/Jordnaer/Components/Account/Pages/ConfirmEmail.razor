@@ -43,7 +43,7 @@
     {
         if (UserId is null || Code is null)
         {
-            RedirectManager.RedirectTo("");
+            RedirectManager.RedirectTo("/");
         }
 
         var user = await UserManager.FindByIdAsync(UserId);

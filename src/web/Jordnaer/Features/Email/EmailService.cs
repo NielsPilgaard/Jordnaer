@@ -1,4 +1,3 @@
-using System.Net;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Shared;
@@ -55,33 +54,17 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 			? partnerContactForm.CompanyName
 			: partnerContactForm.ContactPersonName;
 
-		var subject = $"Partner henvendelse fra {WebUtility.HtmlEncode(senderName)}";
-
-		var companyInfo = !string.IsNullOrWhiteSpace(partnerContactForm.CompanyName)
-			? $"<p><strong>Firma:</strong> {WebUtility.HtmlEncode(partnerContactForm.CompanyName)}</p>"
-			: "";
-
-		var phoneInfo = !string.IsNullOrWhiteSpace(partnerContactForm.PhoneNumber)
-			? $"<p><strong>Telefon:</strong> {WebUtility.HtmlEncode(partnerContactForm.PhoneNumber)}</p>"
-			: "";
-
-		var htmlContent = $"""
-			<h4>Partner henvendelse</h4>
-
-			{companyInfo}
-			<p><strong>Kontaktperson:</strong> {WebUtility.HtmlEncode(partnerContactForm.ContactPersonName)}</p>
-			<p><strong>Email:</strong> {WebUtility.HtmlEncode(partnerContactForm.Email)}</p>
-			{phoneInfo}
-
-			<h5>Besked:</h5>
-			<p>{WebUtility.HtmlEncode(partnerContactForm.Message)}</p>
-			""";
-
 		var email = new SendEmail
 		{
-			Subject = subject,
+			Subject = $"Partner henvendelse fra {senderName.Trim()}",
 			ReplyTo = replyTo,
-			HtmlContent = htmlContent,
+			HtmlContent = EmailContentBuilder.PartnerContactForm(
+				options.Value.BaseUrl,
+				partnerContactForm.CompanyName,
+				partnerContactForm.ContactPersonName,
+				partnerContactForm.Email,
+				partnerContactForm.PhoneNumber,
+				partnerContactForm.Message),
 			To = [EmailConstants.ContactEmail]
 		};
 
@@ -122,18 +105,10 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 							  "membership request for group {GroupName}. " +
 							  "Sending an email to them.", emails.Count, groupName);
 
-		var groupMembershipUrl = $"{options.Value.BaseUrl}/groups/{Uri.EscapeDataString(groupName)}/members";
-
 		var email = new SendEmail
 		{
 			Subject = $"Ny medlemskabsanmodning til {groupName}",
-			HtmlContent = $"""
-						  <h4>Din gruppe <b>{groupName}</b> har modtaget en ny medlemskabsanmodning</h4>
-
-						  <a href="{groupMembershipUrl}">Klik her for at se den</a>
-
-						  {EmailConstants.Signature}
-						  """,
+			HtmlContent = EmailContentBuilder.MembershipRequest(options.Value.BaseUrl, groupName),
 			Bcc = emails.ToList()
 		};
 
@@ -166,18 +141,10 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		logger.LogInformation("Sending group invite email to user {UserId} for group {GroupName}.", userId, groupName);
 
-		var groupUrl = $"{options.Value.BaseUrl}/groups/{Uri.EscapeDataString(groupName)}";
-
 		var email = new SendEmail
 		{
 			Subject = $"Du er inviteret til {groupName}",
-			HtmlContent = $"""
-						  <h4>Du er blevet inviteret til at blive medlem af gruppen <b>{groupName}</b></h4>
-
-						  <a href="{groupUrl}">Klik her for at se gruppen og acceptere invitationen</a>
-
-						  {EmailConstants.Signature}
-						  """,
+			HtmlContent = EmailContentBuilder.GroupInvite(options.Value.BaseUrl, groupName),
 			To = [invitedUser]
 		};
 
@@ -192,23 +159,10 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 	{
 		logger.LogInformation("Sending group invite email to new user {Email} for group {GroupName}.", new MaskedEmail(email), groupName);
 
-		var registerUrl = $"{options.Value.BaseUrl}/Account/Register?inviteToken={Uri.EscapeDataString(inviteToken)}";
-		var encodedGroupName = WebUtility.HtmlEncode(groupName);
-
 		var inviteEmail = new SendEmail
 		{
 			Subject = $"Du er inviteret til {groupName} på Mini Møder",
-			HtmlContent = $"""
-						  <h4>Du er blevet inviteret til at blive medlem af gruppen <b>{encodedGroupName}</b> på Mini Møder</h4>
-
-						  <p>Opret en gratis konto for at acceptere invitationen og komme i kontakt med andre forældre i gruppen.</p>
-
-						  <p><a href="{registerUrl}">Klik her for at oprette din konto og deltage i gruppen</a></p>
-
-						  <p><small>Denne invitation udløber om 7 dage.</small></p>
-
-						  {EmailConstants.Signature}
-						  """,
+			HtmlContent = EmailContentBuilder.GroupInviteNewUser(options.Value.BaseUrl, groupName, inviteToken),
 			To = [new EmailRecipient { Email = email }]
 		};
 
@@ -234,69 +188,49 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		logger.LogInformation("Sending partner image approval email for partner {PartnerName} ({PartnerId})", partnerName, partnerId);
 
-		var approvalUrl = $"{options.Value.BaseUrl}/backoffice/partners/{partnerId}";
+		var baseUrl = options.Value.BaseUrl;
 
 		var changesList = new List<string>();
 
 		if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 		{
-			var encodedUrl = WebUtility.HtmlEncode(partner.PendingAdImageUrl);
-			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt annonce billede</a></li>");
+			changesList.Add($"Nyt annonce billede: {partner.PendingAdImageUrl}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 		{
-			var encodedUrl = WebUtility.HtmlEncode(partner.PendingLogoUrl);
-			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt logo</a></li>");
+			changesList.Add($"Nyt logo: {partner.PendingLogoUrl}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingName))
 		{
-			var encodedName = WebUtility.HtmlEncode(partner.PendingName);
-			changesList.Add($"<li>Nyt navn: {encodedName}</li>");
+			changesList.Add($"Nyt navn: {partner.PendingName}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingDescription))
 		{
-			var encodedDescription = WebUtility.HtmlEncode(partner.PendingDescription);
-			changesList.Add($"<li>Ny beskrivelse: {encodedDescription}</li>");
+			changesList.Add($"Ny beskrivelse: {partner.PendingDescription}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingPartnerPageLink))
 		{
-			var encodedLink = WebUtility.HtmlEncode(partner.PendingPartnerPageLink);
-			changesList.Add($"<li>Nyt partnerside link: {encodedLink}</li>");
+			changesList.Add($"Nyt partnerside link: {partner.PendingPartnerPageLink}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingAdLink))
 		{
-			var encodedLink = WebUtility.HtmlEncode(partner.PendingAdLink);
-			changesList.Add($"<li>Nyt annonce link: {encodedLink}</li>");
+			changesList.Add($"Nyt annonce link: {partner.PendingAdLink}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingAdLabelColor))
 		{
-			var encodedColor = WebUtility.HtmlEncode(partner.PendingAdLabelColor);
-			changesList.Add($"<li>Ny annonce label farve: {encodedColor}</li>");
+			changesList.Add($"Ny annonce label farve: {partner.PendingAdLabelColor}");
 		}
-
-		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
 
 		var email = new SendEmail
 		{
 			Subject = $"Ny partner godkendelse: {partnerName}",
-			HtmlContent = $"""
-						  <h4>Partner <b>{encodedPartnerName}</b> har uploadet nye ændringer til godkendelse</h4>
-
-						  <p>Ændringer:</p>
-						  <ul>
-						  {string.Join("\n", changesList)}
-						  </ul>
-
-						  <p><a href="{approvalUrl}">Klik her for at godkende eller afvise ændringerne</a></p>
-
-						  {EmailConstants.Signature}
-						  """,
+			HtmlContent = EmailContentBuilder.PartnerImageApproval(baseUrl, partnerName, partnerId, changesList),
 			To = [new EmailRecipient { Email = "kontakt@mini-moeder.dk", DisplayName = "Mini Møder Admin" }]
 		};
 
@@ -311,41 +245,11 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 	{
 		logger.LogInformation("Sending partner welcome email to {Email} for partner {PartnerName}", new MaskedEmail(email), partnerName);
 
-		var loginUrl = $"{options.Value.BaseUrl}/Account/Login";
-		var dashboardUrl = $"{options.Value.BaseUrl}/partner/dashboard";
-
-		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
-		var encodedEmail = WebUtility.HtmlEncode(email);
-		var encodedTemporaryPassword = WebUtility.HtmlEncode(temporaryPassword);
-
 		var welcomeEmail = new SendEmail
 		{
 			Subject = "Velkommen som partner på Mini Møder",
-			HtmlContent = $"""
-						  <h4>Velkommen som partner på Mini Møder, {encodedPartnerName}!</h4>
-
-						  <p>Din partnerkonto er blevet oprettet. Du kan nu logge ind og administrere dine partner-annoncer.</p>
-
-						  <h5>Login oplysninger:</h5>
-						  <ul>
-						      <li><strong>Email:</strong> {encodedEmail}</li>
-						      <li><strong>Midlertidigt kodeord:</strong> <code>{encodedTemporaryPassword}</code></li>
-						  </ul>
-
-						  <p><strong>VIGTIGT:</strong> Af sikkerhedsmæssige årsager bedes du ændre dit kodeord efter første login.</p>
-
-						  <h5>Sådan kommer du i gang:</h5>
-						  <ol>
-						      <li><a href="{loginUrl}">Log ind med dine oplysninger</a></li>
-						      <li>Skift dit kodeord under <em>Profil i øverste højre hjørne → Kontoindstillinger → Adgangskode</em></li>
-						      <li>Gå til <a href="{dashboardUrl}">dit partner dashboard</a> for at uploade annoncer og se statistik</li>
-						  </ol>
-
-						  <p>Hvis du har spørgsmål eller brug for hjælp, er du velkommen til at kontakte os.</p>
-
-						  {EmailConstants.Signature}
-						  """,
-			To = [new EmailRecipient { Email = email, DisplayName = encodedPartnerName }]
+			HtmlContent = EmailContentBuilder.PartnerWelcome(options.Value.BaseUrl, partnerName, email, temporaryPassword),
+			To = [new EmailRecipient { Email = email, DisplayName = partnerName }]
 		};
 
 		await publishEndpoint.Publish(welcomeEmail, cancellationToken);

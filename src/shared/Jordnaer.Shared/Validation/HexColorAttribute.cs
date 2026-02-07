@@ -24,8 +24,15 @@ public partial class HexColorAttribute : ValidationAttribute
 			return false;
 		}
 
-		return HexColorRegex().IsMatch(hexColor);
+		return IsValidHexColor(hexColor);
 	}
+
+	/// <summary>
+	/// Checks whether the given string is a valid hex color in #RGB or #RRGGBB format.
+	/// Returns <c>false</c> for null, empty, or whitespace-only strings.
+	/// </summary>
+	public static bool IsValidHexColor([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] string? color)
+		=> color is not null && HexColorRegex().IsMatch(color);
 
 	[GeneratedRegex(@"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")]
 	private static partial Regex HexColorRegex();

@@ -1,6 +1,5 @@
 ﻿@page "/Account/ExternalLogin"
 @using System.Text
-@using System.Text.Encodings.Web
 @using Mediator
 @using Microsoft.AspNetCore.WebUtilities
 @using Jordnaer.Features.Profile
@@ -229,7 +228,7 @@
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
 
-            await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+            await EmailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
             // If account confirmation is required, we need to show the link if we don't have a real email sender
             if (UserManager.Options.SignIn.RequireConfirmedAccount)

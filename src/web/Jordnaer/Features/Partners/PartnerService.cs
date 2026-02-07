@@ -5,6 +5,7 @@ using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Images;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Validation;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -29,6 +30,20 @@ public interface IPartnerService
 	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? partnerPageLink, string? adLink, string? adLabelColor, bool clearAdLabelColor, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, NotFound, Error<string>>> UpdatePartnerAsync(Guid partnerId, UpdatePartnerRequest request, CancellationToken cancellationToken = default);
+}
+
+public record UpdatePartnerRequest
+{
+	public string? Name { get; init; }
+	public string? Description { get; init; }
+	public string? PartnerPageLink { get; init; }
+	public string? AdLink { get; init; }
+	public string? AdLabelColor { get; init; }
+	public bool CanHavePartnerCard { get; init; }
+	public bool CanHaveAd { get; init; }
+	public DateTime? DisplayStartUtc { get; init; }
+	public DateTime? DisplayEndUtc { get; init; }
 }
 
 public class PartnerService(
@@ -41,6 +56,37 @@ public class PartnerService(
 	private const string PartnerAdsContainer = "partner-ads";
 	private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
 	private static readonly string[] AllowedImageFormats = [".png", ".jpg", ".jpeg", ".webp"];
+
+	private static Error<string>? ValidateUrl(string? url, string errorMessage)
+	{
+		if (string.IsNullOrWhiteSpace(url))
+		{
+			return null;
+		}
+
+		if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri) ||
+			(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+		{
+			return new Error<string>(errorMessage);
+		}
+
+		return null;
+	}
+
+	private static Error<string>? ValidateHexColor(string? color)
+	{
+		if (string.IsNullOrWhiteSpace(color))
+		{
+			return null;
+		}
+
+		if (!HexColorAttribute.IsValidHexColor(color.Trim()))
+		{
+			return new Error<string>("Ugyldig farve. Brug hex format som #FFFFFF");
+		}
+
+		return null;
+	}
 
 	public async Task<OneOf<Partner, NotFound>> GetPartnerByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -395,44 +441,18 @@ public class PartnerService(
 			}
 
 			// Validate URLs first (before any uploads to avoid orphaned blobs)
-			string? validatedPartnerPageLink = null;
-			if (!string.IsNullOrWhiteSpace(partnerPageLink))
-			{
-				var trimmedLink = partnerPageLink.Trim();
-				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
-					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-				{
-					return new Error<string>("Ugyldig partnerside link URL");
-				}
+			var partnerPageLinkError = ValidateUrl(partnerPageLink, "Ugyldig partnerside link URL");
+			if (partnerPageLinkError is not null) return partnerPageLinkError.Value;
 
-				validatedPartnerPageLink = trimmedLink;
-			}
+			var adLinkError = ValidateUrl(adLink, "Ugyldig annonce link URL");
+			if (adLinkError is not null) return adLinkError.Value;
 
-			string? validatedAdLink = null;
-			if (!string.IsNullOrWhiteSpace(adLink))
-			{
-				var trimmedLink = adLink.Trim();
-				if (!Uri.TryCreate(trimmedLink, UriKind.Absolute, out var uri) ||
-					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-				{
-					return new Error<string>("Ugyldig annonce link URL");
-				}
+			var colorError = ValidateHexColor(adLabelColor);
+			if (colorError is not null) return colorError.Value;
 
-				validatedAdLink = trimmedLink;
-			}
-
-			// Validate ad label color (should be hex color like #FFFFFF)
-			string? validatedAdLabelColor = null;
-			if (!string.IsNullOrWhiteSpace(adLabelColor))
-			{
-				var trimmedColor = adLabelColor.Trim();
-				if (!System.Text.RegularExpressions.Regex.IsMatch(trimmedColor, "^#[0-9A-Fa-f]{6}$"))
-				{
-					return new Error<string>("Ugyldig farve. Brug hex format som #FFFFFF");
-				}
-
-				validatedAdLabelColor = trimmedColor;
-			}
+			var validatedPartnerPageLink = string.IsNullOrWhiteSpace(partnerPageLink) ? null : partnerPageLink.Trim();
+			var validatedAdLink = string.IsNullOrWhiteSpace(adLink) ? null : adLink.Trim();
+			var validatedAdLabelColor = string.IsNullOrWhiteSpace(adLabelColor) ? null : adLabelColor.Trim();
 
 			var hasChanges = false;
 			MemoryStream? bufferedAdImageStream = null;
@@ -795,6 +815,64 @@ public class PartnerService(
 		{
 			logger.LogError(ex, "Failed to reject changes for partner {PartnerId}", partnerId);
 			return new Error<string>("Failed to reject changes");
+		}
+	}
+
+	public async Task<OneOf<Success, NotFound, Error<string>>> UpdatePartnerAsync(Guid partnerId, UpdatePartnerRequest request, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		try
+		{
+			if (!currentUser.User.IsInRole(AppRoles.Admin))
+			{
+				return new Error<string>("Unauthorized: Admin role required");
+			}
+
+			// Validate display date range
+			if (request.DisplayStartUtc.HasValue && request.DisplayEndUtc.HasValue &&
+				request.DisplayStartUtc.Value >= request.DisplayEndUtc.Value)
+			{
+				return new Error<string>("Startdato skal være før slutdato");
+			}
+
+			// Validate URLs
+			var partnerPageLinkError = ValidateUrl(request.PartnerPageLink, "Ugyldig partnerside link URL");
+			if (partnerPageLinkError is not null) return partnerPageLinkError.Value;
+
+			var adLinkError = ValidateUrl(request.AdLink, "Ugyldig annonce link URL");
+			if (adLinkError is not null) return adLinkError.Value;
+
+			var colorError = ValidateHexColor(request.AdLabelColor);
+			if (colorError is not null) return colorError.Value;
+
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+			var partner = await context.Partners.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
+
+			if (partner is null)
+			{
+				return new NotFound();
+			}
+
+			partner.Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name.Trim();
+			partner.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+			partner.PartnerPageLink = string.IsNullOrWhiteSpace(request.PartnerPageLink) ? null : request.PartnerPageLink.Trim();
+			partner.AdLink = string.IsNullOrWhiteSpace(request.AdLink) ? null : request.AdLink.Trim();
+			partner.AdLabelColor = string.IsNullOrWhiteSpace(request.AdLabelColor) ? null : request.AdLabelColor.Trim();
+			partner.CanHavePartnerCard = request.CanHavePartnerCard;
+			partner.CanHaveAd = request.CanHaveAd;
+			partner.DisplayStartUtc = request.DisplayStartUtc;
+			partner.DisplayEndUtc = request.DisplayEndUtc;
+			partner.LastUpdateUtc = DateTime.UtcNow;
+
+			await context.SaveChangesAsync(cancellationToken);
+
+			return new Success();
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to update partner {PartnerId}", partnerId);
+			return new Error<string>("Kunne ikke opdatere partner. Prøv igen senere.");
 		}
 	}
 }

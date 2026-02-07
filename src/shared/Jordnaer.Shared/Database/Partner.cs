@@ -125,6 +125,16 @@ public class Partner
 	/// </summary>
 	public bool CanHavePartnerCard { get; set; } = true;
 
+	/// <summary>
+	/// When ads/card should start showing. Null means no start restriction.
+	/// </summary>
+	public DateTime? DisplayStartUtc { get; set; }
+
+	/// <summary>
+	/// When ads/card should stop showing. Null means no end restriction.
+	/// </summary>
+	public DateTime? DisplayEndUtc { get; set; }
+
 	public DateTime CreatedUtc { get; set; }
 
 	public List<PartnerAnalytics> Analytics { get; set; } = [];
@@ -145,6 +155,14 @@ public class Partner
 	/// Determines if this partner has an ad image (for ad display)
 	/// </summary>
 	public bool HasAdImage => CanHaveAd && !string.IsNullOrWhiteSpace(AdImageUrl);
+
+	/// <summary>
+	/// Returns whether the partner is within its display time window.
+	/// Null values mean "no restriction" for that bound.
+	/// </summary>
+	public bool IsWithinDisplayWindow(DateTime utcNow) =>
+		(DisplayStartUtc is null || utcNow >= DisplayStartUtc) &&
+		(DisplayEndUtc is null || utcNow <= DisplayEndUtc);
 
 	/// <summary>
 	/// Validates that the partner has at least one type of presence (partner card or ad image)

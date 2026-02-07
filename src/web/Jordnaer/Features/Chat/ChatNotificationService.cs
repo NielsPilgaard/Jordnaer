@@ -66,7 +66,7 @@ public class ChatNotificationService(
 			{
 				To = [recipientsEmailAddress],
 				Subject = $"Ny besked fra {initiator.DisplayName}",
-				HtmlContent = CreateNewChatEmailMessage(user.DisplayName, initiator.DisplayName, GetChatLink(startChat.Id))
+				HtmlContent = CreateNewChatEmailMessage(options.Value.BaseUrl, user.DisplayName, initiator.DisplayName, GetChatLink(startChat.Id))
 			};
 		}
 	}
@@ -134,7 +134,7 @@ public class ChatNotificationService(
 			{
 				To = [recipientEmailAddress],
 				Subject = $"Ny besked fra {sender.DisplayName}",
-				HtmlContent = CreateNewChatEmailMessage(recipientEmailAddress.DisplayName, sender.DisplayName, chatLink)
+				HtmlContent = CreateNewChatEmailMessage(options.Value.BaseUrl, recipientEmailAddress.DisplayName, sender.DisplayName, chatLink)
 			});
 		}
 
@@ -143,17 +143,8 @@ public class ChatNotificationService(
 		logger.LogInformation("Sent {Count} emails for new chat message.", emailsToSend.Count);
 	}
 
-	private static string CreateNewChatEmailMessage(string recipientDisplayName,
+	private static string CreateNewChatEmailMessage(string baseUrl, string recipientDisplayName,
 		string messageSenderDisplayName,
-		string link) => $"""
-						 {EmailConstants.Greeting(recipientDisplayName)}
-
-						 <p>Du har fået en ny besked fra <b>{messageSenderDisplayName}</b></p>
-
-						 <p>Hvis du vil gå direkte til beskeden, kan du klikke på linket nedenfor:</p>
-
-						 <p><a href="{link}">Læs besked</a></p>
-
-						 {EmailConstants.Signature}
-						 """;
+		string link) =>
+		EmailContentBuilder.ChatNotification(baseUrl, recipientDisplayName, messageSenderDisplayName, link);
 }

@@ -28,6 +28,42 @@
 			Partner Dashboard - @_partner.Name
 		</MudText>
 
+		@* Display Window Info *@
+		@if (_partner.DisplayStartUtc.HasValue || _partner.DisplayEndUtc.HasValue)
+		{
+			var isActive = _partner.IsWithinDisplayWindow(DateTime.UtcNow);
+			<MudAlert Severity="@(isActive ? Severity.Success : Severity.Warning)" Class="mb-6">
+				<MudStack Spacing="1">
+					<MudText Typo="Typo.body1" Class="font-open-sans-semibold">
+						Visningsperiode
+					</MudText>
+					<MudText Typo="Typo.body2">
+						@if (_partner.DisplayStartUtc.HasValue)
+						{
+							<text>Fra: @_partner.DisplayStartUtc.Value.ToString("dd/MM/yyyy HH:mm") UTC</text>
+						}
+						else
+						{
+							<text>Fra: Ingen begrænsning</text>
+						}
+					</MudText>
+					<MudText Typo="Typo.body2">
+						@if (_partner.DisplayEndUtc.HasValue)
+						{
+							<text>Til: @_partner.DisplayEndUtc.Value.ToString("dd/MM/yyyy HH:mm") UTC</text>
+						}
+						else
+						{
+							<text>Til: Ingen begrænsning</text>
+						}
+					</MudText>
+					<MudText Typo="Typo.body2" Class="font-open-sans-semibold">
+						Status: @(isActive ? "Dine annoncer og kort vises" : "Dine annoncer og kort er ikke synlige i øjeblikket")
+					</MudText>
+				</MudStack>
+			</MudAlert>
+		}
+
 		@* Pending Approval Alert *@
 		@if (_partner.HasPendingApproval)
 		{
