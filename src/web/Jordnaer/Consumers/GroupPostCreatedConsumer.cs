@@ -96,7 +96,7 @@ public partial class GroupPostCreatedConsumer(
 			: plainText.Substring(0, 200) + "...";
 	}
 
-	private static string CreateNewPostEmailContent(string authorName, string postPreview, string groupUrl)
+	private string CreateNewPostEmailContent(string authorName, string postPreview, string groupUrl)
 	{
 		// HTML-encode to prevent XSS attacks
 		var encodedAuthorName = WebUtility.HtmlEncode(authorName);
@@ -105,21 +105,19 @@ public partial class GroupPostCreatedConsumer(
 		// Convert newlines to <br/> tags for proper display after encoding
 		encodedPostPreview = encodedPostPreview.Replace("\r\n", "<br/>").Replace("\n", "<br/>");
 
-		var encodedGroupUrl = WebUtility.HtmlEncode(groupUrl);
-
-		return $"""
+		var body = $"""
 			<h4>Nyt opslag i din gruppe</h4>
 
 			<p><b>{encodedAuthorName}</b> har oprettet et nyt opslag:</p>
 
-			<blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #666;">
+			<blockquote style="border-left: 3px solid #dbab45; padding: 10px 15px; color: #41556b; background-color: #fdf8ee; margin: 16px 0;">
 				{encodedPostPreview}
 			</blockquote>
 
-			<p><a href="{encodedGroupUrl}">Klik her for at se opslaget</a></p>
-
-			{EmailConstants.Signature}
+			{EmailTemplate.Button(groupUrl, "Se opslaget")}
 			""";
+
+		return EmailTemplate.Wrap(body, appOptions.Value.BaseUrl, preheaderText: $"Nyt opslag af {encodedAuthorName}");
 	}
 
 	[GeneratedRegex("<.*?>")]

@@ -360,3 +360,6 @@ MigrationBackup/
 .env
 
 media/**/*.png
+
+# Email preview outputs
+**/email-previews/
