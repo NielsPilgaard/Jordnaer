@@ -628,7 +628,18 @@ else
     private int _selectedDays = 30;
     private EditPartnerModel _editModel = new();
 
-    private static readonly TimeZoneInfo _copenhagenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+    private static readonly TimeZoneInfo _copenhagenTimeZone = GetCopenhagenTimeZone();
+
+    private static TimeZoneInfo GetCopenhagenTimeZone()
+    {
+        if (TimeZoneInfo.TryFindSystemTimeZoneById("Romance Standard Time", out var tz))
+            return tz;
+
+        if (TimeZoneInfo.TryFindSystemTimeZoneById("Europe/Copenhagen", out tz))
+            return tz;
+
+        return TimeZoneInfo.Utc;
+    }
 
     private List<ChartSeries> _chartSeries = [];
     private string[] _xAxisLabels = [];
