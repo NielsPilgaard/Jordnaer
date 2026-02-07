@@ -32,6 +32,8 @@ public record CreatePartnerRequest
 	public required string Link { get; init; }
 	public bool CanHavePartnerCard { get; init; } = true;
 	public bool CanHaveAd { get; init; } = true;
+	public DateTime? DisplayStartUtc { get; init; }
+	public DateTime? DisplayEndUtc { get; init; }
 }
 
 public record CreatePartnerResult
@@ -140,7 +142,9 @@ public sealed class PartnerUserService(
 				PartnerPageLink = request.Link,
 				UserId = user.Id,
 				CanHavePartnerCard = request.CanHavePartnerCard,
-				CanHaveAd = request.CanHaveAd
+				CanHaveAd = request.CanHaveAd,
+				DisplayStartUtc = request.DisplayStartUtc,
+				DisplayEndUtc = request.DisplayEndUtc
 			};
 			context.Partners.Add(partner);
 

@@ -134,6 +134,28 @@ else
                         </MudStack>
                     </MudStack>
                 </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Visningsperiode</MudText>
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.body1">
+                                Fra: @(_partner.DisplayStartUtc.HasValue ? _partner.DisplayStartUtc.Value.ToString("dd/MM/yyyy HH:mm") + " UTC" : "Ingen begrænsning")
+                            </MudText>
+                            <MudText Typo="Typo.body1">
+                                Til: @(_partner.DisplayEndUtc.HasValue ? _partner.DisplayEndUtc.Value.ToString("dd/MM/yyyy HH:mm") + " UTC" : "Ingen begrænsning")
+                            </MudText>
+                            @{
+                                var isActive = _partner.IsWithinDisplayWindow(DateTime.UtcNow);
+                            }
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@(isActive ? Color.Success : Color.Error)"
+                                     Icon="@(isActive ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)">
+                                @(isActive ? "Aktiv" : "Ikke synlig")
+                            </MudChip>
+                        </MudStack>
+                    </MudStack>
+                </MudItem>
             </MudGrid>
         </MudPaper>
 
