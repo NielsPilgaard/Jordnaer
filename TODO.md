@@ -1,1 +1,1 @@
-# Acceptances tests
+# Acceptance tests
