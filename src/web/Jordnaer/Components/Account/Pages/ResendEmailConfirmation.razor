@@ -1,6 +1,5 @@
 ﻿@page "/Account/ResendEmailConfirmation"
 @using System.Text
-@using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.WebUtilities
 
 @inject UserManager<ApplicationUser> UserManager
@@ -50,7 +49,7 @@
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
         _message = new AlertMessage("Bekræftelses-emailen er afsendt. Tjek venligst din email.");
     }

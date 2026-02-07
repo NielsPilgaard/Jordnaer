@@ -6,7 +6,6 @@ using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Net;
 using System.Text.RegularExpressions;
 
 namespace Jordnaer.Consumers;
@@ -69,7 +68,7 @@ public partial class GroupPostCreatedConsumer(
 			var email = new SendEmail
 			{
 				Subject = $"Nyt opslag i {message.GroupName}",
-				HtmlContent = CreateNewPostEmailContent(message.AuthorDisplayName, postPreview, groupUrl),
+				HtmlContent = CreateNewPostEmailContent(baseUrl, message.AuthorDisplayName, postPreview, groupUrl),
 				Bcc = emails
 			};
 
@@ -96,31 +95,8 @@ public partial class GroupPostCreatedConsumer(
 			: plainText.Substring(0, 200) + "...";
 	}
 
-	private static string CreateNewPostEmailContent(string authorName, string postPreview, string groupUrl)
-	{
-		// HTML-encode to prevent XSS attacks
-		var encodedAuthorName = WebUtility.HtmlEncode(authorName);
-		var encodedPostPreview = WebUtility.HtmlEncode(postPreview);
-
-		// Convert newlines to <br/> tags for proper display after encoding
-		encodedPostPreview = encodedPostPreview.Replace("\r\n", "<br/>").Replace("\n", "<br/>");
-
-		var encodedGroupUrl = WebUtility.HtmlEncode(groupUrl);
-
-		return $"""
-			<h4>Nyt opslag i din gruppe</h4>
-
-			<p><b>{encodedAuthorName}</b> har oprettet et nyt opslag:</p>
-
-			<blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #666;">
-				{encodedPostPreview}
-			</blockquote>
-
-			<p><a href="{encodedGroupUrl}">Klik her for at se opslaget</a></p>
-
-			{EmailConstants.Signature}
-			""";
-	}
+	private static string CreateNewPostEmailContent(string baseUrl, string authorName, string postPreview, string groupUrl) =>
+		EmailContentBuilder.GroupPostNotification(baseUrl, authorName, postPreview, groupUrl);
 
 	[GeneratedRegex("<.*?>")]
 	private static partial Regex HtmlTagsRegex();

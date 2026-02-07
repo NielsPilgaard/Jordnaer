@@ -363,7 +363,7 @@ public class EmailServiceTests : IAsyncLifetime
 			x => x.Publish(
 				It.Is<SendEmail>(email =>
 					email.HtmlContent.Contains(groupName) &&
-					email.HtmlContent.Contains(EmailConstants.Signature)
+					email.HtmlContent.Contains(EmailTemplate.FooterSignature)
 				),
 				It.IsAny<CancellationToken>()
 			),
@@ -457,7 +457,7 @@ public class EmailServiceTests : IAsyncLifetime
 			x => x.Publish(
 				It.Is<SendEmail>(email =>
 					email.HtmlContent.Contains(expectedUrl) &&
-					email.HtmlContent.Contains(EmailConstants.Signature)
+					email.HtmlContent.Contains(EmailTemplate.FooterSignature)
 				),
 				It.IsAny<CancellationToken>()
 			),

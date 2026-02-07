@@ -1,10 +1,12 @@
 ﻿using Jordnaer.Database;
+using Jordnaer.Extensions;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace Jordnaer.Features.Email;
 
-public class EmailSender(IPublishEndpoint publishEndpoint) : IEmailSender<ApplicationUser>
+public class EmailSender(IPublishEndpoint publishEndpoint, IOptions<AppOptions> options) : IEmailSender<ApplicationUser>
 {
 	internal async Task Send(string email, string subject, string message)
 	{
@@ -20,53 +22,19 @@ public class EmailSender(IPublishEndpoint publishEndpoint) : IEmailSender<Applic
 
 	public async Task SendConfirmationLinkAsync(ApplicationUser user, string email, string confirmationLink)
 	{
-		const string subject = "Bekræft din konto på Mini Møder";
-		var message = $"""
-					   {EmailConstants.Greeting(user.UserName)}
-					   
-					   <p>Tak for at du registrerer dig hos Mini Møder.</p>
-					   <p>Klik venligst på nedenstående link for at bekræfte din konto:</p>
-					   
-					   <a href="{confirmationLink}">Bekræft din konto</a>
-					   
-					   {EmailConstants.Signature}
-					   """;
-
-		await Send(email, subject, message);
+		var message = EmailContentBuilder.Confirmation(options.Value.BaseUrl, user.UserName, confirmationLink);
+		await Send(email, "Bekræft din konto på Mini Møder", message);
 	}
 
 	public async Task SendPasswordResetLinkAsync(ApplicationUser user, string email, string resetLink)
 	{
-		const string subject = "Nulstil din adgangskode for Mini Møder";
-		var message = $"""
-		              {EmailConstants.Greeting(user.UserName)}
-		              
-		              <p>Vi har modtaget en anmodning om at nulstille din adgangskode.</p>
-		              <p>Klik på linket nedenfor for at indstille en ny adgangskode:</p>
-		              
-		              <a href="{resetLink}">Nulstil adgangskode</a>
-		              
-		              <p>Hvis du ikke anmodede om at nulstille din adgangskode, bedes du ignorere denne e-mail.</p>
-		              
-		              {EmailConstants.Signature}
-		              """;
-
-		await Send(email, subject, message);
+		var message = EmailContentBuilder.PasswordResetLink(options.Value.BaseUrl, user.UserName, resetLink);
+		await Send(email, "Nulstil din adgangskode for Mini Møder", message);
 	}
 
 	public async Task SendPasswordResetCodeAsync(ApplicationUser user, string email, string resetCode)
 	{
-		const string subject = "Din kode til at nulstille din adgangskode for Mini Møder";
-		var message = $"""
-		              {EmailConstants.Greeting(user.UserName)}
-		              
-		              <p>Din kode til at nulstille adgangskoden er: <strong>{resetCode}</strong></p>
-		              
-		              <p>Indtast denne kode i formularen for at nulstille din adgangskode.</p>
-		              
-		              {EmailConstants.Signature}
-		              """;
-
-		await Send(email, subject, message);
+		var message = EmailContentBuilder.PasswordResetCode(options.Value.BaseUrl, user.UserName, resetCode);
+		await Send(email, "Din kode til at nulstille din adgangskode for Mini Møder", message);
 	}
 }
