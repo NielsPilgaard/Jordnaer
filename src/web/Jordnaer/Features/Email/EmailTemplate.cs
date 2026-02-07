@@ -1,4 +1,5 @@
 using System.Net;
+using Jordnaer.Shared.Validation;
 
 namespace Jordnaer.Features.Email;
 
@@ -69,11 +70,12 @@ public static class EmailTemplate
 	/// <summary>
 	/// Creates a styled CTA button for emails.
 	/// </summary>
+	/// <param name="href">The raw URL the button should link to (will be HTML-encoded for the href attribute)</param>
 	public static string Button(string href, string text, string? backgroundColor = null)
 	{
-		var bgColor = backgroundColor ?? "#dbab45";
-		var encodedHref = WebUtility.HtmlEncode(href);
+		var bgColor = HexColorAttribute.IsValidHexColor(backgroundColor) ? backgroundColor : "#dbab45";
 		var encodedText = WebUtility.HtmlEncode(text);
+		var encodedHref = WebUtility.HtmlEncode(href);
 		return $"""
 			<table role="presentation" cellspacing="0" cellpadding="0" style="margin: 16px 0;">
 			    <tr>

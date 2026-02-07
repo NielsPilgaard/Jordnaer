@@ -190,50 +190,42 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		logger.LogInformation("Sending partner image approval email for partner {PartnerName} ({PartnerId})", partnerName, partnerId);
 
 		var baseUrl = options.Value.BaseUrl;
-		var approvalUrl = $"{baseUrl}/backoffice/partners/{partnerId}";
 
 		var changesList = new List<string>();
 
 		if (!string.IsNullOrEmpty(partner.PendingAdImageUrl))
 		{
-			var encodedUrl = WebUtility.HtmlEncode(partner.PendingAdImageUrl);
-			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt annonce billede</a></li>");
+			changesList.Add($"Nyt annonce billede: {partner.PendingAdImageUrl}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingLogoUrl))
 		{
-			var encodedUrl = WebUtility.HtmlEncode(partner.PendingLogoUrl);
-			changesList.Add($"<li><a href=\"{encodedUrl}\">Nyt logo</a></li>");
+			changesList.Add($"Nyt logo: {partner.PendingLogoUrl}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingName))
 		{
-			var encodedName = WebUtility.HtmlEncode(partner.PendingName);
-			changesList.Add($"<li>Nyt navn: {encodedName}</li>");
+			changesList.Add($"Nyt navn: {partner.PendingName}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingDescription))
 		{
-			var encodedDescription = WebUtility.HtmlEncode(partner.PendingDescription);
-			changesList.Add($"<li>Ny beskrivelse: {encodedDescription}</li>");
+			changesList.Add($"Ny beskrivelse: {partner.PendingDescription}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingPartnerPageLink))
 		{
-			var encodedLink = WebUtility.HtmlEncode(partner.PendingPartnerPageLink);
-			changesList.Add($"<li>Nyt partnerside link: {encodedLink}</li>");
+			changesList.Add($"Nyt partnerside link: {partner.PendingPartnerPageLink}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingAdLink))
 		{
-			var encodedLink = WebUtility.HtmlEncode(partner.PendingAdLink);
-			changesList.Add($"<li>Nyt annonce link: {encodedLink}</li>");
+			changesList.Add($"Nyt annonce link: {partner.PendingAdLink}");
 		}
 
 		if (!string.IsNullOrEmpty(partner.PendingAdLabelColor))
 		{
-			var encodedColor = WebUtility.HtmlEncode(partner.PendingAdLabelColor);
-			changesList.Add($"<li>Ny annonce label farve: {encodedColor}</li>");
+			changesList.Add($"Ny annonce label farve: {partner.PendingAdLabelColor}");
 		}
 
 		var email = new SendEmail
@@ -258,7 +250,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 		{
 			Subject = "Velkommen som partner på Mini Møder",
 			HtmlContent = EmailContentBuilder.PartnerWelcome(options.Value.BaseUrl, partnerName, email, temporaryPassword),
-			To = [new EmailRecipient { Email = email, DisplayName = WebUtility.HtmlEncode(partnerName) }]
+			To = [new EmailRecipient { Email = email, DisplayName = partnerName }]
 		};
 
 		await publishEndpoint.Publish(welcomeEmail, cancellationToken);

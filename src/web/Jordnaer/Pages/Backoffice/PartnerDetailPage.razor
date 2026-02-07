@@ -6,6 +6,8 @@
 @inject NavigationManager NavigationManager
 @inject ILogger<PartnerDetailPage> Logger
 
+@using System.ComponentModel.DataAnnotations
+
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 
 <MetadataComponent Title="Backoffice - Partner Detaljer"
@@ -62,6 +64,7 @@ else
             {
                 <EditForm Model="@_editModel" OnValidSubmit="SaveChangesAsync">
                     <DataAnnotationsValidator />
+                    <ValidationSummary />
 
                     <MudStack Spacing="4">
                         <MudGrid Spacing="3">
@@ -161,22 +164,24 @@ else
 
                         <MudDivider Class="my-2" />
 
-                        <MudItem xs="12" md="6">
-                            <MudStack Spacing="2">
-                                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Oprettet</MudText>
-                                <MudText Typo="Typo.body1">@_partner.CreatedUtc.ToString("dd/MM/yyyy HH:mm")</MudText>
-                            </MudStack>
-                        </MudItem>
-
-                        @if (_partner.LastUpdateUtc.HasValue)
-                        {
+                        <MudGrid Spacing="3">
                             <MudItem xs="12" md="6">
                                 <MudStack Spacing="2">
-                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Sidste opdatering</MudText>
-                                    <MudText Typo="Typo.body1">@_partner.LastUpdateUtc.Value.ToString("dd/MM/yyyy HH:mm")</MudText>
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Oprettet</MudText>
+                                    <MudText Typo="Typo.body1">@_partner.CreatedUtc.ToString("dd/MM/yyyy HH:mm")</MudText>
                                 </MudStack>
                             </MudItem>
-                        }
+
+                            @if (_partner.LastUpdateUtc.HasValue)
+                            {
+                                <MudItem xs="12" md="6">
+                                    <MudStack Spacing="2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Sidste opdatering</MudText>
+                                        <MudText Typo="Typo.body1">@_partner.LastUpdateUtc.Value.ToString("dd/MM/yyyy HH:mm")</MudText>
+                                    </MudStack>
+                                </MudItem>
+                            }
+                        </MudGrid>
 
                         <MudStack Row Spacing="3" Justify="Justify.FlexEnd" Class="mt-4">
                             <MudButton Variant="Variant.Outlined"
@@ -626,17 +631,36 @@ else
     private List<ChartSeries> _chartSeries = [];
     private string[] _xAxisLabels = [];
 
-    private class EditPartnerModel
+    private class EditPartnerModel : IValidatableObject
     {
+        [MaxLength(128)]
         public string? Name { get; set; }
+
+        [MaxLength(500)]
         public string? Description { get; set; }
+
+        [Url]
         public string? PartnerPageLink { get; set; }
+
+        [Url]
         public string? AdLink { get; set; }
+
+        [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Brug hex format som #FFFFFF")]
+        [MaxLength(7)]
         public string? AdLabelColor { get; set; }
+
         public bool CanHavePartnerCard { get; set; } = true;
         public bool CanHaveAd { get; set; } = true;
         public DateTime? DisplayStartDate { get; set; }
         public DateTime? DisplayEndDate { get; set; }
+
+        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (DisplayStartDate.HasValue && DisplayEndDate.HasValue && DisplayStartDate.Value >= DisplayEndDate.Value)
+            {
+                yield return new System.ComponentModel.DataAnnotations.ValidationResult("Startdato skal være før slutdato", [nameof(DisplayStartDate), nameof(DisplayEndDate)]);
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()

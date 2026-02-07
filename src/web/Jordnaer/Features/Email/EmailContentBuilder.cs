@@ -29,14 +29,17 @@ public static class EmailContentBuilder
 			<p>Hvis du ikke anmodede om at nulstille din adgangskode, bedes du ignorere denne e-mail.</p>
 			""", baseUrl, preheaderText: "Nulstil din adgangskode");
 
-	public static string PasswordResetCode(string baseUrl, string? userName, string resetCode) =>
-		EmailTemplate.Wrap($"""
+	public static string PasswordResetCode(string baseUrl, string? userName, string resetCode)
+	{
+		var encodedResetCode = WebUtility.HtmlEncode(resetCode);
+		return EmailTemplate.Wrap($"""
 			{EmailConstants.Greeting(userName)}
 
-			<p>Din kode til at nulstille adgangskoden er: <strong>{resetCode}</strong></p>
+			<p>Din kode til at nulstille adgangskoden er: <strong>{encodedResetCode}</strong></p>
 
 			<p>Indtast denne kode i formularen for at nulstille din adgangskode.</p>
 			""", baseUrl);
+	}
 
 	public static string GroupInvite(string baseUrl, string groupName)
 	{
@@ -46,7 +49,7 @@ public static class EmailContentBuilder
 			<h4>Du er blevet inviteret til at blive medlem af gruppen <b>{encodedGroupName}</b></h4>
 
 			{EmailTemplate.Button(groupUrl, "Se gruppen")}
-			""", baseUrl, preheaderText: $"Du er inviteret til {encodedGroupName}");
+			""", baseUrl, preheaderText: $"Du er inviteret til {groupName}");
 	}
 
 	public static string GroupInviteNewUser(string baseUrl, string groupName, string inviteToken)
@@ -75,7 +78,7 @@ public static class EmailContentBuilder
 			<p>Hvis du vil gå direkte til beskeden, kan du klikke på knappen nedenfor:</p>
 
 			{EmailTemplate.Button(chatLink, "Læs besked")}
-			""", baseUrl, preheaderText: $"Ny besked fra {encodedSenderName}");
+			""", baseUrl, preheaderText: $"Ny besked fra {senderDisplayName}");
 	}
 
 	public static string DeleteUser(string baseUrl, string deletionLink) =>
@@ -144,17 +147,18 @@ public static class EmailContentBuilder
 			""", baseUrl);
 	}
 
-	public static string PartnerImageApproval(string baseUrl, string partnerName, Guid partnerId, List<string> changesListHtml)
+	public static string PartnerImageApproval(string baseUrl, string partnerName, Guid partnerId, List<string> changes)
 	{
 		var approvalUrl = $"{baseUrl}/backoffice/partners/{partnerId}";
 		var encodedPartnerName = WebUtility.HtmlEncode(partnerName);
+		var listItems = string.Join("\n", changes.Select(c => $"<li>{WebUtility.HtmlEncode(c)}</li>"));
 
 		return EmailTemplate.Wrap($"""
 			<h4>Partner <b>{encodedPartnerName}</b> har uploadet nye ændringer til godkendelse</h4>
 
 			<p>Ændringer:</p>
 			<ul>
-			{string.Join("\n", changesListHtml)}
+			{listItems}
 			</ul>
 
 			{EmailTemplate.Button(approvalUrl, "Godkend ændringer")}

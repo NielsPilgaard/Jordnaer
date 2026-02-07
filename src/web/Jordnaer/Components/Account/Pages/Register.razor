@@ -1,6 +1,5 @@
 ﻿@page "/Account/Register"
 @using System.Text
-@using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.EntityFrameworkCore
 @using Jordnaer.Features.Membership
@@ -246,7 +245,7 @@
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             callbackParams);
 
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
