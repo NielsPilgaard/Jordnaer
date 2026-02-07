@@ -27,9 +27,12 @@ public class AdProvider(
 		try
 		{
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+			var utcNow = DateTime.UtcNow;
 			var partnerAds = await context.Partners
 				.AsNoTracking()
 				.Where(p => p.CanHaveAd && p.AdImageUrl != null && p.AdImageUrl != "")
+				.Where(p => (p.DisplayStartUtc == null || utcNow >= p.DisplayStartUtc) &&
+				            (p.DisplayEndUtc == null || utcNow <= p.DisplayEndUtc))
 				.Select(p => new AdData
 				{
 					Title = p.Name ?? "Partner",

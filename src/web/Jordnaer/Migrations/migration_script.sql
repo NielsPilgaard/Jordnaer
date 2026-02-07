@@ -1237,3 +1237,32 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260207075313_AddPartnerDisplayWindow'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [DisplayEndUtc] datetime2 NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260207075313_AddPartnerDisplayWindow'
+)
+BEGIN
+    ALTER TABLE [Partners] ADD [DisplayStartUtc] datetime2 NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260207075313_AddPartnerDisplayWindow'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260207075313_AddPartnerDisplayWindow', N'10.0.2');
+END;
+
+COMMIT;
+GO
+

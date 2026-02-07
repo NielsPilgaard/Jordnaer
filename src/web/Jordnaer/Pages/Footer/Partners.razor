@@ -46,7 +46,10 @@
         result.Switch(
             partners =>
             {
-                var dynamicPartners = partners.Where(p => p.HasPartnerCard).ToList();
+                var utcNow = DateTime.UtcNow;
+                var dynamicPartners = partners
+                    .Where(p => p.HasPartnerCard && p.IsWithinDisplayWindow(utcNow))
+                    .ToList();
                 _allPartners.AddRange(dynamicPartners);
             },
             _ => { } // Ignore errors, just show hardcoded partners

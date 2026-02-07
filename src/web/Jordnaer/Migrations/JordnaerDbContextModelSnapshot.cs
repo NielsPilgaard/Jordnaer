@@ -391,6 +391,12 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("DisplayEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DisplayStartUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("HasPendingApproval")
                         .HasColumnType("bit");
 
