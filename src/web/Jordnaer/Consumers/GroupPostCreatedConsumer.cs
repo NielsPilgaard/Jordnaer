@@ -6,7 +6,6 @@ using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Net;
 using System.Text.RegularExpressions;
 
 namespace Jordnaer.Consumers;
@@ -96,29 +95,8 @@ public partial class GroupPostCreatedConsumer(
 			: plainText.Substring(0, 200) + "...";
 	}
 
-	private string CreateNewPostEmailContent(string authorName, string postPreview, string groupUrl)
-	{
-		// HTML-encode to prevent XSS attacks
-		var encodedAuthorName = WebUtility.HtmlEncode(authorName);
-		var encodedPostPreview = WebUtility.HtmlEncode(postPreview);
-
-		// Convert newlines to <br/> tags for proper display after encoding
-		encodedPostPreview = encodedPostPreview.Replace("\r\n", "<br/>").Replace("\n", "<br/>");
-
-		var body = $"""
-			<h4>Nyt opslag i din gruppe</h4>
-
-			<p><b>{encodedAuthorName}</b> har oprettet et nyt opslag:</p>
-
-			<blockquote style="border-left: 3px solid #dbab45; padding: 10px 15px; color: #41556b; background-color: #fdf8ee; margin: 16px 0;">
-				{encodedPostPreview}
-			</blockquote>
-
-			{EmailTemplate.Button(groupUrl, "Se opslaget")}
-			""";
-
-		return EmailTemplate.Wrap(body, appOptions.Value.BaseUrl, preheaderText: $"Nyt opslag af {encodedAuthorName}");
-	}
+	private string CreateNewPostEmailContent(string authorName, string postPreview, string groupUrl) =>
+		EmailContentBuilder.GroupPostNotification(appOptions.Value.BaseUrl, authorName, postPreview, groupUrl);
 
 	[GeneratedRegex("<.*?>")]
 	private static partial Regex HtmlTagsRegex();

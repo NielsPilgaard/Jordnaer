@@ -168,23 +168,8 @@ public class DeleteUserService(
 		return false;
 	}
 
-	private string CreateDeleteUserEmailMessage(string deletionLink)
-	{
-		var baseUrl = navigationManager.BaseUri.TrimEnd('/');
-		var body = $"""
-				   <p>Hej,</p>
-
-				   <p>Du har anmodet om at slette din bruger hos Mini Møder. Hvis du fortsætter, vil alle dine data blive permanent slettet og kan ikke genoprettes.</p>
-
-				   <p>Hvis du er sikker på, at du vil slette din bruger, skal du klikke på knappen nedenfor:</p>
-
-				   {EmailTemplate.Button(deletionLink, "Bekræft sletning", backgroundColor: "#a94442")}
-
-				   <p>Hvis du ikke anmodede om at slette din bruger, kan du ignorere denne e-mail.</p>
-				   """;
-
-		return EmailTemplate.Wrap(body, baseUrl, preheaderText: "Anmodning om sletning af bruger");
-	}
+	private string CreateDeleteUserEmailMessage(string deletionLink) =>
+		EmailContentBuilder.DeleteUser(navigationManager.BaseUri.TrimEnd('/'), deletionLink);
 }
 
 public record UserDeleted(string Id);

@@ -145,18 +145,6 @@ public class ChatNotificationService(
 
 	private string CreateNewChatEmailMessage(string recipientDisplayName,
 		string messageSenderDisplayName,
-		string link)
-	{
-		var body = $"""
-				   {EmailConstants.Greeting(recipientDisplayName)}
-
-				   <p>Du har fået en ny besked fra <b>{messageSenderDisplayName}</b></p>
-
-				   <p>Hvis du vil gå direkte til beskeden, kan du klikke på knappen nedenfor:</p>
-
-				   {EmailTemplate.Button(link, "Læs besked")}
-				   """;
-
-		return EmailTemplate.Wrap(body, options.Value.BaseUrl, preheaderText: $"Ny besked fra {messageSenderDisplayName}");
-	}
+		string link) =>
+		EmailContentBuilder.ChatNotification(options.Value.BaseUrl, recipientDisplayName, messageSenderDisplayName, link);
 }

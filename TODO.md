@@ -8,27 +8,13 @@
 
 ## email
 
-Visual inspection - Run dotnet test tests/web/Jordnaer.Tests --filter FullyQualifiedName~EmailPreviewTests then open the HTML files in tests/web/Jordnaer.Tests/bin/Debug/email-previews/ in a browser:
-
-confirmation.html - Logo, greeting, yellow CTA button
-password-reset.html - Yellow "Nulstil adgangskode" button
-group-invite.html - Yellow "Se gruppen" button
-chat-notification.html - Yellow "Læs besked" button
-delete-user.html - Red "Bekræft sletning" button
-group-post-notification.html - Branded blockquote + "Se opslaget" button
-membership-request.html - "Se anmodningen" button
-partner-welcome.html - Login credentials + "Log ind" button
-Layout consistency across all previews:
-
-Logo displays at top
-Footer says "Venlig hilsen, Mini Møder Teamet"
-600px max-width white card on light gray background
-Text color is #41556b (brand blue)
-Mobile responsiveness - Resize browser to mobile width, verify emails don't break
-
-Functional testing in dev environment - Trigger actual emails and verify they render in an email client:
-
-Account confirmation email
-Chat notification
-Group invite
-Group post notification
+Navigate to /backoffice/emails as an admin user - verify the page loads
+Check dropdown - should list all 12 email types
+Preview each email - select each one and verify:
+Logo renders in the header
+Body content is correct with sample data
+CTA buttons are styled and visible
+Footer with "Mini Møder Teamet" is present
+Check navigation - verify "Emails" link appears in both desktop and mobile Backoffice dropdowns
+Non-admin access - verify the page is not accessible to non-admin users
+Delete user email - verify the red "Bekræft sletning" button renders with #a94442 color

@@ -1,0 +1,124 @@
+@page "/backoffice/emails"
+
+@using Jordnaer.Features.Email
+@using Microsoft.Extensions.Options
+
+@inject IOptions<AppOptions> Options
+
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
+
+<MetadataComponent Title="Backoffice - Email Previews"
+    Description="Preview alle email skabeloner i systemet." />
+
+<MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">Email Previews</MudText>
+</MudStack>
+
+<MudDivider Class="mb-5" />
+
+<MudSelect T="string" Label="Vælg email" @bind-Value="_selectedEmail" Variant="Variant.Outlined" Class="mb-4">
+    @foreach (var email in _emailPreviews)
+    {
+        <MudSelectItem Value="@email.Key">@email.Value.Name</MudSelectItem>
+    }
+</MudSelect>
+
+@if (_selectedEmail is not null && _emailPreviews.TryGetValue(_selectedEmail, out var preview))
+{
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-2">@preview.Name</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">@preview.Description</MudText>
+        <MudDivider Class="mb-4" />
+        <iframe srcdoc="@preview.Html" style="width: 100%; height: 700px; border: 1px solid #e0e0e0; border-radius: 4px;" sandbox="allow-same-origin"></iframe>
+    </MudPaper>
+}
+
+@code {
+    private string? _selectedEmail;
+    private Dictionary<string, EmailPreview> _emailPreviews = new();
+
+    protected override void OnInitialized()
+    {
+        var baseUrl = Options.Value.BaseUrl;
+        _emailPreviews = BuildPreviews(baseUrl);
+        _selectedEmail = _emailPreviews.Keys.FirstOrDefault();
+    }
+
+    private static Dictionary<string, EmailPreview> BuildPreviews(string baseUrl)
+    {
+        return new Dictionary<string, EmailPreview>
+        {
+            ["confirmation"] = new(
+                "Bekræft konto",
+                "Sendes når en ny bruger registrerer sig og skal bekræfte sin email.",
+                EmailContentBuilder.Confirmation(baseUrl, "Anna", $"{baseUrl}/confirm?code=abc123")),
+
+            ["password-reset"] = new(
+                "Nulstil adgangskode",
+                "Sendes når en bruger anmoder om at nulstille sin adgangskode.",
+                EmailContentBuilder.PasswordResetLink(baseUrl, "Lars", $"{baseUrl}/reset?code=xyz789")),
+
+            ["password-reset-code"] = new(
+                "Nulstil adgangskode (kode)",
+                "Sendes når en bruger anmoder om en kode til at nulstille sin adgangskode.",
+                EmailContentBuilder.PasswordResetCode(baseUrl, "Lars", "123456")),
+
+            ["group-invite"] = new(
+                "Gruppeinvitation",
+                "Sendes når en eksisterende bruger inviteres til en gruppe.",
+                EmailContentBuilder.GroupInvite(baseUrl, "Forældre i København")),
+
+            ["group-invite-new-user"] = new(
+                "Gruppeinvitation (ny bruger)",
+                "Sendes når en email-adresse uden konto inviteres til en gruppe.",
+                EmailContentBuilder.GroupInviteNewUser(baseUrl, "Forældre i København", "sample-invite-token")),
+
+            ["chat-notification"] = new(
+                "Chatbesked",
+                "Sendes når en bruger modtager en ny chatbesked.",
+                EmailContentBuilder.ChatNotification(baseUrl, "Maria", "Peter", $"{baseUrl}/chat/00000000-0000-0000-0000-000000000001")),
+
+            ["delete-user"] = new(
+                "Slet bruger",
+                "Sendes når en bruger anmoder om at slette sin konto.",
+                EmailContentBuilder.DeleteUser(baseUrl, $"{baseUrl}/delete-user/sample-token")),
+
+            ["group-post-notification"] = new(
+                "Nyt gruppeopslag",
+                "Sendes til gruppemedlemmer når der oprettes et nyt opslag.",
+                EmailContentBuilder.GroupPostNotification(baseUrl, "Mette Hansen",
+                    "Hej alle! Er der nogen der har lyst til at mødes i parken i morgen eftermiddag? Vejret ser ud til at blive dejligt...",
+                    $"{baseUrl}/groups/Legekammerater")),
+
+            ["membership-request"] = new(
+                "Medlemskabsanmodning",
+                "Sendes til gruppeadministratorer når en bruger anmoder om medlemskab.",
+                EmailContentBuilder.MembershipRequest(baseUrl, "Legekammerater Østerbro")),
+
+            ["partner-welcome"] = new(
+                "Partner velkomst",
+                "Sendes til nye partnere med login-oplysninger.",
+                EmailContentBuilder.PartnerWelcome(baseUrl, "Legetøjsbutikken", "partner@example.com", "TempPass123!")),
+
+            ["partner-contact"] = new(
+                "Partner henvendelse",
+                "Sendes til admin når en potentiel partner udfylder kontaktformularen.",
+                EmailContentBuilder.PartnerContactForm(baseUrl, "Legetøjsbutikken ApS", "Anders Jensen",
+                    "anders@legetoejsbutikken.dk", "12 34 56 78",
+                    "Vi er interesserede i at blive partner hos Mini Møder. Vi har en butik på Østerbro og vil gerne nå ud til forældre i området.")),
+
+            ["partner-approval"] = new(
+                "Partner ændringer til godkendelse",
+                "Sendes til admin når en partner uploader nye billeder eller ændringer til godkendelse.",
+                EmailContentBuilder.PartnerImageApproval(baseUrl, "Legetøjsbutikken",
+                    Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    [
+                        $"<li><a href=\"{baseUrl}/images/sample-ad.png\">Nyt annonce billede</a></li>",
+                        $"<li><a href=\"{baseUrl}/images/sample-logo.png\">Nyt logo</a></li>",
+                        "<li>Ny beskrivelse: Vi sælger det bedste legetøj i byen!</li>"
+                    ])),
+        };
+    }
+
+    private record EmailPreview(string Name, string Description, string Html);
+}
