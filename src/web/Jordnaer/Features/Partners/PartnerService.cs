@@ -29,6 +29,20 @@ public interface IPartnerService
 	Task<OneOf<Success, Error<string>>> UploadPendingChangesAsync(Guid partnerId, Stream? adImageStream, string? adImageFileName, string? name, string? description, Stream? logoStream, string? logoFileName, string? partnerPageLink, string? adLink, string? adLabelColor, bool clearAdLabelColor, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> ApproveChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, Error<string>>> RejectChangesAsync(Guid partnerId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, NotFound, Error<string>>> UpdatePartnerAsync(Guid partnerId, UpdatePartnerRequest request, CancellationToken cancellationToken = default);
+}
+
+public record UpdatePartnerRequest
+{
+	public string? Name { get; init; }
+	public string? Description { get; init; }
+	public string? PartnerPageLink { get; init; }
+	public string? AdLink { get; init; }
+	public string? AdLabelColor { get; init; }
+	public bool CanHavePartnerCard { get; init; }
+	public bool CanHaveAd { get; init; }
+	public DateTime? DisplayStartUtc { get; init; }
+	public DateTime? DisplayEndUtc { get; init; }
 }
 
 public class PartnerService(
@@ -795,6 +809,81 @@ public class PartnerService(
 		{
 			logger.LogError(ex, "Failed to reject changes for partner {PartnerId}", partnerId);
 			return new Error<string>("Failed to reject changes");
+		}
+	}
+
+	public async Task<OneOf<Success, NotFound, Error<string>>> UpdatePartnerAsync(Guid partnerId, UpdatePartnerRequest request, CancellationToken cancellationToken = default)
+	{
+		logger.LogFunctionBegan();
+
+		try
+		{
+			if (!currentUser.User.IsInRole(AppRoles.Admin))
+			{
+				return new Error<string>("Unauthorized: Admin role required");
+			}
+
+			// Validate display date range
+			if (request.DisplayStartUtc.HasValue && request.DisplayEndUtc.HasValue &&
+				request.DisplayStartUtc.Value >= request.DisplayEndUtc.Value)
+			{
+				return new Error<string>("Startdato skal være før slutdato");
+			}
+
+			// Validate URLs
+			if (!string.IsNullOrWhiteSpace(request.PartnerPageLink))
+			{
+				if (!Uri.TryCreate(request.PartnerPageLink.Trim(), UriKind.Absolute, out var uri) ||
+					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+				{
+					return new Error<string>("Ugyldig partnerside link URL");
+				}
+			}
+
+			if (!string.IsNullOrWhiteSpace(request.AdLink))
+			{
+				if (!Uri.TryCreate(request.AdLink.Trim(), UriKind.Absolute, out var uri) ||
+					(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+				{
+					return new Error<string>("Ugyldig annonce link URL");
+				}
+			}
+
+			if (!string.IsNullOrWhiteSpace(request.AdLabelColor))
+			{
+				if (!System.Text.RegularExpressions.Regex.IsMatch(request.AdLabelColor.Trim(), "^#[0-9A-Fa-f]{6}$"))
+				{
+					return new Error<string>("Ugyldig farve. Brug hex format som #FFFFFF");
+				}
+			}
+
+			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+			var partner = await context.Partners.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);
+
+			if (partner is null)
+			{
+				return new NotFound();
+			}
+
+			partner.Name = string.IsNullOrWhiteSpace(request.Name) ? null : request.Name.Trim();
+			partner.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+			partner.PartnerPageLink = string.IsNullOrWhiteSpace(request.PartnerPageLink) ? null : request.PartnerPageLink.Trim();
+			partner.AdLink = string.IsNullOrWhiteSpace(request.AdLink) ? null : request.AdLink.Trim();
+			partner.AdLabelColor = string.IsNullOrWhiteSpace(request.AdLabelColor) ? null : request.AdLabelColor.Trim();
+			partner.CanHavePartnerCard = request.CanHavePartnerCard;
+			partner.CanHaveAd = request.CanHaveAd;
+			partner.DisplayStartUtc = request.DisplayStartUtc;
+			partner.DisplayEndUtc = request.DisplayEndUtc;
+			partner.LastUpdateUtc = DateTime.UtcNow;
+
+			await context.SaveChangesAsync(cancellationToken);
+
+			return new Success();
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to update partner {PartnerId}", partnerId);
+			return new Error<string>("Kunne ikke opdatere partner. Prøv igen senere.");
 		}
 	}
 }
