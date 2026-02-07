@@ -54,7 +54,7 @@ public static class EmailTemplate
 			                    <!-- Footer -->
 			                    <tr>
 			                        <td style="padding: 20px 40px; background-color: #f9f9f9; border-radius: 0 0 8px 8px; color: #666666; font-size: 14px; line-height: 1.5; font-family: 'Open Sans', Arial, sans-serif;">
-			                            <p style="margin: 0;">Venlig hilsen,<br>Mini Møder Teamet</p>
+			                            <p style="margin: 0;">Venlig hilsen,<br>{FooterSignature}</p>
 			                            <p style="margin: 10px 0 0; font-size: 12px; color: #999999;">Denne email blev sendt fra Mini Møder</p>
 			                        </td>
 			                    </tr>

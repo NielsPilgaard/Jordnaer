@@ -1,4 +1,3 @@
-using System.Net;
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Shared;
@@ -57,7 +56,7 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 
 		var email = new SendEmail
 		{
-			Subject = $"Partner henvendelse fra {WebUtility.HtmlEncode(senderName)}",
+			Subject = $"Partner henvendelse fra {senderName.Trim()}",
 			ReplyTo = replyTo,
 			HtmlContent = EmailContentBuilder.PartnerContactForm(
 				options.Value.BaseUrl,

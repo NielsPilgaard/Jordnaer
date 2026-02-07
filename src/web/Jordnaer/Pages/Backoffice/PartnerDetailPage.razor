@@ -628,6 +628,8 @@ else
     private int _selectedDays = 30;
     private EditPartnerModel _editModel = new();
 
+    private static readonly TimeZoneInfo _copenhagenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time");
+
     private List<ChartSeries> _chartSeries = [];
     private string[] _xAxisLabels = [];
 
@@ -640,10 +642,18 @@ else
         public string? Description { get; set; }
 
         [Url]
-        public string? PartnerPageLink { get; set; }
+        public string? PartnerPageLink
+        {
+            get => field;
+            set => field = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
 
         [Url]
-        public string? AdLink { get; set; }
+        public string? AdLink
+        {
+            get => field;
+            set => field = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
 
         [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Brug hex format som #FFFFFF")]
         [MaxLength(7)]
@@ -707,8 +717,12 @@ else
             AdLabelColor = _partner.AdLabelColor,
             CanHavePartnerCard = _partner.CanHavePartnerCard,
             CanHaveAd = _partner.CanHaveAd,
-            DisplayStartDate = _partner.DisplayStartUtc,
-            DisplayEndDate = _partner.DisplayEndUtc
+            DisplayStartDate = _partner.DisplayStartUtc.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(_partner.DisplayStartUtc.Value, _copenhagenTimeZone).Date
+                : null,
+            DisplayEndDate = _partner.DisplayEndUtc.HasValue
+                ? TimeZoneInfo.ConvertTimeFromUtc(_partner.DisplayEndUtc.Value, _copenhagenTimeZone).Date
+                : null
         };
         _isEditing = true;
     }
@@ -735,10 +749,14 @@ else
                 CanHavePartnerCard = _editModel.CanHavePartnerCard,
                 CanHaveAd = _editModel.CanHaveAd,
                 DisplayStartUtc = _editModel.DisplayStartDate.HasValue
-                    ? DateTime.SpecifyKind(_editModel.DisplayStartDate.Value, DateTimeKind.Utc)
+                    ? TimeZoneInfo.ConvertTimeToUtc(
+                        DateTime.SpecifyKind(_editModel.DisplayStartDate.Value.Date, DateTimeKind.Unspecified),
+                        _copenhagenTimeZone)
                     : null,
                 DisplayEndUtc = _editModel.DisplayEndDate.HasValue
-                    ? DateTime.SpecifyKind(_editModel.DisplayEndDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc)
+                    ? TimeZoneInfo.ConvertTimeToUtc(
+                        DateTime.SpecifyKind(_editModel.DisplayEndDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Unspecified),
+                        _copenhagenTimeZone)
                     : null
             };
 
@@ -757,7 +775,10 @@ else
                 error => Snackbar.Add(error.Value, Severity.Error)
             );
 
-            await LoadPartnerDataAsync();
+            if (result.IsT0) // success
+            {
+                await LoadPartnerDataAsync();
+            }
         }
         catch (Exception ex)
         {

@@ -110,7 +110,7 @@ public static class EmailContentBuilder
 			</blockquote>
 
 			{EmailTemplate.Button(groupUrl, "Se opslaget")}
-			""", baseUrl, preheaderText: $"Nyt opslag af {encodedAuthorName}");
+			""", baseUrl, preheaderText: $"Nyt opslag af {authorName}");
 	}
 
 	public static string MembershipRequest(string baseUrl, string groupName)
@@ -121,7 +121,7 @@ public static class EmailContentBuilder
 			<h4>Din gruppe <b>{encodedGroupName}</b> har modtaget en ny medlemskabsanmodning</h4>
 
 			{EmailTemplate.Button(groupMembershipUrl, "Se anmodningen")}
-			""", baseUrl, preheaderText: $"Ny medlemskabsanmodning til {encodedGroupName}");
+			""", baseUrl, preheaderText: $"Ny medlemskabsanmodning til {groupName}");
 	}
 
 	public static string PartnerContactForm(string baseUrl, string? companyName, string contactPersonName, string email, string? phoneNumber, string message)
