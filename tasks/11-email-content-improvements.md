@@ -229,6 +229,9 @@ Update tests to verify:
 | `src/web/Jordnaer/Features/Chat/ChatNotificationService.cs` | MODIFY | Use template wrapper |
 | `src/web/Jordnaer/Features/DeleteUser/DeleteUserService.cs` | MODIFY | Use template wrapper, remove inline signature |
 | `tests/web/Jordnaer.Tests/Email/EmailServiceTests.cs` | MODIFY | Update assertions for new template structure |
+| `tests/web/Jordnaer.Tests/Email/EmailPreviewHelper.cs` | CREATE | Helper to save email HTML as preview files |
+| `tests/web/Jordnaer.Tests/Email/EmailPreviewTests.cs` | CREATE | Tests that generate visual previews for all email types |
+| `.gitignore` | MODIFY | Exclude email preview output files |
 
 ## Implementation Notes
 
@@ -244,6 +247,115 @@ Update tests to verify:
 
 6. **Blockquote Styling**: The group post notification already has blockquote styling - preserve this within the template.
 
+### 7. Email Content Preview in Tests
+
+Add the ability to visually inspect rendered email HTML during development and test runs.
+
+#### 7.1 Create Email Preview Test Helper
+
+Create: `tests/web/Jordnaer.Tests/Email/EmailPreviewHelper.cs`
+
+```csharp
+public static class EmailPreviewHelper
+{
+    private static readonly string PreviewOutputDir = Path.Combine(
+        TestContext.CurrentContext?.TestDirectory ?? AppContext.BaseDirectory,
+        "email-previews");
+
+    /// <summary>
+    /// Saves the rendered email HTML to a file that can be opened in a browser.
+    /// Also writes the file path to test output for easy access.
+    /// </summary>
+    public static string SavePreview(string htmlContent, string emailName)
+    {
+        Directory.CreateDirectory(PreviewOutputDir);
+
+        var fileName = $"{emailName}_{DateTime.Now:yyyyMMdd_HHmmss}.html";
+        var filePath = Path.Combine(PreviewOutputDir, fileName);
+
+        File.WriteAllText(filePath, htmlContent);
+
+        // Write to test output so the path is visible in test results
+        TestContext.Out?.WriteLine($"Email preview saved: {filePath}");
+
+        return filePath;
+    }
+}
+```
+
+#### 7.2 Create Email Preview Tests
+
+Create: `tests/web/Jordnaer.Tests/Email/EmailPreviewTests.cs`
+
+These tests generate preview HTML files for every email type. They serve two purposes:
+1. **Visual verification** - open the saved `.html` files in a browser to see how emails look
+2. **Regression detection** - test output shows the full HTML, making it easy to spot unintended changes
+
+```csharp
+[TestFixture]
+public class EmailPreviewTests
+{
+    [Test]
+    public void Preview_ConfirmationEmail()
+    {
+        var body = EmailTemplate.Wrap(
+            "<p>Bekræft venligst din email ved at klikke på knappen nedenfor.</p>" +
+            EmailTemplate.Button("https://mini-moeder.dk/confirm?code=abc123", "Bekræft Email"),
+            preheaderText: "Bekræft din Mini Møder konto");
+
+        var path = EmailPreviewHelper.SavePreview(body, "confirmation");
+        TestContext.Out.WriteLine(body); // Also write HTML to test output
+        Assert.That(body, Does.Contain("Bekræft Email"));
+    }
+
+    [Test]
+    public void Preview_PasswordResetEmail() { /* ... */ }
+
+    [Test]
+    public void Preview_GroupInviteEmail() { /* ... */ }
+
+    [Test]
+    public void Preview_ChatNotificationEmail() { /* ... */ }
+
+    [Test]
+    public void Preview_DeleteUserEmail() { /* ... */ }
+
+    [Test]
+    public void Preview_GroupPostNotificationEmail() { /* ... */ }
+
+    [Test]
+    public void Preview_MembershipRequestEmail() { /* ... */ }
+
+    [Test]
+    public void Preview_PartnerWelcomeEmail() { /* ... */ }
+}
+```
+
+#### 7.3 Usage
+
+**View previews after running tests:**
+```powershell
+# Run the preview tests
+dotnet test tests/web/Jordnaer.Tests --filter FullyQualifiedName~EmailPreviewTests
+
+# Preview files are saved to: tests/web/Jordnaer.Tests/bin/Debug/net10.0/email-previews/
+# Open any .html file in a browser to see the rendered email
+```
+
+**View HTML in test output:**
+```powershell
+# Run with verbose output to see HTML in console
+dotnet test tests/web/Jordnaer.Tests --filter FullyQualifiedName~EmailPreviewTests --logger "console;verbosity=detailed"
+```
+
+#### 7.4 .gitignore
+
+Add to `.gitignore`:
+```
+# Email preview outputs
+**/email-previews/
+```
+
 ## Testing Checklist
 
 - [ ] All email types render correctly with the new template
@@ -252,3 +364,5 @@ Update tests to verify:
 - [ ] Email renders well on mobile (responsive)
 - [ ] Unit tests pass with updated assertions
 - [ ] Test sending emails in development environment
+- [ ] Email preview tests generate `.html` files that can be opened in a browser
+- [ ] Preview files show correct branding, layout, and content for each email type
