@@ -19,7 +19,10 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 	[DoesNotReturn]
 	public void RedirectTo(string? uri, bool forceLoad = false)
 	{
-		uri ??= "";
+		if (string.IsNullOrEmpty(uri))
+		{
+			uri = "/";
+		}
 
 		// Prevent open redirects (including scheme-relative URLs like "//evil.com")
 		if (!IsSafeRelativeUrl(uri))
