@@ -71,6 +71,13 @@ public sealed class PartnerUserService(
 			return new Error<string>("En bruger med denne email findes allerede");
 		}
 
+		// Validate display date range
+		if (request.DisplayStartUtc.HasValue && request.DisplayEndUtc.HasValue &&
+			request.DisplayStartUtc.Value >= request.DisplayEndUtc.Value)
+		{
+			return new Error<string>("Startdato skal være før slutdato");
+		}
+
 		// Validate URL format
 		if (!Uri.TryCreate(request.Link, UriKind.Absolute, out var uri) ||
 			(uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))

@@ -225,7 +225,7 @@
                     ? DateTime.SpecifyKind(_model.DisplayStartDate.Value, DateTimeKind.Utc)
                     : null,
                 DisplayEndUtc = _model.DisplayEndDate.HasValue
-                    ? DateTime.SpecifyKind(_model.DisplayEndDate.Value, DateTimeKind.Utc)
+                    ? DateTime.SpecifyKind(_model.DisplayEndDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc)
                     : null
             };
 
