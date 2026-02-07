@@ -56,7 +56,7 @@ public class DeleteUserService(
 
 		var deletionLink = $"{baseUri}/delete-user/{token}";
 
-		var message = CreateDeleteUserEmailMessage(deletionLink);
+		var message = CreateDeleteUserEmailMessage(baseUri, deletionLink);
 
 		var email = new SendEmail
 		{
@@ -168,8 +168,8 @@ public class DeleteUserService(
 		return false;
 	}
 
-	private string CreateDeleteUserEmailMessage(string deletionLink) =>
-		EmailContentBuilder.DeleteUser(navigationManager.BaseUri.TrimEnd('/'), deletionLink);
+	private static string CreateDeleteUserEmailMessage(string baseUrl, string deletionLink) =>
+		EmailContentBuilder.DeleteUser(baseUrl, deletionLink);
 }
 
 public record UserDeleted(string Id);

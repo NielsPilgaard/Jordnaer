@@ -1,7 +1,11 @@
+using System.Net;
+
 namespace Jordnaer.Features.Email;
 
 public static class EmailTemplate
 {
+	internal const string FooterSignature = "Mini Møder Teamet";
+
 	/// <summary>
 	/// Wraps email content in the standard Mini Møder email layout with header, logo, and footer.
 	/// </summary>
@@ -14,7 +18,7 @@ public static class EmailTemplate
 		var logoUrl = GetLogoUrl(baseUrl);
 
 		var preheader = preheaderText is not null
-			? $"""<div style="display: none; max-height: 0; overflow: hidden;">{preheaderText}</div>"""
+			? $"""<div style="display: none; max-height: 0; overflow: hidden;">{WebUtility.HtmlEncode(preheaderText)}</div>"""
 			: "";
 
 		return $"""
@@ -68,11 +72,13 @@ public static class EmailTemplate
 	public static string Button(string href, string text, string? backgroundColor = null)
 	{
 		var bgColor = backgroundColor ?? "#dbab45";
+		var encodedHref = WebUtility.HtmlEncode(href);
+		var encodedText = WebUtility.HtmlEncode(text);
 		return $"""
 			<table role="presentation" cellspacing="0" cellpadding="0" style="margin: 16px 0;">
 			    <tr>
 			        <td style="border-radius: 6px; background-color: {bgColor};">
-			            <a href="{href}" style="display: inline-block; padding: 12px 24px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; font-family: 'Open Sans', Arial, sans-serif;">{text}</a>
+			            <a href="{encodedHref}" style="display: inline-block; padding: 12px 24px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; font-family: 'Open Sans', Arial, sans-serif;">{encodedText}</a>
 			        </td>
 			    </tr>
 			</table>

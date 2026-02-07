@@ -41,11 +41,12 @@ public static class EmailContentBuilder
 	public static string GroupInvite(string baseUrl, string groupName)
 	{
 		var groupUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}";
+		var encodedGroupName = WebUtility.HtmlEncode(groupName);
 		return EmailTemplate.Wrap($"""
-			<h4>Du er blevet inviteret til at blive medlem af gruppen <b>{groupName}</b></h4>
+			<h4>Du er blevet inviteret til at blive medlem af gruppen <b>{encodedGroupName}</b></h4>
 
 			{EmailTemplate.Button(groupUrl, "Se gruppen")}
-			""", baseUrl, preheaderText: $"Du er inviteret til {groupName}");
+			""", baseUrl, preheaderText: $"Du er inviteret til {encodedGroupName}");
 	}
 
 	public static string GroupInviteNewUser(string baseUrl, string groupName, string inviteToken)
@@ -63,16 +64,19 @@ public static class EmailContentBuilder
 			""", baseUrl, preheaderText: $"Du er inviteret til {groupName} på Mini Møder");
 	}
 
-	public static string ChatNotification(string baseUrl, string recipientDisplayName, string senderDisplayName, string chatLink) =>
-		EmailTemplate.Wrap($"""
+	public static string ChatNotification(string baseUrl, string recipientDisplayName, string senderDisplayName, string chatLink)
+	{
+		var encodedSenderName = WebUtility.HtmlEncode(senderDisplayName);
+		return EmailTemplate.Wrap($"""
 			{EmailConstants.Greeting(recipientDisplayName)}
 
-			<p>Du har fået en ny besked fra <b>{senderDisplayName}</b></p>
+			<p>Du har fået en ny besked fra <b>{encodedSenderName}</b></p>
 
 			<p>Hvis du vil gå direkte til beskeden, kan du klikke på knappen nedenfor:</p>
 
 			{EmailTemplate.Button(chatLink, "Læs besked")}
-			""", baseUrl, preheaderText: $"Ny besked fra {senderDisplayName}");
+			""", baseUrl, preheaderText: $"Ny besked fra {encodedSenderName}");
+	}
 
 	public static string DeleteUser(string baseUrl, string deletionLink) =>
 		EmailTemplate.Wrap($"""
@@ -109,11 +113,12 @@ public static class EmailContentBuilder
 	public static string MembershipRequest(string baseUrl, string groupName)
 	{
 		var groupMembershipUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}/members";
+		var encodedGroupName = WebUtility.HtmlEncode(groupName);
 		return EmailTemplate.Wrap($"""
-			<h4>Din gruppe <b>{groupName}</b> har modtaget en ny medlemskabsanmodning</h4>
+			<h4>Din gruppe <b>{encodedGroupName}</b> har modtaget en ny medlemskabsanmodning</h4>
 
 			{EmailTemplate.Button(groupMembershipUrl, "Se anmodningen")}
-			""", baseUrl, preheaderText: $"Ny medlemskabsanmodning til {groupName}");
+			""", baseUrl, preheaderText: $"Ny medlemskabsanmodning til {encodedGroupName}");
 	}
 
 	public static string PartnerContactForm(string baseUrl, string? companyName, string contactPersonName, string email, string? phoneNumber, string message)

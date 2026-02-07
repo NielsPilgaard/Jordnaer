@@ -68,7 +68,7 @@ public partial class GroupPostCreatedConsumer(
 			var email = new SendEmail
 			{
 				Subject = $"Nyt opslag i {message.GroupName}",
-				HtmlContent = CreateNewPostEmailContent(message.AuthorDisplayName, postPreview, groupUrl),
+				HtmlContent = CreateNewPostEmailContent(baseUrl, message.AuthorDisplayName, postPreview, groupUrl),
 				Bcc = emails
 			};
 
@@ -95,8 +95,8 @@ public partial class GroupPostCreatedConsumer(
 			: plainText.Substring(0, 200) + "...";
 	}
 
-	private string CreateNewPostEmailContent(string authorName, string postPreview, string groupUrl) =>
-		EmailContentBuilder.GroupPostNotification(appOptions.Value.BaseUrl, authorName, postPreview, groupUrl);
+	private static string CreateNewPostEmailContent(string baseUrl, string authorName, string postPreview, string groupUrl) =>
+		EmailContentBuilder.GroupPostNotification(baseUrl, authorName, postPreview, groupUrl);
 
 	[GeneratedRegex("<.*?>")]
 	private static partial Regex HtmlTagsRegex();
