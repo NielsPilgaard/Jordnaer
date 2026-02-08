@@ -9,7 +9,7 @@ namespace Jordnaer.Features.Profile;
 public interface IProfileCache
 {
 	ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default);
-	void SetProfile(UserProfile userProfile);
+	void InvalidateProfile(UserProfile userProfile);
 	event EventHandler<UserProfile> ProfileChanged;
 }
 
@@ -19,6 +19,9 @@ public class ProfileCache(
 	CurrentUser currentUser)
 	: IProfileCache
 {
+	private const string Tag = "profile";
+	private string UserTag => $"{Tag}:{currentUser.Id}";
+
 	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default)
 	{
 		if (currentUser.Id is null)
@@ -38,20 +41,18 @@ public class ProfileCache(
 								   .Include(userProfile => userProfile.Categories)
 								   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id, ct);
 			},
+			tags: [Tag, UserTag],
 			token: cancellationToken);
 	}
 
-	public void SetProfile(UserProfile userProfile)
+	public void InvalidateProfile(UserProfile userProfile)
 	{
 		if (currentUser.Id is null)
 		{
 			return;
 		}
 
-		fusionCache.Set(
-			$"{nameof(UserProfile)}:{currentUser.Id}",
-			userProfile,
-			new FusionCacheEntryOptions { Duration = TimeSpan.FromHours(1) });
+		fusionCache.RemoveByTag(UserTag);
 
 		ProfileChanged?.Invoke(this, userProfile);
 	}

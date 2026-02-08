@@ -14,6 +14,8 @@ public class CategoryCache(
 	IDbContextFactory<JordnaerDbContext> contextFactory)
 	: ICategoryCache
 {
+	private const string Tag = "category";
+
 	public async ValueTask<List<Shared.Category>> GetOrCreateCategoriesAsync(CancellationToken cancellationToken = default) =>
 		await fusionCache.GetOrSetAsync<List<Shared.Category>>(
 			nameof(Shared.Category),
@@ -23,5 +25,6 @@ public class CategoryCache(
 				return await context.Categories.AsNoTracking().ToListAsync(innerToken);
 			},
 			options: new FusionCacheEntryOptions { Duration = TimeSpan.FromMinutes(15) },
+			tags: [Tag],
 			token: cancellationToken) ?? [];
 }

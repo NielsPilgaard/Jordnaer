@@ -16,6 +16,8 @@ public class AdProvider(
 	IFusionCache fusionCache,
 	ILogger<AdProvider> logger) : IAdProvider
 {
+	private const string Tag = "ads";
+
 	public async Task<OneOf<List<AdData>, Error<string>>> GetAdsAsync(int count, CancellationToken cancellationToken = default)
 	{
 		if (count <= 0)
@@ -46,6 +48,7 @@ public class AdProvider(
 					})
 					.ToListAsync(innerToken);
 			},
+			tags: [Tag],
 			token: cancellationToken);
 
 		var allAds = partnerAds ?? [];
