@@ -1,5 +1,5 @@
 ﻿using Jordnaer.Shared;
-using Microsoft.Extensions.Caching.Memory;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Features.Chat;
 
@@ -9,46 +9,45 @@ public interface IChatMessageCache
 		CancellationToken cancellationToken = default);
 }
 
-public class ChatMessageCache(IChatService chatService, IMemoryCache memoryCache) : IChatMessageCache
+public class ChatMessageCache(IChatService chatService, IFusionCache fusionCache) : IChatMessageCache
 {
+	private static readonly FusionCacheEntryOptions CacheOptions = new() { Duration = TimeSpan.FromDays(7) };
+
 	public async ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
 		var key = $"{userId}:chatmessages:{chatId}";
-		var cacheWasEmpty = false;
-		var cachedMessages = await memoryCache.GetOrCreateAsync(key, async entry =>
+
+		// Try to get existing cached messages
+		var maybeValue = await fusionCache.TryGetAsync<List<ChatMessageDto>>(key, token: cancellationToken);
+
+		if (!maybeValue.HasValue)
 		{
-			cacheWasEmpty = true;
-
-			entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7);
-
+			// First time: load all messages
 			var getChatMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, 0, int.MaxValue, cancellationToken);
+			var messages = getChatMessagesResponse.Match(m => m, _ => []);
 
-			return getChatMessagesResponse.Match(messages => messages,
-												 _ => []);
-		});
+			await fusionCache.SetAsync(key, messages, CacheOptions, token: cancellationToken);
 
-		// If this is the first time we're populating the cache, all messages are new
-		if (cacheWasEmpty)
-		{
-			return cachedMessages ?? [];
+			return messages;
 		}
 
-		var getChatMessagesResponse = await chatService.GetChatMessagesAsync(userId,
-																			 chatId,
-																			 cachedMessages?.Count ?? 0,
-																			 int.MaxValue,
-																			 cancellationToken);
+		var cachedMessages = maybeValue.Value ?? [];
 
-		var newMessages = getChatMessagesResponse.Match(messages => messages,
-														_ => []);
-		if (cachedMessages is null)
+		// Fetch new messages since last cached
+		var newMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, cachedMessages.Count, int.MaxValue, cancellationToken);
+		var newMessages = newMessagesResponse.Match(m => m, _ => []);
+
+		if (newMessages.Count > 0)
 		{
-			return newMessages;
+			// Create a new list to avoid mutating the cached reference
+			var allMessages = new List<ChatMessageDto>(cachedMessages.Count + newMessages.Count);
+			allMessages.AddRange(cachedMessages);
+			allMessages.AddRange(newMessages);
+
+			await fusionCache.SetAsync(key, allMessages, CacheOptions, token: cancellationToken);
+
+			return allMessages;
 		}
-
-		cachedMessages.AddRange(newMessages);
-
-		memoryCache.Set(key, cachedMessages);
 
 		return cachedMessages;
 	}

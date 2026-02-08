@@ -2,7 +2,7 @@ using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Features.Profile;
 
@@ -14,44 +14,32 @@ public interface IProfileCache
 }
 
 public class ProfileCache(
-	IMemoryCache memoryCache,
+	IFusionCache fusionCache,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	CurrentUser currentUser)
 	: IProfileCache
 {
-	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default) =>
-		await memoryCache.GetOrCreateAsync($"{nameof(UserProfile)}:{currentUser.Id}", async entry =>
+	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default)
+	{
+		if (currentUser.Id is null)
 		{
-			if (currentUser.Id is null)
-			{
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromTicks(1);
-				return null;
-			}
-
-			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-			var profile = await context.UserProfiles
-									   .AsNoTracking()
-									   .AsSingleQuery()
-									   .Include(userProfile => userProfile.ChildProfiles)
-									   .Include(userProfile => userProfile.Categories)
-									   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id,
-															cancellationToken);
-
-			if (profile is not null)
-			{
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-				return profile;
-			}
-
-			if (entry.Value is UserProfile oldEntry)
-			{
-				// Set this cache entry to expire in quickly to retry early
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(15);
-				return oldEntry;
-			}
-
 			return null;
-		});
+		}
+
+		return await fusionCache.GetOrSetAsync<UserProfile?>(
+			$"{nameof(UserProfile)}:{currentUser.Id}",
+			async (ctx, ct) =>
+			{
+				await using var context = await contextFactory.CreateDbContextAsync(ct);
+				return await context.UserProfiles
+								   .AsNoTracking()
+								   .AsSingleQuery()
+								   .Include(userProfile => userProfile.ChildProfiles)
+								   .Include(userProfile => userProfile.Categories)
+								   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id, ct);
+			},
+			token: cancellationToken);
+	}
 
 	public void SetProfile(UserProfile userProfile)
 	{
@@ -60,7 +48,11 @@ public class ProfileCache(
 			return;
 		}
 
-		memoryCache.Set($"{nameof(UserProfile)}:{currentUser.Id}", userProfile, TimeSpan.FromHours(1));
+		fusionCache.Set(
+			$"{nameof(UserProfile)}:{currentUser.Id}",
+			userProfile,
+			new FusionCacheEntryOptions { Duration = TimeSpan.FromHours(1) });
+
 		ProfileChanged?.Invoke(this, userProfile);
 	}
 

@@ -109,7 +109,7 @@ builder.AddMudBlazor();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();
 
-builder.Services.AddMemoryCache();
+builder.AddFusionCache();
 
 builder.Services.AddDataForsyningenClient();
 
