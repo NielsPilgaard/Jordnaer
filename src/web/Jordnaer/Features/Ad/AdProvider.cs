@@ -1,4 +1,5 @@
 using Jordnaer.Database;
+using Jordnaer.Extensions;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -25,31 +26,39 @@ public class AdProvider(
 			return new List<AdData>();
 		}
 
-		// Cache the partner ads from database
-		var partnerAds = await fusionCache.GetOrSetAsync<List<AdData>>(
-			"PartnerAds",
-			async (ctx, innerToken) =>
-			{
-				await using var context = await contextFactory.CreateDbContextAsync(innerToken);
-				var utcNow = DateTime.UtcNow;
-				return await context.Partners
-					.AsNoTracking()
-					.Where(p => p.CanHaveAd && p.AdImageUrl != null && p.AdImageUrl != "")
-					.Where(p => (p.DisplayStartUtc == null || utcNow >= p.DisplayStartUtc) &&
-								(p.DisplayEndUtc == null || utcNow <= p.DisplayEndUtc))
-					.Select(p => new AdData
-					{
-						Title = p.Name ?? "Partner",
-						Description = p.Description,
-						ImagePath = p.AdImageUrl!,
-						Link = p.AdLink ?? p.PartnerPageLink ?? "#",
-						PartnerId = p.Id,
-						LabelColor = p.AdLabelColor
-					})
-					.ToListAsync(innerToken);
-			},
-			tags: [Tag],
-			token: cancellationToken);
+		List<AdData>? partnerAds;
+		try
+		{
+			// Cache the partner ads from database
+			partnerAds = await fusionCache.GetOrSetAsync<List<AdData>>(
+				"PartnerAds",
+				async (ctx, innerToken) =>
+				{
+					await using var context = await contextFactory.CreateDbContextAsync(innerToken);
+					var utcNow = DateTime.UtcNow;
+					return await context.Partners
+						.AsNoTracking()
+						.Where(p => p.CanHaveAd && p.AdImageUrl != null && p.AdImageUrl != "")
+						.Where(p => (p.DisplayStartUtc == null || utcNow >= p.DisplayStartUtc) &&
+									(p.DisplayEndUtc == null || utcNow <= p.DisplayEndUtc))
+						.Select(p => new AdData
+						{
+							Title = p.Name ?? "Partner",
+							Description = p.Description,
+							ImagePath = p.AdImageUrl!,
+							Link = p.AdLink ?? p.PartnerPageLink ?? "#",
+							PartnerId = p.Id,
+							LabelColor = p.AdLabelColor
+						})
+						.ToListAsync(innerToken);
+				},
+				tags: [Tag],
+				token: cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			return logger.LogAndReturnErrorResult(ex, "Failed to load partner ads from database.");
+		}
 
 		var allAds = partnerAds ?? [];
 

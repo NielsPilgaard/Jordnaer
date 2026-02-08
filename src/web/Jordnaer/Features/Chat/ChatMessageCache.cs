@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Jordnaer.Shared;
 
 namespace Jordnaer.Features.Chat;
@@ -16,30 +17,54 @@ public interface IChatMessageCache
 /// </summary>
 public class ChatMessageCache(IChatService chatService) : IChatMessageCache
 {
-	private readonly ConcurrentDictionary<Guid, List<ChatMessageDto>> _cache = new();
+	private readonly ConcurrentDictionary<Guid, ImmutableList<ChatMessageDto>> _cache = new();
+	private readonly ConcurrentDictionary<Guid, Task<ImmutableList<ChatMessageDto>>> _inflightLoads = new();
 
 	public async ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
-		if (!_cache.TryGetValue(chatId, out var cachedMessages))
+		if (_cache.TryGetValue(chatId, out var cachedMessages))
 		{
-			// First time: load all messages
-			var getChatMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, 0, int.MaxValue, cancellationToken);
-			var messages = getChatMessagesResponse.Match(m => m, _ => []);
+			// Fetch new messages since last cached
+			var newMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, cachedMessages.Count, int.MaxValue, cancellationToken);
+			var newMessages = newMessagesResponse.Match(m => m, _ => []);
 
-			_cache[chatId] = messages;
+			if (newMessages.Count > 0)
+			{
+				_cache.AddOrUpdate(
+					chatId,
+					_ => [.. newMessages],
+					(_, existing) => existing.AddRange(newMessages));
+			}
 
-			return messages;
+			return [.. _cache[chatId]];
 		}
 
-		// Fetch new messages since last cached
-		var newMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, cachedMessages.Count, int.MaxValue, cancellationToken);
-		var newMessages = newMessagesResponse.Match(m => m, _ => []);
+		// Use GetOrAdd on _inflightLoads to ensure only one initial load per chatId
+		var loadTask = _inflightLoads.GetOrAdd(chatId, _ => LoadMessagesAsync(userId, chatId, cancellationToken));
 
-		if (newMessages.Count > 0)
+		try
 		{
-			cachedMessages.AddRange(newMessages);
+			var messages = await loadTask;
+			return [.. messages];
 		}
+		finally
+		{
+			_inflightLoads.TryRemove(chatId, out _);
+		}
+	}
 
-		return cachedMessages;
+	private async Task<ImmutableList<ChatMessageDto>> LoadMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken)
+	{
+		var getChatMessagesResponse = await chatService.GetChatMessagesAsync(userId: userId,
+																	   chatId: chatId,
+																	   skip: 0,
+																	   take: int.MaxValue,
+																	   cancellationToken: cancellationToken);
+		var messages = getChatMessagesResponse.Match(
+			messages => [.. messages],
+			_ => ImmutableList<ChatMessageDto>.Empty);
+
+		_cache[chatId] = messages;
+		return messages;
 	}
 }
