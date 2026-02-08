@@ -22,21 +22,21 @@ public class ChatMessageCache(IChatService chatService) : IChatMessageCache
 
 	public async ValueTask<List<ChatMessageDto>> GetChatMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
-		if (_cache.TryGetValue(chatId, out var cachedMessages))
+		if (_cache.TryGetValue(chatId, out _))
 		{
-			// Fetch new messages since last cached
-			var newMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, cachedMessages.Count, int.MaxValue, cancellationToken);
-			var newMessages = newMessagesResponse.Match(m => m, _ => []);
+			// Reuse the same inflight pattern to serialize incremental loads per chatId,
+			// preventing concurrent callers from fetching and appending duplicate messages.
+			var refreshTask = _inflightLoads.GetOrAdd(chatId, _ => RefreshMessagesAsync(userId, chatId, cancellationToken));
 
-			if (newMessages.Count > 0)
+			try
 			{
-				_cache.AddOrUpdate(
-					chatId,
-					_ => [.. newMessages],
-					(_, existing) => existing.AddRange(newMessages));
+				var messages = await refreshTask;
+				return [.. messages];
 			}
-
-			return [.. _cache[chatId]];
+			finally
+			{
+				_inflightLoads.TryRemove(chatId, out _);
+			}
 		}
 
 		// Use GetOrAdd on _inflightLoads to ensure only one initial load per chatId
@@ -51,6 +51,31 @@ public class ChatMessageCache(IChatService chatService) : IChatMessageCache
 		{
 			_inflightLoads.TryRemove(chatId, out _);
 		}
+	}
+
+	private async Task<ImmutableList<ChatMessageDto>> RefreshMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken)
+	{
+		var currentMessages = _cache.GetValueOrDefault(chatId, ImmutableList<ChatMessageDto>.Empty);
+		var currentCount = currentMessages.Count;
+
+		var newMessagesResponse = await chatService.GetChatMessagesAsync(userId, chatId, currentCount, int.MaxValue, cancellationToken);
+		var newMessages = newMessagesResponse.Match(m => m, _ => []);
+
+		if (newMessages.Count > 0)
+		{
+			_cache.AddOrUpdate(
+				chatId,
+				_ => [.. newMessages],
+				(_, existing) =>
+				{
+					// Only append messages beyond what we already have to avoid duplicates
+					// in case another caller already appended between our read and this update.
+					var delta = newMessages.Skip(existing.Count - currentCount).ToList();
+					return delta.Count > 0 ? existing.AddRange(delta) : existing;
+				});
+		}
+
+		return _cache.GetValueOrDefault(chatId, ImmutableList<ChatMessageDto>.Empty);
 	}
 
 	private async Task<ImmutableList<ChatMessageDto>> LoadMessagesAsync(string userId, Guid chatId, CancellationToken cancellationToken)
