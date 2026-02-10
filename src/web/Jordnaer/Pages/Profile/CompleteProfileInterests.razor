@@ -179,7 +179,7 @@
         }
 
         // Update cache
-        ProfileCache.SetProfile(result.AsT0.Value);
+        ProfileCache.InvalidateProfile(result.AsT0.Value);
 
         Snackbar.Add("Din profil er nu komplet! Velkommen til Mini Møder!", Severity.Success);
 

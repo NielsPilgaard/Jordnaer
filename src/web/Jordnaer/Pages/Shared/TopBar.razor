@@ -366,7 +366,7 @@
 			_isJsAvailable = true;
 
 			// Get the current page title from the document
-			_baseTitle = await JsRuntime.InvokeAsync<string>("eval", "document.title");
+			_baseTitle = await JsRuntime.GetValueAsync<string>("document.title");
 
 			// Update page title with unread count if needed
 			await UpdatePageTitle();
@@ -403,7 +403,7 @@
 		? $"({_unreadCount}) {cleanTitle}"
 		: cleanTitle;
 
-		await JsRuntime.InvokeVoidAsync("eval", $"document.title = '{title}'");
+		await JsRuntime.SetValueAsync("document.title", title);
 	}
 
 	private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

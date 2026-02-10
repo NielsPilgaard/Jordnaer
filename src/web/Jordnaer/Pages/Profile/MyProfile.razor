@@ -321,7 +321,7 @@
         success =>
         {
             Snackbar.Add("Din profil er blevet opdateret!", Severity.Success);
-            ProfileCache.SetProfile(success.Value);
+            ProfileCache.InvalidateProfile(success.Value);
         },
         _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error));
 

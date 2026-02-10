@@ -2,65 +2,58 @@ using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Features.Profile;
 
 public interface IProfileCache
 {
 	ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default);
-	void SetProfile(UserProfile userProfile);
+	void InvalidateProfile(UserProfile userProfile);
 	event EventHandler<UserProfile> ProfileChanged;
 }
 
 public class ProfileCache(
-	IMemoryCache memoryCache,
+	IFusionCache fusionCache,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	CurrentUser currentUser)
 	: IProfileCache
 {
-	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default) =>
-		await memoryCache.GetOrCreateAsync($"{nameof(UserProfile)}:{currentUser.Id}", async entry =>
+	private const string Tag = "profile";
+	private string UserTag => $"{Tag}:{currentUser.Id}";
+
+	public async ValueTask<UserProfile?> GetProfileAsync(CancellationToken cancellationToken = default)
+	{
+		if (currentUser.Id is null)
 		{
-			if (currentUser.Id is null)
-			{
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromTicks(1);
-				return null;
-			}
-
-			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-			var profile = await context.UserProfiles
-									   .AsNoTracking()
-									   .AsSingleQuery()
-									   .Include(userProfile => userProfile.ChildProfiles)
-									   .Include(userProfile => userProfile.Categories)
-									   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id,
-															cancellationToken);
-
-			if (profile is not null)
-			{
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
-				return profile;
-			}
-
-			if (entry.Value is UserProfile oldEntry)
-			{
-				// Set this cache entry to expire in quickly to retry early
-				entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(15);
-				return oldEntry;
-			}
-
 			return null;
-		});
+		}
 
-	public void SetProfile(UserProfile userProfile)
+		return await fusionCache.GetOrSetAsync<UserProfile?>(
+			$"{nameof(UserProfile)}:{currentUser.Id}",
+			async (ctx, ct) =>
+			{
+				await using var context = await contextFactory.CreateDbContextAsync(ct);
+				return await context.UserProfiles
+								   .AsNoTracking()
+								   .AsSingleQuery()
+								   .Include(userProfile => userProfile.ChildProfiles)
+								   .Include(userProfile => userProfile.Categories)
+								   .FirstOrDefaultAsync(userProfile => userProfile.Id == currentUser.Id, ct);
+			},
+			tags: [Tag, UserTag],
+			token: cancellationToken);
+	}
+
+	public void InvalidateProfile(UserProfile userProfile)
 	{
 		if (currentUser.Id is null)
 		{
 			return;
 		}
 
-		memoryCache.Set($"{nameof(UserProfile)}:{currentUser.Id}", userProfile, TimeSpan.FromHours(1));
+		fusionCache.RemoveByTag(UserTag);
+
 		ProfileChanged?.Invoke(this, userProfile);
 	}
 

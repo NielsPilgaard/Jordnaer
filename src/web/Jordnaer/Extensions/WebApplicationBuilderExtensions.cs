@@ -16,6 +16,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Extensions;
 
@@ -143,6 +144,25 @@ public static class WebApplicationBuilderExtensions
 		{
 			openTelemetryBuilder.UseGrafana();
 		}
+
+		return builder;
+	}
+
+	public static WebApplicationBuilder AddFusionCache(this WebApplicationBuilder builder)
+	{
+		builder.Services.AddFusionCache()
+			.WithDefaultEntryOptions(new FusionCacheEntryOptions
+			{
+				Duration = TimeSpan.FromMinutes(10),
+
+				// Fail-safe: return stale data if refresh fails
+				IsFailSafeEnabled = true,
+				FailSafeMaxDuration = TimeSpan.FromHours(6),
+				FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+				// Eager refresh: refresh in background before expiration
+				EagerRefreshThreshold = 0.9f
+			});
 
 		return builder;
 	}
