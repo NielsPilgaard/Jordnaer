@@ -18,6 +18,10 @@ public interface IPartnerUserService
 		CreatePartnerRequest request,
 		CancellationToken cancellationToken = default);
 
+	Task<OneOf<ConvertToPartnerResult, Error<string>>> ConvertUserToPartnerAsync(
+		ConvertUserToPartnerRequest request,
+		CancellationToken cancellationToken = default);
+
 	Task<OneOf<Success, NotFound, Error<string>>> ResendWelcomeEmailAsync(
 		string userId,
 		CancellationToken cancellationToken = default);
@@ -42,6 +46,24 @@ public record CreatePartnerResult
 	public required Guid PartnerId { get; init; }
 	public required string TemporaryPassword { get; init; }
 	public required string Email { get; init; }
+}
+
+public record ConvertUserToPartnerRequest
+{
+	public required string UserId { get; init; }
+	public string? PartnerName { get; init; }
+	public string? Link { get; init; }
+	public string? Description { get; init; }
+	public string? LogoUrl { get; init; }
+	public bool CanHavePartnerCard { get; init; } = true;
+	public bool CanHaveAd { get; init; } = true;
+}
+
+public record ConvertToPartnerResult
+{
+	public required string UserId { get; init; }
+	public required Guid PartnerId { get; init; }
+	public string? DisplayName { get; init; }
 }
 
 public sealed class PartnerUserService(
@@ -253,6 +275,145 @@ public sealed class PartnerUserService(
 
 			// Return generic error message - full details logged above
 			return new Error<string>("Kunne ikke fuldføre oprettelse af partnerkonto. Prøv igen senere.");
+		}
+	}
+
+	public async Task<OneOf<ConvertToPartnerResult, Error<string>>> ConvertUserToPartnerAsync(
+		ConvertUserToPartnerRequest request,
+		CancellationToken cancellationToken = default)
+	{
+		// Find the user
+		var user = await userManager.FindByIdAsync(request.UserId);
+		if (user is null)
+		{
+			return new Error<string>("Brugeren blev ikke fundet");
+		}
+
+		// Validate email is confirmed
+		if (!user.EmailConfirmed)
+		{
+			return new Error<string>("Brugeren har ikke bekræftet sin email adresse");
+		}
+
+		// Validate URL format if provided
+		if (!string.IsNullOrWhiteSpace(request.Link) &&
+			(!Uri.TryCreate(request.Link, UriKind.Absolute, out var uri) ||
+			 (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+		{
+			return new Error<string>("Ugyldig link URL");
+		}
+
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		// Check if user is already a partner
+		var existingPartner = await context.Partners
+			.AsNoTracking()
+			.FirstOrDefaultAsync(p => p.UserId == request.UserId, cancellationToken);
+
+		if (existingPartner is not null)
+		{
+			return new Error<string>("Brugeren er allerede en partner");
+		}
+
+		await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+		try
+		{
+			// Create Partner record
+			var partner = new Partner
+			{
+				Id = Guid.NewGuid(),
+				Name = request.PartnerName,
+				Description = request.Description,
+				LogoUrl = request.LogoUrl,
+				PartnerPageLink = request.Link,
+				UserId = request.UserId,
+				CanHavePartnerCard = request.CanHavePartnerCard,
+				CanHaveAd = request.CanHaveAd
+			};
+			context.Partners.Add(partner);
+
+			try
+			{
+				await context.SaveChangesAsync(cancellationToken);
+			}
+			catch (UniqueConstraintException)
+			{
+				// Race condition: another request created a partner for this user between our check and insert
+				logger.LogWarning("Race condition detected: partner for user {UserId} was created by another request", request.UserId);
+				return new Error<string>("Brugeren er allerede en partner");
+			}
+
+			await transaction.CommitAsync(cancellationToken);
+
+			// Assign Partner role
+			var roleResult = await userRoleService.AddRoleToUserAsync(request.UserId, AppRoles.Partner);
+			if (roleResult.IsT1) // NotFound
+			{
+				throw new InvalidOperationException($"User with ID '{request.UserId}' was not found when assigning Partner role");
+			}
+
+			if (roleResult.IsT2) // Error
+			{
+				var error = roleResult.AsT2;
+				throw new InvalidOperationException($"Failed to assign Partner role: {error.Value}");
+			}
+
+			logger.LogInformation(
+				"Converted user {UserId} to partner with PartnerId {PartnerId}",
+				request.UserId,
+				partner.Id);
+
+			// Fetch display name from user profile
+			var userProfile = await context.UserProfiles
+				.AsNoTracking()
+				.FirstOrDefaultAsync(p => p.Id == request.UserId, cancellationToken);
+
+			return new ConvertToPartnerResult
+			{
+				UserId = request.UserId,
+				PartnerId = partner.Id,
+				DisplayName = userProfile?.DisplayName
+			};
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to convert user {UserId} to partner. Rolling back.", request.UserId);
+
+			try
+			{
+				await transaction.RollbackAsync(CancellationToken.None);
+			}
+			catch (InvalidOperationException)
+			{
+				// Transaction was already committed - clean up the committed data
+				try
+				{
+					await using var cleanupContext = await contextFactory.CreateDbContextAsync(CancellationToken.None);
+					var partnerToDelete = await cleanupContext.Partners.FirstOrDefaultAsync(p => p.UserId == request.UserId, CancellationToken.None);
+					if (partnerToDelete is not null)
+					{
+						cleanupContext.Partners.Remove(partnerToDelete);
+						await cleanupContext.SaveChangesAsync(CancellationToken.None);
+					}
+				}
+				catch (Exception cleanupEx)
+				{
+					logger.LogError(cleanupEx, "Failed to clean up Partner record for user {UserId}", request.UserId);
+				}
+			}
+
+			// Rollback: Remove the Partner role if it was assigned
+			try
+			{
+				await userRoleService.RemoveRoleFromUserAsync(request.UserId, AppRoles.Partner);
+			}
+			catch (Exception roleCleanupEx)
+			{
+				logger.LogError(roleCleanupEx, "Failed to remove Partner role during rollback for user {UserId}", request.UserId);
+			}
+
+			return new Error<string>("Kunne ikke konvertere brugeren til partner. Prøv igen senere.");
 		}
 	}
 
