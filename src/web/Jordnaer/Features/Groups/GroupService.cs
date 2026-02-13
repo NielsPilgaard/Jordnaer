@@ -2,7 +2,9 @@ using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Metrics;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Notifications;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -18,7 +20,9 @@ public class GroupService(
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
 	CurrentUser currentUser,
-	IGroupMembershipNotificationService notificationService)
+	IGroupMembershipNotificationService notificationService,
+	INotificationService inAppNotificationService,
+	INotificationSettingsService notificationSettingsService)
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -338,6 +342,52 @@ public class GroupService(
 			await notificationService.NotifyAdminsOfPendingCountChangeAsync(membershipDto.GroupId, pendingCountChange, cancellationToken);
 		}
 
+		// Send in-app notifications for approval/rejection
+		if (wasPending)
+		{
+			var groupName = await GetGroupNameAsync(membershipDto.GroupId, cancellationToken);
+			var prefs = await notificationSettingsService.GetGroupMembershipPreferencesAsync(membershipDto.UserProfileId, cancellationToken);
+
+			if (newStatus == MembershipStatus.Active && groupName is not null)
+			{
+				await inAppNotificationService.SendAsync(new CreateNotificationRequest
+				{
+					RecipientId = membershipDto.UserProfileId,
+					Title = $"Du er nu medlem af {groupName}",
+					Description = "Din anmodning om medlemskab er blevet godkendt.",
+					LinkUrl = $"/groups/{Uri.EscapeDataString(groupName)}",
+					Type = NotificationType.GroupMembershipApproved,
+					SourceType = NotificationSourceType.GroupMembership,
+					SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+					SendEmail = prefs.EmailOnGroupMembershipResponse,
+					EmailSubject = $"Velkommen til {groupName}"
+				}, cancellationToken);
+			}
+			else if (newStatus == MembershipStatus.Rejected && groupName is not null)
+			{
+				await inAppNotificationService.SendAsync(new CreateNotificationRequest
+				{
+					RecipientId = membershipDto.UserProfileId,
+					Title = $"Din anmodning til {groupName} blev afvist",
+					Type = NotificationType.GroupMembershipRejected,
+					SourceType = NotificationSourceType.GroupMembership,
+					SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+					SendEmail = prefs.EmailOnGroupMembershipResponse,
+					EmailSubject = $"Din anmodning til {groupName} blev afvist"
+				}, cancellationToken);
+			}
+
+			// Clear the admin notifications for this membership request
+			if (currentUser.Id is not null)
+			{
+				await inAppNotificationService.MarkSourceAsReadAsync(
+					currentUser.Id,
+					NotificationSourceType.GroupMembership,
+					$"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+					cancellationToken);
+			}
+		}
+
 		return new Success();
 	}
 
@@ -516,6 +566,16 @@ public class GroupService(
 		logger.LogInformation("Successfully deleted group");
 
 		return new Success();
+	}
+
+	private async Task<string?> GetGroupNameAsync(Guid groupId, CancellationToken cancellationToken)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		return await context.Groups
+			.AsNoTracking()
+			.Where(g => g.Id == groupId)
+			.Select(g => g.Name)
+			.FirstOrDefaultAsync(cancellationToken);
 	}
 
 	private static async Task UpdateExistingGroupAsync(Group currentGroup,

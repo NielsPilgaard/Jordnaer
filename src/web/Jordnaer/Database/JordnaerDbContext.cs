@@ -28,6 +28,8 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 
 	public DbSet<PendingGroupInvite> PendingGroupInvites { get; set; } = default!;
 
+	public DbSet<Notification> Notifications { get; set; } = default!;
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<Post>()
@@ -153,6 +155,23 @@ public class JordnaerDbContext : IdentityDbContext<ApplicationUser>
 
 		modelBuilder.Entity<PendingGroupInvite>()
 			.Property(invite => invite.CreatedUtc)
+			.HasDefaultValueSql("GETUTCDATE()");
+
+		modelBuilder.Entity<Notification>()
+			.HasOne(n => n.Recipient)
+			.WithMany()
+			.HasForeignKey(n => n.RecipientId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		modelBuilder.Entity<Notification>()
+			.HasIndex(n => new { n.RecipientId, n.IsRead, n.CreatedUtc })
+			.IsDescending(false, false, true);
+
+		modelBuilder.Entity<Notification>()
+			.HasIndex(n => new { n.RecipientId, n.SourceType, n.SourceId });
+
+		modelBuilder.Entity<Notification>()
+			.Property(n => n.CreatedUtc)
 			.HasDefaultValueSql("GETUTCDATE()");
 
 		base.OnModelCreating(modelBuilder);

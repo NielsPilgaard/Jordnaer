@@ -56,6 +56,10 @@ public class UserProfile
 
 	public ChatNotificationPreference ChatNotificationPreference { get; set; } = ChatNotificationPreference.FirstMessageOnly;
 
+	public bool EmailOnGroupMembershipRequest { get; set; } = true;
+	public bool EmailOnGroupInvitation { get; set; } = true;
+	public bool EmailOnGroupMembershipResponse { get; set; } = true;
+
 	public DateTime? DateOfBirth { get; set; }
 
 	public string ProfilePictureUrl { get; set; } = ProfileConstants.Default_Profile_Picture;

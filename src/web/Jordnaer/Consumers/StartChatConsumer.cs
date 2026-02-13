@@ -1,7 +1,9 @@
 using Jordnaer.Database;
 using Jordnaer.Features.Chat;
 using Jordnaer.Features.Metrics;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Notifications;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -14,16 +16,19 @@ public class StartChatConsumer : IConsumer<StartChat>
 	private readonly ILogger<StartChatConsumer> _logger;
 	private readonly IHubContext<ChatHub, IChatHub> _chatHub;
 	private readonly ChatNotificationService _chatNotificationService;
+	private readonly INotificationService _notificationService;
 
 	public StartChatConsumer(IDbContextFactory<JordnaerDbContext> contextFactory,
 		ILogger<StartChatConsumer> logger,
 		IHubContext<ChatHub, IChatHub> chatHub,
-		ChatNotificationService chatNotificationService)
+		ChatNotificationService chatNotificationService,
+		INotificationService notificationService)
 	{
 		_contextFactory = contextFactory;
 		_logger = logger;
 		_chatHub = chatHub;
 		_chatNotificationService = chatNotificationService;
+		_notificationService = notificationService;
 	}
 
 	public async Task Consume(ConsumeContext<StartChat> consumeContext)
@@ -77,6 +82,33 @@ public class StartChatConsumer : IConsumer<StartChat>
 		}
 
 		await _chatNotificationService.NotifyRecipients(chat);
+
+		// Create in-app notification for each non-initiator recipient
+		var initiator = chat.Recipients.FirstOrDefault(r => r.Id == chat.InitiatorId);
+		var senderName = initiator?.DisplayName ?? "Ny bruger";
+		var senderImage = initiator?.ProfilePictureUrl;
+
+		foreach (var recipient in chat.Recipients.Where(r => r.Id != chat.InitiatorId))
+		{
+			try
+			{
+				await _notificationService.SendAsync(new CreateNotificationRequest
+				{
+					RecipientId = recipient.Id,
+					Title = $"Ny besked fra {senderName}",
+					ImageUrl = senderImage,
+					LinkUrl = $"/chat/{chat.Id}",
+					Type = NotificationType.ChatMessage,
+					SourceType = NotificationSourceType.Chat,
+					SourceId = chat.Id.ToString()
+				}, consumeContext.CancellationToken);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to send in-app notification to recipient {RecipientId} for chat {ChatId}",
+					recipient.Id, chat.Id);
+			}
+		}
 
 		JordnaerMetrics.ChatStartedSentCounter.Add(1);
 	}

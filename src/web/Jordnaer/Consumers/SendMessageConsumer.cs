@@ -2,7 +2,9 @@ using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Chat;
 using Jordnaer.Features.Metrics;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Notifications;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +15,8 @@ public class SendMessageConsumer(
 	JordnaerDbContext context,
 	ILogger<SendMessageConsumer> logger,
 	IHubContext<ChatHub, IChatHub> chatHub,
-	ChatNotificationService chatNotificationService)
+	ChatNotificationService chatNotificationService,
+	INotificationService notificationService)
 	: IConsumer<SendMessage>
 {
 	public async Task Consume(ConsumeContext<SendMessage> consumeContext)
@@ -68,6 +71,33 @@ public class SendMessageConsumer(
 
 		// Send email notifications to users who want all messages
 		await chatNotificationService.NotifyRecipientsOfNewMessage(chatMessage, consumeContext.CancellationToken);
+
+		// Create in-app notification for each non-sender recipient
+		var sender = await context.UserProfiles
+			.AsNoTracking()
+			.Where(p => p.Id == chatMessage.SenderId)
+			.Select(p => new { p.DisplayName, p.ProfilePictureUrl })
+			.FirstOrDefaultAsync(consumeContext.CancellationToken);
+
+		var senderName = sender?.DisplayName ?? "Ny bruger";
+		var messagePreview = chatMessage.Text.Length > 50
+			? chatMessage.Text[..50] + "..."
+			: chatMessage.Text;
+
+		foreach (var recipientId in recipientIds.Where(id => id != chatMessage.SenderId))
+		{
+			await notificationService.SendAsync(new CreateNotificationRequest
+			{
+				RecipientId = recipientId,
+				Title = $"Ny besked fra {senderName}",
+				Description = messagePreview,
+				ImageUrl = sender?.ProfilePictureUrl,
+				LinkUrl = $"/chat/{chatMessage.ChatId}",
+				Type = NotificationType.ChatMessage,
+				SourceType = NotificationSourceType.Chat,
+				SourceId = chatMessage.ChatId.ToString()
+			}, consumeContext.CancellationToken);
+		}
 
 		JordnaerMetrics.ChatMessagesSentCounter.Add(1);
 	}

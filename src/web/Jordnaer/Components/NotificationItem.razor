@@ -1,0 +1,83 @@
+@using Humanizer
+@using Jordnaer.Shared.Notifications
+@using Jordnaer.Extensions
+
+<div class="notification-item @(Notification.IsRead ? "" : "unread")" @onclick="HandleClick" style="cursor: pointer;">
+    <div class="d-flex align-center gap-3 pa-3">
+        @if (!string.IsNullOrEmpty(Notification.ImageUrl))
+        {
+            <MudAvatar Size="Size.Medium">
+                <MudImage Src="@Notification.ImageUrl" Alt="" />
+            </MudAvatar>
+        }
+        else
+        {
+            <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                <MudIcon Icon="@GetIconForType(Notification.Type)" />
+            </MudAvatar>
+        }
+
+        <div style="flex: 1; min-width: 0;">
+            <MudText Typo="Typo.body2" Style="@(!Notification.IsRead ? "font-weight: 600;" : "")">
+                @Notification.Title
+            </MudText>
+            @if (!string.IsNullOrEmpty(Notification.Description))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-truncate">
+                    @Notification.Description
+                </MudText>
+            }
+            <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="font-size: 0.7rem;">
+                @Notification.CreatedUtc.Humanize(utcDate: true, dateToCompareAgainst:DateTime.UtcNow, culture: new CultureInfo("da-DK"))
+            </MudText>
+        </div>
+
+        @if (!Notification.IsRead)
+        {
+            <div style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--mud-palette-primary); flex-shrink: 0;"></div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public NotificationDto Notification { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<NotificationDto> OnClick { get; set; }
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync(Notification);
+    }
+
+    private static string GetIconForType(NotificationType type) => type switch
+    {
+        NotificationType.ChatMessage => Icons.Material.Filled.Chat,
+        NotificationType.GroupMembershipRequest => Icons.Material.Filled.PersonAdd,
+        NotificationType.GroupInvitation => Icons.Material.Filled.GroupAdd,
+        NotificationType.GroupMembershipApproved => Icons.Material.Filled.CheckCircle,
+        NotificationType.GroupMembershipRejected => Icons.Material.Filled.Cancel,
+        NotificationType.GroupPost => Icons.Material.Filled.Feed,
+        NotificationType.NewUserNearby => Icons.Material.Filled.NearMe,
+        NotificationType.System => Icons.Material.Filled.Info,
+        _ => Icons.Material.Filled.Notifications
+    };
+
+}
+
+<style>
+    .notification-item:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .notification-item.unread {
+        background-color: rgba(65, 85, 107, 0.05);
+    }
+
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>

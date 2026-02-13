@@ -1,0 +1,191 @@
+@using Jordnaer.Features.Authentication
+@using Jordnaer.Features.Notifications
+@using Jordnaer.Shared.Notifications
+
+@inject NotificationSignalRClient NotificationSignalRClient
+@inject INotificationService NotificationService
+@inject CurrentUser CurrentUser
+@inject NavigationManager Navigation
+
+@implements IAsyncDisposable
+
+<div class="notification-bell-container" style="position: relative;">
+    <MudBadge Content="@(_unreadCount > 99 ? "99+" : _unreadCount)" Visible="@(_unreadCount > 0)"
+        Color="Color.Error" Overlap="true" Class="mx-0" BadgeClass="badge-offset">
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications"
+            Style="@JordnaerPalette.BlueBody.ToTextColor()"
+            OnClick="ToggleDropdown"
+            aria-label="Notifikationer" />
+    </MudBadge>
+
+    @if (_isOpen)
+    {
+        <div class="notification-backdrop" @onclick="CloseDropdown"></div>
+        <div class="notification-dropdown">
+            <div class="d-flex justify-space-between align-center pa-3" style="border-bottom: 1px solid #eee;">
+                <MudText Typo="Typo.subtitle2" Style="@($"color: {JordnaerPalette.BlueBody}; font-weight: 600;")">
+                    Notifikationer
+                </MudText>
+                @if (_unreadCount > 0)
+                {
+                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                        OnClick="MarkAllAsRead" Style="text-transform: none; font-size: 0.75rem;">
+                        Markér alle som læst
+                    </MudButton>
+                }
+            </div>
+
+            @if (_notifications.Count == 0)
+            {
+                <div class="pa-4 d-flex justify-center">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Ingen notifikationer
+                    </MudText>
+                </div>
+            }
+            else
+            {
+                <div style="max-height: 400px; overflow-y: auto;">
+                    @foreach (var notification in _notifications)
+                    {
+                        <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
+                        <MudDivider />
+                    }
+                </div>
+            }
+
+            <div class="pa-2 d-flex justify-center" style="border-top: 1px solid #eee;">
+                <MudButton Href="/notifications" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                    Style="text-transform: none;" OnClick="CloseDropdown">
+                    Se alle
+                </MudButton>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private int _unreadCount;
+    private bool _isOpen;
+    private List<NotificationDto> _notifications = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        _unreadCount = await NotificationService.GetUnreadCountAsync(CurrentUser.Id);
+
+        NotificationSignalRClient.OnNotificationReceived(async notification =>
+        {
+            _unreadCount++;
+            _notifications.Insert(0, notification);
+            if (_notifications.Count > 20)
+            {
+                _notifications.RemoveAt(_notifications.Count - 1);
+            }
+            await InvokeAsync(StateHasChanged);
+        });
+
+        NotificationSignalRClient.OnUnreadCountChanged(async count =>
+        {
+            _unreadCount = count;
+            await InvokeAsync(StateHasChanged);
+        });
+
+        NotificationSignalRClient.OnNotificationRead(async notificationId =>
+        {
+            var notification = _notifications.FirstOrDefault(n => n.Id == notificationId);
+            if (notification is not null)
+            {
+                var index = _notifications.IndexOf(notification);
+                _notifications[index].MarkAsRead();
+            }
+            await InvokeAsync(StateHasChanged);
+        });
+
+        await NotificationSignalRClient.StartAsync();
+    }
+
+    private async Task ToggleDropdown()
+    {
+        _isOpen = !_isOpen;
+        if (_isOpen && CurrentUser.Id is not null)
+        {
+            _notifications = await NotificationService.GetUnreadAsync(CurrentUser.Id, 20);
+        }
+    }
+
+    private void CloseDropdown()
+    {
+        _isOpen = false;
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notification)
+    {
+        if (CurrentUser.Id is not null && !notification.IsRead)
+        {
+            await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
+        }
+
+        _isOpen = false;
+
+        if (!string.IsNullOrEmpty(notification.LinkUrl))
+        {
+            Navigation.NavigateTo(notification.LinkUrl);
+        }
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        await NotificationService.MarkAllAsReadAsync(CurrentUser.Id);
+        _unreadCount = 0;
+
+        foreach (var notification in _notifications)
+        {
+            var index = _notifications.IndexOf(notification);
+            _notifications[index].MarkAsRead();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await NotificationSignalRClient.StopAsync();
+    }
+}
+
+<style>
+    .notification-bell-container {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .notification-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99;
+    }
+
+    .notification-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 360px;
+        max-width: 90vw;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        overflow: hidden;
+    }
+</style>

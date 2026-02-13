@@ -1266,3 +1266,79 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [EmailOnGroupInvitation] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [EmailOnGroupMembershipRequest] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    ALTER TABLE [UserProfiles] ADD [EmailOnGroupMembershipResponse] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    CREATE TABLE [Notifications] (
+        [Id] uniqueidentifier NOT NULL,
+        [RecipientId] nvarchar(450) NOT NULL,
+        [Title] nvarchar(200) NOT NULL,
+        [Description] nvarchar(1000) NULL,
+        [ImageUrl] nvarchar(2048) NULL,
+        [LinkUrl] nvarchar(2048) NULL,
+        [Type] int NOT NULL,
+        [IsRead] bit NOT NULL,
+        [CreatedUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+        [ReadUtc] datetime2 NULL,
+        [SourceType] nvarchar(50) NULL,
+        [SourceId] nvarchar(450) NULL,
+        CONSTRAINT [PK_Notifications] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_Notifications_UserProfiles_RecipientId] FOREIGN KEY ([RecipientId]) REFERENCES [UserProfiles] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    CREATE INDEX [IX_Notifications_RecipientId_IsRead_CreatedUtc] ON [Notifications] ([RecipientId], [IsRead], [CreatedUtc] DESC);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    CREATE INDEX [IX_Notifications_RecipientId_SourceType_SourceId] ON [Notifications] ([RecipientId], [SourceType], [SourceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260213213401_AddNotifications'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260213213401_AddNotifications', N'10.0.2');
+END;
+
+COMMIT;
+GO
+
