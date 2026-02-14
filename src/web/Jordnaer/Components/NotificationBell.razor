@@ -68,6 +68,9 @@
     private int _unreadCount;
     private bool _isOpen;
     private List<NotificationDto> _notifications = [];
+    private IDisposable? _notificationReceivedSubscription;
+    private IDisposable? _unreadCountSubscription;
+    private IDisposable? _notificationReadSubscription;
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,10 +79,16 @@
             return;
         }
 
-        _unreadCount = await NotificationService.GetUnreadCountAsync(CurrentUser.Id);
+        _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
 
-        NotificationSignalRClient.OnNotificationReceived(async notification =>
+        _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
         {
+            // Chat notifications are shown on the chat icon, not the bell
+            if (notification.Type == NotificationType.ChatMessage)
+            {
+                return;
+            }
+
             _unreadCount++;
             _notifications.Insert(0, notification);
             if (_notifications.Count > 20)
@@ -89,19 +98,22 @@
             await InvokeAsync(StateHasChanged);
         });
 
-        NotificationSignalRClient.OnUnreadCountChanged(async count =>
+        _unreadCountSubscription = NotificationSignalRClient.OnUnreadCountChanged(async _ =>
         {
-            _unreadCount = count;
-            await InvokeAsync(StateHasChanged);
+            // Re-fetch the non-chat count since the hub broadcasts total count
+            if (CurrentUser.Id is not null)
+            {
+                _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
+                await InvokeAsync(StateHasChanged);
+            }
         });
 
-        NotificationSignalRClient.OnNotificationRead(async notificationId =>
+        _notificationReadSubscription = NotificationSignalRClient.OnNotificationRead(async notificationId =>
         {
             var notification = _notifications.FirstOrDefault(n => n.Id == notificationId);
             if (notification is not null)
             {
-                var index = _notifications.IndexOf(notification);
-                _notifications[index].MarkAsRead();
+                notification.MarkAsRead();
             }
             await InvokeAsync(StateHasChanged);
         });
@@ -114,7 +126,7 @@
         _isOpen = !_isOpen;
         if (_isOpen && CurrentUser.Id is not null)
         {
-            _notifications = await NotificationService.GetUnreadAsync(CurrentUser.Id, 20);
+            _notifications = await NotificationService.GetUnreadExcludingTypeAsync(CurrentUser.Id, 20, NotificationType.ChatMessage);
         }
     }
 
@@ -150,13 +162,15 @@
 
         foreach (var notification in _notifications)
         {
-            var index = _notifications.IndexOf(notification);
-            _notifications[index].MarkAsRead();
+            notification.MarkAsRead();
         }
     }
 
     public async ValueTask DisposeAsync()
     {
+        _notificationReceivedSubscription?.Dispose();
+        _unreadCountSubscription?.Dispose();
+        _notificationReadSubscription?.Dispose();
         await NotificationSignalRClient.StopAsync();
     }
 }

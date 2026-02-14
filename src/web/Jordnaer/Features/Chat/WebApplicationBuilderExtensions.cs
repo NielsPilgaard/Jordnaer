@@ -7,8 +7,6 @@ public static class WebApplicationBuilderExtensions
 		builder.Services.AddScoped<IChatMessageCache, ChatMessageCache>();
 		builder.Services.AddScoped<IChatService, ChatService>();
 		builder.Services.AddScoped<ChatSignalRClient>();
-		builder.Services.AddScoped<UnreadMessageSignalRClient>();
-		builder.Services.AddScoped<ChatNotificationService>();
 		return builder;
 	}
 }

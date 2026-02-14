@@ -61,7 +61,6 @@ public class GroupServiceTests : IAsyncLifetime
 						[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
 						))
 			},
-			Substitute.For<IGroupMembershipNotificationService>(),
 			Substitute.For<INotificationService>(),
 			Substitute.For<INotificationSettingsService>());
 	}

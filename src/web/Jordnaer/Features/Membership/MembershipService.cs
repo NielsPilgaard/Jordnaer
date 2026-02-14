@@ -4,7 +4,6 @@ using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
-using Jordnaer.Features.Groups;
 using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
 using Jordnaer.Shared.Notifications;
@@ -59,7 +58,6 @@ public class MembershipService(CurrentUser currentUser,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IEmailService emailService,
 	ILogger<MembershipService> logger,
-	IGroupMembershipNotificationService notificationService,
 	INotificationService inAppNotificationService,
 	INotificationSettingsService notificationSettingsService) : IMembershipService
 {
@@ -103,16 +101,6 @@ public class MembershipService(CurrentUser currentUser,
 						logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
 					}
 
-					// Notify admins via SignalR - don't fail the request if notification fails
-					try
-					{
-						await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
-					}
-					catch (Exception notificationException)
-					{
-						logger.LogError(notificationException, "Failed to send SignalR notification for group {GroupId}", group.Id);
-					}
-
 					// Send in-app notifications to group admins
 					await NotifyAdminsOfMembershipRequestAsync(context, group, cancellationToken);
 
@@ -144,16 +132,6 @@ public class MembershipService(CurrentUser currentUser,
 			catch (Exception notificationException)
 			{
 				logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
-			}
-
-			// Notify admins via SignalR - don't fail the request if notification fails
-			try
-			{
-				await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to send SignalR notification for group {GroupId}", group.Id);
 			}
 
 			// Send in-app notifications to group admins
@@ -343,7 +321,6 @@ public class MembershipService(CurrentUser currentUser,
 
 			membership.MembershipStatus = MembershipStatus.Active;
 			membership.LastUpdatedUtc = DateTime.UtcNow;
-			await context.SaveChangesAsync(cancellationToken);
 
 			await context.SaveChangesAsync(cancellationToken);
 

@@ -2,14 +2,12 @@
 @page "/chat/{ChatId:guid}"
 
 @using Jordnaer.Features.Authentication
-@using Jordnaer.Features.Notifications
 
 @inject IChatService ChatService
 @inject IChatMessageCache ChatMessageCache
 @inject IProfileCache ProfileCache
 @inject IBrowserViewportService BrowserViewportService
 @inject ChatSignalRClient ChatSignalRClient
-@inject INotificationService NotificationService
 @inject CurrentUser CurrentUser
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
@@ -227,12 +225,6 @@
         {
             await ChatService.MarkMessagesAsReadAsync(CurrentUser.Id, _activeChat.Id);
             chat.UnreadMessageCount = 0;
-
-            // Clear in-app notifications for this chat
-            if (CurrentUser.Id is not null)
-            {
-                await NotificationService.MarkSourceAsReadAsync(CurrentUser.Id, NotificationSourceType.Chat, _activeChat.Id.ToString());
-            }
         }
 
         MarkMessageIfSuccessfullySentByCurrentUser();

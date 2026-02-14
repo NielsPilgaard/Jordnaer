@@ -1,7 +1,10 @@
-@inject IChatService ChatService
+@using Jordnaer.Features.Notifications
+@using Jordnaer.Shared.Notifications
+
 @inject NavigationManager Navigation
 @inject CurrentUser CurrentUser
-@inject UnreadMessageSignalRClient UnreadMessageSignalRClient
+@inject INotificationService NotificationService
+@inject NotificationSignalRClient NotificationSignalRClient
 @inject ILogger<ChatNavLink> Logger
 
 @implements IAsyncDisposable
@@ -19,89 +22,51 @@
 else
 {
     <MudIconButton Href="/chat"
-                   Icon="@Icons.Material.Filled.Chat" 
+                   Icon="@Icons.Material.Filled.Chat"
                    title="Chat"/>
 }
 
 @code {
-    private int _unreadMessageCount = 0;
-    private IDisposable? _locationChangedHandler;
-    private string _currentUrl = string.Empty;
+    private int _unreadMessageCount;
+    private IDisposable? _notificationSubscription;
+    private IDisposable? _unreadCountSubscription;
 
     protected override async Task OnInitializedAsync()
-    {
-        await GetUnreadMessageCount();
-
-        _locationChangedHandler = Navigation.RegisterLocationChangingHandler(async context =>
-        {
-            _currentUrl = context.TargetLocation;
-            // Only trigger when navigating to specific chats, not just the overall chat page
-            if (_unreadMessageCount > 0 && context.TargetLocation.StartsWith("/chat/"))
-            {
-                await GetUnreadMessageCount();
-            }
-        });
-
-        await StartSignalR();
-    }
-
-    private async ValueTask GetUnreadMessageCount()
     {
         if (CurrentUser.Id is null)
         {
             return;
         }
 
-        var unreadMessageCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
-        if (_unreadMessageCount != unreadMessageCount)
+        _unreadMessageCount = await NotificationService.GetUnreadCountByTypeAsync(
+            CurrentUser.Id, NotificationType.ChatMessage);
+
+        _notificationSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
         {
-            Logger.LogInformation("Updating Unread Message Count from {FromCount} to {ToCount}",
-                _unreadMessageCount, unreadMessageCount);
-
-            _unreadMessageCount = unreadMessageCount;
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
-    private async Task StartSignalR()
-    {
-        UnreadMessageSignalRClient.OnChatStarted(async chat =>
-        {
-            if (chat.InitiatorId == CurrentUser.Id)
-            {
-                return;
-            }
-
-            // If we're not already in the new chat, increment unreadMessageCount
-            if (_currentUrl.Contains(chat.Id.ToString()) is false)
+            if (notification.Type == NotificationType.ChatMessage)
             {
                 _unreadMessageCount++;
                 await InvokeAsync(StateHasChanged);
             }
         });
 
-        UnreadMessageSignalRClient.OnMessageReceived(async message =>
+        _unreadCountSubscription = NotificationSignalRClient.OnUnreadCountChanged(async _ =>
         {
-            if (message.SenderId == CurrentUser.Id)
+            if (CurrentUser.Id is not null)
             {
-                return;
-            }
-
-            if (_currentUrl.Contains(message.ChatId.ToString()) is false)
-            {
-                Logger.LogInformation("Incrementing Unread Message Count by one from {FromCount}", _unreadMessageCount);
-                _unreadMessageCount++;
+                _unreadMessageCount = await NotificationService.GetUnreadCountByTypeAsync(
+                    CurrentUser.Id, NotificationType.ChatMessage);
                 await InvokeAsync(StateHasChanged);
-                StateHasChanged();
             }
         });
 
-        await UnreadMessageSignalRClient.StartAsync();
+        await NotificationSignalRClient.StartAsync();
     }
 
     public async ValueTask DisposeAsync()
     {
-        _locationChangedHandler?.Dispose();
-        await UnreadMessageSignalRClient.StopAsync();
+        _notificationSubscription?.Dispose();
+        _unreadCountSubscription?.Dispose();
+        await NotificationSignalRClient.StopAsync();
     }
 }

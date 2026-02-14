@@ -20,7 +20,6 @@ public class GroupService(
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
 	CurrentUser currentUser,
-	IGroupMembershipNotificationService notificationService,
 	INotificationService inAppNotificationService,
 	INotificationSettingsService notificationSettingsService)
 {
@@ -310,12 +309,8 @@ public class GroupService(
 			return logger.LogAndReturnErrorResult(error);
 		}
 
-		// Track if pending status changed to notify listeners
-		// Only track PendingApprovalFromGroup (incoming requests), not PendingApprovalFromUser (outgoing invitations)
-		var oldStatus = membership.MembershipStatus;
+		var wasPending = membership.MembershipStatus == MembershipStatus.PendingApprovalFromGroup;
 		var newStatus = membershipDto.MembershipStatus;
-		var wasPending = oldStatus == MembershipStatus.PendingApprovalFromGroup;
-		var isPending = newStatus == MembershipStatus.PendingApprovalFromGroup;
 
 		membership.OwnershipLevel = membershipDto.OwnershipLevel;
 		membership.PermissionLevel = membershipDto.PermissionLevel;
@@ -332,14 +327,6 @@ public class GroupService(
 		{
 			return logger.LogAndReturnErrorResult(exception,
 				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
-		}
-
-		// Notify admins via SignalR if pending count changed
-		// This is outside the DB transaction to prevent notification failures from affecting DB success
-		if (wasPending != isPending)
-		{
-			var pendingCountChange = isPending ? 1 : -1;
-			await notificationService.NotifyAdminsOfPendingCountChangeAsync(membershipDto.GroupId, pendingCountChange, cancellationToken);
 		}
 
 		// Send in-app notifications for approval/rejection
@@ -369,6 +356,7 @@ public class GroupService(
 				{
 					RecipientId = membershipDto.UserProfileId,
 					Title = $"Din anmodning til {groupName} blev afvist",
+					Description = $"Din anmodning om medlemskab af {groupName} er desværre blevet afvist.",
 					Type = NotificationType.GroupMembershipRejected,
 					SourceType = NotificationSourceType.GroupMembership,
 					SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",

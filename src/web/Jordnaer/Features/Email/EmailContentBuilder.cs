@@ -203,8 +203,12 @@ public static class EmailContentBuilder
 			? $"<p>{WebUtility.HtmlEncode(description)}</p>"
 			: "";
 
-		var buttonHtml = linkUrl is not null
-			? EmailTemplate.Button(linkUrl, "Se mere")
+		var absoluteLinkUrl = linkUrl is not null && baseUrl is not null && linkUrl.StartsWith('/')
+			? $"{baseUrl.TrimEnd('/')}{linkUrl}"
+			: linkUrl;
+
+		var buttonHtml = absoluteLinkUrl is not null
+			? EmailTemplate.Button(absoluteLinkUrl, "Se mere")
 			: "";
 
 		return EmailTemplate.Wrap($"""

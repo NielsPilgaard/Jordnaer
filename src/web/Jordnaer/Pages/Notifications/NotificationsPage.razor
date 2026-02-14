@@ -4,10 +4,13 @@
 @using Jordnaer.Shared.Notifications
 
 @inject INotificationService NotificationService
+@inject NotificationSignalRClient NotificationSignalRClient
 @inject CurrentUser CurrentUser
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject ILogger<NotificationsPage> Logger
+
+@implements IAsyncDisposable
 
 @attribute [Authorize]
 
@@ -99,6 +102,8 @@
     private bool _hasMore;
     private NotificationType? _typeFilter;
     private List<NotificationDto> _notifications = [];
+    private IDisposable? _notificationReceivedSubscription;
+    private IDisposable? _notificationReadSubscription;
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,6 +115,27 @@
             }
 
             await LoadNotifications();
+
+            _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
+            {
+                if (_typeFilter is null || notification.Type == _typeFilter)
+                {
+                    _notifications.Insert(0, notification);
+                }
+                await InvokeAsync(StateHasChanged);
+            });
+
+            _notificationReadSubscription = NotificationSignalRClient.OnNotificationRead(async notificationId =>
+            {
+                var notification = _notifications.FirstOrDefault(n => n.Id == notificationId);
+                if (notification is not null)
+                {
+                    notification.MarkAsRead();
+                }
+                await InvokeAsync(StateHasChanged);
+            });
+
+            await NotificationSignalRClient.StartAsync();
         }
         finally
         {
@@ -203,5 +229,12 @@
         {
             _isMarkingRead = false;
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _notificationReceivedSubscription?.Dispose();
+        _notificationReadSubscription?.Dispose();
+        await NotificationSignalRClient.StopAsync();
     }
 }

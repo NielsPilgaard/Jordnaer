@@ -20,6 +20,9 @@ public interface INotificationService
 	Task<List<NotificationDto>> GetUnreadAsync(string userId, int limit = 50, CancellationToken ct = default);
 	Task<List<NotificationDto>> GetAllAsync(string userId, int limit = 50, int offset = 0, NotificationType? typeFilter = null, CancellationToken ct = default);
 	Task<int> GetUnreadCountAsync(string userId, CancellationToken ct = default);
+	Task<int> GetUnreadCountByTypeAsync(string userId, NotificationType type, CancellationToken ct = default);
+	Task<int> GetUnreadCountExcludingTypeAsync(string userId, NotificationType excludedType, CancellationToken ct = default);
+	Task<List<NotificationDto>> GetUnreadExcludingTypeAsync(string userId, int limit, NotificationType excludedType, CancellationToken ct = default);
 }
 
 public class NotificationService(
@@ -242,6 +245,51 @@ public class NotificationService(
 		return await context.Notifications
 			.AsNoTracking()
 			.CountAsync(n => n.RecipientId == userId && !n.IsRead, ct);
+	}
+
+	public async Task<int> GetUnreadCountByTypeAsync(string userId, NotificationType type, CancellationToken ct = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+		return await context.Notifications
+			.AsNoTracking()
+			.CountAsync(n => n.RecipientId == userId && !n.IsRead && n.Type == type, ct);
+	}
+
+	public async Task<List<NotificationDto>> GetUnreadExcludingTypeAsync(string userId, int limit, NotificationType excludedType, CancellationToken ct = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+		return await context.Notifications
+			.AsNoTracking()
+			.Where(n => n.RecipientId == userId && !n.IsRead && n.Type != excludedType)
+			.OrderByDescending(n => n.CreatedUtc)
+			.Take(limit)
+			.Select(n => new NotificationDto
+			{
+				Id = n.Id,
+				RecipientId = n.RecipientId,
+				Title = n.Title,
+				Description = n.Description,
+				ImageUrl = n.ImageUrl,
+				LinkUrl = n.LinkUrl,
+				Type = n.Type,
+				IsRead = n.IsRead,
+				CreatedUtc = n.CreatedUtc,
+				ReadUtc = n.ReadUtc,
+				SourceType = n.SourceType,
+				SourceId = n.SourceId
+			})
+			.ToListAsync(ct);
+	}
+
+	public async Task<int> GetUnreadCountExcludingTypeAsync(string userId, NotificationType excludedType, CancellationToken ct = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+		return await context.Notifications
+			.AsNoTracking()
+			.CountAsync(n => n.RecipientId == userId && !n.IsRead && n.Type != excludedType, ct);
 	}
 
 	private async Task PublishEmailAsync(CreateNotificationRequest request, CancellationToken ct)

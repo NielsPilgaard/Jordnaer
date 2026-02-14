@@ -172,7 +172,6 @@ app.MapAdditionalIdentityEndpoints();
 app.MapObservabilityEndpoints();
 
 app.MapHub<ChatHub>("/hubs/chat");
-app.MapHub<GroupMembershipHub>("/hubs/group-membership");
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.UseSitemap();

@@ -12,47 +12,47 @@ public class NotificationSignalRClient(
 	NavigationManager navigationManager)
 	: AuthenticatedSignalRClientBase(logger, currentUser, navigationManager, "/hubs/notifications")
 {
-	public void OnNotificationReceived(Func<NotificationDto, Task> action)
+	public IDisposable? OnNotificationReceived(Func<NotificationDto, Task> action)
 	{
 		if (HubConnection is null)
 		{
-			return;
+			return null;
 		}
 
 		HubConnection.Remove(nameof(INotificationHub.ReceiveNotification));
-		HubConnection.On(nameof(INotificationHub.ReceiveNotification), action);
+		return HubConnection.On(nameof(INotificationHub.ReceiveNotification), action);
 	}
 
-	public void OnNotificationRead(Func<Guid, Task> action)
+	public IDisposable? OnNotificationRead(Func<Guid, Task> action)
 	{
 		if (HubConnection is null)
 		{
-			return;
+			return null;
 		}
 
 		HubConnection.Remove(nameof(INotificationHub.NotificationRead));
-		HubConnection.On(nameof(INotificationHub.NotificationRead), action);
+		return HubConnection.On(nameof(INotificationHub.NotificationRead), action);
 	}
 
-	public void OnNotificationsCleared(Func<string, string?, Task> action)
+	public IDisposable? OnNotificationsCleared(Func<string, string?, Task> action)
 	{
 		if (HubConnection is null)
 		{
-			return;
+			return null;
 		}
 
 		HubConnection.Remove(nameof(INotificationHub.NotificationsCleared));
-		HubConnection.On(nameof(INotificationHub.NotificationsCleared), action);
+		return HubConnection.On(nameof(INotificationHub.NotificationsCleared), action);
 	}
 
-	public void OnUnreadCountChanged(Func<int, Task> action)
+	public IDisposable? OnUnreadCountChanged(Func<int, Task> action)
 	{
 		if (HubConnection is null)
 		{
-			return;
+			return null;
 		}
 
 		HubConnection.Remove(nameof(INotificationHub.UnreadCountChanged));
-		HubConnection.On(nameof(INotificationHub.UnreadCountChanged), action);
+		return HubConnection.On(nameof(INotificationHub.UnreadCountChanged), action);
 	}
 }
