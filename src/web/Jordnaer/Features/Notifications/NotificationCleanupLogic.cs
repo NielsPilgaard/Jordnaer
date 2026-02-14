@@ -12,8 +12,10 @@ public class NotificationCleanupLogic(IDbContextFactory<JordnaerDbContext> conte
 {
 	public async Task<int> PurgeOldNotificationsAsync(int retentionDays, CancellationToken ct = default)
 	{
-		var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
+		// Never delete notifications younger than 7 days to avoid issues with users missing important notifications
+		ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(retentionDays, 7);
 
+		var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
 		await using var context = await contextFactory.CreateDbContextAsync(ct);
 
 		return await context.Notifications

@@ -12,7 +12,7 @@ public interface IChatService
 {
 	Task<List<ChatDto>> GetChatsAsync(string userId, CancellationToken cancellationToken = default);
 
-	Task MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default);
 
 	Task<OneOf<List<ChatMessageDto>, Error<string>>> GetChatMessagesAsync(string userId, Guid chatId, int skip, int take, CancellationToken cancellationToken = default);
 
@@ -62,16 +62,17 @@ public class ChatService(
 		return chats;
 	}
 
-	public async Task MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
+	public async Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
 		try
 		{
 			await notificationService.MarkSourceAsReadAsync(userId, NotificationSourceType.Chat, chatId.ToString(), cancellationToken);
+			return new Success();
 		}
 		catch (Exception ex)
 		{
 			logger.LogError(ex, "Failed to mark messages as read for UserId {UserId} in ChatId {ChatId}.", userId, chatId);
-			throw;
+			return new Error<string>(ex.Message);
 		}
 	}
 

@@ -79,6 +79,7 @@ public class SendMessageConsumer(
 
 		var recipientIdsToCheck = recipientPreferences.Select(r => r.Id).ToList();
 		var alreadyNotifiedRecipientIds = (await context.Notifications
+			.AsNoTracking()
 			.Where(n => recipientIdsToCheck.Contains(n.RecipientId)
 				&& n.SourceType == NotificationSourceType.Chat
 				&& n.SourceId == chatMessage.ChatId.ToString()

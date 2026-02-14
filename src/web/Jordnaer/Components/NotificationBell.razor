@@ -6,6 +6,7 @@
 @inject INotificationService NotificationService
 @inject CurrentUser CurrentUser
 @inject NavigationManager Navigation
+@inject ILogger<NotificationBell> Logger
 
 @implements IAsyncDisposable
 
@@ -101,10 +102,29 @@
         _unreadCountSubscription = NotificationSignalRClient.OnUnreadCountChanged(async _ =>
         {
             // Re-fetch the non-chat count since the hub broadcasts total count
-            if (CurrentUser.Id is not null)
+            if (CurrentUser.Id is null)
+            {
+                return;
+            }
+
+            var stateChanged = false;
+            try
             {
                 _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
-                await InvokeAsync(StateHasChanged);
+                stateChanged = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to refresh unread notification count for user {UserId}", CurrentUser.Id);
+                _unreadCount = 0;
+                stateChanged = true;
+            }
+            finally
+            {
+                if (stateChanged)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
             }
         });
 

@@ -22,7 +22,7 @@ public interface INotificationService
 	Task<int> GetUnreadCountAsync(string userId, CancellationToken ct = default);
 	Task<int> GetUnreadCountByTypeAsync(string userId, NotificationType type, CancellationToken ct = default);
 	Task<int> GetUnreadCountExcludingTypeAsync(string userId, NotificationType excludedType, CancellationToken ct = default);
-	Task<List<NotificationDto>> GetUnreadExcludingTypeAsync(string userId, int limit, NotificationType excludedType, CancellationToken ct = default);
+	Task<List<NotificationDto>> GetUnreadExcludingTypeAsync(string userId, int limit = 50, NotificationType excludedType = NotificationType.ChatMessage, CancellationToken ct = default);
 }
 
 public class NotificationService(
@@ -256,7 +256,7 @@ public class NotificationService(
 			.CountAsync(n => n.RecipientId == userId && !n.IsRead && n.Type == type, ct);
 	}
 
-	public async Task<List<NotificationDto>> GetUnreadExcludingTypeAsync(string userId, int limit, NotificationType excludedType, CancellationToken ct = default)
+	public async Task<List<NotificationDto>> GetUnreadExcludingTypeAsync(string userId, int limit = 50, NotificationType excludedType = NotificationType.ChatMessage, CancellationToken ct = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(ct);
 

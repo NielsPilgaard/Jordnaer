@@ -104,11 +104,15 @@ public class NotificationCleanupLogicTests : IAsyncLifetime
 
 		var oldNotifications = _notificationFaker.Generate(3);
 		foreach (var n in oldNotifications)
+		{
 			n.CreatedUtc = DateTime.UtcNow.AddDays(-200);
+		}
 
 		var recentNotifications = _notificationFaker.Generate(2);
 		foreach (var n in recentNotifications)
+		{
 			n.CreatedUtc = DateTime.UtcNow.AddDays(-30);
+		}
 
 		_context.Notifications.AddRange(oldNotifications);
 		_context.Notifications.AddRange(recentNotifications);

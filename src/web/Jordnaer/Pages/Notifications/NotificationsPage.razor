@@ -235,6 +235,13 @@
     {
         _notificationReceivedSubscription?.Dispose();
         _notificationReadSubscription?.Dispose();
-        await NotificationSignalRClient.StopAsync();
+        try
+        {
+            await NotificationSignalRClient.StopAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to stop NotificationSignalRClient during disposal.");
+        }
     }
 }
