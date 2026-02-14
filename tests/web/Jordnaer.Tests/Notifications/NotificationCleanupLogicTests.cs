@@ -141,8 +141,8 @@ public class NotificationCleanupLogicTests : IAsyncLifetime
 		_context.Notifications.Add(notification);
 		await _context.SaveChangesAsync();
 
-		// Act - with a very short retention of 5 days, the 10-day-old notification should be deleted
-		var deletedCount = await _sut.PurgeOldNotificationsAsync(retentionDays: 5);
+		// Act - with a short retention of 8 days, the 10-day-old notification should be deleted
+		var deletedCount = await _sut.PurgeOldNotificationsAsync(retentionDays: 8);
 
 		// Assert
 		deletedCount.Should().Be(1);
