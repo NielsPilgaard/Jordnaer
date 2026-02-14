@@ -42,6 +42,7 @@ public class JordnaerWebApplicationFactory : WebApplicationFactory<Program>, IAs
 
 		builder.UseSetting("ConnectionStrings:AzureBlobStorage", _azureBlobStorageContainer.GetConnectionString());
 
+		// Fake key - required to satisfy DI registration, but no emails are sent in tests (hosted services are removed above)
 		builder.UseSetting("ConnectionStrings:AzureEmailService", "endpoint=https://jordnaer.europe.communication.azure.com/;accesskey=GHrGMddff66e6oVOgjxEytm5B5fwwpJCwRJ223ACUL425AAffdvvvcc32lI");
 
 		builder.ConfigureTestServices(services => services.RemoveAll<IHostedService>());
