@@ -6,6 +6,7 @@
 @inject CurrentUser CurrentUser
 @inject INotificationService NotificationService
 @inject NotificationSignalRClient NotificationSignalRClient
+@inject ILogger<TopBar> Logger
 
 @implements IAsyncDisposable
 
@@ -287,42 +288,80 @@
 			return;
 		}
 
-		_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
-			CurrentUser.Id, NotificationType.ChatMessage);
+		try
+		{
+			await NotificationSignalRClient.AcquireAsync();
+		}
+		catch (Exception ex)
+		{
+			// Log and continue without real-time updates; badge will remain at 0
+			Logger.LogError(ex, "Failed to acquire NotificationSignalRClient for user {UserId}", CurrentUser.Id);
+			return;
+		}
 
 		// Listen for new chat notifications to update badge
 		_notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
 		{
-			if (notification.Type == NotificationType.ChatMessage)
+			try
 			{
-				_unreadChatCount++;
-				await InvokeAsync(StateHasChanged);
+				if (notification.Type == NotificationType.ChatMessage)
+				{
+					_unreadChatCount++;
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Error in {HandlerName} for user {UserId}", nameof(_notificationReceivedSubscription), CurrentUser.Id);
 			}
 		});
 
 		// Listen for count changes (e.g. when notifications are cleared)
 		_unreadCountSubscription = NotificationSignalRClient.OnUnreadCountChanged(async _ =>
 		{
-			if (CurrentUser.Id is not null)
+			try
 			{
-				_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
-					CurrentUser.Id, NotificationType.ChatMessage);
-				await InvokeAsync(StateHasChanged);
+				if (CurrentUser.Id is not null)
+				{
+					_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
+						CurrentUser.Id, NotificationType.ChatMessage);
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Error in {HandlerName} for user {UserId}", nameof(_unreadCountSubscription), CurrentUser.Id);
 			}
 		});
 
 		// Listen for source cleared (when opening a specific chat)
 		_notificationsClearedSubscription = NotificationSignalRClient.OnNotificationsCleared(async (sourceType, _) =>
 		{
-			if (sourceType == NotificationSourceType.Chat && CurrentUser.Id is not null)
+			try
 			{
-				_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
-					CurrentUser.Id, NotificationType.ChatMessage);
-				await InvokeAsync(StateHasChanged);
+				if (sourceType == NotificationSourceType.Chat && CurrentUser.Id is not null)
+				{
+					_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
+						CurrentUser.Id, NotificationType.ChatMessage);
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Error in {HandlerName} for user {UserId}", nameof(_notificationsClearedSubscription), CurrentUser.Id);
 			}
 		});
 
-		await NotificationSignalRClient.AcquireAsync();
+		try
+		{
+			_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
+				CurrentUser.Id, NotificationType.ChatMessage);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Failed to get initial unread chat count for user {UserId}", CurrentUser.Id);
+			_unreadChatCount = 0;
+		}
 	}
 
 	private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

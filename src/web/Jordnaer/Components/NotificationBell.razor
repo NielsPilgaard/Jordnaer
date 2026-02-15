@@ -7,6 +7,7 @@
 @inject CurrentUser CurrentUser
 @inject NavigationManager Navigation
 @inject ILogger<NotificationBell> Logger
+@inject ISnackbar Snackbar
 
 @implements IAsyncDisposable
 
@@ -166,7 +167,15 @@
     {
         if (CurrentUser.Id is not null && !notification.IsRead)
         {
-            await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
+            try
+            {
+                await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to mark notification {NotificationId} as read for user {UserId}", notification.Id, CurrentUser.Id);
+                Snackbar.Add("Der opstod en fejl ved markering af notifikation som læst. Prøv igen.", Severity.Error);
+            }
         }
 
         _isOpen = false;
@@ -184,12 +193,20 @@
             return;
         }
 
-        await NotificationService.MarkAllAsReadAsync(CurrentUser.Id);
-        _unreadCount = 0;
-
-        foreach (var notification in _notifications)
+        try
         {
-            notification.MarkAsRead();
+            await NotificationService.MarkAllAsReadAsync(CurrentUser.Id);
+            _unreadCount = 0;
+
+            foreach (var notification in _notifications)
+            {
+                notification.MarkAsRead();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to mark all notifications as read for user {UserId}", CurrentUser.Id);
+            Snackbar.Add("Der opstod en fejl ved markering af notifikationer som læst. Prøv igen.", Severity.Error);
         }
     }
 

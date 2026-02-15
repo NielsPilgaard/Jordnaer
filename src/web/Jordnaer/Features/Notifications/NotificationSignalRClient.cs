@@ -12,6 +12,7 @@ public class NotificationSignalRClient(
 	NavigationManager navigationManager)
 	: AuthenticatedSignalRClientBase(logger, currentUser, navigationManager, "/hubs/notifications")
 {
+	private readonly ILogger<AuthenticatedSignalRClientBase> _notificationLogger = logger;
 	private int _refCount;
 
 	/// <summary>
@@ -30,9 +31,20 @@ public class NotificationSignalRClient(
 	/// </summary>
 	public async Task ReleaseAsync(CancellationToken cancellationToken = default)
 	{
-		if (Interlocked.Decrement(ref _refCount) <= 0)
+		var newVal = Interlocked.Decrement(ref _refCount);
+		if (newVal <= 0)
 		{
-			_refCount = 0;
+			// Atomically reset to 0 only if the count is still <= 0, to avoid racing with AcquireAsync
+			int current;
+			do
+			{
+				current = Volatile.Read(ref _refCount);
+				if (current > 0)
+				{
+					return;
+				}
+			} while (Interlocked.CompareExchange(ref _refCount, 0, current) != current);
+
 			await StopAsync(cancellationToken);
 		}
 	}
@@ -41,6 +53,9 @@ public class NotificationSignalRClient(
 	{
 		if (HubConnection is null)
 		{
+			_notificationLogger.LogWarning(
+				"Cannot register {SubscriptionName} handler: {HubConnectionName} is not available.",
+				nameof(INotificationHub.ReceiveNotification), nameof(HubConnection));
 			return null;
 		}
 
@@ -51,6 +66,9 @@ public class NotificationSignalRClient(
 	{
 		if (HubConnection is null)
 		{
+			_notificationLogger.LogWarning(
+				"Cannot register {SubscriptionName} handler: {HubConnectionName} is not available.",
+				nameof(INotificationHub.NotificationRead), nameof(HubConnection));
 			return null;
 		}
 
@@ -61,6 +79,9 @@ public class NotificationSignalRClient(
 	{
 		if (HubConnection is null)
 		{
+			_notificationLogger.LogWarning(
+				"Cannot register {SubscriptionName} handler: {HubConnectionName} is not available.",
+				nameof(INotificationHub.NotificationsCleared), nameof(HubConnection));
 			return null;
 		}
 
@@ -71,6 +92,9 @@ public class NotificationSignalRClient(
 	{
 		if (HubConnection is null)
 		{
+			_notificationLogger.LogWarning(
+				"Cannot register {SubscriptionName} handler: {HubConnectionName} is not available.",
+				nameof(INotificationHub.UnreadCountChanged), nameof(HubConnection));
 			return null;
 		}
 

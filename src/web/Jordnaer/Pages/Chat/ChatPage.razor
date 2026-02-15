@@ -93,6 +93,7 @@
 
     private List<ChatDto> _chats = [];
     private ChatDto? _activeChat;
+    private string _currentUserId = string.Empty;
 
     private bool _isLoading = true;
     private bool _isMobile = true;
@@ -130,7 +131,9 @@
             return;
         }
 
-        _chats = await ChatService.GetChatsAsync(CurrentUser.Id);
+        _currentUserId = CurrentUser.Id;
+
+        _chats = await ChatService.GetChatsAsync(_currentUserId);
         if (ChatId is not null)
         {
             var chatFromRoute = _chats.FirstOrDefault(chat => chat.Id == ChatId);
@@ -150,7 +153,7 @@
         ChatSignalRClient.OnChatStarted(async chat =>
         {
             var lastChatMessage = chat.Messages.LastOrDefault();
-            if (lastChatMessage is not null && lastChatMessage.SenderId == CurrentUser.Id)
+            if (lastChatMessage is not null && lastChatMessage.SenderId == _currentUserId)
             {
                 LastMessageWasSentSuccessfullyByCurrentUser = true;
                 await InvokeAsync(StateHasChanged);
@@ -175,7 +178,7 @@
                 return;
             }
 
-            if (message.SenderId == CurrentUser.Id)
+            if (message.SenderId == _currentUserId)
             {
                 LastMessageWasSentSuccessfullyByCurrentUser = true;
                 await InvokeAsync(StateHasChanged);
@@ -189,7 +192,7 @@
             if (_activeChat?.Id == chat.Id)
             {
                 LastMessageWasSentSuccessfullyByCurrentUser = false;
-                await ChatService.MarkMessagesAsReadAsync(CurrentUser.Id, message.ChatId);
+                await ChatService.MarkMessagesAsReadAsync(_currentUserId, message.ChatId);
                 await InvokeAsync(StateHasChanged);
             }
             else
@@ -210,7 +213,7 @@
             return;
         }
 
-        _activeChat.Messages = await ChatMessageCache.GetChatMessagesAsync(CurrentUser.Id, _activeChat.Id);
+        _activeChat.Messages = await ChatMessageCache.GetChatMessagesAsync(_currentUserId, _activeChat.Id);
     }
 
     private async Task SelectChat(ChatDto chat)
@@ -223,7 +226,7 @@
 
         if (chat.HasUnreadMessages)
         {
-            await ChatService.MarkMessagesAsReadAsync(CurrentUser.Id, _activeChat.Id);
+            await ChatService.MarkMessagesAsReadAsync(_currentUserId, _activeChat.Id);
             chat.UnreadMessageCount = 0;
         }
 
@@ -249,7 +252,7 @@
             return;
         }
 
-        LastMessageWasSentSuccessfullyByCurrentUser = lastMessage.SenderId == CurrentUser.Id;
+        LastMessageWasSentSuccessfullyByCurrentUser = lastMessage.SenderId == _currentUserId;
     }
 
     private async Task StartNewChat(IEnumerable<UserSlim> users)
@@ -257,7 +260,7 @@
         var userList = users.ToList();
         if (userList.Count == 1)
         {
-            var userIdsToFind = new[] { userList.First().Id, CurrentUser.Id };
+            var userIdsToFind = new[] { userList.First().Id, _currentUserId };
             var existingChat = _chats.FirstOrDefault(chat => chat.Recipients.Count == 2 &&
             userIdsToFind.All(id => chat.Recipients.Any(recipient => recipient.Id == id)));
             if (existingChat is not null)
@@ -273,7 +276,7 @@
         }
 
         var recipients = userList
-            .Where(u => u.Id != CurrentUser.Id)
+            .Where(u => u.Id != _currentUserId)
             .Prepend(CurrentUser.UserProfile.ToUserSlim())
             .ToList();
 

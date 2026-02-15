@@ -38,8 +38,16 @@ else
             return;
         }
 
-        _unreadMessageCount = await NotificationService.GetUnreadCountByTypeAsync(
-            CurrentUser.Id, NotificationType.ChatMessage);
+        try
+        {
+            _unreadMessageCount = await NotificationService.GetUnreadCountByTypeAsync(
+                CurrentUser.Id, NotificationType.ChatMessage);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to get initial unread chat message count for user {UserId}", CurrentUser.Id);
+            _unreadMessageCount = 0;
+        }
 
         _notificationSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
         {
@@ -60,7 +68,16 @@ else
             }
         });
 
-        await NotificationSignalRClient.AcquireAsync();
+        try
+        {
+            await NotificationSignalRClient.AcquireAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to acquire NotificationSignalRClient for user {UserId}", CurrentUser.Id);
+            _notificationSubscription?.Dispose();
+            _unreadCountSubscription?.Dispose();
+        }
     }
 
     public async ValueTask DisposeAsync()
