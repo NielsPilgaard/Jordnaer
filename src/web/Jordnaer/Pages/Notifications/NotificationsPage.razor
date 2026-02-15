@@ -116,17 +116,7 @@
 
             await LoadNotifications();
 
-            try
-            {
-                await NotificationSignalRClient.AcquireAsync();
-            }
-            catch
-            {
-                _notificationReceivedSubscription?.Dispose();
-                _notificationReadSubscription?.Dispose();
-                throw;
-            }
-
+            await NotificationSignalRClient.AcquireAsync();
             _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
             {
                 if (_typeFilter is null || notification.Type == _typeFilter)
