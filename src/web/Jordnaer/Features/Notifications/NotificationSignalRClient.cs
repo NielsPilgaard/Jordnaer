@@ -12,6 +12,31 @@ public class NotificationSignalRClient(
 	NavigationManager navigationManager)
 	: AuthenticatedSignalRClientBase(logger, currentUser, navigationManager, "/hubs/notifications")
 {
+	private int _refCount;
+
+	/// <summary>
+	/// Increments the reference count and starts the connection on the first acquire.
+	/// </summary>
+	public async Task AcquireAsync(CancellationToken cancellationToken = default)
+	{
+		if (Interlocked.Increment(ref _refCount) == 1)
+		{
+			await StartAsync(cancellationToken);
+		}
+	}
+
+	/// <summary>
+	/// Decrements the reference count and stops the connection when the last consumer releases it.
+	/// </summary>
+	public async Task ReleaseAsync(CancellationToken cancellationToken = default)
+	{
+		if (Interlocked.Decrement(ref _refCount) <= 0)
+		{
+			_refCount = 0;
+			await StopAsync(cancellationToken);
+		}
+	}
+
 	public IDisposable? OnNotificationReceived(Func<NotificationDto, Task> action)
 	{
 		if (HubConnection is null)
@@ -19,7 +44,6 @@ public class NotificationSignalRClient(
 			return null;
 		}
 
-		HubConnection.Remove(nameof(INotificationHub.ReceiveNotification));
 		return HubConnection.On(nameof(INotificationHub.ReceiveNotification), action);
 	}
 
@@ -30,7 +54,6 @@ public class NotificationSignalRClient(
 			return null;
 		}
 
-		HubConnection.Remove(nameof(INotificationHub.NotificationRead));
 		return HubConnection.On(nameof(INotificationHub.NotificationRead), action);
 	}
 
@@ -41,7 +64,6 @@ public class NotificationSignalRClient(
 			return null;
 		}
 
-		HubConnection.Remove(nameof(INotificationHub.NotificationsCleared));
 		return HubConnection.On(nameof(INotificationHub.NotificationsCleared), action);
 	}
 
@@ -52,7 +74,6 @@ public class NotificationSignalRClient(
 			return null;
 		}
 
-		HubConnection.Remove(nameof(INotificationHub.UnreadCountChanged));
 		return HubConnection.On(nameof(INotificationHub.UnreadCountChanged), action);
 	}
 }
