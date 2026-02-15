@@ -80,7 +80,15 @@
             return;
         }
 
-        _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
+        try
+        {
+            _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to get initial unread notification count for user {UserId}", CurrentUser.Id);
+            _unreadCount = 0;
+        }
 
         _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
         {
@@ -107,25 +115,16 @@
                 return;
             }
 
-            var stateChanged = false;
             try
             {
                 _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
-                stateChanged = true;
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Failed to refresh unread notification count for user {UserId}", CurrentUser.Id);
                 _unreadCount = 0;
-                stateChanged = true;
             }
-            finally
-            {
-                if (stateChanged)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
+            await InvokeAsync(StateHasChanged);
         });
 
         _notificationReadSubscription = NotificationSignalRClient.OnNotificationRead(async notificationId =>
@@ -138,7 +137,7 @@
             await InvokeAsync(StateHasChanged);
         });
 
-        await NotificationSignalRClient.StartAsync();
+        await NotificationSignalRClient.AcquireAsync();
     }
 
     private async Task ToggleDropdown()
@@ -146,7 +145,15 @@
         _isOpen = !_isOpen;
         if (_isOpen && CurrentUser.Id is not null)
         {
-            _notifications = await NotificationService.GetUnreadExcludingTypeAsync(CurrentUser.Id, 20, NotificationType.ChatMessage);
+            try
+            {
+                _notifications = await NotificationService.GetUnreadExcludingTypeAsync(CurrentUser.Id, 20, NotificationType.ChatMessage);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to load notifications for user {UserId}", CurrentUser.Id);
+                _notifications = [];
+            }
         }
     }
 
@@ -191,7 +198,7 @@
         _notificationReceivedSubscription?.Dispose();
         _unreadCountSubscription?.Dispose();
         _notificationReadSubscription?.Dispose();
-        await NotificationSignalRClient.StopAsync();
+        await NotificationSignalRClient.ReleaseAsync();
     }
 }
 

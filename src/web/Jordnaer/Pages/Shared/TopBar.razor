@@ -322,7 +322,7 @@
 			}
 		});
 
-		await NotificationSignalRClient.StartAsync();
+		await NotificationSignalRClient.AcquireAsync();
 	}
 
 	private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -365,7 +365,7 @@
 		_notificationReceivedSubscription?.Dispose();
 		_unreadCountSubscription?.Dispose();
 		_notificationsClearedSubscription?.Dispose();
-		await NotificationSignalRClient.StopAsync();
+		await NotificationSignalRClient.ReleaseAsync();
 	}
 }
 

@@ -125,7 +125,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (CurrentUser is null)
+        if (string.IsNullOrEmpty(CurrentUser.Id))
         {
             return;
         }
@@ -267,9 +267,14 @@
             }
         }
 
+        if (CurrentUser.UserProfile is null)
+        {
+            return;
+        }
+
         var recipients = userList
             .Where(u => u.Id != CurrentUser.Id)
-            .Prepend(CurrentUser.UserProfile!.ToUserSlim())
+            .Prepend(CurrentUser.UserProfile.ToUserSlim())
             .ToList();
 
         var newChat = new ChatDto

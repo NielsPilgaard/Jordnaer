@@ -203,8 +203,9 @@ public static class EmailContentBuilder
 			? $"<p>{WebUtility.HtmlEncode(description)}</p>"
 			: "";
 
-		var absoluteLinkUrl = linkUrl is not null && baseUrl is not null && linkUrl.StartsWith('/')
-			? $"{baseUrl.TrimEnd('/')}{linkUrl}"
+		var resolvedBase = baseUrl ?? (linkUrl is not null && linkUrl.StartsWith('/') ? "https://mini-moeder.dk" : null);
+		var absoluteLinkUrl = linkUrl is not null && resolvedBase is not null && linkUrl.StartsWith('/')
+			? $"{resolvedBase.TrimEnd('/')}{linkUrl}"
 			: linkUrl;
 
 		var buttonHtml = absoluteLinkUrl is not null

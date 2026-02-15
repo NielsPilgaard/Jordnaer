@@ -19,9 +19,9 @@ public interface INotificationSettingsService
 
 public record GroupNotificationPreferences
 {
-	public bool EmailOnGroupMembershipRequest { get; init; } = true;
-	public bool EmailOnGroupInvitation { get; init; } = true;
-	public bool EmailOnGroupMembershipResponse { get; init; } = true;
+	public bool EmailOnGroupMembershipRequest { get; init; } = false;
+	public bool EmailOnGroupInvitation { get; init; } = false;
+	public bool EmailOnGroupMembershipResponse { get; init; } = false;
 }
 
 public class NotificationSettingsService(IDbContextFactory<JordnaerDbContext> contextFactory) : INotificationSettingsService

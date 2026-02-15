@@ -73,8 +73,22 @@ public class StartChatConsumer(
 		var senderName = initiator?.DisplayName ?? "Ny bruger";
 		var senderImage = initiator?.ProfilePictureUrl;
 
+		var alreadyNotifiedRecipientIds = (await context.Notifications
+			.AsNoTracking()
+			.Where(n => nonInitiatorIds.Contains(n.RecipientId)
+				&& n.SourceType == NotificationSourceType.Chat
+				&& n.SourceId == chat.Id.ToString())
+			.Select(n => n.RecipientId)
+			.ToListAsync(consumeContext.CancellationToken))
+			.ToHashSet();
+
 		foreach (var recipient in chat.Recipients.Where(r => r.Id != chat.InitiatorId))
 		{
+			if (alreadyNotifiedRecipientIds.Contains(recipient.Id))
+			{
+				continue;
+			}
+
 			try
 			{
 				// For new chats, send email if preference is FirstMessageOnly or AllMessages

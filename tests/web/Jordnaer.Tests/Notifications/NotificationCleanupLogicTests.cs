@@ -17,7 +17,7 @@ public class NotificationCleanupLogicTests : IAsyncLifetime
 	private readonly SqlServerContainer<JordnaerDbContext> _sqlServerContainer;
 	private readonly JordnaerDbContext _context;
 	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory = Substitute.For<IDbContextFactory<JordnaerDbContext>>();
-	private readonly NotificationCleanupLogic _sut;
+	private readonly NotificationCleanupService _sut;
 
 	private readonly string _userProfileId = Guid.NewGuid().ToString();
 
@@ -30,7 +30,7 @@ public class NotificationCleanupLogicTests : IAsyncLifetime
 
 		_contextFactory.CreateDbContextAsync().ReturnsForAnyArgs(_ => _sqlServerContainer.CreateContext());
 
-		_sut = new NotificationCleanupLogic(_contextFactory);
+		_sut = new NotificationCleanupService(_contextFactory);
 
 		_notificationFaker = new Faker<Notification>("nb_NO")
 			.RuleFor(n => n.Id, _ => Guid.NewGuid())

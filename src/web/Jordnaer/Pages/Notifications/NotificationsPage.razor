@@ -116,6 +116,17 @@
 
             await LoadNotifications();
 
+            try
+            {
+                await NotificationSignalRClient.AcquireAsync();
+            }
+            catch
+            {
+                _notificationReceivedSubscription?.Dispose();
+                _notificationReadSubscription?.Dispose();
+                throw;
+            }
+
             _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
             {
                 if (_typeFilter is null || notification.Type == _typeFilter)
@@ -134,8 +145,6 @@
                 }
                 await InvokeAsync(StateHasChanged);
             });
-
-            await NotificationSignalRClient.StartAsync();
         }
         finally
         {
@@ -188,12 +197,20 @@
     {
         if (CurrentUser.Id is not null && !notification.IsRead)
         {
-            await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
-
-            var index = _notifications.IndexOf(notification);
-            if (index >= 0)
+            try
             {
-                _notifications[index].MarkAsRead();
+                await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
+
+                var index = _notifications.IndexOf(notification);
+                if (index >= 0)
+                {
+                    _notifications[index].MarkAsRead();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to mark notification {NotificationId} as read for user {UserId}", notification.Id, CurrentUser.Id);
+                Snackbar.Add("Der opstod en fejl ved markering af notifikation som læst. Prøv igen.", Severity.Error);
             }
         }
 
@@ -237,7 +254,7 @@
         _notificationReadSubscription?.Dispose();
         try
         {
-            await NotificationSignalRClient.StopAsync();
+            await NotificationSignalRClient.ReleaseAsync();
         }
         catch (Exception ex)
         {

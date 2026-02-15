@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Features.Notifications;
 
-public class NotificationCleanupService(
+public class NotificationCleanupBackgroundService(
 	IDbContextFactory<JordnaerDbContext> dbContextFactory,
 	IConfiguration configuration,
-	ILogger<NotificationCleanupService> logger) : BackgroundService
+	ILogger<NotificationCleanupBackgroundService> logger) : BackgroundService
 {
 	private readonly IDbContextFactory<JordnaerDbContext> _dbContextFactory = dbContextFactory;
 

@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Features.Notifications;
 
-public interface INotificationCleanupLogic
+public interface INotificationCleanupService
 {
 	Task<int> PurgeOldNotificationsAsync(int retentionDays, CancellationToken ct = default);
 }
 
-public class NotificationCleanupLogic(IDbContextFactory<JordnaerDbContext> contextFactory) : INotificationCleanupLogic
+public class NotificationCleanupService(IDbContextFactory<JordnaerDbContext> contextFactory) : INotificationCleanupService
 {
 	public async Task<int> PurgeOldNotificationsAsync(int retentionDays, CancellationToken ct = default)
 	{

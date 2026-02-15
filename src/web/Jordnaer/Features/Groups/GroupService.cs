@@ -332,47 +332,55 @@ public class GroupService(
 		// Send in-app notifications for approval/rejection
 		if (wasPending)
 		{
-			var groupName = await GetGroupNameAsync(membershipDto.GroupId, cancellationToken);
-			var prefs = await notificationSettingsService.GetGroupMembershipPreferencesAsync(membershipDto.UserProfileId, cancellationToken);
+			try
+			{
+				var groupName = await GetGroupNameAsync(membershipDto.GroupId, cancellationToken);
+				var prefs = await notificationSettingsService.GetGroupMembershipPreferencesAsync(membershipDto.UserProfileId, cancellationToken);
 
-			if (newStatus == MembershipStatus.Active && groupName is not null)
-			{
-				await inAppNotificationService.SendAsync(new CreateNotificationRequest
+				if (newStatus == MembershipStatus.Active && groupName is not null)
 				{
-					RecipientId = membershipDto.UserProfileId,
-					Title = $"Du er nu medlem af {groupName}",
-					Description = "Din anmodning om medlemskab er blevet godkendt.",
-					LinkUrl = $"/groups/{Uri.EscapeDataString(groupName)}",
-					Type = NotificationType.GroupMembershipApproved,
-					SourceType = NotificationSourceType.GroupMembership,
-					SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
-					SendEmail = prefs.EmailOnGroupMembershipResponse,
-					EmailSubject = $"Velkommen til {groupName}"
-				}, cancellationToken);
-			}
-			else if (newStatus == MembershipStatus.Rejected && groupName is not null)
-			{
-				await inAppNotificationService.SendAsync(new CreateNotificationRequest
+					await inAppNotificationService.SendAsync(new CreateNotificationRequest
+					{
+						RecipientId = membershipDto.UserProfileId,
+						Title = $"Du er nu medlem af {groupName}",
+						Description = "Din anmodning om medlemskab er blevet godkendt.",
+						LinkUrl = $"/groups/{Uri.EscapeDataString(groupName)}",
+						Type = NotificationType.GroupMembershipApproved,
+						SourceType = NotificationSourceType.GroupMembership,
+						SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+						SendEmail = prefs.EmailOnGroupMembershipResponse,
+						EmailSubject = $"Velkommen til {groupName}"
+					}, cancellationToken);
+				}
+				else if (newStatus == MembershipStatus.Rejected && groupName is not null)
 				{
-					RecipientId = membershipDto.UserProfileId,
-					Title = $"Din anmodning til {groupName} blev afvist",
-					Description = $"Din anmodning om medlemskab af {groupName} er desværre blevet afvist.",
-					Type = NotificationType.GroupMembershipRejected,
-					SourceType = NotificationSourceType.GroupMembership,
-					SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
-					SendEmail = prefs.EmailOnGroupMembershipResponse,
-					EmailSubject = $"Din anmodning til {groupName} blev afvist"
-				}, cancellationToken);
-			}
+					await inAppNotificationService.SendAsync(new CreateNotificationRequest
+					{
+						RecipientId = membershipDto.UserProfileId,
+						Title = $"Din anmodning til {groupName} blev afvist",
+						Description = $"Din anmodning om medlemskab af {groupName} er desværre blevet afvist.",
+						Type = NotificationType.GroupMembershipRejected,
+						SourceType = NotificationSourceType.GroupMembership,
+						SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+						SendEmail = prefs.EmailOnGroupMembershipResponse,
+						EmailSubject = $"Din anmodning til {groupName} blev afvist"
+					}, cancellationToken);
+				}
 
-			// Clear the admin notifications for this membership request
-			if (currentUser.Id is not null)
+				// Clear the admin notifications for this membership request
+				if (currentUser.Id is not null)
+				{
+					await inAppNotificationService.MarkSourceAsReadAsync(
+						currentUser.Id,
+						NotificationSourceType.GroupMembership,
+						$"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+						cancellationToken);
+				}
+			}
+			catch (Exception ex)
 			{
-				await inAppNotificationService.MarkSourceAsReadAsync(
-					currentUser.Id,
-					NotificationSourceType.GroupMembership,
-					$"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
-					cancellationToken);
+				logger.LogError(ex, "Failed to send in-app notifications for GroupId {GroupId}, UserProfileId {UserProfileId}",
+					membershipDto.GroupId, membershipDto.UserProfileId);
 			}
 		}
 

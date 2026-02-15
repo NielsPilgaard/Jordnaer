@@ -1,4 +1,4 @@
-﻿using Jordnaer.Database;
+using Jordnaer.Database;
 using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
 using MassTransit;
@@ -51,7 +51,7 @@ public class ChatService(
 							  LastMessageSentUtc = chat.LastMessageSentUtc,
 							  StartedUtc = chat.StartedUtc,
 							  Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
-							  UnreadMessageCount = context.Notifications.Count(n =>
+							  UnreadMessageCount = context.Notifications.AsNoTracking().Count(n =>
 								  n.RecipientId == userId &&
 								  n.SourceType == NotificationSourceType.Chat &&
 								  n.SourceId == chat.Id.ToString() &&

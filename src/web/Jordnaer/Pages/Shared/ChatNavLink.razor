@@ -60,13 +60,13 @@ else
             }
         });
 
-        await NotificationSignalRClient.StartAsync();
+        await NotificationSignalRClient.AcquireAsync();
     }
 
     public async ValueTask DisposeAsync()
     {
         _notificationSubscription?.Dispose();
         _unreadCountSubscription?.Dispose();
-        await NotificationSignalRClient.StopAsync();
+        await NotificationSignalRClient.ReleaseAsync();
     }
 }
