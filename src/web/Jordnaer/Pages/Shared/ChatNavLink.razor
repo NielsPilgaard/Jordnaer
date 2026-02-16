@@ -28,6 +28,7 @@ else
 
 @code {
     private int _unreadMessageCount;
+    private bool _acquired;
     private IDisposable? _notificationSubscription;
     private IDisposable? _unreadCountSubscription;
 
@@ -71,6 +72,7 @@ else
         try
         {
             await NotificationSignalRClient.AcquireAsync();
+            _acquired = true;
         }
         catch (Exception ex)
         {
@@ -84,6 +86,9 @@ else
     {
         _notificationSubscription?.Dispose();
         _unreadCountSubscription?.Dispose();
-        await NotificationSignalRClient.ReleaseAsync();
+        if (_acquired)
+        {
+            await NotificationSignalRClient.ReleaseAsync();
+        }
     }
 }

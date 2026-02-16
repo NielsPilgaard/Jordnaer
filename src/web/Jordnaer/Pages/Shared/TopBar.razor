@@ -273,6 +273,7 @@
 
 @code {
 	private int _unreadChatCount;
+	private bool _signalRAcquired;
 	private string _currentPath = string.Empty;
 	private IDisposable? _notificationReceivedSubscription;
 	private IDisposable? _unreadCountSubscription;
@@ -291,6 +292,7 @@
 		try
 		{
 			await NotificationSignalRClient.AcquireAsync();
+			_signalRAcquired = true;
 		}
 		catch (Exception ex)
 		{
@@ -404,7 +406,10 @@
 		_notificationReceivedSubscription?.Dispose();
 		_unreadCountSubscription?.Dispose();
 		_notificationsClearedSubscription?.Dispose();
-		await NotificationSignalRClient.ReleaseAsync();
+		if (_signalRAcquired)
+		{
+			await NotificationSignalRClient.ReleaseAsync();
+		}
 	}
 }
 
