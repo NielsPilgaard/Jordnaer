@@ -1272,7 +1272,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20260213213401_AddNotifications'
 )
 BEGIN
-    ALTER TABLE [UserProfiles] ADD [EmailOnGroupInvitation] bit NOT NULL DEFAULT CAST(0 AS bit);
+    ALTER TABLE [UserProfiles] ADD [EmailOnGroupInvitation] bit NOT NULL DEFAULT CAST(1 AS bit);
 END;
 
 IF NOT EXISTS (
@@ -1280,7 +1280,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20260213213401_AddNotifications'
 )
 BEGIN
-    ALTER TABLE [UserProfiles] ADD [EmailOnGroupMembershipRequest] bit NOT NULL DEFAULT CAST(0 AS bit);
+    ALTER TABLE [UserProfiles] ADD [EmailOnGroupMembershipRequest] bit NOT NULL DEFAULT CAST(1 AS bit);
 END;
 
 IF NOT EXISTS (
@@ -1288,7 +1288,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20260213213401_AddNotifications'
 )
 BEGIN
-    ALTER TABLE [UserProfiles] ADD [EmailOnGroupMembershipResponse] bit NOT NULL DEFAULT CAST(0 AS bit);
+    ALTER TABLE [UserProfiles] ADD [EmailOnGroupMembershipResponse] bit NOT NULL DEFAULT CAST(1 AS bit);
 END;
 
 IF NOT EXISTS (

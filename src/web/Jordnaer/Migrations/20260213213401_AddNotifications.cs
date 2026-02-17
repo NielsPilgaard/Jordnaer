@@ -16,21 +16,21 @@ namespace Jordnaer.Migrations
                 table: "UserProfiles",
                 type: "bit",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "EmailOnGroupMembershipRequest",
                 table: "UserProfiles",
                 type: "bit",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "EmailOnGroupMembershipResponse",
                 table: "UserProfiles",
                 type: "bit",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
 
             migrationBuilder.CreateTable(
                 name: "Notifications",
