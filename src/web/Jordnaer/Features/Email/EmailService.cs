@@ -11,7 +11,6 @@ public interface IEmailService
 {
 	Task SendEmailFromContactForm(ContactForm contactForm, CancellationToken cancellationToken = default);
 	Task SendEmailFromPartnerContactForm(PartnerContactForm partnerContactForm, CancellationToken cancellationToken = default);
-	Task SendMembershipRequestEmails(string groupName, CancellationToken cancellationToken = default);
 	Task SendGroupInviteEmail(string groupName, string userId, CancellationToken cancellationToken = default);
 	Task SendGroupInviteEmailToNewUserAsync(string email, string groupName, string inviteToken, CancellationToken cancellationToken = default);
 	Task SendPartnerImageApprovalEmailAsync(Guid partnerId, string partnerName, CancellationToken cancellationToken = default);
@@ -66,50 +65,6 @@ public sealed class EmailService(IPublishEndpoint publishEndpoint,
 				partnerContactForm.PhoneNumber,
 				partnerContactForm.Message),
 			To = [EmailConstants.ContactEmail]
-		};
-
-		await publishEndpoint.Publish(email, cancellationToken);
-	}
-
-	public async Task SendMembershipRequestEmails(
-		string groupName,
-		CancellationToken cancellationToken = default)
-	{
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		var membersThatCanApproveRequest = context
-										   .GroupMemberships
-										   .AsNoTracking()
-										   .Where(x =>
-													  x.Group.Name == groupName &&
-													  x.PermissionLevel == PermissionLevel.Admin)
-										   .Select(x => x.UserProfileId);
-
-		var emails = await context.Users
-							.AsNoTracking()
-							.Where(user => membersThatCanApproveRequest.Any(userId => userId == user.Id) &&
-											!string.IsNullOrEmpty(user.Email))
-							.Select(user => new EmailRecipient
-							{
-								Email = user.Email!, // Safe: filtered by user.Email != null above
-								DisplayName = user.UserName
-							})
-							.ToListAsync(cancellationToken);
-
-		if (emails.Count is 0)
-		{
-			logger.LogError("No users found who can approve membership request for group {GroupName}.", groupName);
-			return;
-		}
-
-		logger.LogInformation("Found {MembersThatCanApproveRequestCount} users who can approve " +
-							  "membership request for group {GroupName}. " +
-							  "Sending an email to them.", emails.Count, groupName);
-
-		var email = new SendEmail
-		{
-			Subject = $"Ny medlemskabsanmodning til {groupName}",
-			HtmlContent = EmailContentBuilder.MembershipRequest(options.Value.BaseUrl, groupName),
-			Bcc = emails.ToList()
 		};
 
 		await publishEndpoint.Publish(email, cancellationToken);

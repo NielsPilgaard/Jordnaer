@@ -8,6 +8,7 @@ using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
 using Jordnaer.Shared.Notifications;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 
@@ -59,7 +60,8 @@ public class MembershipService(CurrentUser currentUser,
 	IEmailService emailService,
 	ILogger<MembershipService> logger,
 	INotificationService inAppNotificationService,
-	INotificationSettingsService notificationSettingsService) : IMembershipService
+	INotificationSettingsService notificationSettingsService,
+	IOptions<AppOptions> appOptions) : IMembershipService
 {
 	public async Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
 		string groupName,
@@ -649,7 +651,8 @@ public class MembershipService(CurrentUser currentUser,
 					SourceType = NotificationSourceType.GroupMembership,
 					SourceId = $"{group.Id}:{currentUser.Id}",
 					SendEmail = prefs.EmailOnGroupMembershipRequest,
-					EmailSubject = $"Ny medlemskabsanmodning til {group.Name}"
+					EmailSubject = $"Ny medlemskabsanmodning til {group.Name}",
+					EmailBody = EmailContentBuilder.MembershipRequest(appOptions.Value.BaseUrl, group.Name, userName)
 				}, cancellationToken);
 			}
 		}

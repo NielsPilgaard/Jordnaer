@@ -28,4 +28,9 @@ public class CreateNotificationRequest
 
 	public bool SendEmail { get; set; }
 	public string? EmailSubject { get; set; }
+
+	/// <summary>
+	/// Pre-rendered HTML email body. When set, overrides the default <see cref="GenericNotification"/> template.
+	/// </summary>
+	public string? EmailBody { get; set; }
 }

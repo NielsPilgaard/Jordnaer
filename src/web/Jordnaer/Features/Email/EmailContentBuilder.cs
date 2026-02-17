@@ -113,12 +113,15 @@ public static class EmailContentBuilder
 			""", baseUrl, preheaderText: $"Nyt opslag af {authorName}");
 	}
 
-	public static string MembershipRequest(string baseUrl, string groupName)
+	public static string MembershipRequest(string baseUrl, string groupName, string applicantName)
 	{
 		var groupMembershipUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}/members";
 		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+		var encodedApplicantName = WebUtility.HtmlEncode(applicantName);
 		return EmailTemplate.Wrap($"""
 			<h4>Din gruppe <b>{encodedGroupName}</b> har modtaget en ny medlemskabsanmodning</h4>
+
+			<p><b>{encodedApplicantName}</b> vil gerne være med i gruppen. Gå til gruppens medlemsside for at godkende eller afvise anmodningen.</p>
 
 			{EmailTemplate.Button(groupMembershipUrl, "Se anmodningen")}
 			""", baseUrl, preheaderText: $"Ny medlemskabsanmodning til {groupName}");

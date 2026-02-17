@@ -157,7 +157,7 @@ public class EmailContentBuilderTests
 	public void MembershipRequest_ShouldProduceValidUrl()
 	{
 		// Act
-		var result = EmailContentBuilder.MembershipRequest(BaseUrl, "Test Group");
+		var result = EmailContentBuilder.MembershipRequest(BaseUrl, "Test Group", "Test User");
 
 		// Assert
 		result.Should().Contain("groups/Test");
@@ -221,7 +221,7 @@ public class EmailContentBuilderTests
 			EmailContentBuilder.ChatNotification(BaseUrl, "Recipient", "Sender", "https://example.com/chat"),
 			EmailContentBuilder.DeleteUser(BaseUrl, "https://example.com/delete"),
 			EmailContentBuilder.GroupPostNotification(BaseUrl, "Author", "Preview", "https://example.com/group"),
-			EmailContentBuilder.MembershipRequest(BaseUrl, "Group"),
+			EmailContentBuilder.MembershipRequest(BaseUrl, "Group", "User"),
 			EmailContentBuilder.PartnerContactForm(BaseUrl, "Company", "Contact", "email@test.com", "123", "Message"),
 			EmailContentBuilder.PartnerImageApproval(BaseUrl, "Partner", Guid.NewGuid(), ["Change 1"]),
 			EmailContentBuilder.PartnerWelcome(BaseUrl, "Partner", "email@test.com", "password")

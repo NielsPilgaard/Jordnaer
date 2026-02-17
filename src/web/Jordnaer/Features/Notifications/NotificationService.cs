@@ -312,7 +312,7 @@ public class NotificationService(
 			var email = new SendEmail
 			{
 				Subject = request.EmailSubject ?? request.Title,
-				HtmlContent = EmailContentBuilder.GenericNotification(request.Title, request.Description, request.LinkUrl, appOptions.Value.BaseUrl),
+				HtmlContent = request.EmailBody ?? EmailContentBuilder.GenericNotification(request.Title, request.Description, request.LinkUrl, appOptions.Value.BaseUrl),
 				To = [new EmailRecipient { Email = user.Email!, DisplayName = user.UserName }]
 			};
 
