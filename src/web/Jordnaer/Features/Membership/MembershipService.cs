@@ -91,17 +91,7 @@ public class MembershipService(CurrentUser currentUser,
 					existingMembership.UserInitiatedMembership = true;
 					await context.SaveChangesAsync(cancellationToken);
 
-					// Send email notification - don't fail the request if notification fails
-					try
-					{
-						await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
-					}
-					catch (Exception notificationException)
-					{
-						logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
-					}
-
-					// Send in-app notifications to group admins
+					// Send in-app notifications to group admins (includes email if enabled in preferences)
 					await NotifyAdminsOfMembershipRequestAsync(context, group, cancellationToken);
 
 					return new Success();
@@ -124,17 +114,7 @@ public class MembershipService(CurrentUser currentUser,
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			// Send email notification - don't fail the request if notification fails
-			try
-			{
-				await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
-			}
-
-			// Send in-app notifications to group admins
+			// Send in-app notifications to group admins (includes email if enabled in preferences)
 			await NotifyAdminsOfMembershipRequestAsync(context, group, cancellationToken);
 
 			return new Success();
@@ -242,17 +222,7 @@ public class MembershipService(CurrentUser currentUser,
 					existingMembership.UserInitiatedMembership = false;
 					await context.SaveChangesAsync(cancellationToken);
 
-					// Send email notification
-					try
-					{
-						await emailService.SendGroupInviteEmail(group.Name, userId, cancellationToken);
-					}
-					catch (Exception notificationException)
-					{
-						logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", group.Name);
-					}
-
-					// Send in-app notification to the invited user
+					// Send in-app notification to the invited user (includes email if enabled in preferences)
 					await SendGroupInviteNotificationAsync(group, userId, cancellationToken);
 
 					return new Success();
@@ -276,17 +246,7 @@ public class MembershipService(CurrentUser currentUser,
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			// Send email notification - don't fail the request if notification fails
-			try
-			{
-				await emailService.SendGroupInviteEmail(group.Name, userId, cancellationToken);
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", group.Name);
-			}
-
-			// Send in-app notification to the invited user
+			// Send in-app notification to the invited user (includes email if enabled in preferences)
 			await SendGroupInviteNotificationAsync(group, userId, cancellationToken);
 
 			return new Success();
