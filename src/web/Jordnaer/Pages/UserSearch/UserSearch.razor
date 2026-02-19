@@ -16,7 +16,7 @@
             Find familier
         </MudText>
 
-        <UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+        <UserSearchForm OnValidSubmit="@(() => Search())" @bind-Filter="_filter" />
 
         @if (!_hasSearched)
         {
