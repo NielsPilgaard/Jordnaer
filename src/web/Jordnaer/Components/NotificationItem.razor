@@ -18,7 +18,7 @@
         }
 
         <div style="flex: 1; min-width: 0;">
-            <MudText Typo="Typo.body2" Style="@(!Notification.IsRead ? "font-weight: 600;" : "")">
+            <MudText Typo="Typo.body2" Class="notification-title" Style="@(!Notification.IsRead ? "font-weight: 600;" : "")">
                 @Notification.Title
             </MudText>
             @if (!string.IsNullOrEmpty(Notification.Description))
@@ -67,17 +67,35 @@
 }
 
 <style>
+    .notification-item {
+        transition: background-color 0.15s ease;
+    }
+
     .notification-item:hover {
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: rgba(0, 0, 0, 0.08);
+        cursor: pointer;
     }
 
     .notification-item.unread {
         background-color: rgba(65, 85, 107, 0.05);
     }
 
+    .notification-item.unread:hover {
+        background-color: rgba(65, 85, 107, 0.12);
+    }
+
+    .notification-title {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-break: break-word;
+    }
+
     .text-truncate {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        display: block;
     }
 </style>

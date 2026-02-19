@@ -1,8 +1,8 @@
 @using Jordnaer.Features.Theme
-@inject NavigationManager Navigation
 
-<MudPaper Elevation="3" Class="user-card pa-4" @onclick="NavigateToProfile"
-    Style="cursor: pointer; transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
+<a href="@(string.IsNullOrEmpty(User.UserName) ? null : $"/{Uri.EscapeDataString(User.UserName)}")" style="text-decoration: none; color: inherit; display: block;">
+<MudPaper Elevation="3" Class="user-card pa-4"
+    Style="transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
     <div class="d-flex flex-column">
         @* Avatar and Basic Info *@
         <div class="d-flex gap-3 mb-3">
@@ -89,6 +89,7 @@
         }
     </div>
 </MudPaper>
+</a>
 
 <style>
     .user-card:hover {
@@ -100,14 +101,4 @@
 @code {
     [Parameter]
     public required UserDto User { get; set; }
-
-    private void NavigateToProfile()
-    {
-        if (string.IsNullOrEmpty(User.UserName))
-        {
-            return;
-        }
-
-        Navigation.NavigateTo($"/{Uri.EscapeDataString(User.UserName)}");
-    }
 }

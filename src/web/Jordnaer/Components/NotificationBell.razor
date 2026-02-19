@@ -5,7 +5,6 @@
 @inject NotificationSignalRClient NotificationSignalRClient
 @inject INotificationService NotificationService
 @inject CurrentUser CurrentUser
-@inject NavigationManager Navigation
 @inject ILogger<NotificationBell> Logger
 @inject ISnackbar Snackbar
 
@@ -50,7 +49,16 @@
                 <div style="max-height: 400px; overflow-y: auto;">
                     @foreach (var notification in _notifications)
                     {
-                        <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
+                        @if (!string.IsNullOrEmpty(notification.LinkUrl))
+                        {
+                            <a href="@notification.LinkUrl" style="text-decoration: none; color: inherit; display: block;">
+                                <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
+                            </a>
+                        }
+                        else
+                        {
+                            <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
+                        }
                         <MudDivider />
                     }
                 </div>
@@ -179,11 +187,6 @@
         }
 
         _isOpen = false;
-
-        if (!string.IsNullOrEmpty(notification.LinkUrl))
-        {
-            Navigation.NavigateTo(notification.LinkUrl);
-        }
     }
 
     private async Task MarkAllAsRead()

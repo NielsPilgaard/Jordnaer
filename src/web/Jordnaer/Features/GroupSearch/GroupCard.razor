@@ -1,8 +1,8 @@
 @using Jordnaer.Features.Theme
-@inject NavigationManager Navigation
 
-<MudPaper Elevation="3" Class="group-card pa-4" @onclick="NavigateToGroup"
-    Style="cursor: pointer; transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
+<a href="/groups/@Uri.EscapeDataString(Group.Name)" style="text-decoration: none; color: inherit; display: block;">
+<MudPaper Elevation="3" Class="group-card pa-4"
+    Style="transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
     <div class="d-flex flex-column">
         @* Group Image/Avatar and Basic Info *@
         <div class="d-flex gap-3 mb-3">
@@ -85,6 +85,7 @@
         }
     </div>
 </MudPaper>
+</a>
 
 <style>
     .group-card:hover {
@@ -96,9 +97,4 @@
 @code {
     [Parameter]
     public required GroupSlim Group { get; set; }
-
-    private void NavigateToGroup()
-    {
-        Navigation.NavigateTo($"/groups/{Uri.EscapeDataString(Group.Name)}");
-    }
 }

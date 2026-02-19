@@ -71,12 +71,14 @@
     </MudCardHeader>
 
     @* Content Section *@
-    <MudCardContent Style="padding: 16px; min-height: 60px;">
-        <MudText Typo="Typo.body1"
-            Style="@($"color: {JordnaerPalette.BlueBody}; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;")">
-            @PostItem.Text.SanitizeHtml()
-        </MudText>
-    </MudCardContent>
+    <a href="/posts/@PostItem.Id" style="text-decoration: none; color: inherit; display: block;">
+        <MudCardContent Style="padding: 16px; min-height: 60px;">
+            <MudText Typo="Typo.body1"
+                Style="@($"color: {JordnaerPalette.BlueBody}; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;")">
+                @PostItem.Text.SanitizeHtml()
+            </MudText>
+        </MudCardContent>
+    </a>
 
     @* Categories Section *@
     @if (PostItem.Categories.Any())
