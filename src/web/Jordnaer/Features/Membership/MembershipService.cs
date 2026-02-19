@@ -680,7 +680,8 @@ public class MembershipService(CurrentUser currentUser,
 				SourceType = NotificationSourceType.GroupInvitation,
 				SourceId = group.Id.ToString(),
 				SendEmail = prefs.EmailOnGroupInvitation,
-				EmailSubject = $"Du er inviteret til {group.Name}"
+				EmailSubject = $"Du er inviteret til {group.Name}",
+				EmailBody = EmailContentBuilder.GroupInvite(appOptions.Value.BaseUrl, group.Name, inviterName)
 			}, cancellationToken);
 		}
 		catch (Exception exception)

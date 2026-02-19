@@ -77,26 +77,23 @@ public class NotificationService(
 		}
 	}
 
-	public async Task SendToManyAsync(CreateNotificationRequest request, IEnumerable<string> recipientIds, CancellationToken ct = default)
+	public Task SendToManyAsync(CreateNotificationRequest request, IEnumerable<string> recipientIds, CancellationToken cancellationToken = default)
 	{
-		foreach (var recipientId in recipientIds)
+		var tasks = recipientIds.Select(recipientId => SendAsync(new CreateNotificationRequest
 		{
-			var individualRequest = new CreateNotificationRequest
-			{
-				RecipientId = recipientId,
-				Title = request.Title,
-				Description = request.Description,
-				ImageUrl = request.ImageUrl,
-				LinkUrl = request.LinkUrl,
-				Type = request.Type,
-				SourceType = request.SourceType,
-				SourceId = request.SourceId,
-				SendEmail = request.SendEmail,
-				EmailSubject = request.EmailSubject
-			};
+			RecipientId = recipientId,
+			Title = request.Title,
+			Description = request.Description,
+			ImageUrl = request.ImageUrl,
+			LinkUrl = request.LinkUrl,
+			Type = request.Type,
+			SourceType = request.SourceType,
+			SourceId = request.SourceId,
+			SendEmail = request.SendEmail,
+			EmailSubject = request.EmailSubject
+		}, cancellationToken));
 
-			await SendAsync(individualRequest, ct);
-		}
+		return Task.WhenAll(tasks);
 	}
 
 	public async Task MarkAsReadAsync(string userId, Guid notificationId, CancellationToken ct = default)

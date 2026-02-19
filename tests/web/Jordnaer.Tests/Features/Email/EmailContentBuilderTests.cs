@@ -157,11 +157,15 @@ public class EmailContentBuilderTests
 	public void MembershipRequest_ShouldProduceValidUrl()
 	{
 		// Act
-		var result = EmailContentBuilder.MembershipRequest(BaseUrl, "Test Group", "Test User");
+		var result = EmailContentBuilder.MembershipRequest(BaseUrl, "Test Group", "Test & <User>");
 
 		// Assert
 		result.Should().Contain("groups/Test");
 		result.Should().NotContain("&amp;amp;");
+
+		// The applicant name should appear HTML-encoded in the body.
+		result.Should().Contain("Test &amp; &lt;User&gt;");
+		result.Should().NotContain("Test & <User>");
 	}
 
 	[Fact]

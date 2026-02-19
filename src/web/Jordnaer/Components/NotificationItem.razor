@@ -1,8 +1,4 @@
-@using Humanizer
-@using Jordnaer.Shared.Notifications
-@using Jordnaer.Extensions
-
-<div class="notification-item @(Notification.IsRead ? "" : "unread")" @onclick="HandleClick" style="cursor: pointer;">
+<div class="notification-item @(Notification.IsRead ? "" : "unread")" @onclick="HandleClick" @onkeydown="HandleKeyDown" tabindex="0" style="cursor: pointer;">
     <div class="d-flex align-center gap-3 pa-3">
         @if (!string.IsNullOrEmpty(Notification.ImageUrl))
         {
@@ -28,7 +24,7 @@
                 </MudText>
             }
             <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="font-size: 0.7rem;">
-                @Notification.CreatedUtc.Humanize(utcDate: true, dateToCompareAgainst:DateTime.UtcNow, culture: new CultureInfo("da-DK"))
+                @Notification.CreatedUtc.Humanize(utcDate: true, dateToCompareAgainst: DateTime.UtcNow, culture: DanishCulture)
             </MudText>
         </div>
 
@@ -50,6 +46,16 @@
     {
         await OnClick.InvokeAsync(Notification);
     }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ")
+        {
+            await HandleClick();
+        }
+    }
+
+    private static readonly CultureInfo DanishCulture = new("da-DK");
 
     private static string GetIconForType(NotificationType type) => type switch
     {
@@ -73,7 +79,6 @@
 
     .notification-item:hover {
         background-color: rgba(0, 0, 0, 0.08);
-        cursor: pointer;
     }
 
     .notification-item.unread {

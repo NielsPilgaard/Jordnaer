@@ -63,9 +63,16 @@ else
         {
             if (CurrentUser.Id is not null)
             {
-                _unreadMessageCount = await NotificationService.GetUnreadCountByTypeAsync(
-                    CurrentUser.Id, NotificationType.ChatMessage);
-                await InvokeAsync(StateHasChanged);
+                try
+                {
+                    _unreadMessageCount = await NotificationService.GetUnreadCountByTypeAsync(
+                        CurrentUser.Id, NotificationType.ChatMessage);
+                    await InvokeAsync(StateHasChanged);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to update unread chat message count for user {UserId}", CurrentUser.Id);
+                }
             }
         });
 

@@ -1,100 +1,121 @@
 @using Jordnaer.Features.Theme
 
-<a href="@(string.IsNullOrEmpty(User.UserName) ? null : $"/{Uri.EscapeDataString(User.UserName)}")" style="text-decoration: none; color: inherit; display: block;">
-<MudPaper Elevation="3" Class="user-card pa-4"
-    Style="transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
-    <div class="d-flex flex-column">
-        @* Avatar and Basic Info *@
-        <div class="d-flex gap-3 mb-3">
-            @if (!string.IsNullOrEmpty(User.ProfilePictureUrl))
-            {
-                <MudAvatar Size="Size.Large" Style="width: 80px; height: 80px;">
-                    <MudImage Src="@User.ProfilePictureUrl" Alt="@User.DisplayName" />
-                </MudAvatar>
-            }
-            else
-            {
-                <MudAvatar Size="Size.Large" Color="Color.Primary" Style="width: 80px; height: 80px; font-size: 2rem;">
-                    @User.DisplayName?.FirstOrDefault()
-                </MudAvatar>
-            }
-
-            <div class="flex-grow-1" style="min-width: 0;">
-                <MudText Typo="Typo.h6" Style="font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
-                    @User.DisplayName
-                </MudText>
-                <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
-                    @("@" + User.UserName)
-                </MudText>
-                @{
-                    var location = User.DisplayLocation();
-                }
-                @if (!string.IsNullOrEmpty(location))
+@{
+    var isNavigable = !string.IsNullOrEmpty(User.UserName);
+    var cardClass = isNavigable ? "user-card pa-4" : "user-card pa-4 non-navigable";
+    RenderFragment cardContent = @<MudPaper Elevation="3" Class="@cardClass"
+        Style="transition: all 0.2s ease; background-color: white; display: flex; flex-direction: column; height: 100%;">
+        <div class="d-flex flex-column">
+            @* Avatar and Basic Info *@
+            <div class="d-flex gap-3 mb-3">
+                @if (!string.IsNullOrEmpty(User.ProfilePictureUrl))
                 {
-                    <div class="d-flex align-center gap-1 mt-1">
-                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="color: #5B9BD5;" />
-                        <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
-                            @location
-                        </MudText>
-                    </div>
+                    <MudAvatar Size="Size.Large" Style="width: 80px; height: 80px;">
+                        <MudImage Src="@User.ProfilePictureUrl" Alt="@User.DisplayName" />
+                    </MudAvatar>
                 }
+                else
+                {
+                    <MudAvatar Size="Size.Large" Color="Color.Primary" Style="width: 80px; height: 80px; font-size: 2rem;">
+                        @User.DisplayName?.FirstOrDefault()
+                    </MudAvatar>
+                }
+
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <MudText Typo="Typo.h6" Style="font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
+                        @User.DisplayName
+                    </MudText>
+                    @if (!string.IsNullOrEmpty(User.UserName))
+                    {
+                        <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
+                            @("@" + User.UserName)
+                        </MudText>
+                    }                    @{
+                        var location = User.DisplayLocation();
+                    }
+                    @if (!string.IsNullOrEmpty(location))
+                    {
+                        <div class="d-flex align-center gap-1 mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Style="color: #5B9BD5;" />
+                            <MudText Typo="Typo.body2" Style="overflow: hidden; text-overflow: ellipsis; color: #5B9BD5;">
+                                @location
+                            </MudText>
+                        </div>
+                    }
+                </div>
             </div>
+
+            @* Children *@
+            @if (User.Children.Count > 0)
+            {
+                <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
+                <div class="mb-3">
+                    <MudText Typo="Typo.body2" Style="font-weight: 500;" Class="mb-2">Børn</MudText>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var child in User.Children.OrderBy(c => c.DateOfBirth))
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Info">
+                                @child.FirstName
+                                @if (child.Age is not null)
+                                {
+                                    <text>, @child.Age år</text>
+                                }
+                            </MudChip>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* Categories *@
+            @if (User.Categories.Count > 0)
+            {
+                <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
+                <div>
+                    <div class="d-flex align-center gap-1 mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Default" />
+                        <MudText Typo="Typo.body2" Style="font-weight: 500;">Interesseret i</MudText>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var category in User.Categories.Take(4))
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
+                                @category
+                            </MudChip>
+                        }
+                        @if (User.Categories.Count > 4)
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
+                                +@(User.Categories.Count - 4)
+                            </MudChip>
+                        }
+                    </div>
+                </div>
+            }
         </div>
+    </MudPaper>;
+}
 
-        @* Children *@
-        @if (User.Children.Count > 0)
-        {
-            <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
-            <div class="mb-3">
-                <MudText Typo="Typo.body2" Style="font-weight: 500;" Class="mb-2">Børn</MudText>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var child in User.Children.OrderBy(c => c.DateOfBirth))
-                    {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Info">
-                            @child.FirstName
-                            @if (child.Age is not null)
-                            {
-                                <text>, @child.Age år</text>
-                            }
-                        </MudChip>
-                    }
-                </div>
-            </div>
-        }
-
-        @* Categories *@
-        @if (User.Categories.Count > 0)
-        {
-            <MudDivider Class="mb-3" Style="background-color: #e0e0e0; opacity: 0.5;" />
-            <div>
-                <div class="d-flex align-center gap-1 mb-2">
-                    <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Default" />
-                    <MudText Typo="Typo.body2" Style="font-weight: 500;">Interesseret i</MudText>
-                </div>
-                <div class="d-flex flex-wrap gap-1">
-                    @foreach (var category in User.Categories.Take(4))
-                    {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
-                            @category
-                        </MudChip>
-                    }
-                    @if (User.Categories.Count > 4)
-                    {
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info">
-                            +@(User.Categories.Count - 4)
-                        </MudChip>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-</MudPaper>
-</a>
+@if (isNavigable)
+{
+    <MudLink Href="@($"/{Uri.EscapeDataString(User.UserName!)}")" Style="text-decoration: none; color: inherit; display: block;" Color="Color.Inherit" Underline="Underline.None">
+        @cardContent
+    </MudLink>
+}
+else
+{
+    @cardContent
+}
 
 <style>
     .user-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .non-navigable.user-card:hover {
+        transform: none;
+        box-shadow: none !important;
+        cursor: default;
     }
 </style>
 

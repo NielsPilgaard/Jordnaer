@@ -41,13 +41,17 @@ public static class EmailContentBuilder
 			""", baseUrl);
 	}
 
-	public static string GroupInvite(string baseUrl, string groupName)
+	public static string GroupInvite(string baseUrl, string groupName, string? inviterName = null)
 	{
 		var groupUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}";
 		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+		var inviterHtml = inviterName is not null
+			? $"<p>Inviteret af <b>{WebUtility.HtmlEncode(inviterName)}</b></p>"
+			: "";
 		return EmailTemplate.Wrap($"""
 			<h4>Du er blevet inviteret til at blive medlem af gruppen <b>{encodedGroupName}</b></h4>
 
+			{inviterHtml}
 			{EmailTemplate.Button(groupUrl, "Se gruppen")}
 			""", baseUrl, preheaderText: $"Du er inviteret til {groupName}");
 	}
