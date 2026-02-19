@@ -252,10 +252,25 @@ public class EmailContentBuilderTests
 		// Act
 		var result = EmailContentBuilder.GenericNotification(title, description, null, BaseUrl);
 
-		// Assert
-		result.Should().NotContain("<script>");
-		result.Should().Contain("&lt;script&gt;");
+		// Assert - raw title must not appear; its fully HTML-encoded form must appear
+		result.Should().NotContain(title);
+		result.Should().Contain("&lt;script&gt;alert('xss')&lt;/script&gt;");
 		result.Should().Contain("Malicious &amp; &lt;content&gt;");
+	}
+
+	[Fact]
+	public void GenericNotification_ShouldResolveRelativeUrl_WhenBaseUrlIsNull()
+	{
+		// Arrange
+		var title = "Test notification";
+		var description = "Test description";
+		var linkUrl = "/some-path";
+
+		// Act - baseUrl is null; linkUrl is relative, so the fallback base should be used
+		var result = EmailContentBuilder.GenericNotification(title, description, linkUrl, null);
+
+		// Assert - relative linkUrl should be resolved against the hardcoded fallback base
+		result.Should().Contain("https://mini-moeder.dk/some-path");
 	}
 
 	[Fact]
