@@ -60,35 +60,38 @@
         }
     }
 
-    private async Task Search()
+    private async Task Search(bool showToast = true)
     {
         _isSearching = true;
 
         _searchResult = await UserSearchService.GetUsersAsync(_filter);
 
-        Snackbar.Clear();
+        if (showToast)
+        {
+            Snackbar.Clear();
 
-        if (_searchResult.TotalCount is 0)
-        {
-            Snackbar.Add(
-            message: "Ingen brugere matchede søgningen.",
-            severity: Severity.Info,
-            options =>
+            if (_searchResult.TotalCount is 0)
             {
-                options.VisibleStateDuration = 3500;
-                options.CloseAfterNavigation = true;
-            });
-        }
-        else
-        {
-            Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
-            severity: Severity.Success,
-            options =>
+                Snackbar.Add(
+                message: "Ingen brugere matchede søgningen.",
+                severity: Severity.Info,
+                options =>
+                {
+                    options.VisibleStateDuration = 3500;
+                    options.CloseAfterNavigation = true;
+                });
+            }
+            else
             {
-                options.VisibleStateDuration = 3500;
-                options.Icon = Icons.Material.Filled.ArrowDownward;
-                options.CloseAfterNavigation = true;
-            });
+                Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
+                severity: Severity.Success,
+                options =>
+                {
+                    options.VisibleStateDuration = 3500;
+                    options.Icon = Icons.Material.Filled.ArrowDownward;
+                    options.CloseAfterNavigation = true;
+                });
+            }
         }
 
         _hasSearched = true;
@@ -102,6 +105,6 @@
     private async Task OnSelectedPageChanged(int selectedPage)
     {
         _filter.PageNumber = selectedPage;
-        await Search();
+        await Search(showToast: false);
     }
 }
