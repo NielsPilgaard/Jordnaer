@@ -77,6 +77,7 @@
 @code {
     private int _unreadCount;
     private bool _isOpen;
+    private bool _acquired;
     private List<NotificationDto> _notifications = [];
     private IDisposable? _notificationReceivedSubscription;
     private IDisposable? _unreadCountSubscription;
@@ -146,7 +147,15 @@
             await InvokeAsync(StateHasChanged);
         });
 
-        await NotificationSignalRClient.AcquireAsync();
+        try
+        {
+            await NotificationSignalRClient.AcquireAsync();
+            _acquired = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to acquire NotificationSignalRClient");
+        }
     }
 
     private async Task ToggleDropdown()
@@ -218,7 +227,11 @@
         _notificationReceivedSubscription?.Dispose();
         _unreadCountSubscription?.Dispose();
         _notificationReadSubscription?.Dispose();
-        await NotificationSignalRClient.ReleaseAsync();
+        if (_acquired)
+        {
+            _acquired = false;
+            await NotificationSignalRClient.ReleaseAsync();
+        }
     }
 }
 

@@ -56,9 +56,7 @@ public class NotificationService(
 			context.Notifications.Add(notification);
 			await context.SaveChangesAsync(ct);
 
-			var dto = ToDto(notification);
-
-			await hubContext.Clients.User(request.RecipientId).ReceiveNotification(dto);
+			await hubContext.Clients.User(request.RecipientId).ReceiveNotification(notification.ToDto());
 
 			var unreadCount = await context.Notifications
 				.CountAsync(n => n.RecipientId == request.RecipientId && !n.IsRead, ct);
@@ -77,24 +75,28 @@ public class NotificationService(
 		}
 	}
 
-	public Task SendToManyAsync(CreateNotificationRequest request, IEnumerable<string> recipientIds, CancellationToken cancellationToken = default)
-	{
-		var tasks = recipientIds.Select(recipientId => SendAsync(new CreateNotificationRequest
+	public Task SendToManyAsync(CreateNotificationRequest request, IEnumerable<string> recipientIds, CancellationToken cancellationToken = default) =>
+		Parallel.ForEachAsync(recipientIds, new ParallelOptions
 		{
-			RecipientId = recipientId,
-			Title = request.Title,
-			Description = request.Description,
-			ImageUrl = request.ImageUrl,
-			LinkUrl = request.LinkUrl,
-			Type = request.Type,
-			SourceType = request.SourceType,
-			SourceId = request.SourceId,
-			SendEmail = request.SendEmail,
-			EmailSubject = request.EmailSubject
-		}, cancellationToken));
-
-		return Task.WhenAll(tasks);
-	}
+			MaxDegreeOfParallelism = 10,
+			CancellationToken = cancellationToken
+		}, (recipientId, ct) =>
+		{
+			var perRecipientRequest = new CreateNotificationRequest
+			{
+				RecipientId = recipientId,
+				Title = request.Title,
+				Description = request.Description,
+				ImageUrl = request.ImageUrl,
+				LinkUrl = request.LinkUrl,
+				Type = request.Type,
+				SourceType = request.SourceType,
+				SourceId = request.SourceId,
+				SendEmail = request.SendEmail,
+				EmailSubject = request.EmailSubject
+			};
+			return new ValueTask(SendAsync(perRecipientRequest, ct));
+		});
 
 	public async Task MarkAsReadAsync(string userId, Guid notificationId, CancellationToken ct = default)
 	{
@@ -182,21 +184,7 @@ public class NotificationService(
 			.Where(n => n.RecipientId == userId && !n.IsRead)
 			.OrderByDescending(n => n.CreatedUtc)
 			.Take(limit)
-			.Select(n => new NotificationDto
-			{
-				Id = n.Id,
-				RecipientId = n.RecipientId,
-				Title = n.Title,
-				Description = n.Description,
-				ImageUrl = n.ImageUrl,
-				LinkUrl = n.LinkUrl,
-				Type = n.Type,
-				IsRead = n.IsRead,
-				CreatedUtc = n.CreatedUtc,
-				ReadUtc = n.ReadUtc,
-				SourceType = n.SourceType,
-				SourceId = n.SourceId
-			})
+			.Select(n => n.ToDto())
 			.ToListAsync(ct);
 	}
 
@@ -217,21 +205,7 @@ public class NotificationService(
 			.OrderByDescending(n => n.CreatedUtc)
 			.Skip(offset)
 			.Take(limit)
-			.Select(n => new NotificationDto
-			{
-				Id = n.Id,
-				RecipientId = n.RecipientId,
-				Title = n.Title,
-				Description = n.Description,
-				ImageUrl = n.ImageUrl,
-				LinkUrl = n.LinkUrl,
-				Type = n.Type,
-				IsRead = n.IsRead,
-				CreatedUtc = n.CreatedUtc,
-				ReadUtc = n.ReadUtc,
-				SourceType = n.SourceType,
-				SourceId = n.SourceId
-			})
+			.Select(n => n.ToDto())
 			.ToListAsync(ct);
 	}
 
@@ -262,21 +236,7 @@ public class NotificationService(
 			.Where(n => n.RecipientId == userId && !n.IsRead && n.Type != excludedType)
 			.OrderByDescending(n => n.CreatedUtc)
 			.Take(limit)
-			.Select(n => new NotificationDto
-			{
-				Id = n.Id,
-				RecipientId = n.RecipientId,
-				Title = n.Title,
-				Description = n.Description,
-				ImageUrl = n.ImageUrl,
-				LinkUrl = n.LinkUrl,
-				Type = n.Type,
-				IsRead = n.IsRead,
-				CreatedUtc = n.CreatedUtc,
-				ReadUtc = n.ReadUtc,
-				SourceType = n.SourceType,
-				SourceId = n.SourceId
-			})
+			.Select(n => n.ToDto())
 			.ToListAsync(ct);
 	}
 
@@ -320,20 +280,4 @@ public class NotificationService(
 			logger.LogError(exception, "Failed to publish notification email for user {RecipientId}", request.RecipientId);
 		}
 	}
-
-	private static NotificationDto ToDto(Notification notification) => new()
-	{
-		Id = notification.Id,
-		RecipientId = notification.RecipientId,
-		Title = notification.Title,
-		Description = notification.Description,
-		ImageUrl = notification.ImageUrl,
-		LinkUrl = notification.LinkUrl,
-		Type = notification.Type,
-		IsRead = notification.IsRead,
-		CreatedUtc = notification.CreatedUtc,
-		ReadUtc = notification.ReadUtc,
-		SourceType = notification.SourceType,
-		SourceId = notification.SourceId
-	};
 }

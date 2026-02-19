@@ -14,6 +14,7 @@ public interface INotificationSettingsService
 	Task<OneOf<Success, NotFound>> SetAllGroupPostPreferencesAsync(string userId, bool enabled, CancellationToken cancellationToken = default);
 	Task<List<GroupMembership>> GetGroupPreferencesAsync(string userId, CancellationToken cancellationToken = default);
 	Task<GroupNotificationPreferences> GetGroupMembershipPreferencesAsync(string userId, CancellationToken cancellationToken = default);
+	Task<Dictionary<string, GroupNotificationPreferences>> GetGroupMembershipPreferencesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, NotFound>> SetGroupMembershipPreferencesAsync(string userId, GroupNotificationPreferences preferences, CancellationToken cancellationToken = default);
 }
 
@@ -110,6 +111,28 @@ public class NotificationSettingsService(IDbContextFactory<JordnaerDbContext> co
 			.FirstOrDefaultAsync(cancellationToken);
 
 		return profile ?? new GroupNotificationPreferences();
+	}
+
+	public async Task<Dictionary<string, GroupNotificationPreferences>> GetGroupMembershipPreferencesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var ids = userIds.ToList();
+
+		var rows = await context.UserProfiles
+			.AsNoTracking()
+			.Where(x => ids.Contains(x.Id))
+			.Select(x => new { x.Id, x.EmailOnGroupMembershipRequest, x.EmailOnGroupInvitation, x.EmailOnGroupMembershipResponse })
+			.ToListAsync(cancellationToken);
+
+		return rows.ToDictionary(
+			x => x.Id,
+			x => new GroupNotificationPreferences
+			{
+				EmailOnGroupMembershipRequest = x.EmailOnGroupMembershipRequest,
+				EmailOnGroupInvitation = x.EmailOnGroupInvitation,
+				EmailOnGroupMembershipResponse = x.EmailOnGroupMembershipResponse
+			});
 	}
 
 	public async Task<OneOf<Success, NotFound>> SetGroupMembershipPreferencesAsync(string userId, GroupNotificationPreferences preferences, CancellationToken cancellationToken = default)

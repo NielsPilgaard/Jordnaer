@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject UserSearchResultCache Cache
 @inject ISnackbar Snackbar
+@inject ILogger<UserSearch> Logger
 
 @attribute [Sitemap]
 
@@ -104,8 +105,9 @@
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "An error occurred during user search");
             Snackbar.Add(
-                message: $"Fejl ved søgning: {ex.Message}",
+                message: "Der opstod en fejl under søgningen",
                 severity: Severity.Error,
                 options =>
                 {

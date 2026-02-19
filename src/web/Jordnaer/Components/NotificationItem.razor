@@ -1,4 +1,4 @@
-<div class="notification-item @(Notification.IsRead ? "" : "unread")" @onclick="HandleClick" @onkeydown="HandleKeyDown" tabindex="0" style="cursor: pointer;">
+<button class="notification-item @(Notification.IsRead ? "" : "unread")" @onclick="HandleClick" type="button">
     <div class="d-flex align-center gap-3 pa-3">
         @if (!string.IsNullOrEmpty(Notification.ImageUrl))
         {
@@ -30,10 +30,10 @@
 
         @if (!Notification.IsRead)
         {
-            <div style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--mud-palette-primary); flex-shrink: 0;"></div>
+            <div aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--mud-palette-primary); flex-shrink: 0;"></div>
         }
     </div>
-</div>
+</button>
 
 @code {
     [Parameter, EditorRequired]
@@ -45,14 +45,6 @@
     private async Task HandleClick()
     {
         await OnClick.InvokeAsync(Notification);
-    }
-
-    private async Task HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key is "Enter" or " ")
-        {
-            await HandleClick();
-        }
     }
 
     private static readonly CultureInfo DanishCulture = new("da-DK");
@@ -74,6 +66,13 @@
 
 <style>
     .notification-item {
+        display: block;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
         transition: background-color 0.15s ease;
     }
 

@@ -60,45 +60,51 @@
     {
         _isSearching = true;
 
-        _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
-
-        if (showToast)
+        try
         {
-            Snackbar.Clear();
+            _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
 
-            if (_searchResult.TotalCount is 0)
+            if (showToast)
             {
-                Snackbar.Add(
-                message: "Ingen grupper matchede søgningen.",
-                severity: Severity.Info,
-                options =>
+                Snackbar.Clear();
+
+                if (_searchResult.TotalCount is 0)
                 {
-                    options.VisibleStateDuration = 3500;
-                    options.CloseAfterNavigation = true;
-                });
-            }
-            else
-            {
-                Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
-                severity: Severity.Success,
-                options =>
+                    Snackbar.Add(
+                    message: "Ingen grupper matchede søgningen.",
+                    severity: Severity.Info,
+                    options =>
+                    {
+                        options.VisibleStateDuration = 3500;
+                        options.CloseAfterNavigation = true;
+                    });
+                }
+                else
                 {
-                    options.VisibleStateDuration = 3500;
-                    options.Icon = Icons.Material.Filled.CheckCircle;
-                    options.CloseAfterNavigation = true;
-                });
+                    Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
+                    severity: Severity.Success,
+                    options =>
+                    {
+                        options.VisibleStateDuration = 3500;
+                        options.Icon = Icons.Material.Filled.CheckCircle;
+                        options.CloseAfterNavigation = true;
+                    });
+                }
             }
+
+            _hasSearched = true;
+
+            // Save to cache for restoration when navigating back
+            Cache.SearchFilter = _filter;
+            Cache.SearchResult = _searchResult;
+
+            // Clear scroll position since this is a new search
+            await ClearScrollPositionAsync();
         }
-
-        _hasSearched = true;
-        _isSearching = false;
-
-        // Save to cache for restoration when navigating back
-        Cache.SearchFilter = _filter;
-        Cache.SearchResult = _searchResult;
-
-        // Clear scroll position since this is a new search
-        await ClearScrollPositionAsync();
+        finally
+        {
+            _isSearching = false;
+        }
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)

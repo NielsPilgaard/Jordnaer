@@ -287,17 +287,17 @@ public class MembershipService(CurrentUser currentUser,
 			await context.SaveChangesAsync(cancellationToken);
 
 			// Clear the invitation notification
-			try
+			if (currentUser.Id is not null)
 			{
-				if (currentUser.Id is not null)
+				try
 				{
 					await inAppNotificationService.MarkSourceAsReadAsync(
 						currentUser.Id, NotificationSourceType.GroupInvitation, groupId.ToString(), cancellationToken);
 				}
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to clear invitation notification for group {GroupId}", groupId);
+				catch (Exception notificationException)
+				{
+					logger.LogError(notificationException, "Failed to clear invitation notification for group {GroupId}", groupId);
+				}
 			}
 
 			return new Success();
@@ -638,11 +638,12 @@ public class MembershipService(CurrentUser currentUser,
 
 			var userName = currentUser.UserProfile?.DisplayName ?? "En bruger";
 
-			foreach (var adminUserId in adminUserIds)
-			{
-				var prefs = await notificationSettingsService.GetGroupMembershipPreferencesAsync(adminUserId, cancellationToken);
+			var prefsByUserId = await notificationSettingsService.GetGroupMembershipPreferencesAsync(adminUserIds, cancellationToken);
 
-				await inAppNotificationService.SendAsync(new CreateNotificationRequest
+			var notifications = adminUserIds.Select(adminUserId =>
+			{
+				var prefs = prefsByUserId.GetValueOrDefault(adminUserId) ?? new GroupNotificationPreferences();
+				return inAppNotificationService.SendAsync(new CreateNotificationRequest
 				{
 					RecipientId = adminUserId,
 					Title = $"{userName} vil gerne være med i {group.Name}",
@@ -654,7 +655,9 @@ public class MembershipService(CurrentUser currentUser,
 					EmailSubject = $"Ny medlemskabsanmodning til {group.Name}",
 					EmailBody = EmailContentBuilder.MembershipRequest(appOptions.Value.BaseUrl, group.Name, userName)
 				}, cancellationToken);
-			}
+			});
+
+			await Task.WhenAll(notifications);
 		}
 		catch (Exception exception)
 		{
