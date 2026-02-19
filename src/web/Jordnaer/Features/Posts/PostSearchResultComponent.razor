@@ -3,6 +3,11 @@
 @inject NavigationManager Navigation
 @inject IAdProvider AdProvider
 
+<MudPagination Class="mt-5 mb-5 d-flex justify-center" BoundaryCount="0" MiddleCount="3"
+    UserAttributes="@(new Dictionary<string, object> { ["title"] = $"Viser {Filter.PageSize} ud af {SearchResult.TotalCount} resultater." })"
+    SelectedChanged="@SelectedPageChanged" Variant="Variant.Filled"
+    Count="@((int)Math.Ceiling((double)SearchResult.TotalCount / Math.Max(1, Filter.PageSize)))"
+    Selected="Filter.PageNumber" />
 <MudGrid Justify="Justify.Center" Class=mt-5>
     @{
         var items = GetItemsWithAds();
