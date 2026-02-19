@@ -7,6 +7,7 @@
 @inject CurrentUser CurrentUser
 @inject ILogger<NotificationBell> Logger
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 @implements IAsyncDisposable
 
@@ -49,16 +50,7 @@
                 <div style="max-height: 400px; overflow-y: auto;">
                     @foreach (var notification in _notifications)
                     {
-                        @if (!string.IsNullOrEmpty(notification.LinkUrl))
-                        {
-                            <a href="@notification.LinkUrl" style="text-decoration: none; color: inherit; display: block;">
-                                <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
-                            </a>
-                        }
-                        else
-                        {
-                            <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
-                        }
+                        <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
                         <MudDivider />
                     }
                 </div>
@@ -196,6 +188,11 @@
         }
 
         _isOpen = false;
+
+        if (!string.IsNullOrEmpty(notification.LinkUrl))
+        {
+            NavigationManager.NavigateTo(notification.LinkUrl, forceLoad: true);
+        }
     }
 
     private async Task MarkAllAsRead()
