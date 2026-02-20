@@ -114,8 +114,6 @@
 			if (Cache.MapState is not null)
 			{
 				await _mapSearchFilter.RestoreMapStateAsync(
-					Cache.MapState.MarkerLatitude,
-					Cache.MapState.MarkerLongitude,
 					Cache.MapState.ViewLatitude,
 					Cache.MapState.ViewLongitude,
 					Cache.MapState.Zoom,
