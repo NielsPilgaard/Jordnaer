@@ -259,11 +259,21 @@ else
     [Parameter]
     public required string GroupName { get; set; }
 
+    private string _loadedGroupName = "";
+
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (_loadedGroupName == GroupName)
+            return;
+
+        _loadedGroupName = GroupName;
+        _isLoading = true;
+        _memberships = [];
+        _searchString = "";
+
         try
         {
             _memberships = await GroupService.GetGroupMembershipsAsync(GroupName);
