@@ -39,10 +39,7 @@ public class GroupSearchService(
 
 		var totalCount = await groups.CountAsync(cancellationToken);
 
-		var groupsToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedGroups = await groups
-							  .Skip(groupsToSkip)
-							  .Take(filter.PageSize)
 							  .Select(group => new GroupSlim
 							  {
 								  ProfilePictureUrl = group.ProfilePictureUrl,

@@ -3,7 +3,6 @@
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
-@inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
 
 @attribute [Sitemap]
@@ -12,29 +11,8 @@
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-    <GroupSearchForm OnValidSubmit="@(() => Search())" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
+    <GroupSearchForm OnFiltersChanged="OnFiltersChanged" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
 
-    @if (!_hasSearched)
-    {
-        return;
-    }
-
-    @if (_searchResult.TotalCount is 0)
-    {
-        <MudContainer MaxWidth="MaxWidth.Medium">
-            <MudPaper Elevation="3" Class="pa-6 pa-sm-8 pa-md-10 mt-5">
-                <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="align-center">
-                    <MudText Align="Align.Center" Typo="Typo.h6">Ingen grupper matchede søgningen.</MudText>
-                </MudAlert>
-            </MudPaper>
-        </MudContainer>
-        return;
-    }
-
-    <div class="mt-5">
-        <GroupSearchResultComponent Filter="_filter" SearchResult="_searchResult"
-            SelectedPageChanged="@OnSelectedPageChanged" />
-    </div>
 </MudLoading>
 
 @code {
@@ -43,85 +21,50 @@
     private GroupSearchResult _searchResult = new();
 
     private bool _isSearching = false;
-    private bool _hasSearched = false;
+    private CancellationTokenSource? _debounceCts;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Restore from cache if available
         if (Cache.SearchFilter is not null && Cache.SearchResult is not null)
         {
             _filter = Cache.SearchFilter;
             _searchResult = Cache.SearchResult;
-            _hasSearched = true;
+            return;
         }
+
+        // Load all groups immediately on page visit
+        await LoadGroupsAsync(_filter);
     }
 
-    private async Task Search(bool showToast = true)
+    private async Task OnFiltersChanged()
     {
-        _isSearching = true;
-
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
         try
         {
-            _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
+            await Task.Delay(400, _debounceCts.Token);
+            await LoadGroupsAsync(_filter, _debounceCts.Token);
+        }
+        catch (OperationCanceledException) { /* superseded by newer keystroke */ }
+    }
 
-            if (showToast)
-            {
-                Snackbar.Clear();
+    private async Task LoadGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken = default)
+    {
+        _isSearching = true;
+        try
+        {
+            _searchResult = await GroupSearchService.GetGroupsAsync(filter, cancellationToken);
 
-                if (_searchResult.TotalCount is 0)
-                {
-                    Snackbar.Add(
-                    message: "Ingen grupper matchede søgningen.",
-                    severity: Severity.Info,
-                    options =>
-                    {
-                        options.VisibleStateDuration = 3500;
-                        options.CloseAfterNavigation = true;
-                    });
-                }
-                else
-                {
-                    Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
-                    severity: Severity.Success,
-                    options =>
-                    {
-                        options.VisibleStateDuration = 3500;
-                        options.Icon = Icons.Material.Filled.CheckCircle;
-                        options.CloseAfterNavigation = true;
-                    });
-                }
-            }
-
-            _hasSearched = true;
-
-            // Save to cache for restoration when navigating back
             Cache.SearchFilter = _filter;
             Cache.SearchResult = _searchResult;
 
-            // Clear scroll position since this is a new search
-            await ClearScrollPositionAsync();
+            StateHasChanged();
         }
+        catch (OperationCanceledException) { /* superseded */ }
         finally
         {
             _isSearching = false;
-        }
-    }
-
-    private async Task OnSelectedPageChanged(int selectedPage)
-    {
-        _filter.PageNumber = selectedPage;
-        await Search(showToast: false);
-    }
-
-    private async Task ClearScrollPositionAsync()
-    {
-        try
-        {
-            await JsRuntime.InvokeVoidAsync("groupSearchScroll.clearScrollPosition");
-        }
-        catch
-        {
-            // Ignore JS interop errors
         }
     }
 }
