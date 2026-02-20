@@ -1,4 +1,8 @@
-<button class="notification-item @(Notification.IsRead ? "" : "unread")" @onclick="HandleClick" type="button">
+<MudLink Href="@Notification.LinkUrl"
+         Underline="Underline.None"
+         Color="Color.Inherit"
+         Class="@($"notification-item {(Notification.IsRead ? "" : "unread")}")"
+         OnClick="HandleClick">
     <div class="d-flex align-center gap-3 pa-3">
         @if (!string.IsNullOrEmpty(Notification.ImageUrl))
         {
@@ -33,7 +37,7 @@
             <div aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--mud-palette-primary); flex-shrink: 0;"></div>
         }
     </div>
-</button>
+</MudLink>
 
 @code {
     [Parameter, EditorRequired]
@@ -42,7 +46,7 @@
     [Parameter]
     public EventCallback<NotificationDto> OnClick { get; set; }
 
-    private async Task HandleClick()
+    private async Task HandleClick(MouseEventArgs _)
     {
         await OnClick.InvokeAsync(Notification);
     }
@@ -74,6 +78,8 @@
         text-align: left;
         cursor: pointer;
         transition: background-color 0.15s ease;
+        text-decoration: none;
+        color: inherit;
     }
 
     .notification-item:hover {

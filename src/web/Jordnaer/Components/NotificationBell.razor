@@ -7,7 +7,6 @@
 @inject CurrentUser CurrentUser
 @inject ILogger<NotificationBell> Logger
 @inject ISnackbar Snackbar
-@inject NavigationManager NavigationManager
 
 @implements IAsyncDisposable
 
@@ -188,11 +187,6 @@
         }
 
         _isOpen = false;
-
-        if (!string.IsNullOrEmpty(notification.LinkUrl))
-        {
-            NavigationManager.NavigateTo(notification.LinkUrl, forceLoad: true);
-        }
     }
 
     private async Task MarkAllAsRead()
