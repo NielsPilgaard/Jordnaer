@@ -1,0 +1,157 @@
+@inject IDataForsyningenClient DataForsyningenClient
+@inject ILocationService LocationService
+
+<MudStack Spacing="3">
+    @* Address search with autocomplete — navigates the map view only, no data re-fetch *@
+    <MudAutocomplete T="string" Value="@_addressText" SearchFunc="SearchForAddresses"
+        DebounceInterval="250" MinCharacters="3" ResetValueOnEmptyText CoerceText="false" CoerceValue="false"
+        ProgressIndicatorColor="Color.Info" Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable
+        ValueChanged="OnAddressSelected" AdornmentIcon="@Icons.Material.Filled.LocationOn" AdornmentColor="Color.Primary"
+        Variant="Variant.Outlined" />
+
+    @* Map *@
+    <LeafletMap @ref="_mapComponent" MapId="@MapId" InitialLatitude="@InitialLatitude"
+        InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom"
+        MapStyle="height: 450px; width: 100%; border-radius: 12px; border: 2px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+</MudStack>
+
+@code {
+    private LeafletMap? _mapComponent;
+    private string? _addressText;
+    private IEnumerable<GroupMarkerData>? _previousGroups;
+
+    [Parameter]
+    public string MapId { get; set; } = $"group-map-search-{Guid.NewGuid()}";
+
+    [Parameter]
+    public double InitialLatitude { get; set; } = 56.0; // Center of Denmark
+
+    [Parameter]
+    public double InitialLongitude { get; set; } = 10.0; // Center of Denmark
+
+    [Parameter]
+    public int InitialZoom { get; set; } = 7;
+
+    /// <summary>
+    /// Group markers to display on the map.
+    /// </summary>
+    [Parameter]
+    public IEnumerable<GroupMarkerData>? Groups { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await WaitForMapInitializationAsync();
+
+            if (_mapComponent?.IsInitialized == true && Groups is not null)
+            {
+                _previousGroups = Groups;
+                await _mapComponent.UpdateGroupMarkersAsync(Groups);
+            }
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_mapComponent?.IsInitialized != true)
+        {
+            return;
+        }
+
+        var groupsList = Groups?.ToList();
+
+        if (groupsList is null || groupsList.Count == 0)
+        {
+            if (_previousGroups is not null)
+            {
+                _previousGroups = null;
+                await _mapComponent.ClearGroupMarkersAsync();
+            }
+        }
+        else if (Groups != _previousGroups)
+        {
+            _previousGroups = Groups;
+            await _mapComponent.UpdateGroupMarkersAsync(groupsList);
+        }
+    }
+
+    /// <summary>
+    /// Gets the current map view state and address text. Used to persist map state across navigation.
+    /// </summary>
+    public async Task<(MapViewState? ViewState, string? AddressText)> GetMapStateAsync()
+    {
+        MapViewState? viewState = null;
+
+        if (_mapComponent?.IsInitialized == true)
+        {
+            viewState = await _mapComponent.GetMapStateAsync();
+        }
+
+        return (viewState, _addressText);
+    }
+
+    /// <summary>
+    /// Restores a previously saved map view state.
+    /// </summary>
+    public async Task RestoreMapStateAsync(
+        double viewLatitude,
+        double viewLongitude,
+        int zoom,
+        string? addressText)
+    {
+        _addressText = addressText;
+
+        await WaitForMapInitializationAsync();
+
+        if (_mapComponent?.IsInitialized == true)
+        {
+            await _mapComponent.CenterMapAsync(viewLatitude, viewLongitude, zoom);
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+        {
+            return [];
+        }
+
+        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+
+        return searchResponse is { IsSuccessful: true, Content: not null }
+            ? searchResponse.Content.Select(r => r.ToString())
+            : [];
+    }
+
+    private async Task OnAddressSelected(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return;
+        }
+
+        _addressText = address;
+
+        var locationResult = await LocationService.GetLocationFromAddressAsync(address);
+        if (locationResult is null)
+        {
+            return;
+        }
+
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.CenterMapAsync(locationResult.Location.Y, locationResult.Location.X, 13);
+        }
+    }
+
+    private async Task WaitForMapInitializationAsync()
+    {
+        var attempts = 0;
+        while (_mapComponent?.IsInitialized != true && attempts < 20)
+        {
+            await Task.Delay(50);
+            attempts++;
+        }
+    }
+}
