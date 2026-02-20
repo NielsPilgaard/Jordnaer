@@ -4,22 +4,56 @@
 @inject IJSRuntime JsRuntime
 
 <MudStack Spacing="3">
-    @* Address search with autocomplete — navigates the map to a location, does not trigger a data re-fetch *@
+    @if (_isLoadingLocation)
+    {
+        <MudAlert Severity="Severity.Info" Dense Class="mb-2">
+            <div class="d-flex align-center gap-2">
+                <MudProgressCircular Size="Size.Small" Indeterminate />
+                <MudText Typo="Typo.body2">Henter din placering...</MudText>
+            </div>
+        </MudAlert>
+    }
+
+    @* Address search with autocomplete *@
     <MudAutocomplete T="string" Value="@_addressText" SearchFunc="SearchForAddresses"
         DebounceInterval="250" MinCharacters="3" ResetValueOnEmptyText CoerceText="false" CoerceValue="false"
         ProgressIndicatorColor="Color.Info" Placeholder="Indtast adresse (f.eks. 'Park Allé 1, 8000 Aarhus')" Clearable
         ValueChanged="OnAddressSelected" AdornmentIcon="@Icons.Material.Filled.LocationOn" AdornmentColor="Color.Primary"
         Variant="Variant.Outlined" />
 
+    @* Radius slider with value display *@
+    <MudStack Spacing="1" Class="mt-3">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.body2">
+                Radius:
+            </MudText>
+            <MudText Typo="Typo.body1" Color="Color.Default">
+                <strong>@RadiusKm km</strong>
+            </MudText>
+        </MudStack>
+        <MudSlider Value="@RadiusKm" Min="0" Max="200" Step="5" Color="Color.Primary"
+            Size="Size.Medium" Class="py-2"
+            ValueChanged="@(async (int newValue) => await OnRadiusChanged(newValue))" />
+    </MudStack>
+
     @* Map *@
     <LeafletMap @ref="_mapComponent" MapId="@MapId" InitialLatitude="@InitialLatitude"
-        InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom"
+        InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom" OnLocationSelected="OnMapClicked"
         MapStyle="height: 450px; width: 100%; border-radius: 12px; border: 2px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+
+    @* Instructions *@
+    <MudAlert Severity="Severity.Info" Dense Icon="@Icons.Material.Filled.Info" Class="mt-2">
+        <MudText Typo="Typo.caption">
+            Klik på kortet eller søg efter en adresse for at vælge et søgeområde
+        </MudText>
+    </MudAlert>
 </MudStack>
 
 @code {
     private LeafletMap? _mapComponent;
     private string? _addressText;
+    private bool _isLoadingLocation = false;
+    private bool _hasAttemptedGeolocation = false;
     private IEnumerable<GroupMarkerData>? _previousGroups;
 
     [Parameter]
@@ -34,26 +68,100 @@
     [Parameter]
     public int InitialZoom { get; set; } = 7;
 
+    [Parameter]
+    public int RadiusKm { get; set; } = 25;
+
+    [Parameter]
+    public EventCallback<int> RadiusKmChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(double Latitude, double Longitude, int RadiusKm, string? Address)> OnLocationSearchChanged
+    {
+        get;
+        set;
+    }
+
     /// <summary>
     /// Group data to display as markers on the map
     /// </summary>
     [Parameter]
     public IEnumerable<GroupMarkerData>? Groups { get; set; }
 
+    /// <summary>
+    /// When true, skips automatic geolocation on first render.
+    /// Use this when restoring from cache to prevent geolocation from overriding restored state.
+    /// </summary>
+    [Parameter]
+    public bool SkipGeolocation { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && !_hasAttemptedGeolocation)
         {
+            _hasAttemptedGeolocation = true;
+
             // Wait for the map to initialize
             await WaitForMapInitializationAsync();
 
-            // Push initial group markers after map is initialized
-            if (_mapComponent?.IsInitialized == true && Groups is not null)
+            if (_mapComponent?.IsInitialized == true)
             {
-                _previousGroups = Groups;
-                await _mapComponent.UpdateGroupMarkersAsync(Groups);
+                // Only attempt geolocation if we're not restoring state from cache or skipping explicitly
+                if (!SkipGeolocation)
+                {
+                    await TryGetUserLocation();
+                }
+
+                // Push initial group markers after map is initialized
+                if (Groups is not null)
+                {
+                    _previousGroups = Groups;
+                    await _mapComponent.UpdateGroupMarkersAsync(Groups);
+                }
             }
         }
+    }
+
+    private async Task TryGetUserLocation()
+    {
+        try
+        {
+            _isLoadingLocation = true;
+            StateHasChanged();
+
+            var position = await JsRuntime.InvokeAsync<GeolocationPosition?>("geolocationService.getCurrentPosition");
+
+            if (position is not null && position.Latitude != 0 && position.Longitude != 0)
+            {
+                // User granted permission, update map to their location
+                if (_mapComponent is not null)
+                {
+                    await _mapComponent.CenterMapAsync(position.Latitude, position.Longitude, 10);
+                    await _mapComponent.UpdateMarkerAsync(position.Latitude, position.Longitude);
+                    await _mapComponent.UpdateSearchRadiusAsync(position.Latitude, position.Longitude, RadiusKm);
+                }
+
+                // Notify parent component
+                await OnLocationSearchChanged.InvokeAsync((position.Latitude, position.Longitude, RadiusKm, null));
+            }
+            // If null or denied, map stays at default Denmark center
+        }
+        catch (Exception ex)
+        {
+            // Geolocation failed or denied - silently fall back to Denmark center
+            Console.WriteLine($"Geolocation error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoadingLocation = false;
+            StateHasChanged();
+        }
+    }
+
+    [UsedImplicitly]
+    private class GeolocationPosition
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 
     /// <summary>
@@ -74,7 +182,7 @@
     }
 
     /// <summary>
-    /// Called when an address is selected from autocomplete — navigates the map view only
+    /// Called when an address is selected from autocomplete
     /// </summary>
     private async Task OnAddressSelected(string? address)
     {
@@ -96,10 +204,59 @@
         var lat = locationResult.Location.Y;
         var lng = locationResult.Location.X;
 
-        // Navigate the map to the selected address — no data re-fetch
+        // Update map
         if (_mapComponent is not null)
         {
             await _mapComponent.CenterMapAsync(lat, lng, 13);
+            await _mapComponent.UpdateMarkerAsync(lat, lng);
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+        }
+
+        // Notify parent component
+        await OnLocationSearchChanged.InvokeAsync((lat, lng, RadiusKm, address));
+    }
+
+    /// <summary>
+    /// Called when the map is clicked
+    /// </summary>
+    private async Task OnMapClicked((double Latitude, double Longitude) location)
+    {
+        var (lat, lng) = location;
+
+        // Clear the address text since we're selecting a new location on the map
+        _addressText = null;
+
+        // Update marker and radius on map
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.UpdateMarkerAsync(lat, lng);
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+        }
+
+        // Pass null for address when clicking on map (not from address search)
+        await OnLocationSearchChanged.InvokeAsync((lat, lng, RadiusKm, null));
+    }
+
+    /// <summary>
+    /// Called when the radius slider changes
+    /// </summary>
+    private async Task OnRadiusChanged(int newRadius)
+    {
+        RadiusKm = newRadius;
+        await RadiusKmChanged.InvokeAsync(newRadius);
+
+        // The parent will handle updating the map through the public method
+    }
+
+    /// <summary>
+    /// Public method to update the search radius visualization
+    /// Call this from parent when radius changes
+    /// </summary>
+    public async Task UpdateSearchRadiusAsync(double lat, double lng, int radiusKm, bool fitBounds = false)
+    {
+        if (_mapComponent is not null)
+        {
+            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, radiusKm, fitBounds);
         }
     }
 
@@ -111,17 +268,11 @@
         if (_mapComponent is not null)
         {
             await _mapComponent.CenterMapAsync(lat, lng, zoom);
-        }
-    }
-
-    /// <summary>
-    /// Public method to update or create the search radius visualization
-    /// </summary>
-    public async Task UpdateSearchRadiusAsync(double lat, double lng, int radiusKm, bool fitBounds = false)
-    {
-        if (_mapComponent is not null)
-        {
-            await _mapComponent.UpdateSearchRadiusAsync(lat, lng, radiusKm, fitBounds);
+            await _mapComponent.UpdateMarkerAsync(lat, lng);
+            if (RadiusKm > 0)
+            {
+                await _mapComponent.UpdateSearchRadiusAsync(lat, lng, RadiusKm);
+            }
         }
     }
 
@@ -132,6 +283,7 @@
     {
         _addressText = null;
 
+        // Only attempt to clear if map has been initialized by LeafletMap
         if (_mapComponent?.IsInitialized == true)
         {
             try
@@ -142,6 +294,7 @@
             }
             catch (Exception ex)
             {
+                // Log but ignore errors - map might not be fully ready
                 Console.WriteLine($"Map clear error: {ex.Message}");
             }
         }
@@ -202,8 +355,16 @@
 
         if (_mapComponent?.IsInitialized == true)
         {
+            // Restore the marker at its correct position
+            await _mapComponent.UpdateMarkerAsync(markerLatitude, markerLongitude);
+            await _mapComponent.UpdateSearchRadiusAsync(markerLatitude, markerLongitude, RadiusKm);
+
             // Restore the view to where the user was looking
             await _mapComponent.CenterMapAsync(viewLatitude, viewLongitude, zoom);
+
+            // Note: We do NOT call OnLocationSearchChanged here because the Filter
+            // has already been restored from cache in the parent component.
+            // Calling it would overwrite the cached filter values.
         }
     }
 
