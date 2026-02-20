@@ -65,10 +65,9 @@
 			return;
 		}
 
-		// Include groups with exact coordinates OR zip-code-only coordinates
+		// Only use zip-code-level coordinates to avoid exposing exact group locations
 		_groupMarkers = Groups?
-			.Where(g => (g.Latitude.HasValue && g.Longitude.HasValue)
-					 || (g.ZipCodeLatitude.HasValue && g.ZipCodeLongitude.HasValue))
+			.Where(g => g.ZipCodeLatitude.HasValue && g.ZipCodeLongitude.HasValue)
 			.Select(g => new GroupMarkerData
 			{
 				Id = g.Id,
@@ -78,8 +77,8 @@
 				ShortDescription = g.ShortDescription,
 				ZipCode = g.ZipCode,
 				City = g.City,
-				Latitude = g.Latitude ?? g.ZipCodeLatitude!.Value,
-				Longitude = g.Longitude ?? g.ZipCodeLongitude!.Value,
+				Latitude = g.ZipCodeLatitude!.Value + (Random.Shared.NextDouble() - 0.5) * 0.003,
+				Longitude = g.ZipCodeLongitude!.Value + (Random.Shared.NextDouble() - 0.5) * 0.005,
 			})
 			.ToList();
 
@@ -108,17 +107,12 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && _mapSearchFilter is not null)
+		if (firstRender && _mapSearchFilter is not null && Cache.MapState is not null)
 		{
-			// Restore from cached map state if available
-			if (Cache.MapState is not null)
-			{
-				await _mapSearchFilter.RestoreMapStateAsync(
-					Cache.MapState.ViewLatitude,
-					Cache.MapState.ViewLongitude,
-					Cache.MapState.Zoom,
-					Cache.MapState.AddressText);
-			}
+			await _mapSearchFilter.RestoreMapStateAsync(
+				Cache.MapState.ViewLatitude,
+				Cache.MapState.ViewLongitude,
+				Cache.MapState.Zoom);
 		}
 	}
 
@@ -131,18 +125,15 @@
 	{
 		if (_mapSearchFilter is not null)
 		{
-			var (viewState, addressText) = await _mapSearchFilter.GetMapStateAsync();
+			var viewState = await _mapSearchFilter.GetMapStateAsync();
 
 			if (viewState is not null)
 			{
 				Cache.MapState = new MapState
 				{
-					MarkerLatitude = viewState.Latitude,
-					MarkerLongitude = viewState.Longitude,
 					ViewLatitude = viewState.Latitude,
 					ViewLongitude = viewState.Longitude,
 					Zoom = viewState.Zoom,
-					AddressText = addressText
 				};
 			}
 		}
