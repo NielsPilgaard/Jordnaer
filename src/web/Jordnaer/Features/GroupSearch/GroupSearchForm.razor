@@ -12,7 +12,7 @@
 		<MudGrid Justify="Justify.SpaceAround" Spacing="6">
 
 			<MudItem xs="12">
-				<MapSearchFilter @key="@("map-search-filter")" @ref="_mapSearchFilter"
+				<GroupMapSearchFilter @key="@("group-map-search-filter")" @ref="_mapSearchFilter"
 					Groups="@_groupMarkers" />
 			</MudItem>
 
@@ -36,7 +36,7 @@
 
 @code
 {
-	private MapSearchFilter? _mapSearchFilter;
+	private GroupMapSearchFilter? _mapSearchFilter;
 	private IDisposable? _locationChangingHandler;
 
 	[Parameter]
