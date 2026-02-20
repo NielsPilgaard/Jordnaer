@@ -38,7 +38,7 @@
                 <div class="d-flex align-center gap-1 mt-1">
                     <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Color="Color.Info" />
                     <MudText Typo="Typo.body2" Color="Color.Info">
-                        @Group.MemberCount medlemmer
+                        @Group.MemberCount @(Group.MemberCount is 1 ? "medlem" : "medlemmer")
                     </MudText>
                 </div>
             </div>
