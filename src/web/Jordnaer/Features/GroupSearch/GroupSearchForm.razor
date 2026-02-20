@@ -18,7 +18,7 @@
 
 			<MudItem xs="12">
 				<CategorySelector Categories="Filter.Categories"
-					CategoriesChanged="@(async cats => { Filter.Categories = cats; OnFilterChanged(); await Task.CompletedTask; })" />
+					CategoriesChanged="@(cats => { Filter.Categories = cats; OnFilterChanged(); })" />
 			</MudItem>
 
 			<MudItem xs="12">

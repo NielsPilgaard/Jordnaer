@@ -512,9 +512,7 @@ window.leafletInterop = {
       });
 
       // Add all markers to cluster group
-      allMarkers.forEach(marker => {
-        mapInstance.markerClusterGroup.addLayer(marker);
-      });
+      mapInstance.markerClusterGroup.addLayers(allMarkers);
 
       // Add cluster group to map
       mapInstance.map.addLayer(mapInstance.markerClusterGroup);

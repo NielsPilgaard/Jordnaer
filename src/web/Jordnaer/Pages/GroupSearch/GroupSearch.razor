@@ -3,9 +3,9 @@
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
-@inject IJSRuntime JsRuntime
 
 @attribute [Sitemap]
+@implements IDisposable
 
 <MetadataComponent Title="Opdag Grupper" Description="Søg efter grupper" />
 
@@ -22,6 +22,7 @@
 
     private bool _isSearching = false;
     private CancellationTokenSource? _debounceCts;
+    private int _activeRequestId = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,6 +41,7 @@
     private async Task OnFiltersChanged()
     {
         _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
         _debounceCts = new CancellationTokenSource();
         try
         {
@@ -51,6 +53,7 @@
 
     private async Task LoadGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken = default)
     {
+        var requestId = ++_activeRequestId;
         _isSearching = true;
         try
         {
@@ -64,7 +67,16 @@
         catch (OperationCanceledException) { /* superseded */ }
         finally
         {
-            _isSearching = false;
+            if (requestId == _activeRequestId)
+            {
+                _isSearching = false;
+            }
         }
+    }
+
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
     }
 }

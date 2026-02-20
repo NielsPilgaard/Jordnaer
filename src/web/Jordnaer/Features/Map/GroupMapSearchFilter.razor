@@ -108,6 +108,8 @@
         {
             await _mapComponent.CenterMapAsync(viewLatitude, viewLongitude, zoom);
         }
+
+        StateHasChanged();
     }
 
     private async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
