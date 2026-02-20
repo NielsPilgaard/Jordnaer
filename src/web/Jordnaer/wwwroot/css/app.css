@@ -282,6 +282,30 @@ body, p {
 
 
 /* ========================================
+   NOTIFICATION ITEM
+   ======================================== */
+
+.notification-item {
+    display: block;
+    width: 100%;
+    transition: background-color 0.15s ease;
+    text-decoration: none !important;
+}
+
+.notification-item:hover,
+.notification-item:focus-visible {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.notification-item.unread {
+    background-color: rgba(65, 85, 107, 0.05);
+}
+
+.notification-item.unread:hover {
+    background-color: rgba(65, 85, 107, 0.12);
+}
+
+/* ========================================
    TOPBAR RESPONSIVE FIX (CSS-ONLY)
    Replace MudHidden with media queries
    ======================================== */

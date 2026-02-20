@@ -23,7 +23,7 @@
             </MudText>
             @if (!string.IsNullOrEmpty(Notification.Description))
             {
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="text-truncate">
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="notification-description-truncate">
                     @Notification.Description
                 </MudText>
             }
@@ -67,45 +67,3 @@
     };
 
 }
-
-<style>
-    .notification-item {
-        display: block;
-        width: 100%;
-        background: none;
-        border: none;
-        padding: 0;
-        text-align: left;
-        cursor: pointer;
-        transition: background-color 0.15s ease;
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .notification-item:hover {
-        background-color: rgba(0, 0, 0, 0.08);
-    }
-
-    .notification-item.unread {
-        background-color: rgba(65, 85, 107, 0.05);
-    }
-
-    .notification-item.unread:hover {
-        background-color: rgba(65, 85, 107, 0.12);
-    }
-
-    .notification-title {
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        word-break: break-word;
-    }
-
-    .text-truncate {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        display: block;
-    }
-</style>

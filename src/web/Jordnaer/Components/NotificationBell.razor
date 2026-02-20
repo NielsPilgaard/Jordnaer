@@ -23,7 +23,7 @@
     {
         <div class="notification-backdrop" @onclick="CloseDropdown"></div>
         <div class="notification-dropdown">
-            <div class="d-flex justify-space-between align-center pa-3" style="border-bottom: 1px solid #eee;">
+            <div class="d-flex justify-space-between align-center pa-3" style="border-bottom: 1px solid var(--mud-palette-divider);">
                 <MudText Typo="Typo.subtitle2" Style="@($"color: {JordnaerPalette.BlueBody}; font-weight: 600;")">
                     Notifikationer
                 </MudText>
@@ -55,7 +55,7 @@
                 </div>
             }
 
-            <div class="pa-2 d-flex justify-center" style="border-top: 1px solid #eee;">
+            <div class="pa-2 d-flex justify-center" style="border-top: 1px solid var(--mud-palette-divider);">
                 <MudButton Href="/notifications" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
                     Style="text-transform: none;" OnClick="CloseDropdown">
                     Se alle
@@ -116,16 +116,21 @@
                 return;
             }
 
+            int count;
             try
             {
-                _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
+                count = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Failed to refresh unread notification count for user {UserId}", CurrentUser.Id);
-                _unreadCount = 0;
+                count = 0;
             }
-            await InvokeAsync(StateHasChanged);
+            await InvokeAsync(() =>
+            {
+                _unreadCount = count;
+                StateHasChanged();
+            });
         });
 
         _notificationReadSubscription = NotificationSignalRClient.OnNotificationRead(async notificationId =>
@@ -225,32 +230,3 @@
         }
     }
 }
-
-<style>
-    .notification-bell-container {
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .notification-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 99;
-    }
-
-    .notification-dropdown {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        width: 360px;
-        max-width: 90vw;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        z-index: 100;
-        overflow: hidden;
-    }
-</style>

@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using Jordnaer.Features.Email;
 using Xunit;
@@ -254,7 +255,7 @@ public class EmailContentBuilderTests
 
 		// Assert - raw title must not appear; its fully HTML-encoded form must appear
 		result.Should().NotContain(title);
-		result.Should().Contain("&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;");
+		result.Should().Contain(WebUtility.HtmlEncode(title));
 		result.Should().Contain("Malicious &amp; &lt;content&gt;");
 	}
 
