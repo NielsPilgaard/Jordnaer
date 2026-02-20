@@ -217,12 +217,9 @@
                                     @FormatLocation(_group.City, _group.ZipCode)
                                 </MudText>
                             </div>
-                            @if (_group.Latitude.HasValue && _group.Longitude.HasValue)
-                            {
-                                <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="mb-3">
-                                    Den præcise adresse vises kun for medlemmer.
-                                </MudAlert>
-                            }
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="mb-3">
+                                Den præcise adresse vises kun for medlemmer.
+                            </MudAlert>
                             @if (_group.ZipCodeLatitude.HasValue && _group.ZipCodeLongitude.HasValue)
                             {
                                 <LeafletMap InitialLatitude="_group.ZipCodeLatitude.Value"

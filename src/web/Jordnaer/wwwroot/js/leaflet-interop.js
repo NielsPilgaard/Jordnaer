@@ -497,11 +497,12 @@ window.leafletInterop = {
         (byCoord[key] = byCoord[key] || []).push(m);
       });
 
-      Object.values(byCoord).forEach(group => {
-        if (group.length <= 1) return;
+      Object.values(byCoord).forEach(bucket => {
+        if (bucket.length <= 1) return;
         const offsetMeters = 25;
-        const angleStep = (2 * Math.PI) / group.length;
-        group.forEach((marker, i) => {
+        const angleStep = (2 * Math.PI) / bucket.length;
+        bucket.forEach((marker, i) => {
+          if (i === 0) return; // keep one marker at the true coordinate
           const ll = marker.getLatLng();
           const angle = i * angleStep;
           const dLat = (offsetMeters / 111320) * Math.cos(angle);

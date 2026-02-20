@@ -18,14 +18,14 @@
 
 			<MudItem xs="12">
 				<CategorySelector Categories="Filter.Categories"
-					CategoriesChanged="@(cats => { Filter.Categories = cats; OnFilterChanged(); })" />
+					CategoriesChanged="@(async cats => { Filter.Categories = cats; await OnFilterChanged(); })" />
 			</MudItem>
 
 			<MudItem xs="12">
 				<MudTextField Value="Filter.Name" Placeholder="Gruppenavn" Label="Søg på navn" Clearable
 					Variant="Variant.Outlined" Adornment="Adornment.Start"
 					AdornmentIcon="@Icons.Material.Filled.Group" AdornmentColor="Color.Primary"
-					ValueChanged="@((string? v) => { Filter.Name = v; OnFilterChanged(); })" />
+					ValueChanged="@(async (string? v) => { Filter.Name = v; await OnFilterChanged(); })" />
 			</MudItem>
 
 		</MudGrid>
@@ -77,8 +77,8 @@
 				ShortDescription = g.ShortDescription,
 				ZipCode = g.ZipCode,
 				City = g.City,
-				Latitude = g.ZipCodeLatitude!.Value + (Random.Shared.NextDouble() - 0.5) * 0.003,
-				Longitude = g.ZipCodeLongitude!.Value + (Random.Shared.NextDouble() - 0.5) * 0.005,
+				Latitude = g.ZipCodeLatitude!.Value + (Math.Abs(HashCode.Combine(g.Id, 1)) % 10000 / 10000.0 - 0.5) * 0.003,
+				Longitude = g.ZipCodeLongitude!.Value + (Math.Abs(HashCode.Combine(g.Id, 2)) % 10000 / 10000.0 - 0.5) * 0.005,
 			})
 			.ToList();
 
@@ -116,9 +116,10 @@
 		}
 	}
 
-	private void OnFilterChanged()
+	private async Task OnFilterChanged()
 	{
-		_ = OnFiltersChanged.InvokeAsync();
+		await FilterChanged.InvokeAsync(Filter);
+		await OnFiltersChanged.InvokeAsync();
 	}
 
 	private async Task SaveMapStateAsync()

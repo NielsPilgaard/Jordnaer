@@ -1,3 +1,5 @@
+@inject ILogger<GroupMapSearchFilter> Logger
+
 <LeafletMap @ref="_mapComponent" MapId="@MapId" InitialLatitude="@InitialLatitude"
     InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom"
     MapStyle="height: 450px; width: 100%; border-radius: 12px; border: 2px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
@@ -31,7 +33,10 @@
     {
         if (firstRender)
         {
-            await WaitForMapInitializationAsync();
+            if (!await WaitForMapInitializationAsync())
+            {
+                return;
+            }
 
             if (_mapComponent?.IsInitialized == true && Groups is not null)
             {
@@ -48,9 +53,7 @@
             return;
         }
 
-        var groupsList = Groups?.ToList();
-
-        if (groupsList is null || groupsList.Count == 0)
+        if (Groups is null || !Groups.Any())
         {
             if (_previousGroups is not null)
             {
@@ -61,7 +64,7 @@
         else if (Groups != _previousGroups)
         {
             _previousGroups = Groups;
-            await _mapComponent.UpdateGroupMarkersAsync(groupsList);
+            await _mapComponent.UpdateGroupMarkersAsync(Groups.ToList());
         }
     }
 
@@ -83,7 +86,10 @@
     /// </summary>
     public async Task RestoreMapStateAsync(double viewLatitude, double viewLongitude, int zoom)
     {
-        await WaitForMapInitializationAsync();
+        if (!await WaitForMapInitializationAsync())
+        {
+            return;
+        }
 
         if (_mapComponent?.IsInitialized == true)
         {
@@ -93,7 +99,7 @@
         StateHasChanged();
     }
 
-    private async Task WaitForMapInitializationAsync()
+    private async Task<bool> WaitForMapInitializationAsync()
     {
         var attempts = 0;
         while (_mapComponent?.IsInitialized != true && attempts < 20)
@@ -101,5 +107,15 @@
             await Task.Delay(50);
             attempts++;
         }
+
+        if (_mapComponent?.IsInitialized != true)
+        {
+            Logger.LogWarning(
+                "WaitForMapInitializationAsync timed out after {Attempts} attempts ({Ms}ms). Map markers/state may not be restored.",
+                attempts, attempts * 50);
+            return false;
+        }
+
+        return true;
     }
 }

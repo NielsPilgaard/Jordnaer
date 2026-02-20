@@ -51,6 +51,13 @@
         catch (OperationCanceledException) { /* superseded by newer keystroke */ }
     }
 
+    /// <summary>
+    /// Executes a search and updates results. Uses a request counter to ignore responses
+    /// from superseded requests, preventing stale results from overwriting newer ones.
+    /// </summary>
+    /// <param name="filter"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     private async Task LoadGroupsAsync(GroupSearchFilter filter, CancellationToken cancellationToken = default)
     {
         var requestId = ++_activeRequestId;
@@ -59,7 +66,7 @@
         {
             _searchResult = await GroupSearchService.GetGroupsAsync(filter, cancellationToken);
 
-            Cache.SearchFilter = _filter;
+            Cache.SearchFilter = filter;
             Cache.SearchResult = _searchResult;
 
             StateHasChanged();
@@ -70,6 +77,7 @@
             if (requestId == _activeRequestId)
             {
                 _isSearching = false;
+                StateHasChanged();
             }
         }
     }
