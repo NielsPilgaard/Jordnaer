@@ -6,8 +6,7 @@ namespace Jordnaer.Tests.Infrastructure;
 
 public class SqlServerContainer<TDbContext> : IAsyncLifetime where TDbContext : DbContext
 {
-	public readonly MsSqlContainer Container = new MsSqlBuilder()
-		.WithImage("mcr.microsoft.com/mssql/server:2022-latest") // We set a specific image to circumvent this bug: https://github.com/testcontainers/testcontainers-dotnet/issues/1271
+	public readonly MsSqlContainer Container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
 		.WithName($"SqlServerTestcontainer-{Guid.NewGuid()}")
 		.Build();
 

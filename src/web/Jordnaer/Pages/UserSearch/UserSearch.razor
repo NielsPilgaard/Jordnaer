@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject UserSearchResultCache Cache
 @inject ISnackbar Snackbar
+@inject ILogger<UserSearch> Logger
 
 @attribute [Sitemap]
 
@@ -16,7 +17,7 @@
             Find familier
         </MudText>
 
-        <UserSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" />
+        <UserSearchForm OnValidSubmit="@(() => Search())" @bind-Filter="_filter" />
 
         @if (!_hasSearched)
         {
@@ -60,48 +61,70 @@
         }
     }
 
-    private async Task Search()
+    private async Task Search(bool showToast = true)
     {
         _isSearching = true;
 
-        _searchResult = await UserSearchService.GetUsersAsync(_filter);
-
-        Snackbar.Clear();
-
-        if (_searchResult.TotalCount is 0)
+        try
         {
+            _searchResult = await UserSearchService.GetUsersAsync(_filter);
+
+            if (showToast)
+            {
+                Snackbar.Clear();
+
+                if (_searchResult.TotalCount is 0)
+                {
+                    Snackbar.Add(
+                    message: "Ingen brugere matchede søgningen.",
+                    severity: Severity.Info,
+                    options =>
+                    {
+                        options.VisibleStateDuration = 3500;
+                        options.CloseAfterNavigation = true;
+                    });
+                }
+                else
+                {
+                    Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
+                    severity: Severity.Success,
+                    options =>
+                    {
+                        options.VisibleStateDuration = 3500;
+                        options.Icon = Icons.Material.Filled.ArrowDownward;
+                        options.CloseAfterNavigation = true;
+                    });
+                }
+            }
+
+            _hasSearched = true;
+
+            // Save to cache for restoration when navigating back
+            Cache.SearchFilter = _filter;
+            Cache.SearchResult = _searchResult;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "An error occurred during user search");
             Snackbar.Add(
-            message: "Ingen brugere matchede søgningen.",
-            severity: Severity.Info,
-            options =>
-            {
-                options.VisibleStateDuration = 3500;
-                options.CloseAfterNavigation = true;
-            });
+                message: "Der opstod en fejl under søgningen",
+                severity: Severity.Error,
+                options =>
+                {
+                    options.VisibleStateDuration = 5000;
+                    options.CloseAfterNavigation = true;
+                });
+            _hasSearched = false;
         }
-        else
+        finally
         {
-            Snackbar.Add(message: $"{_searchResult.TotalCount} brugere matchede søgningen.",
-            severity: Severity.Success,
-            options =>
-            {
-                options.VisibleStateDuration = 3500;
-                options.Icon = Icons.Material.Filled.ArrowDownward;
-                options.CloseAfterNavigation = true;
-            });
+            _isSearching = false;
         }
-
-        _hasSearched = true;
-        _isSearching = false;
-
-        // Save to cache for restoration when navigating back
-        Cache.SearchFilter = _filter;
-        Cache.SearchResult = _searchResult;
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
     {
         _filter.PageNumber = selectedPage;
-        await Search();
+        await Search(showToast: false);
     }
 }

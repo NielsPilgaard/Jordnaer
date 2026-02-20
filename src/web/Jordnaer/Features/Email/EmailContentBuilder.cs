@@ -41,13 +41,17 @@ public static class EmailContentBuilder
 			""", baseUrl);
 	}
 
-	public static string GroupInvite(string baseUrl, string groupName)
+	public static string GroupInvite(string baseUrl, string groupName, string? inviterName = null)
 	{
 		var groupUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}";
 		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+		var inviterHtml = inviterName is not null
+			? $"<p>Inviteret af <b>{WebUtility.HtmlEncode(inviterName)}</b></p>"
+			: "";
 		return EmailTemplate.Wrap($"""
 			<h4>Du er blevet inviteret til at blive medlem af gruppen <b>{encodedGroupName}</b></h4>
 
+			{inviterHtml}
 			{EmailTemplate.Button(groupUrl, "Se gruppen")}
 			""", baseUrl, preheaderText: $"Du er inviteret til {groupName}");
 	}
@@ -113,12 +117,15 @@ public static class EmailContentBuilder
 			""", baseUrl, preheaderText: $"Nyt opslag af {authorName}");
 	}
 
-	public static string MembershipRequest(string baseUrl, string groupName)
+	public static string MembershipRequest(string baseUrl, string groupName, string applicantName)
 	{
 		var groupMembershipUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}/members";
 		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+		var encodedApplicantName = WebUtility.HtmlEncode(applicantName);
 		return EmailTemplate.Wrap($"""
 			<h4>Din gruppe <b>{encodedGroupName}</b> har modtaget en ny medlemskabsanmodning</h4>
+
+			<p><b>{encodedApplicantName}</b> vil gerne være med i gruppen. Gå til gruppens medlemsside for at godkende eller afvise anmodningen.</p>
 
 			{EmailTemplate.Button(groupMembershipUrl, "Se anmodningen")}
 			""", baseUrl, preheaderText: $"Ny medlemskabsanmodning til {groupName}");
@@ -194,5 +201,53 @@ public static class EmailContentBuilder
 
 			{EmailTemplate.Button(loginUrl, "Log ind")}
 			""", baseUrl, preheaderText: "Velkommen som partner på Mini Møder");
+	}
+
+	public static string GenericNotification(string title, string? description, string? linkUrl, string? baseUrl = null)
+	{
+		var encodedTitle = WebUtility.HtmlEncode(title);
+		var descriptionHtml = description is not null
+			? $"<p>{WebUtility.HtmlEncode(description)}</p>"
+			: "";
+
+		var resolvedBase = baseUrl ?? (linkUrl is not null && linkUrl.StartsWith('/') ? "https://mini-moeder.dk" : null);
+		var absoluteLinkUrl = linkUrl is not null && resolvedBase is not null && linkUrl.StartsWith('/')
+			? $"{resolvedBase.TrimEnd('/')}{linkUrl}"
+			: linkUrl;
+
+		var buttonHtml = absoluteLinkUrl is not null
+			? EmailTemplate.Button(absoluteLinkUrl, "Se mere")
+			: "";
+
+		return EmailTemplate.Wrap($"""
+			<h4>{encodedTitle}</h4>
+
+			{descriptionHtml}
+
+			{buttonHtml}
+			""", baseUrl: baseUrl, preheaderText: title);
+	}
+
+	public static string MembershipApproved(string baseUrl, string groupName)
+	{
+		var groupUrl = $"{baseUrl}/groups/{Uri.EscapeDataString(groupName)}";
+		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+		return EmailTemplate.Wrap($"""
+			<h4>Velkommen til {encodedGroupName}!</h4>
+
+			<p>Din anmodning om medlemskab er blevet godkendt. Du er nu medlem af gruppen.</p>
+
+			{EmailTemplate.Button(groupUrl, "Se gruppen")}
+			""", baseUrl, preheaderText: $"Velkommen til {groupName}");
+	}
+
+	public static string MembershipRejected(string baseUrl, string groupName)
+	{
+		var encodedGroupName = WebUtility.HtmlEncode(groupName);
+		return EmailTemplate.Wrap($"""
+			<h4>Din anmodning til {encodedGroupName} blev afvist</h4>
+
+			<p>Desværre blev din anmodning om medlemskab i gruppen {encodedGroupName} ikke godkendt.</p>
+			""", baseUrl, preheaderText: $"Anmodning til {groupName} afvist");
 	}
 }

@@ -73,7 +73,53 @@
             </MudButton>
         </MudPaper>
 
-        @* Group Notifications Section *@
+        @* Group Membership Notifications Section *@
+        <MudPaper Elevation="3" Class="pa-6 mb-4">
+            <MudText Typo="Typo.h5" Class="mb-4"
+                Style="@($"color: {JordnaerPalette.BlueBody};")">
+                Gruppemedlemskab
+            </MudText>
+
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Vælg hvilke email notifikationer du vil modtage vedrørende gruppemedlemskab:
+            </MudText>
+
+            <MudStack Spacing="3">
+                <MudSwitch @bind-Value="_membershipPrefs_Request" Color="Color.Primary"
+                    Label="Medlemskabsanmodninger (som administrator)" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="ml-12 mt-n2">
+                    Modtag email når nogen anmoder om medlemskab i dine grupper
+                </MudText>
+
+                <MudSwitch @bind-Value="_membershipPrefs_Invitation" Color="Color.Primary"
+                    Label="Gruppeinvitationer" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="ml-12 mt-n2">
+                    Modtag email når du bliver inviteret til en gruppe
+                </MudText>
+
+                <MudSwitch @bind-Value="_membershipPrefs_Response" Color="Color.Primary"
+                    Label="Godkendelse / afvisning" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="ml-12 mt-n2">
+                    Modtag email når din anmodning om medlemskab godkendes eller afvises
+                </MudText>
+            </MudStack>
+
+            <MudDivider Class="my-4" />
+
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveMembershipPreferences" Disabled="_isSavingMembership">
+                @if (_isSavingMembership)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ml-2">Gemmer...</MudText>
+                }
+                else
+                {
+                    <MudText>Gem Medlemskab Indstillinger</MudText>
+                }
+            </MudButton>
+        </MudPaper>
+
+        @* Group Post Notifications Section *@
         <MudPaper Elevation="3" Class="pa-6">
             <MudText Typo="Typo.h5" Class="mb-4"
                 Style="@($"color: {JordnaerPalette.BlueBody};")">
@@ -127,9 +173,14 @@
 @code {
     private bool _isLoading = true;
     private bool _isSaving = false;
+    private bool _isSavingMembership = false;
     private bool _isBulkSaving = false;
     private ChatNotificationPreference _chatPreference = ChatNotificationPreference.FirstMessageOnly;
     private List<GroupMembership> _groupSettings = new();
+
+    private bool _membershipPrefs_Request = true;
+    private bool _membershipPrefs_Invitation = true;
+    private bool _membershipPrefs_Response = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,10 +193,47 @@
 
             _chatPreference = CurrentUser.UserProfile?.ChatNotificationPreference ?? ChatNotificationPreference.FirstMessageOnly;
             _groupSettings = await NotificationSettingsService.GetGroupPreferencesAsync(CurrentUser.Id);
+            var membershipPrefs = await NotificationSettingsService.GetGroupMembershipPreferencesAsync(CurrentUser.Id);
+            _membershipPrefs_Request = membershipPrefs?.EmailOnGroupMembershipRequest ?? true;
+            _membershipPrefs_Invitation = membershipPrefs?.EmailOnGroupInvitation ?? true;
+            _membershipPrefs_Response = membershipPrefs?.EmailOnGroupMembershipResponse ?? true;       
         }
         finally
         {
             _isLoading = false;
+        }
+    }
+
+    private async Task SaveMembershipPreferences()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        _isSavingMembership = true;
+        try
+        {
+            var preferences = new GroupNotificationPreferences
+            {
+                EmailOnGroupMembershipRequest = _membershipPrefs_Request,
+                EmailOnGroupInvitation = _membershipPrefs_Invitation,
+                EmailOnGroupMembershipResponse = _membershipPrefs_Response
+            };
+
+            var result = await NotificationSettingsService.SetGroupMembershipPreferencesAsync(CurrentUser.Id, preferences);
+            result.Switch(
+                success => Snackbar.Add("Medlemskab notifikationsindstillinger gemt", Severity.Success),
+                notFound => Snackbar.Add("Brugerprofil ikke fundet.", Severity.Error)
+            );
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Der opstod en fejl. Prøv igen senere.", Severity.Error);
+        }
+        finally
+        {
+            _isSavingMembership = false;
         }
     }
 

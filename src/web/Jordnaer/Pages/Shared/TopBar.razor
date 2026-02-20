@@ -1,12 +1,12 @@
 @using Jordnaer.Features.Authentication
+@using Jordnaer.Features.Notifications
+@using Jordnaer.Shared.Notifications
 
 @inject NavigationManager Navigation
-@inject UnreadMessageSignalRClient UnreadMessageSignalRClient
-@inject IChatService ChatService
-@inject GroupService GroupService
-@inject GroupMembershipSignalRClient GroupMembershipSignalRClient
 @inject CurrentUser CurrentUser
-@inject IJSRuntime JsRuntime
+@inject INotificationService NotificationService
+@inject NotificationSignalRClient NotificationSignalRClient
+@inject ILogger<TopBar> Logger
 
 @implements IAsyncDisposable
 
@@ -24,23 +24,10 @@
 			Søg
 		</MudButton>
 
-		<AuthorizeView>
-			<Authorized>
-				<MudBadge Content="@_pendingGroupRequestCount" Visible="@(_pendingGroupRequestCount > 0)" Color="Color.Warning" Overlap="true"
-					Class="mx-0" BadgeClass="badge-offset">
-					<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
-						Class="@GetNavLinkClass("/groups")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
-						Grupper
-					</MudButton>
-				</MudBadge>
-			</Authorized>
-			<NotAuthorized>
-				<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
-					Class="@GetNavLinkClass("/groups")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
-					Grupper
-				</MudButton>
-			</NotAuthorized>
-		</AuthorizeView>
+		<MudButton Href="/groups" StartIcon="@Icons.Material.Filled.Groups" Variant="Variant.Text"
+			Class="@GetNavLinkClass("/groups")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
+			Grupper
+		</MudButton>
 
 		<Feature Name="@FeatureFlags.Posts">
 			<MudButton Href="/posts" StartIcon="@Icons.Material.Filled.Feed" Variant="Variant.Text"
@@ -51,7 +38,7 @@
 
 		<AuthorizeView>
 			<Authorized>
-				<MudBadge Content="@_unreadCount" Visible="@(_unreadCount > 0)" Color="Color.Info" Overlap="true"
+				<MudBadge Content="@_unreadChatCount" Visible="@(_unreadChatCount > 0)" Color="Color.Info" Overlap="true"
 					Class="mx-0" BadgeClass="badge-offset">
 					<MudButton Href="/chat" StartIcon="@Icons.Material.Filled.Chat" Variant="Variant.Text"
 						Class="@GetNavLinkClass("/chat")" Style="@JordnaerPalette.BlueBody.ToTextColor()">
@@ -83,14 +70,6 @@
 			<a href="/groups" class="@GetMobileNavLinkClass("/groups")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 				<MudIcon Icon="@Icons.Material.Filled.Groups" Size="Size.Small" Style="margin-right: 0.75rem;" />
 				Grupper
-				<AuthorizeView>
-					<Authorized>
-						@if (_pendingGroupRequestCount > 0)
-						{
-							<MudBadge Content="@_pendingGroupRequestCount" Color="Color.Warning" Style="margin-left: 8px;" />
-						}
-					</Authorized>
-				</AuthorizeView>
 			</a>
 
 			<Feature Name="@FeatureFlags.Posts">
@@ -105,9 +84,9 @@
 					<a href="/chat" class="@GetMobileNavLinkClass("/chat")" style="@JordnaerPalette.BlueBody.ToTextColor()">
 						<MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" Style="margin-right: 0.75rem;" />
 						Chat
-						@if (_unreadCount > 0)
+						@if (_unreadChatCount > 0)
 						{
-							<MudBadge Content="@_unreadCount" Color="Color.Info" Style="margin-left: 8px;" />
+							<MudBadge Content="@_unreadChatCount" Color="Color.Info" Style="margin-left: 8px;" />
 						}
 					</a>
 				</Authorized>
@@ -119,6 +98,8 @@
 
 	<AuthorizeView>
 		<Authorized>
+			<NotificationBell />
+
 			@* Desktop Backoffice Dropdown (Admin Only) *@
 			<AuthorizeView Policy="@AuthorizationPolicies.AdminOnly" Context="desktopBackofficeContext">
 				<Authorized>
@@ -291,18 +272,16 @@
 </MudAppBar>
 
 @code {
-	private int _unreadCount = 0;
-	private int _pendingGroupRequestCount = 0;
-	private bool _isJsAvailable = false;
-	private string? _baseTitle = null;
+	private int _unreadChatCount;
+	private bool _signalRAcquired;
 	private string _currentPath = string.Empty;
+	private IDisposable? _notificationReceivedSubscription;
+	private IDisposable? _unreadCountSubscription;
+	private IDisposable? _notificationsClearedSubscription;
 
 	protected override async Task OnInitializedAsync()
 	{
-		// Get current path for active nav highlighting
 		_currentPath = new Uri(Navigation.Uri).AbsolutePath;
-
-		// Subscribe to navigation changes to update active nav item
 		Navigation.LocationChanged += OnLocationChanged;
 
 		if (CurrentUser.Id is null)
@@ -310,100 +289,81 @@
 			return;
 		}
 
-		// Get initial unread count
-		_unreadCount = await ChatService.GetUnreadMessageCountAsync(CurrentUser.Id);
-
-		// Get pending group membership requests count
-		var pendingCounts = await GroupService.GetPendingMembershipCountsForUserAsync();
-		_pendingGroupRequestCount = pendingCounts.Values.Sum();
-
-		// Subscribe to real-time updates
-		UnreadMessageSignalRClient.OnMessageReceived(async message =>
+		try
 		{
-			// Only increment if the message is not from the current user
-			if (message.SenderId != CurrentUser.Id)
-			{
-				_unreadCount++;
-				await UpdatePageTitle();
-				await InvokeAsync(StateHasChanged);
-			}
-		});
-
-		UnreadMessageSignalRClient.OnChatStarted(async chat =>
-		{
-			// Only increment if the chat was started by someone else
-			if (chat.InitiatorId != CurrentUser.Id)
-			{
-				// Count the number of initial messages in the new chat
-				_unreadCount += chat.Messages.Count;
-				await UpdatePageTitle();
-				await InvokeAsync(StateHasChanged);
-			}
-		});
-
-		// Subscribe to local messages marked as read event
-		ChatService.MessagesMarkedAsRead += OnMessagesMarkedAsRead;
-
-		// Subscribe to group membership status changes
-		GroupMembershipSignalRClient.OnMembershipStatusChanged(async notification =>
-		{
-			_pendingGroupRequestCount += notification.PendingCountChange;
-			if (_pendingGroupRequestCount < 0)
-			{
-				_pendingGroupRequestCount = 0;
-			}
-			await InvokeAsync(StateHasChanged);
-		});
-
-		await UnreadMessageSignalRClient.StartAsync();
-		await GroupMembershipSignalRClient.StartAsync();
-	}
-
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			_isJsAvailable = true;
-
-			// Get the current page title from the document
-			_baseTitle = await JsRuntime.GetValueAsync<string>("document.title");
-
-			// Update page title with unread count if needed
-			await UpdatePageTitle();
+			await NotificationSignalRClient.AcquireAsync();
+			_signalRAcquired = true;
 		}
-	}
-
-	private async void OnMessagesMarkedAsRead(object? sender, MessagesMarkedAsReadEventArgs e)
-	{
-		_unreadCount -= e.MessageCount;
-		if (_unreadCount < 0)
+		catch (Exception ex)
 		{
-			_unreadCount = 0;
-		}
-		await UpdatePageTitle();
-		await InvokeAsync(StateHasChanged);
-	}
-
-	private async Task UpdatePageTitle()
-	{
-		if (!_isJsAvailable || _baseTitle is null)
-		{
+			// Log and continue without real-time updates; badge will remain at 0
+			Logger.LogError(ex, "Failed to acquire NotificationSignalRClient for user {UserId}", CurrentUser.Id);
 			return;
 		}
 
-		// Remove any existing unread count prefix from the base title
-		var cleanTitle = _baseTitle;
-		if (cleanTitle.StartsWith('(') && cleanTitle.Contains(") "))
+		// Listen for new chat notifications to update badge
+		_notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
 		{
-			var closingParenIndex = cleanTitle.IndexOf(") ");
-			cleanTitle = cleanTitle.Substring(closingParenIndex + 2);
+			try
+			{
+				if (notification.Type == NotificationType.ChatMessage)
+				{
+					_unreadChatCount++;
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Error in {HandlerName} for user {UserId}", nameof(_notificationReceivedSubscription), CurrentUser.Id);
+			}
+		});
+
+		// Listen for count changes (e.g. when notifications are cleared)
+		_unreadCountSubscription = NotificationSignalRClient.OnUnreadCountChanged(async _ =>
+		{
+			try
+			{
+				if (CurrentUser.Id is not null)
+				{
+					_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
+						CurrentUser.Id, NotificationType.ChatMessage);
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Error in {HandlerName} for user {UserId}", nameof(_unreadCountSubscription), CurrentUser.Id);
+			}
+		});
+
+		// Listen for source cleared (when opening a specific chat)
+		_notificationsClearedSubscription = NotificationSignalRClient.OnNotificationsCleared(async (sourceType, _) =>
+		{
+			try
+			{
+				if (sourceType == NotificationSourceType.Chat && CurrentUser.Id is not null)
+				{
+					_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
+						CurrentUser.Id, NotificationType.ChatMessage);
+					await InvokeAsync(StateHasChanged);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Error in {HandlerName} for user {UserId}", nameof(_notificationsClearedSubscription), CurrentUser.Id);
+			}
+		});
+
+		try
+		{
+			_unreadChatCount = await NotificationService.GetUnreadCountByTypeAsync(
+				CurrentUser.Id, NotificationType.ChatMessage);
 		}
-
-		var title = _unreadCount > 0
-		? $"({_unreadCount}) {cleanTitle}"
-		: cleanTitle;
-
-		await JsRuntime.SetValueAsync("document.title", title);
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "Failed to get initial unread chat count for user {UserId}", CurrentUser.Id);
+			_unreadChatCount = 0;
+		}
 	}
 
 	private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -419,7 +379,6 @@
 			return string.Equals(_currentPath, path, StringComparison.OrdinalIgnoreCase);
 		}
 
-		// For non-exact matches, check if the current path starts with the given path
 		return _currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
 	}
 
@@ -444,9 +403,13 @@
 	public async ValueTask DisposeAsync()
 	{
 		Navigation.LocationChanged -= OnLocationChanged;
-		ChatService.MessagesMarkedAsRead -= OnMessagesMarkedAsRead;
-		await UnreadMessageSignalRClient.StopAsync();
-		await GroupMembershipSignalRClient.StopAsync();
+		_notificationReceivedSubscription?.Dispose();
+		_unreadCountSubscription?.Dispose();
+		_notificationsClearedSubscription?.Dispose();
+		if (_signalRAcquired)
+		{
+			await NotificationSignalRClient.ReleaseAsync();
+		}
 	}
 }
 

@@ -1,0 +1,239 @@
+@using Jordnaer.Features.Authentication
+@using Jordnaer.Features.Notifications
+@using Jordnaer.Shared.Notifications
+
+@inject NotificationSignalRClient NotificationSignalRClient
+@inject INotificationService NotificationService
+@inject CurrentUser CurrentUser
+@inject ILogger<NotificationBell> Logger
+@inject ISnackbar Snackbar
+
+@implements IAsyncDisposable
+
+<div class="notification-bell-container" style="position: relative;">
+    <MudBadge Content="@(_unreadCount > 99 ? "99+" : _unreadCount)" Visible="@(_unreadCount > 0)"
+        Color="Color.Error" Overlap="true" Class="mx-0" BadgeClass="badge-offset">
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications"
+            Style="@JordnaerPalette.BlueBody.ToTextColor()"
+            OnClick="ToggleDropdown"
+            aria-label="Notifikationer" />
+    </MudBadge>
+
+    @if (_isOpen)
+    {
+        <div class="notification-backdrop" @onclick="CloseDropdown"></div>
+        <div class="notification-dropdown">
+            <div class="d-flex justify-space-between align-center pa-3" style="border-bottom: 1px solid var(--mud-palette-divider);">
+                <MudText Typo="Typo.subtitle2" Style="@($"color: {JordnaerPalette.BlueBody}; font-weight: 600;")">
+                    Notifikationer
+                </MudText>
+                @if (_unreadCount > 0)
+                {
+                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                        OnClick="MarkAllAsRead" Style="text-transform: none; font-size: 0.75rem;">
+                        Markér alle som læst
+                    </MudButton>
+                }
+            </div>
+
+            @if (_notifications.Count == 0)
+            {
+                <div class="pa-4 d-flex justify-center">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Ingen notifikationer
+                    </MudText>
+                </div>
+            }
+            else
+            {
+                <div style="max-height: 400px; overflow-y: auto;">
+                    @foreach (var notification in _notifications)
+                    {
+                        <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
+                        <MudDivider />
+                    }
+                </div>
+            }
+
+            <div class="pa-2 d-flex justify-center" style="border-top: 1px solid var(--mud-palette-divider);">
+                <MudButton Href="/notifications" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary"
+                    Style="text-transform: none;" OnClick="CloseDropdown">
+                    Se alle
+                </MudButton>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private int _unreadCount;
+    private bool _isOpen;
+    private bool _acquired;
+    private List<NotificationDto> _notifications = [];
+    private IDisposable? _notificationReceivedSubscription;
+    private IDisposable? _unreadCountSubscription;
+    private IDisposable? _notificationReadSubscription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _unreadCount = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to get initial unread notification count for user {UserId}", CurrentUser.Id);
+            _unreadCount = 0;
+        }
+
+        _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
+        {
+            // Chat notifications are shown on the chat icon, not the bell
+            if (notification.Type == NotificationType.ChatMessage)
+            {
+                return;
+            }
+
+            _unreadCount++;
+            _notifications.Insert(0, notification);
+            if (_notifications.Count > 20)
+            {
+                _notifications.RemoveAt(_notifications.Count - 1);
+            }
+            await InvokeAsync(StateHasChanged);
+        });
+
+        _unreadCountSubscription = NotificationSignalRClient.OnUnreadCountChanged(async _ =>
+        {
+            // Re-fetch the non-chat count since the hub broadcasts total count
+            if (CurrentUser.Id is null)
+            {
+                return;
+            }
+
+            int count;
+            try
+            {
+                count = await NotificationService.GetUnreadCountExcludingTypeAsync(CurrentUser.Id, NotificationType.ChatMessage);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to refresh unread notification count for user {UserId}", CurrentUser.Id);
+                count = 0;
+            }
+            await InvokeAsync(() =>
+            {
+                _unreadCount = count;
+                StateHasChanged();
+            });
+        });
+
+        _notificationReadSubscription = NotificationSignalRClient.OnNotificationRead(async notificationId =>
+        {
+            var notification = _notifications.FirstOrDefault(n => n.Id == notificationId);
+            if (notification is not null)
+            {
+                notification.MarkAsRead();
+            }
+            await InvokeAsync(StateHasChanged);
+        });
+
+        try
+        {
+            await NotificationSignalRClient.AcquireAsync();
+            _acquired = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to acquire NotificationSignalRClient");
+        }
+    }
+
+    private async Task ToggleDropdown()
+    {
+        _isOpen = !_isOpen;
+        if (_isOpen && CurrentUser.Id is not null)
+        {
+            try
+            {
+                _notifications = await NotificationService.GetUnreadExcludingTypeAsync(CurrentUser.Id, 20, NotificationType.ChatMessage);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to load notifications for user {UserId}", CurrentUser.Id);
+                _notifications = [];
+            }
+        }
+    }
+
+    private void CloseDropdown()
+    {
+        _isOpen = false;
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notification)
+    {
+        if (CurrentUser.Id is not null && !notification.IsRead)
+        {
+            try
+            {
+                await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to mark notification {NotificationId} as read for user {UserId}", notification.Id, CurrentUser.Id);
+                Snackbar.Add("Der opstod en fejl ved markering af notifikation som læst. Prøv igen.", Severity.Error);
+            }
+        }
+
+        _isOpen = false;
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        if (CurrentUser.Id is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await NotificationService.MarkAllAsReadAsync(CurrentUser.Id);
+            _unreadCount = 0;
+
+            foreach (var notification in _notifications)
+            {
+                notification.MarkAsRead();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to mark all notifications as read for user {UserId}", CurrentUser.Id);
+            Snackbar.Add("Der opstod en fejl ved markering af notifikationer som læst. Prøv igen.", Severity.Error);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _notificationReceivedSubscription?.Dispose();
+        _unreadCountSubscription?.Dispose();
+        _notificationReadSubscription?.Dispose();
+        if (_acquired)
+        {
+            _acquired = false;
+             try
+            {
+                await NotificationSignalRClient.ReleaseAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to release NotificationSignalRClient");
+            }
+        }
+    }
+}

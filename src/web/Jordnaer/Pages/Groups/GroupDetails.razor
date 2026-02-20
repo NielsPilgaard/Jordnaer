@@ -293,6 +293,8 @@
     [Parameter]
     public required string GroupName { get; set; }
 
+    private string _loadedGroupName = "";
+
     private string _groupNotFoundMessage => $"Vi fandt ingen gruppe ved navn {GroupName}, beklager!";
 
     private GroupSlim? _group;
@@ -314,8 +316,27 @@
     private bool _processingInvite = false;
     private bool _isAcceptingInvite = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (_loadedGroupName == GroupName)
+            return;
+
+        _loadedGroupName = GroupName;
+        _isLoading = true;
+        _group = null;
+        _currentUser = null;
+        _hasPendingMembershipRequest = false;
+        _hasPendingInvite = false;
+        _isMember = false;
+        _currentUserIsOwner = false;
+        _recipients = [];
+        _groupMembers = null;
+        _admins = [];
+        _pendingRequestCount = 0;
+        _processingInvite = false;
+        _isAcceptingInvite = false;
+        _markerAdded = false;
+
         // TODO: Speed up with ContinueWith and Task.WhenAll
         var response = await GroupService.GetSlimGroupByNameAsync(GroupName);
         response.Switch(

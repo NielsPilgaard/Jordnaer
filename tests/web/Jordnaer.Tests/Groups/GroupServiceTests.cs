@@ -4,6 +4,7 @@ using FluentAssertions;
 using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Groups;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
 using Jordnaer.Tests.Infrastructure;
 using MassTransit;
@@ -60,7 +61,8 @@ public class GroupServiceTests : IAsyncLifetime
 						[new Claim(ClaimTypes.NameIdentifier, _userProfileId)]
 						))
 			},
-			Substitute.For<IGroupMembershipNotificationService>());
+			Substitute.For<INotificationService>(),
+			Substitute.For<INotificationSettingsService>());
 	}
 
 	[Fact]

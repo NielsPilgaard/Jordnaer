@@ -1,4 +1,5 @@
-﻿using Jordnaer.Database;
+using Jordnaer.Database;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,7 @@ public interface IChatService
 {
 	Task<List<ChatDto>> GetChatsAsync(string userId, CancellationToken cancellationToken = default);
 
-	Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(string userId, Guid chatId,
-		CancellationToken cancellationToken = default);
-
-	Task<int> GetUnreadMessageCountAsync(string userId, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default);
 
 	Task<OneOf<List<ChatMessageDto>, Error<string>>> GetChatMessagesAsync(string userId, Guid chatId, int skip, int take, CancellationToken cancellationToken = default);
 
@@ -29,23 +27,15 @@ public interface IChatService
 
 	Task<OneOf<Guid, NotFound>> GetChatByUserIdsAsync(string userId, ICollection<string> userIds,
 		CancellationToken cancellationToken = default);
-
-	event EventHandler<MessagesMarkedAsReadEventArgs>? MessagesMarkedAsRead;
-}
-
-public class MessagesMarkedAsReadEventArgs(Guid chatId, int messageCount) : EventArgs
-{
-	public Guid ChatId { get; } = chatId;
-	public int MessageCount { get; } = messageCount;
 }
 
 public class ChatService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IPublishEndpoint publishEndpoint,
+	INotificationService notificationService,
 	ILogger<ChatService> logger)
 	: IChatService
 {
-	public event EventHandler<MessagesMarkedAsReadEventArgs>? MessagesMarkedAsRead;
 	public async Task<List<ChatDto>> GetChatsAsync(string userId, CancellationToken cancellationToken = default)
 	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -61,8 +51,11 @@ public class ChatService(
 							  LastMessageSentUtc = chat.LastMessageSentUtc,
 							  StartedUtc = chat.StartedUtc,
 							  Recipients = chat.Recipients.Select(recipient => recipient.ToUserSlim()).ToList(),
-							  UnreadMessageCount = context.UnreadMessages.Count(unreadMessage =>
-								  unreadMessage.ChatId == chat.Id && unreadMessage.RecipientId == userId)
+							  UnreadMessageCount = context.Notifications.AsNoTracking().Count(n =>
+								  n.RecipientId == userId &&
+								  n.SourceType == NotificationSourceType.Chat &&
+								  n.SourceId == chat.Id.ToString() &&
+								  !n.IsRead)
 						  })
 						  .ToListAsync(cancellationToken);
 
@@ -71,35 +64,16 @@ public class ChatService(
 
 	public async Task<OneOf<Success, Error<string>>> MarkMessagesAsReadAsync(string userId, Guid chatId, CancellationToken cancellationToken = default)
 	{
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		var rowsModified = await context
-								 .UnreadMessages
-								 .AsNoTracking()
-								 .Where(unreadMessage => unreadMessage.ChatId == chatId && unreadMessage.RecipientId == userId)
-								 .ExecuteDeleteAsync(cancellationToken);
-
-		if (rowsModified > 0)
+		try
 		{
-			MessagesMarkedAsRead?.Invoke(this, new MessagesMarkedAsReadEventArgs(chatId, rowsModified));
+			await notificationService.MarkSourceAsReadAsync(userId, NotificationSourceType.Chat, chatId.ToString(), cancellationToken);
 			return new Success();
 		}
-
-		logger.LogWarning("No messages were marked as read for the chat {ChatId} for the User {UserId}",
-						   chatId, userId);
-
-		return new Error<string>($"Failed to mark messages as read for the chat {chatId}");
-	}
-
-	public async Task<int> GetUnreadMessageCountAsync(string userId, CancellationToken cancellationToken = default)
-	{
-		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-		var unreadMessageCount = await context
-									   .UnreadMessages
-									   .AsNoTracking()
-									   .Where(unreadMessage => unreadMessage.RecipientId == userId)
-									   .CountAsync(cancellationToken);
-
-		return unreadMessageCount;
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Failed to mark messages as read for UserId {UserId} in ChatId {ChatId}.", userId, chatId);
+			return new Error<string>(ex.Message);
+		}
 	}
 
 	private const string NotFound = "Chat does not exist, unable to get messages for it.";

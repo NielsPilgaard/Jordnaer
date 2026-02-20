@@ -1,0 +1,69 @@
+<MudLink Href="@Notification.LinkUrl"
+         Underline="Underline.None"
+         Color="Color.Inherit"
+         Class="@($"notification-item {(Notification.IsRead ? "" : "unread")}")"
+         OnClick="HandleClick">
+    <div class="d-flex align-center gap-3 pa-3">
+        @if (!string.IsNullOrEmpty(Notification.ImageUrl))
+        {
+            <MudAvatar Size="Size.Medium">
+                <MudImage Src="@Notification.ImageUrl" Alt="" />
+            </MudAvatar>
+        }
+        else
+        {
+            <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                <MudIcon Icon="@GetIconForType(Notification.Type)" />
+            </MudAvatar>
+        }
+
+        <div style="flex: 1; min-width: 0;">
+            <MudText Typo="Typo.body2" Class="notification-title" Style="@(!Notification.IsRead ? "font-weight: 600;" : "")">
+                @Notification.Title
+            </MudText>
+            @if (!string.IsNullOrEmpty(Notification.Description))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="notification-description-truncate">
+                    @Notification.Description
+                </MudText>
+            }
+            <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="font-size: 0.7rem;">
+                @Notification.CreatedUtc.Humanize(utcDate: true, dateToCompareAgainst: DateTime.UtcNow, culture: DanishCulture)
+            </MudText>
+        </div>
+
+        @if (!Notification.IsRead)
+        {
+            <div aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--mud-palette-primary); flex-shrink: 0;"></div>
+        }
+    </div>
+</MudLink>
+
+@code {
+    [Parameter, EditorRequired]
+    public NotificationDto Notification { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<NotificationDto> OnClick { get; set; }
+
+    private async Task HandleClick(MouseEventArgs _)
+    {
+        await OnClick.InvokeAsync(Notification);
+    }
+
+    private static readonly CultureInfo DanishCulture = new("da-DK");
+
+    private static string GetIconForType(NotificationType type) => type switch
+    {
+        NotificationType.ChatMessage => Icons.Material.Filled.Chat,
+        NotificationType.GroupMembershipRequest => Icons.Material.Filled.PersonAdd,
+        NotificationType.GroupInvitation => Icons.Material.Filled.GroupAdd,
+        NotificationType.GroupMembershipApproved => Icons.Material.Filled.CheckCircle,
+        NotificationType.GroupMembershipRejected => Icons.Material.Filled.Cancel,
+        NotificationType.GroupPost => Icons.Material.Filled.Feed,
+        NotificationType.NewUserNearby => Icons.Material.Filled.NearMe,
+        NotificationType.System => Icons.Material.Filled.Info,
+        _ => Icons.Material.Filled.Notifications
+    };
+
+}

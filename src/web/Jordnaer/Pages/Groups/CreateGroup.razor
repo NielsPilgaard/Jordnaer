@@ -34,44 +34,42 @@
                     </MudItem>
                     @* Location Section *@
                     <MudItem xs="12">
-                        <MudText Typo="Typo.h6" Class="mb-2">Lokation</MudText>
-                    </MudItem>
-
-                    <MudItem xs="12" md="8" lg="6">
-                        @if (_useZipCodeOnly)
-                        {
-                            <ZipCodeAutoComplete Location="@_zipCodeLocation" LocationChanged="OnZipCodeLocationChanged"
-                                For="() => _zipCodeLocation" DisableSmartCompletion="true" />
-                        }
-                        else
-                        {
-                            <AddressAutoComplete Address="@_addressLocation" AddressChanged="OnAddressLocationChanged"
-                                For="() => _addressLocation" />
-                        }
-                    </MudItem>
-
-                    <MudItem xs="12" md="4" lg="6" Class="d-flex align-center text-center justify-content-center">
-                        <MudTooltip Text="Klik for at skifte mellem fuld adresse og kun postnummer.">
-                            <MudChip T="string" Size="Size.Large" Color="@(_useZipCodeOnly? Color.Default: Color.Info)"
-                                Variant="Variant.Outlined" OnClick="@ToggleLocationMode" Style="cursor: pointer;">
-                                @if (_useZipCodeOnly)
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
-                                    <span>Kun postnummer</span>
-                                }
-                                else
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1" />
-                                    <span>Fuld adresse</span>
-                                }
-                            </MudChip>
-                        </MudTooltip>
-                    </MudItem>
-
-                    <MudItem xs="12">
-                        <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense Class="pa-3">
-                            Gruppens lokation hjælper andre med at finde grupper i deres område.
-                        </MudAlert>
+                        <div class="d-flex align-center gap-3 mb-3">
+                            <MudText Typo="Typo.h6">
+                                Lokation <span style="color: var(--mud-palette-error);">*</span>
+                            </MudText>
+                            <MudTooltip Text="Klik for at skifte mellem fuld adresse og kun postnummer.">
+                                <MudChip T="string" Size="Size.Small" Color="@(_useZipCodeOnly ? Color.Default : Color.Info)"
+                                    Variant="Variant.Outlined" OnClick="@ToggleLocationMode" Style="cursor: pointer;">
+                                    @if (_useZipCodeOnly)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Class="mr-1" />
+                                        <span>Kun postnummer</span>
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1" />
+                                        <span>Fuld adresse</span>
+                                    }
+                                </MudChip>
+                            </MudTooltip>
+                        </div>
+                        <div style="max-width: 600px;">
+                            @if (_useZipCodeOnly)
+                            {
+                                <ZipCodeAutoComplete Location="@_zipCodeLocation" LocationChanged="OnZipCodeLocationChanged"
+                                    For="() => _zipCodeLocation" DisableSmartCompletion="true" />
+                            }
+                            else
+                            {
+                                <AddressAutoComplete Address="@_addressLocation" AddressChanged="OnAddressLocationChanged"
+                                    For="() => _addressLocation" />
+                            }
+                            @if (_showLocationError && _group.ZipCode is null)
+                            {
+                                <MudText Color="Color.Error" Typo="Typo.caption" Class="mt-1 ml-3">Lokation er påkrævet.</MudText>
+                            }
+                        </div>
                     </MudItem>
                     <MudItem xs="12" md="6">
                         <MudTextField @bind-Value="_group.WebsiteUrl"
@@ -116,6 +114,7 @@
     private bool _useZipCodeOnly = true;
     private string _zipCodeLocation = string.Empty;
     private string _addressLocation = string.Empty;
+    private bool _showLocationError;
     private string[]? _selectedCategoryNames = Array.Empty<string>();
 
     protected override async Task OnInitializedAsync()
@@ -143,6 +142,7 @@
         if (result is not null)
         {
             _group.ApplyAddressLocation(address, result);
+            _showLocationError = false;
         }
         else
         {
@@ -165,6 +165,7 @@
         if (result is not null)
         {
             _group.ApplyZipCodeLocation(result);
+            _showLocationError = false;
         }
         else
         {
@@ -184,6 +185,12 @@
 
     private async Task Create()
     {
+        if (_group.ZipCode is null)
+        {
+            _showLocationError = true;
+            return;
+        }
+
         _isLoading = true;
 
         // Sync selected categories to group

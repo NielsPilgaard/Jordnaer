@@ -361,6 +361,64 @@ namespace Jordnaer.Server.Migrations
                     b.ToTable("GroupPosts");
                 });
 
+            modelBuilder.Entity("Jordnaer.Shared.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LinkUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<DateTime?>("ReadUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SourceId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SourceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId", "IsRead", "CreatedUtc")
+                        .IsDescending(false, false, true);
+
+                    b.HasIndex("RecipientId", "SourceType", "SourceId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("Jordnaer.Shared.Partner", b =>
                 {
                     b.Property<Guid>("Id")
@@ -664,6 +722,15 @@ namespace Jordnaer.Server.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<bool>("EmailOnGroupInvitation")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EmailOnGroupMembershipRequest")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EmailOnGroupMembershipResponse")
+                        .HasColumnType("bit");
+
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -932,6 +999,17 @@ namespace Jordnaer.Server.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("Jordnaer.Shared.Notification", b =>
+                {
+                    b.HasOne("Jordnaer.Shared.UserProfile", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
                 });
 
             modelBuilder.Entity("Jordnaer.Shared.Partner", b =>

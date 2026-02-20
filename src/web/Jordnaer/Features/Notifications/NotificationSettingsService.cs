@@ -13,6 +13,16 @@ public interface INotificationSettingsService
 	Task<OneOf<Success, NotFound>> SetGroupPostPreferenceAsync(string userId, Guid groupId, bool enabled, CancellationToken cancellationToken = default);
 	Task<OneOf<Success, NotFound>> SetAllGroupPostPreferencesAsync(string userId, bool enabled, CancellationToken cancellationToken = default);
 	Task<List<GroupMembership>> GetGroupPreferencesAsync(string userId, CancellationToken cancellationToken = default);
+	Task<GroupNotificationPreferences> GetGroupMembershipPreferencesAsync(string userId, CancellationToken cancellationToken = default);
+	Task<Dictionary<string, GroupNotificationPreferences>> GetGroupMembershipPreferencesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default);
+	Task<OneOf<Success, NotFound>> SetGroupMembershipPreferencesAsync(string userId, GroupNotificationPreferences preferences, CancellationToken cancellationToken = default);
+}
+
+public record GroupNotificationPreferences
+{
+	public bool EmailOnGroupMembershipRequest { get; init; } = true;
+	public bool EmailOnGroupInvitation { get; init; } = true;
+	public bool EmailOnGroupMembershipResponse { get; init; } = true;
 }
 
 public class NotificationSettingsService(IDbContextFactory<JordnaerDbContext> contextFactory) : INotificationSettingsService
@@ -83,5 +93,69 @@ public class NotificationSettingsService(IDbContextFactory<JordnaerDbContext> co
 			.Where(x => x.UserProfileId == userId && x.MembershipStatus == MembershipStatus.Active)
 			.Include(x => x.Group)
 			.ToListAsync(cancellationToken);
+	}
+
+	public async Task<GroupNotificationPreferences> GetGroupMembershipPreferencesAsync(string userId, CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var profile = await context.UserProfiles
+			.AsNoTracking()
+			.Where(x => x.Id == userId)
+			.Select(x => new GroupNotificationPreferences
+			{
+				EmailOnGroupMembershipRequest = x.EmailOnGroupMembershipRequest,
+				EmailOnGroupInvitation = x.EmailOnGroupInvitation,
+				EmailOnGroupMembershipResponse = x.EmailOnGroupMembershipResponse
+			})
+			.FirstOrDefaultAsync(cancellationToken);
+
+		return profile ?? new GroupNotificationPreferences();
+	}
+
+	public async Task<Dictionary<string, GroupNotificationPreferences>> GetGroupMembershipPreferencesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
+	{
+		if (userIds is null || !userIds.Any())
+		{
+			return new Dictionary<string, GroupNotificationPreferences>();
+		}
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var ids = userIds.ToList();
+
+		var rows = await context.UserProfiles
+			.AsNoTracking()
+			.Where(x => ids.Contains(x.Id))
+			.Select(x => new { x.Id, x.EmailOnGroupMembershipRequest, x.EmailOnGroupInvitation, x.EmailOnGroupMembershipResponse })
+			.ToListAsync(cancellationToken);
+
+		return rows.ToDictionary(
+			x => x.Id,
+			x => new GroupNotificationPreferences
+			{
+				EmailOnGroupMembershipRequest = x.EmailOnGroupMembershipRequest,
+				EmailOnGroupInvitation = x.EmailOnGroupInvitation,
+				EmailOnGroupMembershipResponse = x.EmailOnGroupMembershipResponse
+			});
+	}
+
+	public async Task<OneOf<Success, NotFound>> SetGroupMembershipPreferencesAsync(string userId, GroupNotificationPreferences preferences, CancellationToken cancellationToken = default)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+		var userProfile = await context.UserProfiles
+			.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+
+		if (userProfile is null)
+		{
+			return new NotFound();
+		}
+
+		userProfile.EmailOnGroupMembershipRequest = preferences.EmailOnGroupMembershipRequest;
+		userProfile.EmailOnGroupInvitation = preferences.EmailOnGroupInvitation;
+		userProfile.EmailOnGroupMembershipResponse = preferences.EmailOnGroupMembershipResponse;
+		await context.SaveChangesAsync(cancellationToken);
+
+		return new Success();
 	}
 }

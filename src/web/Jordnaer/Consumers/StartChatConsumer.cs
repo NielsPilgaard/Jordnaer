@@ -1,38 +1,29 @@
 using Jordnaer.Database;
 using Jordnaer.Features.Chat;
 using Jordnaer.Features.Metrics;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Notifications;
 using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jordnaer.Consumers;
 
-public class StartChatConsumer : IConsumer<StartChat>
+public class StartChatConsumer(
+	IDbContextFactory<JordnaerDbContext> contextFactory,
+	ILogger<StartChatConsumer> logger,
+	IHubContext<ChatHub, IChatHub> chatHub,
+	INotificationService notificationService)
+	: IConsumer<StartChat>
 {
-	private readonly IDbContextFactory<JordnaerDbContext> _contextFactory;
-	private readonly ILogger<StartChatConsumer> _logger;
-	private readonly IHubContext<ChatHub, IChatHub> _chatHub;
-	private readonly ChatNotificationService _chatNotificationService;
-
-	public StartChatConsumer(IDbContextFactory<JordnaerDbContext> contextFactory,
-		ILogger<StartChatConsumer> logger,
-		IHubContext<ChatHub, IChatHub> chatHub,
-		ChatNotificationService chatNotificationService)
-	{
-		_contextFactory = contextFactory;
-		_logger = logger;
-		_chatHub = chatHub;
-		_chatNotificationService = chatNotificationService;
-	}
-
 	public async Task Consume(ConsumeContext<StartChat> consumeContext)
 	{
-		_logger.LogInformation("Consuming StartChat message. ChatId: {ChatId}", consumeContext.Message.Id);
+		logger.LogInformation("Consuming StartChat message. ChatId: {ChatId}", consumeContext.Message.Id);
 
 		var chat = consumeContext.Message;
 
-		await using var context = await _contextFactory.CreateDbContextAsync(consumeContext.CancellationToken);
+		await using var context = await contextFactory.CreateDbContextAsync(consumeContext.CancellationToken);
 
 		context.Chats.Add(new Chat
 		{
@@ -52,31 +43,78 @@ public class StartChatConsumer : IConsumer<StartChat>
 			});
 		}
 
-		foreach (var message in chat.Messages)
-		{
-			foreach (var recipient in chat.Recipients.Where(recipient => recipient.Id != chat.InitiatorId))
-			{
-				context.UnreadMessages.Add(new UnreadMessage
-				{
-					RecipientId = recipient.Id,
-					ChatId = chat.Id,
-					MessageSentUtc = message.SentUtc
-				});
-			}
-		}
-
 		try
 		{
 			await context.SaveChangesAsync(consumeContext.CancellationToken);
-			await _chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
+			await chatHub.Clients.Users(chat.Recipients.Select(recipient => recipient.Id)).StartChat(chat);
 		}
 		catch (Exception exception)
 		{
-			_logger.LogError(exception, "Exception occurred while processing {command} command", nameof(StartChat));
+			logger.LogError(exception, "Exception occurred while processing {command} command", nameof(StartChat));
 			throw;
 		}
 
-		await _chatNotificationService.NotifyRecipients(chat);
+		// Get email preferences for non-initiator recipients
+		var nonInitiatorIds = chat.Recipients
+			.Where(r => r.Id != chat.InitiatorId)
+			.Select(r => r.Id)
+			.ToList();
+
+		var recipientPreferences = await context.UserProfiles
+			.AsNoTracking()
+			.Where(p => nonInitiatorIds.Contains(p.Id))
+			.Select(p => new { p.Id, p.ChatNotificationPreference })
+			.ToListAsync(consumeContext.CancellationToken);
+
+		var preferenceLookup = recipientPreferences.ToDictionary(p => p.Id, p => p.ChatNotificationPreference);
+
+		// Create in-app notification for each non-initiator recipient
+		var initiator = chat.Recipients.FirstOrDefault(r => r.Id == chat.InitiatorId);
+		var senderName = initiator?.DisplayName ?? "Ny bruger";
+		var senderImage = initiator?.ProfilePictureUrl;
+
+		var alreadyNotifiedRecipientIds = (await context.Notifications
+			.AsNoTracking()
+			.Where(n => nonInitiatorIds.Contains(n.RecipientId)
+				&& n.SourceType == NotificationSourceType.Chat
+				&& n.SourceId == chat.Id.ToString())
+			.Select(n => n.RecipientId)
+			.ToListAsync(consumeContext.CancellationToken))
+			.ToHashSet();
+
+		foreach (var recipient in chat.Recipients.Where(r => r.Id != chat.InitiatorId))
+		{
+			if (alreadyNotifiedRecipientIds.Contains(recipient.Id))
+			{
+				continue;
+			}
+
+			try
+			{
+				// For new chats, send email if preference is FirstMessageOnly or AllMessages
+				var preference = preferenceLookup.GetValueOrDefault(recipient.Id, ChatNotificationPreference.FirstMessageOnly);
+				var sendEmail = preference is ChatNotificationPreference.FirstMessageOnly
+					or ChatNotificationPreference.AllMessages;
+
+				await notificationService.SendAsync(new CreateNotificationRequest
+				{
+					RecipientId = recipient.Id,
+					Title = $"Ny besked fra {senderName}",
+					ImageUrl = senderImage,
+					LinkUrl = $"/chat/{chat.Id}",
+					Type = NotificationType.ChatMessage,
+					SourceType = NotificationSourceType.Chat,
+					SourceId = chat.Id.ToString(),
+					SendEmail = sendEmail,
+					EmailSubject = $"Ny besked fra {senderName}"
+				}, consumeContext.CancellationToken);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to send in-app notification to recipient {RecipientId} for chat {ChatId}",
+					recipient.Id, chat.Id);
+			}
+		}
 
 		JordnaerMetrics.ChatStartedSentCounter.Add(1);
 	}

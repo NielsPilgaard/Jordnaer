@@ -4,9 +4,11 @@ using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Email;
-using Jordnaer.Features.Groups;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Notifications;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 
@@ -57,7 +59,9 @@ public class MembershipService(CurrentUser currentUser,
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	IEmailService emailService,
 	ILogger<MembershipService> logger,
-	IGroupMembershipNotificationService notificationService) : IMembershipService
+	INotificationService inAppNotificationService,
+	INotificationSettingsService notificationSettingsService,
+	IOptions<AppOptions> appOptions) : IMembershipService
 {
 	public async Task<OneOf<Success, Error<MembershipStatus>, Error<string>>> RequestMembership(
 		string groupName,
@@ -89,25 +93,8 @@ public class MembershipService(CurrentUser currentUser,
 					existingMembership.UserInitiatedMembership = true;
 					await context.SaveChangesAsync(cancellationToken);
 
-					// Send email notification - don't fail the request if notification fails
-					try
-					{
-						await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
-					}
-					catch (Exception notificationException)
-					{
-						logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
-					}
-
-					// Notify admins via SignalR - don't fail the request if notification fails
-					try
-					{
-						await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
-					}
-					catch (Exception notificationException)
-					{
-						logger.LogError(notificationException, "Failed to send SignalR notification for group {GroupId}", group.Id);
-					}
+					// Send in-app notifications to group admins (includes email if enabled in preferences)
+					await NotifyAdminsOfMembershipRequestAsync(context, group, cancellationToken);
 
 					return new Success();
 				}
@@ -129,25 +116,8 @@ public class MembershipService(CurrentUser currentUser,
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			// Send email notification - don't fail the request if notification fails
-			try
-			{
-				await emailService.SendMembershipRequestEmails(groupName, cancellationToken);
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to send membership request emails for group {GroupName}", groupName);
-			}
-
-			// Notify admins via SignalR - don't fail the request if notification fails
-			try
-			{
-				await notificationService.NotifyAdminsOfPendingCountChangeAsync(group.Id, 1, cancellationToken);
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to send SignalR notification for group {GroupId}", group.Id);
-			}
+			// Send in-app notifications to group admins (includes email if enabled in preferences)
+			await NotifyAdminsOfMembershipRequestAsync(context, group, cancellationToken);
 
 			return new Success();
 		}
@@ -254,15 +224,8 @@ public class MembershipService(CurrentUser currentUser,
 					existingMembership.UserInitiatedMembership = false;
 					await context.SaveChangesAsync(cancellationToken);
 
-					// Send email notification
-					try
-					{
-						await emailService.SendGroupInviteEmail(group.Name, userId, cancellationToken);
-					}
-					catch (Exception notificationException)
-					{
-						logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", group.Name);
-					}
+					// Send in-app notification to the invited user (includes email if enabled in preferences)
+					await SendGroupInviteNotificationAsync(group, userId, cancellationToken);
 
 					return new Success();
 				}
@@ -285,15 +248,8 @@ public class MembershipService(CurrentUser currentUser,
 
 			await context.SaveChangesAsync(cancellationToken);
 
-			// Send email notification - don't fail the request if notification fails
-			try
-			{
-				await emailService.SendGroupInviteEmail(group.Name, userId, cancellationToken);
-			}
-			catch (Exception notificationException)
-			{
-				logger.LogError(notificationException, "Failed to send invite email for group {GroupName}", group.Name);
-			}
+			// Send in-app notification to the invited user (includes email if enabled in preferences)
+			await SendGroupInviteNotificationAsync(group, userId, cancellationToken);
 
 			return new Success();
 		}
@@ -327,7 +283,22 @@ public class MembershipService(CurrentUser currentUser,
 
 			membership.MembershipStatus = MembershipStatus.Active;
 			membership.LastUpdatedUtc = DateTime.UtcNow;
+
 			await context.SaveChangesAsync(cancellationToken);
+
+			// Clear the invitation notification
+			if (currentUser.Id is not null)
+			{
+				try
+				{
+					await inAppNotificationService.MarkSourceAsReadAsync(
+						currentUser.Id, NotificationSourceType.GroupInvitation, groupId.ToString(), cancellationToken);
+				}
+				catch (Exception notificationException)
+				{
+					logger.LogError(notificationException, "Failed to clear invitation notification for group {GroupId}", groupId);
+				}
+			}
 
 			return new Success();
 		}
@@ -362,6 +333,20 @@ public class MembershipService(CurrentUser currentUser,
 			// Remove the membership record when declined
 			context.GroupMemberships.Remove(membership);
 			await context.SaveChangesAsync(cancellationToken);
+
+			// Clear the invitation notification
+			if (currentUser.Id is not null)
+			{
+				try
+				{
+					await inAppNotificationService.MarkSourceAsReadAsync(
+						currentUser.Id, NotificationSourceType.GroupInvitation, groupId.ToString(), cancellationToken);
+				}
+				catch (Exception notificationException)
+				{
+					logger.LogError(notificationException, "Failed to clear invitation notification for group {GroupId}", groupId);
+				}
+			}
 
 			return new Success();
 		}
@@ -635,6 +620,76 @@ public class MembershipService(CurrentUser currentUser,
 		{
 			logger.LogException(exception);
 			return new Error<string>("Der skete en fejl. Prøv igen senere.");
+		}
+	}
+
+	private async Task NotifyAdminsOfMembershipRequestAsync(JordnaerDbContext context, Group group, CancellationToken cancellationToken)
+	{
+		try
+		{
+			var adminUserIds = await context.GroupMemberships
+				.AsNoTracking()
+				.Where(x => x.GroupId == group.Id &&
+						   x.MembershipStatus == MembershipStatus.Active &&
+						   (x.PermissionLevel == PermissionLevel.Admin ||
+							x.OwnershipLevel == OwnershipLevel.Owner))
+				.Select(x => x.UserProfileId)
+				.ToListAsync(cancellationToken);
+
+			var userName = currentUser.UserProfile?.DisplayName ?? "En bruger";
+
+			var prefsByUserId = await notificationSettingsService.GetGroupMembershipPreferencesAsync(adminUserIds, cancellationToken);
+
+			var notifications = adminUserIds.Select(adminUserId =>
+			{
+				var prefs = prefsByUserId.GetValueOrDefault(adminUserId) ?? new GroupNotificationPreferences();
+				return inAppNotificationService.SendAsync(new CreateNotificationRequest
+				{
+					RecipientId = adminUserId,
+					Title = $"{userName} vil gerne være med i {group.Name}",
+					LinkUrl = $"/groups/{Uri.EscapeDataString(group.Name)}/members",
+					Type = NotificationType.GroupMembershipRequest,
+					SourceType = NotificationSourceType.GroupMembership,
+					SourceId = $"{group.Id}:{currentUser.Id}",
+					SendEmail = prefs.EmailOnGroupMembershipRequest,
+					EmailSubject = $"Ny medlemskabsanmodning til {group.Name}",
+					EmailBody = EmailContentBuilder.MembershipRequest(appOptions.Value.BaseUrl, group.Name, userName)
+				}, cancellationToken);
+			}).ToArray();
+
+			await Task.WhenAll(notifications);
+		}
+		catch (Exception exception)
+		{
+			logger.LogError(exception, "Failed to send in-app notifications for membership request to group {GroupId}", group.Id);
+		}
+	}
+
+	private async Task SendGroupInviteNotificationAsync(Group group, string userId, CancellationToken cancellationToken)
+	{
+		try
+		{
+			var inviterName = currentUser.UserProfile?.DisplayName ?? "En administrator";
+			var prefs = await notificationSettingsService.GetGroupMembershipPreferencesAsync(userId, cancellationToken);
+
+			await inAppNotificationService.SendAsync(new CreateNotificationRequest
+			{
+				RecipientId = userId,
+				Title = $"Du er inviteret til {group.Name}",
+				Description = $"Inviteret af {inviterName}",
+				ImageUrl = group.ProfilePictureUrl,
+				LinkUrl = $"/groups/{Uri.EscapeDataString(group.Name)}",
+				Type = NotificationType.GroupInvitation,
+				SourceType = NotificationSourceType.GroupInvitation,
+				SourceId = group.Id.ToString(),
+				SendEmail = prefs.EmailOnGroupInvitation,
+				EmailSubject = $"Du er inviteret til {group.Name}",
+				EmailBody = EmailContentBuilder.GroupInvite(appOptions.Value.BaseUrl, group.Name, inviterName)
+			}, cancellationToken);
+		}
+		catch (Exception exception)
+		{
+			logger.LogError(exception, "Failed to send in-app invite notification for group {GroupId} to user {UserId}", group.Id, userId);
 		}
 	}
 

@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using Jordnaer.Features.Email;
 using Xunit;
@@ -157,11 +158,15 @@ public class EmailContentBuilderTests
 	public void MembershipRequest_ShouldProduceValidUrl()
 	{
 		// Act
-		var result = EmailContentBuilder.MembershipRequest(BaseUrl, "Test Group");
+		var result = EmailContentBuilder.MembershipRequest(BaseUrl, "Test Group", "Test & <User>");
 
 		// Assert
 		result.Should().Contain("groups/Test");
 		result.Should().NotContain("&amp;amp;");
+
+		// The applicant name should appear HTML-encoded in the body.
+		result.Should().Contain("Test &amp; &lt;User&gt;");
+		result.Should().NotContain("Test & <User>");
 	}
 
 	[Fact]
@@ -221,10 +226,13 @@ public class EmailContentBuilderTests
 			EmailContentBuilder.ChatNotification(BaseUrl, "Recipient", "Sender", "https://example.com/chat"),
 			EmailContentBuilder.DeleteUser(BaseUrl, "https://example.com/delete"),
 			EmailContentBuilder.GroupPostNotification(BaseUrl, "Author", "Preview", "https://example.com/group"),
-			EmailContentBuilder.MembershipRequest(BaseUrl, "Group"),
+			EmailContentBuilder.MembershipRequest(BaseUrl, "Group", "User"),
 			EmailContentBuilder.PartnerContactForm(BaseUrl, "Company", "Contact", "email@test.com", "123", "Message"),
 			EmailContentBuilder.PartnerImageApproval(BaseUrl, "Partner", Guid.NewGuid(), ["Change 1"]),
-			EmailContentBuilder.PartnerWelcome(BaseUrl, "Partner", "email@test.com", "password")
+			EmailContentBuilder.PartnerWelcome(BaseUrl, "Partner", "email@test.com", "password"),
+			EmailContentBuilder.GenericNotification("Title", "Description", null, BaseUrl),
+			EmailContentBuilder.MembershipApproved(BaseUrl, "Group"),
+			EmailContentBuilder.MembershipRejected(BaseUrl, "Group")
 		};
 
 		foreach (var email in emails)
@@ -233,5 +241,50 @@ public class EmailContentBuilderTests
 			email.Should().Contain("</html>");
 			email.Should().NotContain("&amp;amp;", "no email should contain double-encoded ampersands");
 		}
+	}
+
+	[Fact]
+	public void GenericNotification_ShouldHtmlEncode_TitleAndDescription()
+	{
+		// Arrange
+		var title = "<script>alert('xss')</script>";
+		var description = "Malicious & <content>";
+
+		// Act
+		var result = EmailContentBuilder.GenericNotification(title, description, null, BaseUrl);
+
+		// Assert - raw title must not appear; its fully HTML-encoded form must appear
+		result.Should().NotContain(title);
+		result.Should().Contain(WebUtility.HtmlEncode(title));
+		result.Should().Contain("Malicious &amp; &lt;content&gt;");
+	}
+
+	[Fact]
+	public void GenericNotification_ShouldResolveRelativeUrl_WhenBaseUrlIsNull()
+	{
+		// Arrange
+		var title = "Test notification";
+		var description = "Test description";
+		var linkUrl = "/some-path";
+
+		// Act - baseUrl is null; linkUrl is relative, so the fallback base should be used
+		var result = EmailContentBuilder.GenericNotification(title, description, linkUrl, null);
+
+		// Assert - relative linkUrl should be resolved against the hardcoded fallback base
+		result.Should().Contain("https://mini-moeder.dk/some-path");
+	}
+
+	[Fact]
+	public void GroupInvite_ShouldHtmlEncode_InviterName()
+	{
+		// Arrange
+		var inviterName = "Evil <User> & Co";
+
+		// Act
+		var result = EmailContentBuilder.GroupInvite(BaseUrl, "Group", inviterName);
+
+		// Assert
+		result.Should().NotContain("Evil <User> & Co");
+		result.Should().Contain("Evil &lt;User&gt; &amp; Co");
 	}
 }

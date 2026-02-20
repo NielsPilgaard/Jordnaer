@@ -2,7 +2,9 @@ using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Features.Metrics;
+using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
+using Jordnaer.Shared.Notifications;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -18,7 +20,8 @@ public class GroupService(
 	ILogger<GroupService> logger,
 	IDiagnosticContext diagnosticContext,
 	CurrentUser currentUser,
-	IGroupMembershipNotificationService notificationService)
+	INotificationService inAppNotificationService,
+	INotificationSettingsService notificationSettingsService)
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -306,12 +309,8 @@ public class GroupService(
 			return logger.LogAndReturnErrorResult(error);
 		}
 
-		// Track if pending status changed to notify listeners
-		// Only track PendingApprovalFromGroup (incoming requests), not PendingApprovalFromUser (outgoing invitations)
-		var oldStatus = membership.MembershipStatus;
+		var wasPending = membership.MembershipStatus == MembershipStatus.PendingApprovalFromGroup;
 		var newStatus = membershipDto.MembershipStatus;
-		var wasPending = oldStatus == MembershipStatus.PendingApprovalFromGroup;
-		var isPending = newStatus == MembershipStatus.PendingApprovalFromGroup;
 
 		membership.OwnershipLevel = membershipDto.OwnershipLevel;
 		membership.PermissionLevel = membershipDto.PermissionLevel;
@@ -330,12 +329,59 @@ public class GroupService(
 				"Det lykkedes ikke at opdatere medlemskabet. Prøv igen senere.");
 		}
 
-		// Notify admins via SignalR if pending count changed
-		// This is outside the DB transaction to prevent notification failures from affecting DB success
-		if (wasPending != isPending)
+		// Send in-app notifications for approval/rejection
+		if (wasPending)
 		{
-			var pendingCountChange = isPending ? 1 : -1;
-			await notificationService.NotifyAdminsOfPendingCountChangeAsync(membershipDto.GroupId, pendingCountChange, cancellationToken);
+			try
+			{
+				var groupName = await GetGroupNameAsync(membershipDto.GroupId, cancellationToken);
+				var prefs = await notificationSettingsService.GetGroupMembershipPreferencesAsync(membershipDto.UserProfileId, cancellationToken);
+
+				if (newStatus == MembershipStatus.Active && groupName is not null)
+				{
+					await inAppNotificationService.SendAsync(new CreateNotificationRequest
+					{
+						RecipientId = membershipDto.UserProfileId,
+						Title = $"Du er nu medlem af {groupName}",
+						Description = "Din anmodning om medlemskab er blevet godkendt.",
+						LinkUrl = $"/groups/{Uri.EscapeDataString(groupName)}",
+						Type = NotificationType.GroupMembershipApproved,
+						SourceType = NotificationSourceType.GroupMembership,
+						SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+						SendEmail = prefs.EmailOnGroupMembershipResponse,
+						EmailSubject = $"Velkommen til {groupName}"
+					}, cancellationToken);
+				}
+				else if (newStatus == MembershipStatus.Rejected && groupName is not null)
+				{
+					await inAppNotificationService.SendAsync(new CreateNotificationRequest
+					{
+						RecipientId = membershipDto.UserProfileId,
+						Title = $"Din anmodning til {groupName} blev afvist",
+						Description = $"Din anmodning om medlemskab af {groupName} er desværre blevet afvist.",
+						Type = NotificationType.GroupMembershipRejected,
+						SourceType = NotificationSourceType.GroupMembership,
+						SourceId = $"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+						SendEmail = prefs.EmailOnGroupMembershipResponse,
+						EmailSubject = $"Din anmodning til {groupName} blev afvist"
+					}, cancellationToken);
+				}
+
+				// Clear the admin notifications for this membership request
+				if (currentUser.Id is not null)
+				{
+					await inAppNotificationService.MarkSourceAsReadAsync(
+						currentUser.Id,
+						NotificationSourceType.GroupMembership,
+						$"{membershipDto.GroupId}:{membershipDto.UserProfileId}",
+						cancellationToken);
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to send in-app notifications for GroupId {GroupId}, UserProfileId {UserProfileId}",
+					membershipDto.GroupId, membershipDto.UserProfileId);
+			}
 		}
 
 		return new Success();
@@ -516,6 +562,16 @@ public class GroupService(
 		logger.LogInformation("Successfully deleted group");
 
 		return new Success();
+	}
+
+	private async Task<string?> GetGroupNameAsync(Guid groupId, CancellationToken cancellationToken)
+	{
+		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+		return await context.Groups
+			.AsNoTracking()
+			.Where(g => g.Id == groupId)
+			.Select(g => g.Name)
+			.FirstOrDefaultAsync(cancellationToken);
 	}
 
 	private static async Task UpdateExistingGroupAsync(Group currentGroup,

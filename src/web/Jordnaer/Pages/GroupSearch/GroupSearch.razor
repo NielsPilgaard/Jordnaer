@@ -12,7 +12,7 @@
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-    <GroupSearchForm OnValidSubmit="@Search" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
+    <GroupSearchForm OnValidSubmit="@(() => Search())" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
 
     @if (!_hasSearched)
     {
@@ -56,52 +56,61 @@
         }
     }
 
-    private async Task Search()
+    private async Task Search(bool showToast = true)
     {
         _isSearching = true;
 
-        _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
-
-        Snackbar.Clear();
-
-        if (_searchResult.TotalCount is 0)
+        try
         {
-            Snackbar.Add(
-            message: "Ingen grupper matchede søgningen.",
-            severity: Severity.Info,
-            options =>
+            _searchResult = await GroupSearchService.GetGroupsAsync(_filter);
+
+            if (showToast)
             {
-                options.VisibleStateDuration = 3500;
-                options.CloseAfterNavigation = true;
-            });
+                Snackbar.Clear();
+
+                if (_searchResult.TotalCount is 0)
+                {
+                    Snackbar.Add(
+                    message: "Ingen grupper matchede søgningen.",
+                    severity: Severity.Info,
+                    options =>
+                    {
+                        options.VisibleStateDuration = 3500;
+                        options.CloseAfterNavigation = true;
+                    });
+                }
+                else
+                {
+                    Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
+                    severity: Severity.Success,
+                    options =>
+                    {
+                        options.VisibleStateDuration = 3500;
+                        options.Icon = Icons.Material.Filled.CheckCircle;
+                        options.CloseAfterNavigation = true;
+                    });
+                }
+            }
+
+            _hasSearched = true;
+
+            // Save to cache for restoration when navigating back
+            Cache.SearchFilter = _filter;
+            Cache.SearchResult = _searchResult;
+
+            // Clear scroll position since this is a new search
+            await ClearScrollPositionAsync();
         }
-        else
+        finally
         {
-            Snackbar.Add(message: $"{_searchResult.TotalCount} grupper matchede søgningen.",
-            severity: Severity.Success,
-            options =>
-            {
-                options.VisibleStateDuration = 3500;
-                options.Icon = Icons.Material.Filled.CheckCircle;
-                options.CloseAfterNavigation = true;
-            });
+            _isSearching = false;
         }
-
-        _hasSearched = true;
-        _isSearching = false;
-
-        // Save to cache for restoration when navigating back
-        Cache.SearchFilter = _filter;
-        Cache.SearchResult = _searchResult;
-
-        // Clear scroll position since this is a new search
-        await ClearScrollPositionAsync();
     }
 
     private async Task OnSelectedPageChanged(int selectedPage)
     {
         _filter.PageNumber = selectedPage;
-        await Search();
+        await Search(showToast: false);
     }
 
     private async Task ClearScrollPositionAsync()

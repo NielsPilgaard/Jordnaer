@@ -1,0 +1,254 @@
+@page "/notifications"
+@using Jordnaer.Features.Authentication
+@using Jordnaer.Features.Notifications
+@using Jordnaer.Shared.Notifications
+
+@inject INotificationService NotificationService
+@inject NotificationSignalRClient NotificationSignalRClient
+@inject CurrentUser CurrentUser
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ILogger<NotificationsPage> Logger
+
+@implements IAsyncDisposable
+
+@attribute [Authorize]
+
+<MetadataComponent Title="Notifikationer" Description="Se dine notifikationer" />
+
+<MudLoading @bind-Loading="_isLoading" Darken Overlap>
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="my-6">
+        <div class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h3"
+                Style="@($"color: {JordnaerPalette.RedHeader}; font-family: 'Cherry Bomb One', cursive; letter-spacing: 0.11em; font-size: clamp(1.5rem, 5vw, 3rem); word-break: break-word;")">
+                Notifikationer
+            </MudText>
+
+            @if (_notifications.Any(n => !n.IsRead))
+            {
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+                    OnClick="MarkAllAsRead" Disabled="_isMarkingRead" Style="text-transform: none;">
+                    Markér alle som læst
+                </MudButton>
+            }
+        </div>
+
+        @* Type filter *@
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <MudChip T="string" Color="@(_typeFilter is null ? Color.Primary : Color.Default)"
+                OnClick="@(() => SetFilter(null))" Style="cursor: pointer;">
+                Alle
+            </MudChip>
+            <MudChip T="string" Color="@(_typeFilter == NotificationType.ChatMessage ? Color.Primary : Color.Default)"
+                OnClick="@(() => SetFilter(NotificationType.ChatMessage))" Style="cursor: pointer;">
+                Chat
+            </MudChip>
+            <MudChip T="string" Color="@(_typeFilter == NotificationType.GroupMembershipRequest ? Color.Primary : Color.Default)"
+                OnClick="@(() => SetFilter(NotificationType.GroupMembershipRequest))" Style="cursor: pointer;">
+                Medlemskab
+            </MudChip>
+            <MudChip T="string" Color="@(_typeFilter == NotificationType.GroupInvitation ? Color.Primary : Color.Default)"
+                OnClick="@(() => SetFilter(NotificationType.GroupInvitation))" Style="cursor: pointer;">
+                Invitationer
+            </MudChip>
+            <MudChip T="string" Color="@(_typeFilter == NotificationType.GroupPost ? Color.Primary : Color.Default)"
+                OnClick="@(() => SetFilter(NotificationType.GroupPost))" Style="cursor: pointer;">
+                Opslag
+            </MudChip>
+        </div>
+
+        @if (_notifications.Count == 0)
+        {
+            <MudPaper Elevation="0" Class="pa-8 d-flex flex-column align-center">
+                <MudIcon Icon="@Icons.Material.Filled.NotificationsNone" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
+                    @(_typeFilter.HasValue ? "Ingen notifikationer af denne type" : "Du har ingen notifikationer endnu")
+                </MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Elevation="3">
+                @foreach (var notification in _notifications)
+                {
+                    <NotificationItem Notification="notification" OnClick="HandleNotificationClick" />
+                    <MudDivider />
+                }
+            </MudPaper>
+
+            @if (_hasMore)
+            {
+                <div class="d-flex justify-center mt-4">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadMore"
+                        Disabled="_isLoadingMore" Style="text-transform: none;">
+                        @if (_isLoadingMore)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        Indlæs flere
+                    </MudButton>
+                </div>
+            }
+        }
+    </MudContainer>
+</MudLoading>
+
+@code {
+    private const int PageSize = 30;
+
+    private bool _isLoading = true;
+    private bool _isLoadingMore;
+    private bool _isMarkingRead;
+    private bool _hasMore;
+    private NotificationType? _typeFilter;
+    private List<NotificationDto> _notifications = [];
+    private IDisposable? _notificationReceivedSubscription;
+    private IDisposable? _notificationReadSubscription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (CurrentUser.Id is null)
+            {
+                return;
+            }
+
+            await LoadNotifications();
+
+            await NotificationSignalRClient.AcquireAsync();
+            _notificationReceivedSubscription = NotificationSignalRClient.OnNotificationReceived(async notification =>
+            {
+                if (_typeFilter is null || notification.Type == _typeFilter)
+                {
+                    _notifications.Insert(0, notification);
+                }
+                await InvokeAsync(StateHasChanged);
+            });
+
+            _notificationReadSubscription = NotificationSignalRClient.OnNotificationRead(async notificationId =>
+            {
+                var notification = _notifications.FirstOrDefault(n => n.Id == notificationId);
+                if (notification is not null)
+                {
+                    notification.MarkAsRead();
+                }
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        if (CurrentUser.Id is null) return;
+
+        _notifications = await NotificationService.GetAllAsync(
+            CurrentUser.Id, PageSize, 0, _typeFilter);
+        _hasMore = _notifications.Count == PageSize;
+    }
+
+    private async Task LoadMore()
+    {
+        if (CurrentUser.Id is null) return;
+
+        _isLoadingMore = true;
+        try
+        {
+            var more = await NotificationService.GetAllAsync(
+                CurrentUser.Id, PageSize, _notifications.Count, _typeFilter);
+            _notifications.AddRange(more);
+            _hasMore = more.Count == PageSize;
+        }
+        finally
+        {
+            _isLoadingMore = false;
+        }
+    }
+
+    private async Task SetFilter(NotificationType? type)
+    {
+        _typeFilter = type;
+        _isLoading = true;
+        try
+        {
+            await LoadNotifications();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notification)
+    {
+        if (CurrentUser.Id is not null && !notification.IsRead)
+        {
+            try
+            {
+                await NotificationService.MarkAsReadAsync(CurrentUser.Id, notification.Id);
+
+                var index = _notifications.IndexOf(notification);
+                if (index >= 0)
+                {
+                    _notifications[index].MarkAsRead();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to mark notification {NotificationId} as read for user {UserId}", notification.Id, CurrentUser.Id);
+                Snackbar.Add("Der opstod en fejl ved markering af notifikation som læst. Prøv igen.", Severity.Error);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(notification.LinkUrl))
+        {
+            Navigation.NavigateTo(notification.LinkUrl);
+        }
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        if (CurrentUser.Id is null) return;
+
+        _isMarkingRead = true;
+        try
+        {
+            try
+            {
+                await NotificationService.MarkAllAsReadAsync(CurrentUser.Id);
+                foreach (var notification in _notifications)
+                {
+                    notification.MarkAsRead();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to mark all notifications as read for user {UserId}", CurrentUser.Id);
+                Snackbar.Add("Der opstod en fejl ved markering af notifikationer som læst. Prøv igen.", Severity.Error);
+                // Don't update _notifications on error - state remains unchanged
+            }
+        }
+        finally
+        {
+            _isMarkingRead = false;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _notificationReceivedSubscription?.Dispose();
+        _notificationReadSubscription?.Dispose();
+        try
+        {
+            await NotificationSignalRClient.ReleaseAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to stop NotificationSignalRClient during disposal.");
+        }
+    }
+}
