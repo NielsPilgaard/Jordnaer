@@ -655,7 +655,7 @@ public class MembershipService(CurrentUser currentUser,
 					EmailSubject = $"Ny medlemskabsanmodning til {group.Name}",
 					EmailBody = EmailContentBuilder.MembershipRequest(appOptions.Value.BaseUrl, group.Name, userName)
 				}, cancellationToken);
-			});
+			}).ToArray();
 
 			await Task.WhenAll(notifications);
 		}

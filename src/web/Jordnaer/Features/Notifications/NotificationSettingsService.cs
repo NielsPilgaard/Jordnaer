@@ -115,6 +115,10 @@ public class NotificationSettingsService(IDbContextFactory<JordnaerDbContext> co
 
 	public async Task<Dictionary<string, GroupNotificationPreferences>> GetGroupMembershipPreferencesAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
 	{
+		if (userIds is null || !userIds.Any())
+		{
+			return new Dictionary<string, GroupNotificationPreferences>();
+		}
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
 		var ids = userIds.ToList();

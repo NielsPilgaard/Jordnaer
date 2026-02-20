@@ -226,7 +226,14 @@
         if (_acquired)
         {
             _acquired = false;
-            await NotificationSignalRClient.ReleaseAsync();
+             try
+            {
+                await NotificationSignalRClient.ReleaseAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to release NotificationSignalRClient");
+            }
         }
     }
 }
