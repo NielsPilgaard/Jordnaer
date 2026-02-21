@@ -40,8 +40,9 @@
 
             if (_mapComponent?.IsInitialized == true && Groups is not null)
             {
-                _previousGroups = Groups;
-                await _mapComponent.UpdateGroupMarkersAsync(Groups);
+                var markers = Groups.ToList();
+                _previousGroups = markers;
+                await _mapComponent.UpdateGroupMarkersAsync(markers);
             }
         }
     }
@@ -63,8 +64,9 @@
         }
         else if (Groups != _previousGroups)
         {
-            _previousGroups = Groups;
-            await _mapComponent.UpdateGroupMarkersAsync(Groups.ToList());
+            var markers = Groups.ToList();
+            _previousGroups = markers;
+            await _mapComponent.UpdateGroupMarkersAsync(markers);
         }
     }
 

@@ -77,8 +77,8 @@
 				ShortDescription = g.ShortDescription,
 				ZipCode = g.ZipCode,
 				City = g.City,
-				Latitude = g.ZipCodeLatitude!.Value + (Math.Abs(HashCode.Combine(g.Id, 1)) % 10000 / 10000.0 - 0.5) * 0.003,
-				Longitude = g.ZipCodeLongitude!.Value + (Math.Abs(HashCode.Combine(g.Id, 2)) % 10000 / 10000.0 - 0.5) * 0.005,
+				Latitude = g.ZipCodeLatitude!.Value + ((HashCode.Combine(g.Id, 1) & 0x7FFFFFFF) % 10000 / 10000.0 - 0.5) * 0.003,
+				Longitude = g.ZipCodeLongitude!.Value + ((HashCode.Combine(g.Id, 2) & 0x7FFFFFFF) % 10000 / 10000.0 - 0.5) * 0.005,
 			})
 			.ToList();
 
