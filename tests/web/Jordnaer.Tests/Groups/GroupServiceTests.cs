@@ -62,7 +62,8 @@ public class GroupServiceTests : IAsyncLifetime
 						))
 			},
 			Substitute.For<INotificationService>(),
-			Substitute.For<INotificationSettingsService>());
+			Substitute.For<INotificationSettingsService>(),
+			Substitute.For<IPublishEndpoint>());
 	}
 
 	[Fact]
