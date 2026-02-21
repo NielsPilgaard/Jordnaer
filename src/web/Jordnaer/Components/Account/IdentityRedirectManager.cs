@@ -24,6 +24,12 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
 			uri = "/";
 		}
 
+		// Ensure relative URIs start with "/" so they pass the safe URL check
+		if (!uri.StartsWith('/') && !Uri.IsWellFormedUriString(uri, UriKind.Absolute))
+		{
+			uri = "/" + uri;
+		}
+
 		// Prevent open redirects (including scheme-relative URLs like "//evil.com")
 		if (!IsSafeRelativeUrl(uri))
 		{
