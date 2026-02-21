@@ -54,19 +54,29 @@
 	[Parameter]
 	public IEnumerable<GroupSlim>? Groups { get; set; }
 
+	/// <summary>
+	/// Additional markers (e.g. HJEM lokalafdelinger) merged into the map alongside regular groups.
+	/// Filtered client-side by the active name filter.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<GroupMarkerData>? AdditionalMarkers { get; set; }
+
 	private List<GroupMarkerData>? _groupMarkers;
 	private IEnumerable<GroupSlim>? _previousGroups;
+	private string? _previousNameFilter;
 
 	protected override void OnParametersSet()
 	{
-		// Early return if Groups reference hasn't changed
-		if (ReferenceEquals(Groups, _previousGroups))
+		// Early return if Groups reference and name filter haven't changed
+		if (ReferenceEquals(Groups, _previousGroups) && Filter.Name == _previousNameFilter)
 		{
 			return;
 		}
 
+		_previousNameFilter = Filter.Name;
+
 		// Only use zip-code-level coordinates to avoid exposing exact group locations
-		_groupMarkers = Groups?
+		var regularMarkers = Groups?
 			.Where(g => g.ZipCodeLatitude.HasValue && g.ZipCodeLongitude.HasValue)
 			.Select(g => new GroupMarkerData
 			{
@@ -80,7 +90,17 @@
 				Latitude = g.ZipCodeLatitude!.Value + ((HashCode.Combine(g.Id, 1) & 0x7FFFFFFF) % 10000 / 10000.0 - 0.5) * 0.003,
 				Longitude = g.ZipCodeLongitude!.Value + ((HashCode.Combine(g.Id, 2) & 0x7FFFFFFF) % 10000 / 10000.0 - 0.5) * 0.005,
 			})
-			.ToList();
+			?? Enumerable.Empty<GroupMarkerData>();
+
+		var filteredAdditional = AdditionalMarkers ?? [];
+		if (!string.IsNullOrWhiteSpace(Filter.Name))
+		{
+			filteredAdditional = filteredAdditional
+				.Where(m => m.Name.Contains(Filter.Name, StringComparison.OrdinalIgnoreCase))
+				.ToList();
+		}
+
+		_groupMarkers = regularMarkers.Concat(filteredAdditional).ToList();
 
 		_previousGroups = Groups;
 	}

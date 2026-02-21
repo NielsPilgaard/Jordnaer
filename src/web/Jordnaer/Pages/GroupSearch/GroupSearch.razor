@@ -1,8 +1,12 @@
 @page "/groups/discover"
 
+@using Jordnaer.Features.HjemGroups
+@using Jordnaer.Features.Map
+
 @inject IGroupSearchService GroupSearchService
 @inject NavigationManager Navigation
 @inject GroupSearchResultCache Cache
+@inject IHjemGroupProvider HjemGroupProvider
 
 @attribute [Sitemap]
 @implements IDisposable
@@ -11,7 +15,7 @@
 
 <MudLoading @bind-Loading="_isSearching" Darken Overlap>
 
-    <GroupSearchForm OnFiltersChanged="OnFiltersChanged" @bind-Filter="_filter" Groups="@_searchResult.Groups" />
+    <GroupSearchForm OnFiltersChanged="OnFiltersChanged" @bind-Filter="_filter" Groups="@_searchResult.Groups" AdditionalMarkers="@_hjemMarkers" />
 
 </MudLoading>
 
@@ -19,6 +23,7 @@
 
     private GroupSearchFilter _filter = new();
     private GroupSearchResult _searchResult = new();
+    private IReadOnlyList<GroupMarkerData> _hjemMarkers = [];
 
     private bool _isSearching = false;
     private CancellationTokenSource? _debounceCts;
@@ -26,6 +31,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _hjemMarkers = await HjemGroupProvider.GetMarkersAsync();
+
         // Restore from cache if available
         if (Cache.SearchFilter is not null && Cache.SearchResult is not null)
         {
