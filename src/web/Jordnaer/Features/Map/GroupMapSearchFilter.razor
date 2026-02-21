@@ -1,5 +1,7 @@
 @inject ILogger<GroupMapSearchFilter> Logger
 
+@implements IAsyncDisposable
+
 <LeafletMap @ref="_mapComponent" MapId="@MapId" InitialLatitude="@InitialLatitude"
     InitialLongitude="@InitialLongitude" InitialZoom="@InitialZoom"
     MapStyle="height: 450px; width: 100%; border-radius: 12px; border: 2px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
@@ -10,6 +12,7 @@
 @code {
     private LeafletMap? _mapComponent;
     private IEnumerable<GroupMarkerData>? _previousGroups;
+    private readonly CancellationTokenSource _cts = new();
 
     [Parameter]
     public string MapId { get; set; } = "group-map-search";
@@ -33,16 +36,16 @@
     {
         if (firstRender)
         {
-            if (!await WaitForMapInitializationAsync())
+            if (!await WaitForMapInitializationAsync(_cts.Token))
             {
                 return;
             }
 
-            if (_mapComponent?.IsInitialized == true && Groups is not null)
+            if (Groups is not null)
             {
                 var markers = Groups.ToList();
                 _previousGroups = Groups;
-                await _mapComponent.UpdateGroupMarkersAsync(markers);
+                await _mapComponent!.UpdateGroupMarkersAsync(markers);
             }
         }
     }
@@ -54,7 +57,8 @@
             return;
         }
 
-        if (Groups is null || !Groups.Any())
+        var markers = Groups?.ToList();
+        if (markers is null || markers.Count == 0)
         {
             if (_previousGroups is not null)
             {
@@ -64,7 +68,6 @@
         }
         else if (Groups != _previousGroups)
         {
-            var markers = Groups.ToList();
             _previousGroups = Groups;
             await _mapComponent.UpdateGroupMarkersAsync(markers);
         }
@@ -88,23 +91,27 @@
     /// </summary>
     public async Task RestoreMapStateAsync(double viewLatitude, double viewLongitude, int zoom)
     {
-        if (!await WaitForMapInitializationAsync())
+        if (!await WaitForMapInitializationAsync(_cts.Token))
         {
             return;
         }
 
-        if (_mapComponent?.IsInitialized == true)
-        {
-            await _mapComponent.CenterMapAsync(viewLatitude, viewLongitude, zoom);
-        }
+        await _mapComponent!.CenterMapAsync(viewLatitude, viewLongitude, zoom);
     }
 
-    private async Task<bool> WaitForMapInitializationAsync()
+    private async Task<bool> WaitForMapInitializationAsync(CancellationToken cancellationToken)
     {
         var attempts = 0;
         while (_mapComponent?.IsInitialized != true && attempts < 20)
         {
-            await Task.Delay(50);
+            try
+            {
+                await Task.Delay(50, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
             attempts++;
         }
 
@@ -117,5 +124,11 @@
         }
 
         return true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _cts.CancelAsync();
+        _cts.Dispose();
     }
 }

@@ -1,10 +1,12 @@
 using Jordnaer.Database;
 using Jordnaer.Extensions;
 using Jordnaer.Features.Authentication;
+using Jordnaer.Features.GroupSearch;
 using Jordnaer.Features.Metrics;
 using Jordnaer.Features.Notifications;
 using Jordnaer.Shared;
 using Jordnaer.Shared.Notifications;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -21,7 +23,8 @@ public class GroupService(
 	IDiagnosticContext diagnosticContext,
 	CurrentUser currentUser,
 	INotificationService inAppNotificationService,
-	INotificationSettingsService notificationSettingsService)
+	INotificationSettingsService notificationSettingsService,
+	IPublishEndpoint publishEndpoint)
 {
 	public async Task<OneOf<Group, NotFound>> GetGroupByIdAsync(Guid id, CancellationToken cancellationToken = default)
 	{
@@ -478,6 +481,7 @@ public class GroupService(
 
 		context.Groups.Add(group);
 		await context.SaveChangesAsync(cancellationToken);
+		await publishEndpoint.Publish(new InvalidateCacheTags { Tags = [GroupSearchService.CacheTag] }, cancellationToken);
 
 		logger.LogInformation("{UserId} created group '{groupName}'", currentUser.Id, group.Name);
 
@@ -512,6 +516,7 @@ public class GroupService(
 		await UpdateExistingGroupAsync(existingGroup, group, context, cancellationToken);
 		context.Entry(existingGroup).State = EntityState.Modified;
 		await context.SaveChangesAsync(cancellationToken);
+		await publishEndpoint.Publish(new InvalidateCacheTags { Tags = [GroupSearchService.CacheTag] }, cancellationToken);
 
 		return new Success();
 	}
@@ -558,6 +563,7 @@ public class GroupService(
 
 		context.Groups.Remove(group);
 		await context.SaveChangesAsync(cancellationToken);
+		await publishEndpoint.Publish(new InvalidateCacheTags { Tags = [GroupSearchService.CacheTag] }, cancellationToken);
 
 		logger.LogInformation("Successfully deleted group");
 

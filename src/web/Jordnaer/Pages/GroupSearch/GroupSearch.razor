@@ -62,6 +62,7 @@
     {
         var requestId = ++_activeRequestId;
         _isSearching = true;
+        StateHasChanged();
         try
         {
             _searchResult = await GroupSearchService.GetGroupsAsync(filter, cancellationToken);
