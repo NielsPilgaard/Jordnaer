@@ -12,7 +12,7 @@
     private IEnumerable<GroupMarkerData>? _previousGroups;
 
     [Parameter]
-    public string MapId { get; set; } = $"group-map-search-{Guid.NewGuid()}";
+    public string MapId { get; set; } = "group-map-search";
 
     [Parameter]
     public double InitialLatitude { get; set; } = 56.0; // Center of Denmark
@@ -41,7 +41,7 @@
             if (_mapComponent?.IsInitialized == true && Groups is not null)
             {
                 var markers = Groups.ToList();
-                _previousGroups = markers;
+                _previousGroups = Groups;
                 await _mapComponent.UpdateGroupMarkersAsync(markers);
             }
         }
@@ -65,7 +65,7 @@
         else if (Groups != _previousGroups)
         {
             var markers = Groups.ToList();
-            _previousGroups = markers;
+            _previousGroups = Groups;
             await _mapComponent.UpdateGroupMarkersAsync(markers);
         }
     }
@@ -97,8 +97,6 @@
         {
             await _mapComponent.CenterMapAsync(viewLatitude, viewLongitude, zoom);
         }
-
-        StateHasChanged();
     }
 
     private async Task<bool> WaitForMapInitializationAsync()
