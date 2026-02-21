@@ -45,17 +45,8 @@ public class ProfileCache(
 			token: cancellationToken);
 	}
 
-	public void InvalidateProfile(UserProfile userProfile)
-	{
-		if (currentUser.Id is null)
-		{
-			return;
-		}
-
-		fusionCache.RemoveByTag(UserTag);
-
+	public void InvalidateProfile(UserProfile userProfile) =>
 		ProfileChanged?.Invoke(this, userProfile);
-	}
 
 	public event EventHandler<UserProfile>? ProfileChanged;
 }

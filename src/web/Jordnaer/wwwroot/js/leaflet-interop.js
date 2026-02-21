@@ -458,7 +458,8 @@ window.leafletInterop = {
         },
       });
 
-      // Add markers for each group
+      // Build all markers
+      const allMarkers = [];
       if (groups.length > 0) {
         groups.forEach((group) => {
           // Skip groups without valid coordinates
@@ -483,9 +484,36 @@ window.leafletInterop = {
             minWidth: 250,
           });
 
-          mapInstance.markerClusterGroup.addLayer(marker);
+          allMarkers.push(marker);
         });
       }
+
+      // Detect and offset duplicate coordinates so each marker is individually clickable
+      const coordKey = (lat, lng) => `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      const byCoord = {};
+      allMarkers.forEach(m => {
+        const ll = m.getLatLng();
+        const key = coordKey(ll.lat, ll.lng);
+        (byCoord[key] = byCoord[key] || []).push(m);
+      });
+
+      Object.values(byCoord).forEach(bucket => {
+        if (bucket.length <= 1) return;
+        const offsetMeters = 25;
+        const angleStep = (2 * Math.PI) / bucket.length;
+        bucket.forEach((marker, i) => {
+          if (i === 0) return; // keep one marker at the true coordinate
+          const ll = marker.getLatLng();
+          const angle = i * angleStep;
+          const dLat = (offsetMeters / 111320) * Math.cos(angle);
+          const dLng = (offsetMeters /
+            (111320 * Math.cos(ll.lat * Math.PI / 180))) * Math.sin(angle);
+          marker.setLatLng([ll.lat + dLat, ll.lng + dLng]);
+        });
+      });
+
+      // Add all markers to cluster group
+      mapInstance.markerClusterGroup.addLayers(allMarkers);
 
       // Add cluster group to map
       mapInstance.map.addLayer(mapInstance.markerClusterGroup);

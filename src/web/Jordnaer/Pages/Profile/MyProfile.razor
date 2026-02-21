@@ -318,11 +318,7 @@
 
         var updateProfileResult = await ProfileService.UpdateUserProfile(_userProfile);
         updateProfileResult.Switch(
-        success =>
-        {
-            Snackbar.Add("Din profil er blevet opdateret!", Severity.Success);
-            ProfileCache.InvalidateProfile(success.Value);
-        },
+        _ => Snackbar.Add("Din profil er blevet opdateret!", Severity.Success),
         _ => Snackbar.Add(ErrorMessages.Something_Went_Wrong_Try_Again, Severity.Error));
 
         _isLoading = false;

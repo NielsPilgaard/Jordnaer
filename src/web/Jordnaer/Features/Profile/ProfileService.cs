@@ -1,6 +1,7 @@
 using Jordnaer.Database;
 using Jordnaer.Features.Authentication;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
@@ -49,7 +50,9 @@ public interface IProfileService
 public sealed class ProfileService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
 	CurrentUser currentUser,
-	ILogger<ProfileService> logger) : IProfileService
+	ILogger<ProfileService> logger,
+	IProfileCache profileCache,
+	IPublishEndpoint publishEndpoint) : IProfileService
 {
 	public async Task<OneOf<Success<ProfileDto>, NotFound>> GetUserProfile(string userName,
 		CancellationToken cancellationToken = default)
@@ -97,6 +100,12 @@ public sealed class ProfileService(
 		}
 
 		await context.SaveChangesAsync(cancellationToken);
+
+		await publishEndpoint.Publish(
+			new InvalidateCacheTags { Tags = [$"profile:{currentUser.Id}"] },
+			cancellationToken);
+
+		profileCache.InvalidateProfile(currentUserProfile);
 
 		return new Success<UserProfile>(currentUserProfile);
 	}

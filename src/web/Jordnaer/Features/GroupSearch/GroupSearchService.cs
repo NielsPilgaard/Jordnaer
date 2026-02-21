@@ -4,6 +4,7 @@ using Jordnaer.Features.Profile;
 using Jordnaer.Shared;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Features.GroupSearch;
 
@@ -14,15 +15,44 @@ public interface IGroupSearchService
 
 public class GroupSearchService(
 	IDbContextFactory<JordnaerDbContext> contextFactory,
-	ILocationService locationService)
+	ILocationService locationService,
+	IFusionCache fusionCache)
 	: IGroupSearchService
 {
+	internal const string CacheTag = "group";
+	private const string AllGroupsCacheKey = "GroupSearch:all";
+
 	private static readonly GeometryFactory GeometryFactory = new(new PrecisionModel(), 4326);
+
 	public async Task<GroupSearchResult> GetGroupsAsync(GroupSearchFilter filter,
 		CancellationToken cancellationToken = default)
 	{
 		JordnaerMetrics.GroupSearchesCounter.Add(1, MakeTagList(filter));
 
+		// Cache the unfiltered result — filtered queries always hit the DB
+		if (IsUnfiltered(filter))
+		{
+			return await fusionCache.GetOrSetAsync<GroupSearchResult>(
+				AllGroupsCacheKey,
+				(_, innerToken) => FetchGroupsAsync(filter, innerToken),
+				tags: [CacheTag],
+				token: cancellationToken) ?? new GroupSearchResult();
+		}
+
+		return await FetchGroupsAsync(filter, cancellationToken);
+	}
+
+	private static bool IsUnfiltered(GroupSearchFilter filter) =>
+		string.IsNullOrEmpty(filter.Name) &&
+		(filter.Categories is null || filter.Categories.Length == 0) &&
+		filter.WithinRadiusKilometers is null &&
+		string.IsNullOrEmpty(filter.Location) &&
+		!filter.Latitude.HasValue &&
+		!filter.Longitude.HasValue;
+
+	private async Task<GroupSearchResult> FetchGroupsAsync(GroupSearchFilter filter,
+		CancellationToken cancellationToken = default)
+	{
 		await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 		var groups = context.Groups
 			.AsNoTracking()
@@ -39,10 +69,7 @@ public class GroupSearchService(
 
 		var totalCount = await groups.CountAsync(cancellationToken);
 
-		var groupsToSkip = filter.PageNumber == 1 ? 0 : (filter.PageNumber - 1) * filter.PageSize;
 		var paginatedGroups = await groups
-							  .Skip(groupsToSkip)
-							  .Take(filter.PageSize)
 							  .Select(group => new GroupSlim
 							  {
 								  ProfilePictureUrl = group.ProfilePictureUrl,

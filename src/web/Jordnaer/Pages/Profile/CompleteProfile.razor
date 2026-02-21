@@ -305,9 +305,6 @@
             return;
         }
 
-        // Update cache
-        ProfileCache.InvalidateProfile(result.AsT0.Value);
-
         // Redirect to step 2, passing both ReturnUrl and InviteToken
         var queryParams = new List<string>();
         if (!string.IsNullOrWhiteSpace(ReturnUrl))
