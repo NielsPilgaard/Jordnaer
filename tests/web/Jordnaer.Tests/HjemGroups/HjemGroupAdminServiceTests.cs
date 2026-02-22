@@ -136,7 +136,7 @@ public class HjemGroupAdminServiceTests
         await CreateSut().SaveAsync(entries);
 
         await _containerClient.Received(1).CreateIfNotExistsAsync(
-            PublicAccessType.Blob,
+            PublicAccessType.None,
             Arg.Any<IDictionary<string, string>>(),
             Arg.Any<BlobContainerEncryptionScopeOptions>(),
             Arg.Any<CancellationToken>());

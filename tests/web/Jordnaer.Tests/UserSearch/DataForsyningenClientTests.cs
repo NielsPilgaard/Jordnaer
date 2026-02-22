@@ -76,7 +76,7 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenClient.SearchZipCodesAsync(query);
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.HaveCountGreaterThan(0);
 
 		var first = response.Content!.First();
@@ -96,7 +96,7 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenClient.SearchZipCodesAsync(query);
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.BeEmpty();
 	}
 
@@ -110,7 +110,8 @@ public class DataForsyningenClientTests
 		var response = await _dataForsyningenClient.SearchZipCodesAsync(query);
 
 		// Assert
-		response.IsSuccessStatusCode.Should().BeTrue();
+		response.IsSuccessful.Should().BeTrue();
+		response.Content.Should().NotBeNull();
 		var first = response.Content!.First();
 		first.Visueltcenter.Should().HaveCountGreaterOrEqualTo(2);
 

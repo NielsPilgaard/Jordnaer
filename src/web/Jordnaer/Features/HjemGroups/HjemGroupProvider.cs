@@ -35,28 +35,19 @@ public class HjemGroupProvider(
             var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
 
             if (!await containerClient.ExistsAsync(cancellationToken))
-            {
-                _cached = [];
-                return _cached;
-            }
+                return [];
 
             var blobClient = containerClient.GetBlobClient(BlobName);
 
             if (!await blobClient.ExistsAsync(cancellationToken))
-            {
-                _cached = [];
-                return _cached;
-            }
+                return [];
 
             var response = await blobClient.DownloadContentAsync(cancellationToken);
             var entries = JsonSerializer.Deserialize<List<HjemGroupEntry>>(
                 response.Value.Content.ToString(), JsonOptions);
 
             if (entries is null or { Count: 0 })
-            {
-                _cached = [];
-                return _cached;
-            }
+                return [];
 
             _cached = entries.Select(MapToMarker).ToList();
             return _cached;

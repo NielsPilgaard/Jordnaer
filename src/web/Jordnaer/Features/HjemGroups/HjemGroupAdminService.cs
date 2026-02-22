@@ -46,7 +46,7 @@ public class HjemGroupAdminService(
     public async Task SaveAsync(List<HjemGroupEntry> entries, CancellationToken cancellationToken = default)
     {
         var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
+        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
 
         var blobClient = containerClient.GetBlobClient(BlobName);
         var json = JsonSerializer.Serialize(entries, JsonOptions);
