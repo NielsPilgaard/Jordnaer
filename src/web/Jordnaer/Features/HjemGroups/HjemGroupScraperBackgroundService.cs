@@ -1,7 +1,10 @@
+using Microsoft.Extensions.Options;
+
 namespace Jordnaer.Features.HjemGroups;
 
 public class HjemGroupScraperBackgroundService(
     HjemGroupScraperService scraperService,
+    IOptions<HjemGroupScraperOptions> options,
     ILogger<HjemGroupScraperBackgroundService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -23,7 +26,7 @@ public class HjemGroupScraperBackgroundService(
 
             try
             {
-                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                await Task.Delay(options.Value.Interval, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

@@ -14,7 +14,7 @@ public class HjemGroupScraperService(
 {
     private const string ContainerName = "hjemlo-groups";
     private const string BlobName = "groups.json";
-    private const string LokalafdjelingerUrl = "https://www.hjemlo.dk/lokalafdelinger";
+    private const string LokalafdelingerUrl = "https://www.hjemlo.dk/lokalafdelinger";
     private const string LokalreprasentanterUrl = "https://www.hjemlo.dk/lokalrepraesentanter";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -22,6 +22,9 @@ public class HjemGroupScraperService(
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
+    private static readonly string[] SkipPaths =
+        ["/lokalafdelinger", "/lokalrepraesentanter", "/om", "/kontakt", "/blog", "/login", "/signup", "/search"];
 
     public async Task ScrapeAndSaveAsync(CancellationToken cancellationToken = default)
     {
@@ -57,7 +60,7 @@ public class HjemGroupScraperService(
         string html;
         try
         {
-            html = await httpClient.GetStringAsync(LokalafdjelingerUrl, cancellationToken);
+            html = await httpClient.GetStringAsync(LokalafdelingerUrl, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -86,8 +89,7 @@ public class HjemGroupScraperService(
                 continue;
 
             // Skip obvious navigation links (about, contact, etc.)
-            var skipPaths = new[] { "/lokalafdelinger", "/lokalrepraesentanter", "/om", "/kontakt", "/blog", "/login", "/signup", "/search" };
-            if (skipPaths.Any(s => href.Equals(s, StringComparison.OrdinalIgnoreCase)))
+            if (SkipPaths.Any(s => href.Equals(s, StringComparison.OrdinalIgnoreCase)))
                 continue;
 
             // Only single-segment relative paths like /randers
@@ -107,7 +109,7 @@ public class HjemGroupScraperService(
             results.Add(new HjemGroupEntry
             {
                 Name = name,
-                WebsiteUrl = $"https://www.hjemlo.dk{href}",
+                WebsiteUrl = new Uri($"https://www.hjemlo.dk{href}"),
                 City = geocoded.City,
                 ZipCode = geocoded.ZipCode,
                 Latitude = geocoded.Latitude,
@@ -174,7 +176,7 @@ public class HjemGroupScraperService(
             results.Add(new HjemGroupEntry
             {
                 Name = singleLine,
-                WebsiteUrl = LokalreprasentanterUrl,
+                WebsiteUrl = new Uri(LokalreprasentanterUrl),
                 City = geocoded.City,
                 ZipCode = geocoded.ZipCode,
                 Latitude = geocoded.Latitude,

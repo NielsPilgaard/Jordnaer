@@ -3,7 +3,7 @@ namespace Jordnaer.Features.HjemGroups;
 public record HjemGroupEntry
 {
     public required string Name { get; init; }
-    public required string WebsiteUrl { get; init; }
+    public required Uri WebsiteUrl { get; init; }
     public string? City { get; init; }
     public int? ZipCode { get; init; }
     public required double Latitude { get; init; }

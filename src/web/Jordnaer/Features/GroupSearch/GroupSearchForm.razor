@@ -64,16 +64,18 @@
 	private List<GroupMarkerData>? _groupMarkers;
 	private IEnumerable<GroupSlim>? _previousGroups;
 	private string? _previousNameFilter;
+	private IReadOnlyList<GroupMarkerData>? _previousAdditionalMarkers;
 
 	protected override void OnParametersSet()
 	{
-		// Early return if Groups reference and name filter haven't changed
-		if (ReferenceEquals(Groups, _previousGroups) && Filter.Name == _previousNameFilter)
+		// Early return if Groups reference, name filter, and AdditionalMarkers reference haven't changed
+		if (ReferenceEquals(Groups, _previousGroups) && Filter.Name == _previousNameFilter && ReferenceEquals(AdditionalMarkers, _previousAdditionalMarkers))
 		{
 			return;
 		}
 
 		_previousNameFilter = Filter.Name;
+		_previousAdditionalMarkers = AdditionalMarkers;
 
 		// Only use zip-code-level coordinates to avoid exposing exact group locations
 		var regularMarkers = Groups?

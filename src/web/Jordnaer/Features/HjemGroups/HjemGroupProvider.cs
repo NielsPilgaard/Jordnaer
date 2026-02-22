@@ -64,14 +64,13 @@ public class HjemGroupProvider(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to load HJEM group markers from blob storage.");
-            _cached = [];
-            return _cached;
+            return _cached ?? [];
         }
     }
 
     private static GroupMarkerData MapToMarker(HjemGroupEntry entry)
     {
-        var idBytes = MD5.HashData(Encoding.UTF8.GetBytes(entry.WebsiteUrl + entry.Name));
+        var idBytes = MD5.HashData(Encoding.UTF8.GetBytes(entry.WebsiteUrl.ToString() + entry.Name));
         var id = new Guid(idBytes);
 
         return new GroupMarkerData
@@ -79,7 +78,7 @@ public class HjemGroupProvider(
             Id = id,
             Name = entry.Name,
             ProfilePictureUrl = null,
-            WebsiteUrl = entry.WebsiteUrl,
+            WebsiteUrl = entry.WebsiteUrl.ToString(),
             ShortDescription = entry.Type == HjemGroupType.Lokalafdeling
                 ? "HJEM lokalafdeling"
                 : "HJEM lokalrepræsentant",

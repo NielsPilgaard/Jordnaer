@@ -4,6 +4,13 @@ public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddHjemGroupServices(this WebApplicationBuilder builder)
     {
+
+        builder.Services
+               .AddOptions<HjemGroupScraperOptions>()
+               .BindConfiguration(HjemGroupScraperOptions.SectionName)
+               .ValidateDataAnnotations()
+               .ValidateOnStart();
+
         builder.Services.AddHttpClient<HjemGroupScraperService>(client =>
         {
             client.DefaultRequestHeaders.UserAgent.ParseAdd(
