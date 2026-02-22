@@ -4,6 +4,7 @@ using Azure.Storage.Blobs.Models;
 using FluentAssertions;
 using Jordnaer.Features.HjemGroups;
 using Jordnaer.Shared;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -21,6 +22,7 @@ public class HjemGroupAdminServiceTests
     private readonly BlobContainerClient _containerClient = Substitute.For<BlobContainerClient>();
     private readonly BlobClient _blobClient = Substitute.For<BlobClient>();
     private readonly IDataForsyningenClient _geocoder = Substitute.For<IDataForsyningenClient>();
+    private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
     private readonly ILogger<HjemGroupAdminService> _logger = Substitute.For<ILogger<HjemGroupAdminService>>();
 
     private static readonly JsonSerializerOptions CamelCase = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -42,7 +44,7 @@ public class HjemGroupAdminServiceTests
     }
 
     private HjemGroupAdminService CreateSut() =>
-        new(_blobServiceClient, _geocoder, _logger);
+        new(_blobServiceClient, _geocoder, _publishEndpoint, _logger);
 
     // -------------------------------------------------------------------------
     // LoadAsync
@@ -150,6 +152,18 @@ public class HjemGroupAdminServiceTests
             PublicAccessType.None,
             Arg.Any<IDictionary<string, string>>(),
             Arg.Any<BlobContainerEncryptionScopeOptions>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SaveAsync_PublishesCacheInvalidation()
+    {
+        var entries = new List<HjemGroupEntry> { MakeEntry("Aarhus", "https://www.hjemlo.dk/aarhus", HjemGroupType.Lokalafdeling) };
+
+        await CreateSut().SaveAsync(entries);
+
+        await _publishEndpoint.Received(1).Publish(
+            Arg.Is<InvalidateCacheTags>(m => m.Tags.Contains(HjemGroupProvider.CacheTag)),
             Arg.Any<CancellationToken>());
     }
 
