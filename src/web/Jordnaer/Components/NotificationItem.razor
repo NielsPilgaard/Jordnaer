@@ -23,7 +23,7 @@
             </MudText>
             @if (!string.IsNullOrEmpty(Notification.Description))
             {
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="notification-description-truncate">
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="notification-description-truncate" Style="display: block;">
                     @Notification.Description
                 </MudText>
             }
