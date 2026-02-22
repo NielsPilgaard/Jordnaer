@@ -1,6 +1,9 @@
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Response = Azure.Response;
+using ResponseT = Azure.Response<Azure.Storage.Blobs.Models.BlobContainerInfo>;
+using ResponseTContent = Azure.Response<Azure.Storage.Blobs.Models.BlobContentInfo>;
 using FluentAssertions;
 using Jordnaer.Features.HjemGroups;
 using Jordnaer.Shared;
@@ -37,10 +40,10 @@ public class HjemGroupAdminServiceTests
             .Returns(_blobClient);
         _containerClient
             .CreateIfNotExistsAsync(Arg.Any<PublicAccessType>(), Arg.Any<IDictionary<string, string>>(), Arg.Any<BlobContainerEncryptionScopeOptions>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Substitute.For<Response<BlobContainerInfo>>()));
+            .Returns(Task.FromResult(Substitute.For<ResponseT>()));
         _blobClient
             .UploadAsync(Arg.Any<Stream>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Substitute.For<Response<BlobContentInfo>>()));
+            .Returns(Task.FromResult(Substitute.For<ResponseTContent>()));
     }
 
     private HjemGroupAdminService CreateSut() =>
@@ -182,7 +185,7 @@ public class HjemGroupAdminServiceTests
                 using var sr = new StreamReader(s, Encoding.UTF8, leaveOpen: true);
                 uploadedJson = sr.ReadToEnd();
             }), Arg.Any<bool>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Substitute.For<Response<BlobContentInfo>>()));
+            .Returns(Task.FromResult(Substitute.For<ResponseTContent>()));
 
         await CreateSut().SaveAsync(entries);
 
@@ -204,7 +207,7 @@ public class HjemGroupAdminServiceTests
                 using var sr = new StreamReader(s, Encoding.UTF8, leaveOpen: true);
                 uploadedJson = sr.ReadToEnd();
             }), Arg.Any<bool>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Substitute.For<Response<BlobContentInfo>>()));
+            .Returns(Task.FromResult(Substitute.For<ResponseTContent>()));
 
         await CreateSut().SaveAsync([]);
 
