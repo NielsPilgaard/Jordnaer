@@ -107,7 +107,7 @@ else
             <MudTextField @bind-Value="_form.Name" Label="Navn" Variant="Variant.Outlined"
                           Placeholder="f.eks. Randers" />
 
-            <MudTextField @bind-Value="_form.WebsiteUrl" Label="URL" Variant="Variant.Outlined"
+            <MudTextField @bind-Value="_form.WebsiteUrl" Label="URL (valgfri)" Variant="Variant.Outlined"
                           Placeholder="https://www.hjemlo.dk/randers" />
 
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
@@ -323,7 +323,7 @@ else
     {
         public HjemGroupType Type { get; set; } = HjemGroupType.Lokalafdeling;
         public string Name { get; set; } = "";
-        public string WebsiteUrl { get; set; } = "";
+        public string? WebsiteUrl { get; set; }
         public string? IconUrl { get; set; }
         public string? GeocodeName { get; set; }
         public string? City { get; set; }
