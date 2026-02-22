@@ -1,6 +1,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Jordnaer.Shared;
+using MassTransit;
 using System.Text;
 using System.Text.Json;
 
@@ -9,6 +10,7 @@ namespace Jordnaer.Features.HjemGroups;
 public class HjemGroupAdminService(
     BlobServiceClient blobServiceClient,
     IDataForsyningenClient dataForsyningenClient,
+    IPublishEndpoint publishEndpoint,
     ILogger<HjemGroupAdminService> logger)
 {
     private const string ContainerName = "hjemlo-groups";
@@ -53,6 +55,10 @@ public class HjemGroupAdminService(
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
         await blobClient.UploadAsync(stream, overwrite: true, cancellationToken: cancellationToken);
+
+        await publishEndpoint.Publish(
+            new InvalidateCacheTags { Tags = [HjemGroupProvider.CacheTag] },
+            cancellationToken);
     }
 
     /// <summary>

@@ -3,13 +3,15 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FluentAssertions;
 using Jordnaer.Features.HjemGroups;
-using Jordnaer.Features.Map;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System.Text;
 using System.Text.Json;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Tests.HjemGroups;
 
@@ -20,8 +22,11 @@ public class HjemGroupProviderTests
     private readonly BlobClient _blobClient = Substitute.For<BlobClient>();
     private readonly ILogger<HjemGroupProvider> _logger = Substitute.For<ILogger<HjemGroupProvider>>();
 
+    private static IFusionCache CreateFusionCache() =>
+        new FusionCache(new FusionCacheOptions(), new MemoryCache(new MemoryCacheOptions()));
+
     private HjemGroupProvider CreateSut() =>
-        new(_blobServiceClient, _logger);
+        new(_blobServiceClient, CreateFusionCache(), _logger);
 
     public HjemGroupProviderTests()
     {
@@ -115,7 +120,7 @@ public class HjemGroupProviderTests
         marker.Latitude.Should().Be(56.46);
         marker.Longitude.Should().Be(10.03);
         marker.ShortDescription.Should().Be("HJEM lokalafdeling");
-        marker.ProfilePictureUrl.Should().BeNull();
+        marker.ProfilePictureUrl.Should().Be("/images/partners/logo-hjem.avif");
         marker.Id.Should().NotBe(Guid.Empty);
     }
 

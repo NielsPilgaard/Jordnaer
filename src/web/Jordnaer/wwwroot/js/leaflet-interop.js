@@ -354,7 +354,19 @@ window.leafletInterop = {
     }
 
     // Build the full popup
-    const groupUrl = `/groups/${encodeURIComponent(group.name)}`;
+    // Only use websiteUrl for the primary button if it is on the hjemlo.dk domain
+    let isHjemUrl = false;
+    if (group.websiteUrl) {
+      try {
+        const parsedGroupUrl = new URL(group.websiteUrl);
+        isHjemUrl = parsedGroupUrl.hostname === "www.hjemlo.dk" || parsedGroupUrl.hostname === "hjemlo.dk";
+      } catch (e) {
+        // Invalid URL — treat as not a HJEM URL
+      }
+    }
+
+    const groupUrl = isHjemUrl ? group.websiteUrl : `/groups/${encodeURIComponent(group.name)}`;
+    const groupUrlTarget = isHjemUrl ? ' target="_blank" rel="noopener"' : '';
 
     return `
             <div class="group-popup-content">
@@ -368,7 +380,7 @@ window.leafletInterop = {
                     ${locationHtml}
                     ${descriptionHtml}
                     ${websiteHtml}
-                    <a href="${this.escapeAttribute(groupUrl)}" class="group-popup-link">
+                    <a href="${this.escapeAttribute(groupUrl)}"${groupUrlTarget} class="group-popup-link">
                         <span>Se gruppe</span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>

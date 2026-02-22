@@ -3,6 +3,7 @@ using Jordnaer.Features.Map;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Jordnaer.Features.HjemGroups;
 
@@ -13,8 +14,11 @@ public interface IHjemGroupProvider
 
 public class HjemGroupProvider(
     BlobServiceClient blobServiceClient,
+    IFusionCache fusionCache,
     ILogger<HjemGroupProvider> logger) : IHjemGroupProvider
 {
+    internal const string CacheTag = "hjem-groups";
+    private const string CacheKey = "HjemGroups:markers";
     private const string ContainerName = "hjemlo-groups";
     private const string BlobName = "groups.json";
 
@@ -23,13 +27,17 @@ public class HjemGroupProvider(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    private IReadOnlyList<GroupMarkerData>? _cached;
-
     public async Task<IReadOnlyList<GroupMarkerData>> GetMarkersAsync(CancellationToken cancellationToken = default)
     {
-        if (_cached is not null)
-            return _cached;
+        return await fusionCache.GetOrSetAsync<IReadOnlyList<GroupMarkerData>>(
+            CacheKey,
+            (_, innerToken) => LoadFromBlobAsync(innerToken),
+            tags: [CacheTag],
+            token: cancellationToken) ?? [];
+    }
 
+    private async Task<IReadOnlyList<GroupMarkerData>> LoadFromBlobAsync(CancellationToken cancellationToken)
+    {
         try
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
@@ -49,13 +57,12 @@ public class HjemGroupProvider(
             if (entries is null or { Count: 0 })
                 return [];
 
-            _cached = entries.Select(MapToMarker).ToList();
-            return _cached;
+            return entries.Select(MapToMarker).ToList();
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to load HJEM group markers from blob storage.");
-            return _cached ?? [];
+            return [];
         }
     }
 
