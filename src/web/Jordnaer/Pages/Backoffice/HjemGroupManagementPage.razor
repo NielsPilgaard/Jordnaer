@@ -1,0 +1,307 @@
+@page "/backoffice/hjem-groups"
+
+@using Jordnaer.Features.Authentication
+@using Jordnaer.Features.HjemGroups
+
+@inject HjemGroupAdminService AdminService
+@inject ISnackbar Snackbar
+@inject ILogger<HjemGroupManagementPage> Logger
+
+@attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
+
+<MetadataComponent Title="Backoffice - HJEM Grupper"
+    Description="Administrer HJEM lokalafdelinger og lokalrepræsentanter på gruppekortet." />
+
+<MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h4">HJEM Grupper</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="AddEntry">
+        Tilføj
+    </MudButton>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Success"
+               StartIcon="@Icons.Material.Filled.Save"
+               OnClick="SaveAsync"
+               Disabled="_isSaving">
+        @(_isSaving ? "Gemmer..." : "Gem alle")
+    </MudButton>
+</MudStack>
+
+<MudDivider Class="mb-5" />
+
+@if (_isLoading)
+{
+    <MudProgressLinear Indeterminate Color="Color.Primary" />
+}
+else
+{
+    <MudTable T="HjemGroupEntry"
+              Items="_entries"
+              Bordered="true"
+              Striped="true"
+              Hover="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@_entries.Count poster</MudText>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Type</MudTh>
+            <MudTh>Navn</MudTh>
+            <MudTh>By</MudTh>
+            <MudTh>Postnr</MudTh>
+            <MudTh>Breddegrad</MudTh>
+            <MudTh>Længdegrad</MudTh>
+            <MudTh>URL</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Type">
+                <MudChip T="string" Size="Size.Small"
+                         Color="@(context.Type == HjemGroupType.Lokalafdeling ? Color.Primary : Color.Secondary)">
+                    @(context.Type == HjemGroupType.Lokalafdeling ? "Lokalafdeling" : "Lokalrep.")
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Navn">@context.Name</MudTd>
+            <MudTd DataLabel="By">@context.City</MudTd>
+            <MudTd DataLabel="Postnr">@context.ZipCode</MudTd>
+            <MudTd DataLabel="Breddegrad">@context.Latitude.ToString("F5")</MudTd>
+            <MudTd DataLabel="Længdegrad">@context.Longitude.ToString("F5")</MudTd>
+            <MudTd DataLabel="URL">
+                <MudLink Href="@context.WebsiteUrl.ToString()" Target="_blank">
+                    @context.WebsiteUrl.Host
+                </MudLink>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Size="Size.Small"
+                               OnClick="@(() => OpenEditDialog(context))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Size="Size.Small"
+                               Color="Color.Error"
+                               OnClick="@(() => DeleteEntry(context))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@* Edit / Add dialog *@
+<MudDialog @bind-Visible="_dialogVisible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_editingNew ? "Tilføj HJEM gruppe" : "Rediger HJEM gruppe")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudSelect @bind-Value="_form.Type" Label="Type" Variant="Variant.Outlined">
+                <MudSelectItem Value="HjemGroupType.Lokalafdeling">Lokalafdeling</MudSelectItem>
+                <MudSelectItem Value="HjemGroupType.Lokalrepresentant">Lokalrepræsentant</MudSelectItem>
+            </MudSelect>
+
+            <MudTextField @bind-Value="_form.Name" Label="Navn" Variant="Variant.Outlined"
+                          Placeholder="f.eks. Randers" />
+
+            <MudTextField @bind-Value="_form.WebsiteUrl" Label="URL" Variant="Variant.Outlined"
+                          Placeholder="https://www.hjemlo.dk/randers" />
+
+            <MudStack Row AlignItems="AlignItems.End" Spacing="2">
+                <MudTextField @bind-Value="_form.GeocodeName" Label="Slå koordinater op (bynavn)"
+                              Variant="Variant.Outlined"
+                              Placeholder="f.eks. Randers"
+                              Class="flex-grow-1" />
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Search"
+                           OnClick="LookupCoordinatesAsync"
+                           Disabled="_isGeocoding">
+                    @(_isGeocoding ? "Søger..." : "Slå op")
+                </MudButton>
+            </MudStack>
+
+            <MudGrid Spacing="2">
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_form.City" Label="By" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="_form.ZipCode" Label="Postnummer" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="_form.Latitude" Label="Breddegrad" Variant="Variant.Outlined"
+                                     Format="F6" Step="0.0001" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="_form.Longitude" Label="Længdegrad" Variant="Variant.Outlined"
+                                     Format="F6" Step="0.0001" />
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Annuller</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="CommitEdit">Gem</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<HjemGroupEntry> _entries = [];
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+
+    // Dialog state
+    private bool _dialogVisible = false;
+    private bool _editingNew = false;
+    private bool _isGeocoding = false;
+    private HjemGroupEntry? _editingEntry;
+    private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    private FormModel _form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _entries = await AdminService.LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load HJEM group entries.");
+            Snackbar.Add("Kunne ikke hente HJEM grupper.", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void AddEntry()
+    {
+        _editingNew = true;
+        _editingEntry = null;
+        _form = new FormModel();
+        _dialogVisible = true;
+    }
+
+    private void OpenEditDialog(HjemGroupEntry entry)
+    {
+        _editingNew = false;
+        _editingEntry = entry;
+        _form = new FormModel
+        {
+            Type = entry.Type,
+            Name = entry.Name,
+            WebsiteUrl = entry.WebsiteUrl.ToString(),
+            City = entry.City,
+            ZipCode = entry.ZipCode,
+            Latitude = entry.Latitude,
+            Longitude = entry.Longitude,
+            GeocodeName = entry.City ?? entry.Name,
+        };
+        _dialogVisible = true;
+    }
+
+    private void CloseDialog() => _dialogVisible = false;
+
+    private async Task LookupCoordinatesAsync()
+    {
+        var query = _form.GeocodeName?.Trim();
+        if (string.IsNullOrEmpty(query))
+            return;
+
+        _isGeocoding = true;
+        try
+        {
+            var result = await AdminService.GeocodeAsync(query);
+            if (result is null)
+            {
+                Snackbar.Add($"Ingen resultater for \"{query}\".", Severity.Warning);
+                return;
+            }
+
+            _form.City = result.City;
+            _form.ZipCode = result.ZipCode;
+            _form.Latitude = result.Latitude;
+            _form.Longitude = result.Longitude;
+            Snackbar.Add($"Fandt {result.City} ({result.ZipCode})", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Geocode lookup failed for {Query}", query);
+            Snackbar.Add("Koordinat-søgning fejlede.", Severity.Error);
+        }
+        finally
+        {
+            _isGeocoding = false;
+        }
+    }
+
+    private void CommitEdit()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Name) || string.IsNullOrWhiteSpace(_form.WebsiteUrl))
+        {
+            Snackbar.Add("Navn og URL er påkrævet.", Severity.Warning);
+            return;
+        }
+
+        if (!Uri.TryCreate(_form.WebsiteUrl, UriKind.Absolute, out var uri))
+        {
+            Snackbar.Add("URL er ikke gyldig.", Severity.Warning);
+            return;
+        }
+
+        var updated = new HjemGroupEntry
+        {
+            Type = _form.Type,
+            Name = _form.Name.Trim(),
+            WebsiteUrl = uri,
+            City = string.IsNullOrWhiteSpace(_form.City) ? null : _form.City.Trim(),
+            ZipCode = _form.ZipCode,
+            Latitude = _form.Latitude,
+            Longitude = _form.Longitude,
+        };
+
+        if (_editingNew)
+        {
+            _entries.Add(updated);
+        }
+        else if (_editingEntry is not null)
+        {
+            var idx = _entries.IndexOf(_editingEntry);
+            if (idx >= 0)
+                _entries[idx] = updated;
+        }
+
+        _dialogVisible = false;
+    }
+
+    private void DeleteEntry(HjemGroupEntry entry) => _entries.Remove(entry);
+
+    private async Task SaveAsync()
+    {
+        _isSaving = true;
+        try
+        {
+            await AdminService.SaveAsync(_entries);
+            Snackbar.Add($"{_entries.Count} HJEM grupper gemt.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save HJEM group entries.");
+            Snackbar.Add("Gem fejlede. Prøv igen.", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private sealed class FormModel
+    {
+        public HjemGroupType Type { get; set; } = HjemGroupType.Lokalafdeling;
+        public string Name { get; set; } = "";
+        public string WebsiteUrl { get; set; } = "";
+        public string? GeocodeName { get; set; }
+        public string? City { get; set; }
+        public int? ZipCode { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+}

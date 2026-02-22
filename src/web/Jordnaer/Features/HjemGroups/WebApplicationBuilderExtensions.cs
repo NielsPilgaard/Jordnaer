@@ -4,22 +4,8 @@ public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddHjemGroupServices(this WebApplicationBuilder builder)
     {
-
-        builder.Services
-               .AddOptions<HjemGroupScraperOptions>()
-               .BindConfiguration(HjemGroupScraperOptions.SectionName)
-               .ValidateDataAnnotations()
-               .ValidateOnStart();
-
-        builder.Services.AddHttpClient<HjemGroupScraperService>(client =>
-        {
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(
-                "Mozilla/5.0 (compatible; MiniMoeder/1.0)");
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
-
         builder.Services.AddScoped<IHjemGroupProvider, HjemGroupProvider>();
-        builder.Services.AddHostedService<HjemGroupScraperBackgroundService>();
+        builder.Services.AddScoped<HjemGroupAdminService>();
 
         return builder;
     }
