@@ -114,6 +114,16 @@ public class HjemGroupAdminServiceTests
         result.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task LoadAsync_ReturnsEmpty_WhenBlobContainsInvalidJson()
+    {
+        SetupBlobWithContent("this is not valid json {{{");
+
+        var result = await CreateSut().LoadAsync();
+
+        result.Should().BeEmpty();
+    }
+
     // -------------------------------------------------------------------------
     // SaveAsync
     // -------------------------------------------------------------------------
@@ -154,7 +164,7 @@ public class HjemGroupAdminServiceTests
         _blobClient
             .UploadAsync(Arg.Do<Stream>(s =>
             {
-                using var sr = new StreamReader(s, Encoding.UTF8);
+                using var sr = new StreamReader(s, Encoding.UTF8, leaveOpen: true);
                 uploadedJson = sr.ReadToEnd();
             }), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Substitute.For<Response<BlobContentInfo>>()));
@@ -176,7 +186,7 @@ public class HjemGroupAdminServiceTests
         _blobClient
             .UploadAsync(Arg.Do<Stream>(s =>
             {
-                using var sr = new StreamReader(s, Encoding.UTF8);
+                using var sr = new StreamReader(s, Encoding.UTF8, leaveOpen: true);
                 uploadedJson = sr.ReadToEnd();
             }), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Substitute.For<Response<BlobContentInfo>>()));
