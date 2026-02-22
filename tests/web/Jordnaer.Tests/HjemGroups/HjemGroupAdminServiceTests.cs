@@ -112,6 +112,7 @@ public class HjemGroupAdminServiceTests
         var result = await CreateSut().LoadAsync();
 
         result.Should().BeEmpty();
+        _logger.ReceivedWithAnyArgs(1).Log(LogLevel.Warning, default, default!, default, default!);
     }
 
     [Fact]
@@ -216,10 +217,11 @@ public class HjemGroupAdminServiceTests
     [Fact]
     public async Task GeocodeAsync_ReturnsNull_WhenApiCallFails()
     {
+        using var httpResponse = new HttpResponseMessage(HttpStatusCode.InternalServerError);
+        using var apiResponse = new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(httpResponse, null, new RefitSettings());
         _geocoder
             .SearchZipCodesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(
-                new HttpResponseMessage(HttpStatusCode.InternalServerError), null, new RefitSettings()));
+            .Returns(apiResponse);
 
         var result = await CreateSut().GeocodeAsync("Randers");
 
@@ -308,11 +310,11 @@ public class HjemGroupAdminServiceTests
             Kommuner: null, Ændret: DateTime.UtcNow, Geo_Ændret: DateTime.UtcNow,
             Geo_Version: 1, Dagi_Id: null);
 
-    private static IApiResponse<IEnumerable<ZipCodeSearchResponse>> MakeGeoResponse(params ZipCodeSearchResponse[] results) =>
-        new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(
-            new HttpResponseMessage(HttpStatusCode.OK),
-            results,
-            new RefitSettings());
+    private static ApiResponse<IEnumerable<ZipCodeSearchResponse>> MakeGeoResponse(params ZipCodeSearchResponse[] results)
+    {
+        var httpResponse = new HttpResponseMessage(HttpStatusCode.OK);
+        return new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(httpResponse, results, new RefitSettings());
+    }
 
     private void SetupBlobWithContent(string json)
     {
