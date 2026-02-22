@@ -64,12 +64,16 @@ public class HjemGroupProvider(
         var idBytes = MD5.HashData(Encoding.UTF8.GetBytes(entry.WebsiteUrl.ToString() + entry.Name));
         var id = new Guid(idBytes);
 
+        var websiteUrl = entry.Type == HjemGroupType.Lokalrepresentant
+            ? "https://www.hjemlo.dk/lokalrepraesentanter"
+            : entry.WebsiteUrl.ToString();
+
         return new GroupMarkerData
         {
             Id = id,
             Name = entry.Name,
-            ProfilePictureUrl = null,
-            WebsiteUrl = entry.WebsiteUrl.ToString(),
+            ProfilePictureUrl = entry.IconUrl ?? "/images/partners/logo-hjem.avif",
+            WebsiteUrl = websiteUrl,
             ShortDescription = entry.Type == HjemGroupType.Lokalafdeling
                 ? "HJEM lokalafdeling"
                 : "HJEM lokalrepræsentant",

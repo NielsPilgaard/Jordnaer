@@ -48,6 +48,7 @@ else
         </ToolBarContent>
         <HeaderContent>
             <MudTh>Type</MudTh>
+            <MudTh>Ikon</MudTh>
             <MudTh>Navn</MudTh>
             <MudTh>By</MudTh>
             <MudTh>Postnr</MudTh>
@@ -62,6 +63,11 @@ else
                          Color="@(context.Type == HjemGroupType.Lokalafdeling ? Color.Primary : Color.Secondary)">
                     @(context.Type == HjemGroupType.Lokalafdeling ? "Lokalafdeling" : "Lokalrep.")
                 </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Ikon">
+                <MudAvatar Size="Size.Small">
+                    <MudImage Src="@(context.IconUrl ?? "/images/partners/logo-hjem.avif")" Alt="@context.Name" />
+                </MudAvatar>
             </MudTd>
             <MudTd DataLabel="Navn">@context.Name</MudTd>
             <MudTd DataLabel="By">@context.City</MudTd>
@@ -103,6 +109,17 @@ else
 
             <MudTextField @bind-Value="_form.WebsiteUrl" Label="URL" Variant="Variant.Outlined"
                           Placeholder="https://www.hjemlo.dk/randers" />
+
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudTextField @bind-Value="_form.IconUrl" Label="Ikon URL (valgfri)"
+                              Variant="Variant.Outlined"
+                              Placeholder="https://... (tom = HJEM-logo)"
+                              Class="flex-grow-1" />
+                <MudAvatar Size="Size.Medium">
+                    <MudImage Src="@(_form.IconUrl is { Length: > 0 } ? _form.IconUrl : "/images/partners/logo-hjem.avif")"
+                              Alt="Ikon preview" />
+                </MudAvatar>
+            </MudStack>
 
             <MudStack Row AlignItems="AlignItems.End" Spacing="2">
                 <MudTextField @bind-Value="_form.GeocodeName" Label="Slå koordinater op (bynavn)"
@@ -189,6 +206,7 @@ else
             Type = entry.Type,
             Name = entry.Name,
             WebsiteUrl = entry.WebsiteUrl.ToString(),
+            IconUrl = entry.IconUrl,
             City = entry.City,
             ZipCode = entry.ZipCode,
             Latitude = entry.Latitude,
@@ -259,6 +277,7 @@ else
             Type = _form.Type,
             Name = _form.Name.Trim(),
             WebsiteUrl = uri,
+            IconUrl = string.IsNullOrWhiteSpace(_form.IconUrl) ? null : _form.IconUrl.Trim(),
             City = string.IsNullOrWhiteSpace(_form.City) ? null : _form.City.Trim(),
             ZipCode = _form.ZipCode,
             Latitude = _form.Latitude,
@@ -305,6 +324,7 @@ else
         public HjemGroupType Type { get; set; } = HjemGroupType.Lokalafdeling;
         public string Name { get; set; } = "";
         public string WebsiteUrl { get; set; } = "";
+        public string? IconUrl { get; set; }
         public string? GeocodeName { get; set; }
         public string? City { get; set; }
         public int? ZipCode { get; set; }
