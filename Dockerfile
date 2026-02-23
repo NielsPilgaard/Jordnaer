@@ -25,8 +25,13 @@ RUN dotnet publish "${PROJECT}" --no-restore -c Release -o /app -p:Informational
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-azurelinux3.0
 
+RUN tdnf install -y curl && tdnf clean all
+
 EXPOSE 8080
 WORKDIR /app
 COPY --link --from=build /app .
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/alive || exit 1
 
 ENTRYPOINT ["dotnet", "Jordnaer.dll"]
