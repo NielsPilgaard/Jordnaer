@@ -359,7 +359,8 @@ window.leafletInterop = {
     if (group.websiteUrl) {
       try {
         const parsedGroupUrl = new URL(group.websiteUrl);
-        isHjemUrl = parsedGroupUrl.hostname === "www.hjemlo.dk" || parsedGroupUrl.hostname === "hjemlo.dk";
+        isHjemUrl = (parsedGroupUrl.protocol === "http:" || parsedGroupUrl.protocol === "https:") &&
+          (parsedGroupUrl.hostname === "www.hjemlo.dk" || parsedGroupUrl.hostname === "hjemlo.dk");
       } catch (e) {
         // Invalid URL — treat as not a HJEM URL
       }

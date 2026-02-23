@@ -11,6 +11,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf;
 using Refit;
 using System.Net;
 using System.Text;
@@ -54,18 +55,18 @@ public class HjemGroupAdminServiceTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task LoadAsync_ReturnsEmpty_WhenContainerDoesNotExist()
+    public async Task LoadAsync_ReturnsError_WhenContainerDoesNotExist()
     {
         _containerClient.ExistsAsync(Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(false, Substitute.For<Response>()));
 
         var result = await CreateSut().LoadAsync();
 
-        result.Should().BeEmpty();
+        result.IsT1.Should().BeTrue();
     }
 
     [Fact]
-    public async Task LoadAsync_ReturnsEmpty_WhenBlobDoesNotExist()
+    public async Task LoadAsync_ReturnsError_WhenBlobDoesNotExist()
     {
         _containerClient.ExistsAsync(Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
@@ -74,7 +75,7 @@ public class HjemGroupAdminServiceTests
 
         var result = await CreateSut().LoadAsync();
 
-        result.Should().BeEmpty();
+        result.IsT1.Should().BeTrue();
     }
 
     [Fact]
@@ -84,7 +85,8 @@ public class HjemGroupAdminServiceTests
 
         var result = await CreateSut().LoadAsync();
 
-        result.Should().BeEmpty();
+        result.IsT0.Should().BeTrue();
+        result.AsT0.Should().BeEmpty();
     }
 
     [Fact]
@@ -99,13 +101,14 @@ public class HjemGroupAdminServiceTests
 
         var result = await CreateSut().LoadAsync();
 
-        result.Should().HaveCount(2);
-        result[0].Name.Should().Be("Randers");
-        result[1].Name.Should().Be("Odense");
+        result.IsT0.Should().BeTrue();
+        result.AsT0.Should().HaveCount(2);
+        result.AsT0[0].Name.Should().Be("Randers");
+        result.AsT0[1].Name.Should().Be("Odense");
     }
 
     [Fact]
-    public async Task LoadAsync_ReturnsEmpty_WhenBlobThrows()
+    public async Task LoadAsync_ReturnsError_WhenBlobThrows()
     {
         _containerClient.ExistsAsync(Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
@@ -116,18 +119,17 @@ public class HjemGroupAdminServiceTests
 
         var result = await CreateSut().LoadAsync();
 
-        result.Should().BeEmpty();
-        _logger.ReceivedWithAnyArgs(1).Log(LogLevel.Warning, default, default!, default, default!);
+        result.IsT1.Should().BeTrue();
     }
 
     [Fact]
-    public async Task LoadAsync_ReturnsEmpty_WhenBlobContainsInvalidJson()
+    public async Task LoadAsync_ReturnsError_WhenBlobContainsInvalidJson()
     {
         SetupBlobWithContent("this is not valid json {{{");
 
         var result = await CreateSut().LoadAsync();
 
-        result.Should().BeEmpty();
+        result.IsT1.Should().BeTrue();
     }
 
     // -------------------------------------------------------------------------

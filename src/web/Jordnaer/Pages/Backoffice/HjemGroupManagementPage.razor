@@ -107,7 +107,9 @@ else
             <MudTextField @bind-Value="_form.Name" Label="Navn" Variant="Variant.Outlined"
                           Placeholder="f.eks. Randers" />
 
-            <MudTextField @bind-Value="_form.WebsiteUrl" Label="URL (valgfri)" Variant="Variant.Outlined"
+            <MudTextField @bind-Value="_form.WebsiteUrl"
+                          Label="@(_form.Type == HjemGroupType.Lokalrepresentant ? "URL (valgfri)" : "URL")"
+                          Variant="Variant.Outlined"
                           Placeholder="https://www.hjemlo.dk/randers" />
 
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
@@ -174,19 +176,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _entries = await AdminService.LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to load HJEM group entries.");
-            Snackbar.Add("Kunne ikke hente HJEM grupper.", Severity.Error);
-        }
-        finally
-        {
-            _isLoading = false;
-        }
+        var result = await AdminService.LoadAsync();
+        result.Switch(
+            entries => _entries = entries,
+            error =>
+            {
+                Logger.LogError("Failed to load HJEM group entries: {Error}", error.Message);
+                Snackbar.Add("Kunne ikke hente HJEM grupper.", Severity.Error);
+            });
+        _isLoading = false;
     }
 
     private void AddEntry()
@@ -253,16 +251,33 @@ else
 
     private void CommitEdit()
     {
-        if (string.IsNullOrWhiteSpace(_form.Name) || string.IsNullOrWhiteSpace(_form.WebsiteUrl))
+        if (string.IsNullOrWhiteSpace(_form.Name))
         {
-            Snackbar.Add("Navn og URL er påkrævet.", Severity.Warning);
+            Snackbar.Add("Navn er påkrævet.", Severity.Warning);
             return;
         }
 
-        if (!Uri.TryCreate(_form.WebsiteUrl, UriKind.Absolute, out var uri))
+        Uri uri;
+        var websiteUrlStr = _form.WebsiteUrl?.Trim();
+        if (_form.Type == HjemGroupType.Lokalrepresentant && string.IsNullOrWhiteSpace(websiteUrlStr))
         {
-            Snackbar.Add("URL er ikke gyldig.", Severity.Warning);
-            return;
+            uri = new Uri("https://www.hjemlo.dk/lokalrepraesentanter");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(websiteUrlStr))
+            {
+                Snackbar.Add("URL er påkrævet.", Severity.Warning);
+                return;
+            }
+
+            if (!Uri.TryCreate(websiteUrlStr, UriKind.Absolute, out var parsedUri))
+            {
+                Snackbar.Add("URL er ikke gyldig.", Severity.Warning);
+                return;
+            }
+
+            uri = parsedUri;
         }
 
         if (_form.Latitude is < -90 or > 90 || _form.Longitude is < -180 or > 180 ||

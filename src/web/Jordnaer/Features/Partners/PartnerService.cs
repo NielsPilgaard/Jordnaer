@@ -442,13 +442,22 @@ public class PartnerService(
 
 			// Validate URLs first (before any uploads to avoid orphaned blobs)
 			var partnerPageLinkError = ValidateUrl(partnerPageLink, "Ugyldig partnerside link URL");
-			if (partnerPageLinkError is not null) return partnerPageLinkError.Value;
+			if (partnerPageLinkError is not null)
+			{
+				return partnerPageLinkError.Value;
+			}
 
 			var adLinkError = ValidateUrl(adLink, "Ugyldig annonce link URL");
-			if (adLinkError is not null) return adLinkError.Value;
+			if (adLinkError is not null)
+			{
+				return adLinkError.Value;
+			}
 
 			var colorError = ValidateHexColor(adLabelColor);
-			if (colorError is not null) return colorError.Value;
+			if (colorError is not null)
+			{
+				return colorError.Value;
+			}
 
 			var validatedPartnerPageLink = string.IsNullOrWhiteSpace(partnerPageLink) ? null : partnerPageLink.Trim();
 			var validatedAdLink = string.IsNullOrWhiteSpace(adLink) ? null : adLink.Trim();
@@ -838,13 +847,22 @@ public class PartnerService(
 
 			// Validate URLs
 			var partnerPageLinkError = ValidateUrl(request.PartnerPageLink, "Ugyldig partnerside link URL");
-			if (partnerPageLinkError is not null) return partnerPageLinkError.Value;
+			if (partnerPageLinkError is not null)
+			{
+				return partnerPageLinkError.Value;
+			}
 
 			var adLinkError = ValidateUrl(request.AdLink, "Ugyldig annonce link URL");
-			if (adLinkError is not null) return adLinkError.Value;
+			if (adLinkError is not null)
+			{
+				return adLinkError.Value;
+			}
 
 			var colorError = ValidateHexColor(request.AdLabelColor);
-			if (colorError is not null) return colorError.Value;
+			if (colorError is not null)
+			{
+				return colorError.Value;
+			}
 
 			await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 			var partner = await context.Partners.FirstOrDefaultAsync(s => s.Id == partnerId, cancellationToken);

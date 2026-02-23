@@ -31,7 +31,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _hjemMarkers = await HjemGroupProvider.GetMarkersAsync();
+        var markersResult = await HjemGroupProvider.GetMarkersAsync();
+        _hjemMarkers = markersResult.IsT0 ? markersResult.AsT0 : [];
 
         // Restore from cache if available
         if (Cache.SearchFilter is not null && Cache.SearchResult is not null)

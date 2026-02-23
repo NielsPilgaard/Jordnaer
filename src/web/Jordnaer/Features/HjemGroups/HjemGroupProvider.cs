@@ -1,5 +1,7 @@
 using Azure.Storage.Blobs;
 using Jordnaer.Features.Map;
+using OneOf;
+using OneOf.Types;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -9,7 +11,7 @@ namespace Jordnaer.Features.HjemGroups;
 
 public interface IHjemGroupProvider
 {
-    Task<IReadOnlyList<GroupMarkerData>> GetMarkersAsync(CancellationToken cancellationToken = default);
+    Task<OneOf<IReadOnlyList<GroupMarkerData>, Error>> GetMarkersAsync(CancellationToken cancellationToken = default);
 }
 
 public class HjemGroupProvider(
@@ -27,42 +29,50 @@ public class HjemGroupProvider(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public async Task<IReadOnlyList<GroupMarkerData>> GetMarkersAsync(CancellationToken cancellationToken = default)
+    public async Task<OneOf<IReadOnlyList<GroupMarkerData>, Error>> GetMarkersAsync(CancellationToken cancellationToken = default)
     {
-        return await fusionCache.GetOrSetAsync<IReadOnlyList<GroupMarkerData>>(
+        return await fusionCache.GetOrSetAsync<OneOf<IReadOnlyList<GroupMarkerData>, Error>>(
             CacheKey,
             (_, innerToken) => LoadFromBlobAsync(innerToken),
             tags: [CacheTag],
-            token: cancellationToken) ?? [];
+            token: cancellationToken);
     }
 
-    private async Task<IReadOnlyList<GroupMarkerData>> LoadFromBlobAsync(CancellationToken cancellationToken)
+    private async Task<OneOf<IReadOnlyList<GroupMarkerData>, Error>> LoadFromBlobAsync(CancellationToken cancellationToken)
     {
         try
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
 
             if (!await containerClient.ExistsAsync(cancellationToken))
-                return [];
+            {
+                logger.LogError("Blob container '{ContainerName}' does not exist.", ContainerName);
+                return new Error();
+            }
 
             var blobClient = containerClient.GetBlobClient(BlobName);
 
             if (!await blobClient.ExistsAsync(cancellationToken))
-                return [];
+            {
+                logger.LogError("Blob '{BlobName}' does not exist in container '{ContainerName}'.", BlobName, ContainerName);
+                return new Error();
+            }
 
             var response = await blobClient.DownloadContentAsync(cancellationToken);
             var entries = JsonSerializer.Deserialize<List<HjemGroupEntry>>(
                 response.Value.Content.ToString(), JsonOptions);
 
             if (entries is null or { Count: 0 })
-                return [];
+            {
+                return Array.Empty<GroupMarkerData>();
+            }
 
             return entries.Select(MapToMarker).ToList();
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to load HJEM group markers from blob storage.");
-            return [];
+            return new Error();
         }
     }
 

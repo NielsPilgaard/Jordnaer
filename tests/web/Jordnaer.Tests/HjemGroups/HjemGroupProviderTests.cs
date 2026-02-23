@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf;
 using System.Text;
 using System.Text.Json;
 using Xunit;
@@ -40,7 +41,7 @@ public class HjemGroupProviderTests
     }
 
     [Fact]
-    public async Task GetMarkersAsync_ReturnsEmpty_WhenContainerDoesNotExist()
+    public async Task GetMarkersAsync_ReturnsError_WhenContainerDoesNotExist()
     {
         // Arrange
         _containerClient.ExistsAsync(Arg.Any<CancellationToken>())
@@ -52,11 +53,11 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        result.IsT1.Should().BeTrue();
     }
 
     [Fact]
-    public async Task GetMarkersAsync_ReturnsEmpty_WhenBlobDoesNotExist()
+    public async Task GetMarkersAsync_ReturnsError_WhenBlobDoesNotExist()
     {
         // Arrange
         _containerClient.ExistsAsync(Arg.Any<CancellationToken>())
@@ -70,7 +71,7 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        result.IsT1.Should().BeTrue();
     }
 
     [Fact]
@@ -84,7 +85,8 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        result.IsT0.Should().BeTrue();
+        result.AsT0.Should().BeEmpty();
     }
 
     [Fact]
@@ -111,8 +113,9 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().HaveCount(1);
-        var marker = result[0];
+        result.IsT0.Should().BeTrue();
+        result.AsT0.Should().HaveCount(1);
+        var marker = result.AsT0[0];
         marker.Name.Should().Be("Randers");
         marker.WebsiteUrl.Should().Be("https://www.hjemlo.dk/randers");
         marker.City.Should().Be("Randers");
@@ -148,8 +151,9 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().HaveCount(1);
-        result[0].ShortDescription.Should().Be("HJEM lokalrepræsentant");
+        result.IsT0.Should().BeTrue();
+        result.AsT0.Should().HaveCount(1);
+        result.AsT0[0].ShortDescription.Should().Be("HJEM lokalrepræsentant");
     }
 
     [Fact]
@@ -178,8 +182,10 @@ public class HjemGroupProviderTests
         var result2 = await sut2.GetMarkersAsync();
 
         // Assert: same input always produces same Guid
-        result1[0].Id.Should().Be(result2[0].Id);
-        result1[0].Id.Should().NotBe(Guid.Empty);
+        result1.IsT0.Should().BeTrue();
+        result2.IsT0.Should().BeTrue();
+        result1.AsT0[0].Id.Should().Be(result2.AsT0[0].Id);
+        result1.AsT0[0].Id.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
@@ -211,7 +217,7 @@ public class HjemGroupProviderTests
     }
 
     [Fact]
-    public async Task GetMarkersAsync_ReturnsEmpty_WhenBlobThrows()
+    public async Task GetMarkersAsync_ReturnsError_WhenBlobThrows()
     {
         // Arrange
         _containerClient.ExistsAsync(Arg.Any<CancellationToken>())
@@ -227,7 +233,7 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        result.IsT1.Should().BeTrue();
     }
 
     [Fact]
@@ -252,8 +258,9 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result.Should().HaveCount(5);
-        result.Select(m => m.Name).Should().BeEquivalentTo(entries.Select(e => e.Name));
+        result.IsT0.Should().BeTrue();
+        result.AsT0.Should().HaveCount(5);
+        result.AsT0.Select(m => m.Name).Should().BeEquivalentTo(entries.Select(e => e.Name));
     }
 
     [Fact]
@@ -272,7 +279,8 @@ public class HjemGroupProviderTests
         var result = await sut.GetMarkersAsync();
 
         // Assert
-        result[0].Id.Should().NotBe(result[1].Id);
+        result.IsT0.Should().BeTrue();
+        result.AsT0[0].Id.Should().NotBe(result.AsT0[1].Id);
     }
 
     // Helper: wires up blob container + blob to return the given JSON string
