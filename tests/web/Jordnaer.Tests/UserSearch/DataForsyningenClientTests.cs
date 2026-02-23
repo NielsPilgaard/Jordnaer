@@ -112,6 +112,7 @@ public class DataForsyningenClientTests
 		// Assert
 		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull();
+		response.Content.Should().HaveCountGreaterThan(0);
 		var first = response.Content!.First();
 		first.Visueltcenter.Should().HaveCountGreaterOrEqualTo(2);
 

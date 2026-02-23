@@ -4,7 +4,7 @@ public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddHjemGroupServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton<IHjemGroupProvider, HjemGroupProvider>();
+        builder.Services.AddScoped<IHjemGroupProvider, HjemGroupProvider>();
         builder.Services.AddScoped<HjemGroupAdminService>();
 
         return builder;

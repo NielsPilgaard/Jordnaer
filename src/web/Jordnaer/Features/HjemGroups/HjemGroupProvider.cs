@@ -31,11 +31,25 @@ public class HjemGroupProvider(
 
     public async Task<OneOf<IReadOnlyList<GroupMarkerData>, Error>> GetMarkersAsync(CancellationToken cancellationToken = default)
     {
-        return await fusionCache.GetOrSetAsync<OneOf<IReadOnlyList<GroupMarkerData>, Error>>(
-            CacheKey,
-            (_, innerToken) => LoadFromBlobAsync(innerToken),
-            tags: [CacheTag],
-            token: cancellationToken);
+        try
+        {
+            var markers = await fusionCache.GetOrSetAsync<IReadOnlyList<GroupMarkerData>>(
+                CacheKey,
+                async (_, innerToken) =>
+                {
+                    var result = await LoadFromBlobAsync(innerToken);
+                    return result.IsT0
+                        ? result.AsT0
+                        : throw new InvalidOperationException("Failed to load HJEM group markers from blob storage.");
+                },
+                tags: [CacheTag],
+                token: cancellationToken);
+            return OneOf<IReadOnlyList<GroupMarkerData>, Error>.FromT0(markers);
+        }
+        catch (Exception)
+        {
+            return new Error();
+        }
     }
 
     private async Task<OneOf<IReadOnlyList<GroupMarkerData>, Error>> LoadFromBlobAsync(CancellationToken cancellationToken)
@@ -71,7 +85,7 @@ public class HjemGroupProvider(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to load HJEM group markers from blob storage.");
+            logger.LogError(ex, "Failed to load HJEM group markers from blob storage.");
             return new Error();
         }
     }

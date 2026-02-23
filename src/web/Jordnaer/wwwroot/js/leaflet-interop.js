@@ -335,7 +335,8 @@ window.leafletInterop = {
       let isValidUrl = false;
       try {
         const parsedUrl = new URL(group.websiteUrl);
-        isValidUrl = parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+        isValidUrl =
+          parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
       } catch (e) {
         // Invalid URL, skip rendering
         isValidUrl = false;
@@ -347,7 +348,7 @@ window.leafletInterop = {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                     </svg>
-                    <a href="${this.escapeAttribute(group.websiteUrl)}" target="_blank" rel="noopener noreferrer">${this.escapeHtml(group.websiteUrl)}</a>
+                    <a href="${this.escapeAttribute(group.websiteUrl)}" target="_blank" rel="noopener">${this.escapeHtml(group.websiteUrl)}</a>
                 </div>
             `;
       }
@@ -359,15 +360,21 @@ window.leafletInterop = {
     if (group.websiteUrl) {
       try {
         const parsedGroupUrl = new URL(group.websiteUrl);
-        isHjemUrl = (parsedGroupUrl.protocol === "http:" || parsedGroupUrl.protocol === "https:") &&
-          (parsedGroupUrl.hostname === "www.hjemlo.dk" || parsedGroupUrl.hostname === "hjemlo.dk");
+        isHjemUrl =
+          (parsedGroupUrl.protocol === "http:" ||
+            parsedGroupUrl.protocol === "https:") &&
+          (parsedGroupUrl.hostname === "www.hjemlo.dk" ||
+            parsedGroupUrl.hostname === "hjemlo.dk");
       } catch (e) {
         // Invalid URL — treat as not a HJEM URL
       }
     }
 
-    const groupUrl = isHjemUrl ? group.websiteUrl : `/groups/${encodeURIComponent(group.name)}`;
-    const groupUrlTarget = isHjemUrl ? ' target="_blank" rel="noopener"' : '';
+    const safeName = group.name != null ? encodeURIComponent(group.name) : "";
+    const groupUrl = isHjemUrl ? group.websiteUrl : `/groups/${safeName}`;
+    const groupUrlTarget = isHjemUrl
+      ? ' target="_blank" rel="noopener noreferrer"'
+      : "";
 
     return `
             <div class="group-popup-content">
@@ -504,13 +511,13 @@ window.leafletInterop = {
       // Detect and offset duplicate coordinates so each marker is individually clickable
       const coordKey = (lat, lng) => `${lat.toFixed(5)},${lng.toFixed(5)}`;
       const byCoord = {};
-      allMarkers.forEach(m => {
+      allMarkers.forEach((m) => {
         const ll = m.getLatLng();
         const key = coordKey(ll.lat, ll.lng);
         (byCoord[key] = byCoord[key] || []).push(m);
       });
 
-      Object.values(byCoord).forEach(bucket => {
+      Object.values(byCoord).forEach((bucket) => {
         if (bucket.length <= 1) return;
         const offsetMeters = 25;
         const angleStep = (2 * Math.PI) / bucket.length;
@@ -519,8 +526,9 @@ window.leafletInterop = {
           const ll = marker.getLatLng();
           const angle = i * angleStep;
           const dLat = (offsetMeters / 111320) * Math.cos(angle);
-          const dLng = (offsetMeters /
-            (111320 * Math.cos(ll.lat * Math.PI / 180))) * Math.sin(angle);
+          const dLng =
+            (offsetMeters / (111320 * Math.cos((ll.lat * Math.PI) / 180))) *
+            Math.sin(angle);
           marker.setLatLng([ll.lat + dLat, ll.lng + dLng]);
         });
       });

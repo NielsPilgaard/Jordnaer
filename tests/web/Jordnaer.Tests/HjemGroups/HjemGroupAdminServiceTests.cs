@@ -224,9 +224,10 @@ public class HjemGroupAdminServiceTests
     [Fact]
     public async Task GeocodeAsync_ReturnsNull_WhenApiReturnsNoResults()
     {
+        using var response = MakeGeoResponse();
         _geocoder
             .SearchZipCodesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(MakeGeoResponse());
+            .Returns(response.ApiResponse);
 
         var result = await CreateSut().GeocodeAsync("UnknownPlace");
 
@@ -250,9 +251,10 @@ public class HjemGroupAdminServiceTests
     [Fact]
     public async Task GeocodeAsync_ReturnsCityAndCoordinates_WhenApiSucceeds()
     {
+        using var response = MakeGeoResponse(MakeZip("Randers", 8900, lat: 56.46, lng: 10.03));
         _geocoder
             .SearchZipCodesAsync("Randers", Arg.Any<CancellationToken>())
-            .Returns(MakeGeoResponse(MakeZip("Randers", 8900, lat: 56.46, lng: 10.03)));
+            .Returns(response.ApiResponse);
 
         var result = await CreateSut().GeocodeAsync("Randers");
 
@@ -266,9 +268,10 @@ public class HjemGroupAdminServiceTests
     [Fact]
     public async Task GeocodeAsync_ParsesZipCode_FromStringNr()
     {
+        using var response = MakeGeoResponse(MakeZip("København", 1000, lat: 55.67, lng: 12.57));
         _geocoder
             .SearchZipCodesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(MakeGeoResponse(MakeZip("København", 1000, lat: 55.67, lng: 12.57)));
+            .Returns(response.ApiResponse);
 
         var result = await CreateSut().GeocodeAsync("København");
 
@@ -285,9 +288,10 @@ public class HjemGroupAdminServiceTests
             Kommuner: null, Ændret: DateTime.UtcNow, Geo_Ændret: DateTime.UtcNow,
             Geo_Version: 1, Dagi_Id: null);
 
+        using var response = MakeGeoResponse(zip);
         _geocoder
             .SearchZipCodesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(MakeGeoResponse(zip));
+            .Returns(response.ApiResponse);
 
         var result = await CreateSut().GeocodeAsync("SomeCity");
 
@@ -298,9 +302,10 @@ public class HjemGroupAdminServiceTests
     [Fact]
     public async Task GeocodeAsync_PassesQueryDirectlyToClient()
     {
+        using var response = MakeGeoResponse();
         _geocoder
             .SearchZipCodesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(MakeGeoResponse());
+            .Returns(response.ApiResponse);
 
         await CreateSut().GeocodeAsync("Silkeborg");
 
@@ -329,10 +334,22 @@ public class HjemGroupAdminServiceTests
             Kommuner: null, Ændret: DateTime.UtcNow, Geo_Ændret: DateTime.UtcNow,
             Geo_Version: 1, Dagi_Id: null);
 
-    private static ApiResponse<IEnumerable<ZipCodeSearchResponse>> MakeGeoResponse(params ZipCodeSearchResponse[] results)
+    private static DisposableApiResponse<IEnumerable<ZipCodeSearchResponse>> MakeGeoResponse(params ZipCodeSearchResponse[] results)
     {
         var httpResponse = new HttpResponseMessage(HttpStatusCode.OK);
-        return new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(httpResponse, results, new RefitSettings());
+        var apiResponse = new ApiResponse<IEnumerable<ZipCodeSearchResponse>>(httpResponse, results, new RefitSettings());
+        return new DisposableApiResponse<IEnumerable<ZipCodeSearchResponse>>(apiResponse, httpResponse);
+    }
+
+    private sealed class DisposableApiResponse<T>(ApiResponse<T> apiResponse, HttpResponseMessage httpResponse) : IDisposable
+    {
+        public ApiResponse<T> ApiResponse { get; } = apiResponse;
+
+        public void Dispose()
+        {
+            apiResponse.Dispose();
+            httpResponse.Dispose();
+        }
     }
 
     private void SetupBlobWithContent(string json)

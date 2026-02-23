@@ -2,7 +2,7 @@
 
 - azure web app (container) (20$/month) 4gb ram poor cpu
 - azure sql (5$/month)
-- storage storage (blob storage, close to free)
+- azure blob storage (close to free)
 - email communication service (free)
 
 # requirements
@@ -46,20 +46,20 @@
 
 ### recommended setup
 
-**Hetzner Cloud CX22 ARM** (Falkenstein, Germany or Helsinki, Finland)
+**Hetzner Cloud CAX11 ARM** (Falkenstein, Germany or Helsinki, Finland)
 
 | spec | value |
 |---|---|
-| vCPU | 2 (Ampere ARM) |
+| vCPU | 2 (Ampere ARM64) |
 | RAM | 4 GB |
 | Disk | 40 GB NVMe |
 | Network | 20 TB/month |
 | Price | €3.79/month (~$4.20) |
 | Location | EU (GDPR compliant) |
 
-The CX22 matches the current Azure plan's 4 GB RAM but has significantly better CPU. Since the database stays in Azure SQL, the VPS only runs the app container — 4 GB is comfortable. Upgrade to CX32 (4 vCPU, 8 GB, €7.49/mo) later if needed.
+The CAX11 matches the current Azure plan's 4 GB RAM but has significantly better CPU. Since the database stays in Azure SQL, the VPS only runs the app container — 4 GB is comfortable. Upgrade to CX32 (4 vCPU, 8 GB, €6.80/mo) later if needed.
 
-ARM binaries: .NET 10 has first-class ARM64 support. The official `mcr.microsoft.com/dotnet/aspnet:10.0-azurelinux3.0` image builds and runs fine on ARM64. The existing Dockerfile works as-is (Docker BuildKit handles cross-compilation on GitHub Actions via `--platform linux/arm64`).
+ARM binaries: .NET 10 has first-class ARM64 support. The official `mcr.microsoft.com/dotnet/aspnet:10.0-azurelinux3.0` image builds and runs fine on ARM64. The existing Dockerfile works as-is, but the CD workflow's `docker/build-push-action` step needs `platforms: linux/arm64` added to produce an ARM64 image (see risk table below).
 
 **Keep Azure SQL** — $5/month, zero migration effort, no risk.
 
@@ -147,11 +147,25 @@ Current: ~$25/month → New: ~$10-11/month. **Savings: ~$14/month, ~56% reductio
    Safe: by default this only installs `security` and `security-updates` packages, never major upgrades. Auto-reboot is off unless you uncomment `Unattended-Upgrade::Automatic-Reboot "true"` in `/etc/apt/apt.conf.d/50unattended-upgrades` (kernel patches need a reboot to take effect, so worth enabling at 3am).
 4. Install Dokploy:
    ```bash
-   curl -sSL https://dokploy.com/install.sh | sh
+   # Download the installer first, verify it, then execute
+   curl -sSL https://dokploy.com/install.sh -o dokploy-install.sh
+   # Verify SHA256 checksum matches the value published on https://dokploy.com/docs/get-started/installation
+   sha256sum dokploy-install.sh
+   # Inspect the script before running
+   less dokploy-install.sh
+   sh dokploy-install.sh
    ```
 5. Access Dokploy at `http://<hetzner-ip>:3000`, create admin account
 
 ### step 2: configure the app service in Dokploy
+
+**Prerequisite — GHCR registry credentials in Dokploy:**
+Before creating the service, go to Dokploy → **Registry** and add a custom registry:
+- Registry URL: `ghcr.io`
+- Username: your GitHub username
+- Password: a GitHub Personal Access Token (PAT) with `read:packages` scope
+
+This is required so Dokploy can pull the image even if the GHCR package visibility is set to private. Do this before the first deployment attempt.
 
 Create a new project with one service:
 
@@ -181,13 +195,16 @@ In the current [website_cd.yml](.github/workflows/website_cd.yml), replace the A
     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
 
 # With this:
-- name: Deploy via Dokploy webhook
+- name: Deploy via Dokploy API
   run: |
-    curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
-      -H "Authorization: Bearer ${{ secrets.DOKPLOY_API_KEY }}"
+    curl --fail --show-error --silent \
+      -X POST "https://<dokploy-host>/api/application.deploy" \
+      -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+      -H "Content-Type: application/json" \
+      -d '{"applicationId":"${{ secrets.DOKPLOY_APPLICATION_ID }}"}'
 ```
 
-Add `DOKPLOY_WEBHOOK_URL` and `DOKPLOY_API_KEY` to GitHub repository secrets. Remove `AZURE_CREDENTIALS` secret after decommission.
+Add `DOKPLOY_API_KEY` and `DOKPLOY_APPLICATION_ID` to GitHub repository secrets. Remove `AZURE_CREDENTIALS` secret after decommission.
 
 ### step 4: DNS cutover
 
@@ -211,13 +228,13 @@ After 48 hours of stable operation:
 
 | risk | likelihood | mitigation |
 |---|---|---|
-| App memory pressure on VPS | low | CX22 has 4 GB — same as current Azure plan but better CPU. Upgrade to CX32 (8 GB, €7.49/mo) if needed |
-| SignalR circuit drops during deploy | mitigated | Rolling deploy: new container must pass `/alive` health check before old gets SIGTERM. Old container then drains existing circuits for 30s (configured via `HostOptions.ShutdownTimeout`). `boot.js` retries every 5s; if `Blazor.reconnect()` returns false, page reloads — user is on new container, auth cookie intact. In Dokploy: set deployment strategy to **Rolling** |
+| App memory pressure on VPS | low | CX22 has 4 GB — same as current Azure plan but better CPU. Upgrade to CX32 (8 GB, €6.80/mo) if needed |
+| SignalR circuit drops during deploy | mitigated | Rolling deploy requires Docker Swarm mode. **Step 2 sub-steps:** (1) On the server run `docker swarm init` to enable Swarm. (2) In Dokploy → Advanced → Cluster Settings → Swarm Settings, paste the following update_config and health-check JSON (adjust port if needed): `{"updateConfig":{"parallelism":1,"delay":"10s","order":"start-first"},"healthCheck":{"test":["CMD","curl","-f","http://localhost:8080/alive"],"interval":"10s","timeout":"5s","retries":3,"startPeriod":"30s"}}`. The new container must pass `/alive` before the old receives SIGTERM. The old container drains existing SignalR circuits for 30 s — this aligns with `HostOptions.ShutdownTimeout = TimeSpan.FromSeconds(30)` already set in `Program.cs`. `boot.js` retries every 5 s; if `Blazor.reconnect()` returns false, the page reloads and the user lands on the new container with the auth cookie intact. |
 | ARM compatibility issue with .NET app | low | .NET 10 has first-class ARM64 support. The existing Dockerfile works as-is |
 | OAuth callback URLs break | low | Domain stays the same (mini-moeder.dk) so OAuth redirect URIs don't change |
 | Let's Encrypt rate limit | low | Keep port 80 open so ACME HTTP-01 challenge works |
 | VPS outage (no redundancy) | low/medium | Hetzner SLA is 99.9%. Same single-point-of-failure model as current Azure Web App |
-| Docker image ARM build | low | Add `--platform linux/arm64` to docker build step in CD workflow. Or skip ARM and use Hetzner CX22 x86 (€4.49/mo, negligible cost difference) |
+| Docker image ARM build | low | Add `platforms: linux/arm64` to the `docker/build-push-action` step in `website_cd.yml`. Or skip ARM and use Hetzner CX22 x86 (€4.49/mo, negligible cost difference) |
 | Azure SQL latency from Hetzner | low | Azure SQL is in West Europe; Hetzner Helsinki/Falkenstein are both low latency to that region. Same as today since the app already calls out to Azure SQL over the internet |
 
 ### safest rollback path
@@ -231,7 +248,7 @@ Azure Web App stays running until the cutover is confirmed stable. If something 
 | option | verdict |
 |---|---|
 | **Scaleway** | More expensive than Hetzner for equivalent specs. DEV1-S (2 vCPU, 2 GB) is ~€8/mo for less RAM. Hetzner wins on price/performance |
-| **Hetzner CX22 x86** | €4.49/mo vs €3.79/mo for ARM. Avoids any ARM build concern. Either works; ARM is cheaper and .NET 10 supports it well |
+| **Hetzner CX22 x86** | €4.49/mo vs €3.79/mo for CAX11 ARM. Avoids any ARM build concern. Either works; ARM is cheaper and .NET 10 supports it well |
 | **Migrate from SQL Server to PostgreSQL** | Would eliminate the $5/month Azure SQL cost. But requires rewriting all EF Core migrations, switching providers, and retesting spatial queries. Not worth it |
 | **Switch blob storage to Hetzner Object Storage** | €3/month vs ~$1/month Azure. Costs more and requires code changes in ImageService + data protection configuration. Skip |
 | **Coolify** (alternative to Dokploy) | Also open source and mature. More feature-rich but heavier. Either works; Dokploy is simpler for this use case |
