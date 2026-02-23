@@ -41,6 +41,8 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+
 builder.Services.AddRazorComponents()
 	   .AddInteractiveServerComponents();
 
