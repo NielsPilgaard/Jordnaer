@@ -5,6 +5,7 @@
 
 @inject HjemGroupAdminService AdminService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject ILogger<HjemGroupManagementPage> Logger
 
 @attribute [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
@@ -86,7 +87,7 @@ else
                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                Size="Size.Small"
                                Color="Color.Error"
-                               OnClick="@(() => DeleteEntry(context))" />
+                               OnClick="@(async () => await DeleteEntryAsync(context))" />
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -313,24 +314,36 @@ else
         _dialogVisible = false;
     }
 
-    private void DeleteEntry(HjemGroupEntry entry) => _entries.Remove(entry);
+    private async Task DeleteEntryAsync(HjemGroupEntry entry)
+    {
+        bool? confirmed = await DialogService.ShowMessageBox(
+            "Bekræft sletning",
+            $"Er du sikker på, at du vil slette \"{entry.Name}\"?",
+            yesText: "Slet", cancelText: "Annuller");
+        if (confirmed == true)
+            _entries.Remove(entry);
+    }
 
     private async Task SaveAsync()
     {
+        if (_isSaving) return;
         _isSaving = true;
+        StateHasChanged();
         try
         {
-            await AdminService.SaveAsync(_entries);
-            Snackbar.Add($"{_entries.Count} HJEM grupper gemt.", Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to save HJEM group entries.");
-            Snackbar.Add("Gem fejlede. Prøv igen.", Severity.Error);
+            var result = await AdminService.SaveAsync(_entries);
+            result.Switch(
+                _ => Snackbar.Add($"{_entries.Count} HJEM grupper gemt.", Severity.Success),
+                error =>
+                {
+                    Logger.LogError("Failed to save HJEM group entries: {Error}", error.Message);
+                    Snackbar.Add("Gem fejlede. Prøv igen.", Severity.Error);
+                });
         }
         finally
         {
             _isSaving = false;
+            StateHasChanged();
         }
     }
 

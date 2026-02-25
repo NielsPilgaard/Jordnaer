@@ -3,6 +3,7 @@ using Azure.Storage.Blobs.Models;
 using Jordnaer.Shared;
 using MassTransit;
 using OneOf;
+using OneOf.Types;
 using System.Text;
 using System.Text.Json;
 
@@ -50,20 +51,30 @@ public class HjemGroupAdminService(
         }
     }
 
-    public async Task SaveAsync(List<HjemGroupEntry> entries, CancellationToken cancellationToken = default)
+    public async Task<OneOf<Success, HjemGroupSaveError>> SaveAsync(List<HjemGroupEntry> entries, CancellationToken cancellationToken = default)
     {
-        var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
+        try
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
 
-        var blobClient = containerClient.GetBlobClient(BlobName);
-        var json = JsonSerializer.Serialize(entries, JsonOptions);
+            var blobClient = containerClient.GetBlobClient(BlobName);
+            var json = JsonSerializer.Serialize(entries, JsonOptions);
 
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-        await blobClient.UploadAsync(stream, overwrite: true, cancellationToken: cancellationToken);
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            await blobClient.UploadAsync(stream, overwrite: true, cancellationToken: cancellationToken);
 
-        await publishEndpoint.Publish(
-            new InvalidateCacheTags { Tags = [HjemGroupProvider.CacheTag] },
-            cancellationToken);
+            await publishEndpoint.Publish(
+                new InvalidateCacheTags { Tags = [HjemGroupProvider.CacheTag] },
+                cancellationToken);
+
+            return new Success();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to save HJEM group entries.");
+            return new HjemGroupSaveError(ex.Message);
+        }
     }
 
     /// <summary>
@@ -102,3 +113,4 @@ public class HjemGroupAdminService(
 }
 
 public sealed record HjemGroupLoadError(string Message);
+public sealed record HjemGroupSaveError(string Message);

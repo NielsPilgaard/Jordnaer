@@ -23,6 +23,8 @@ public class HjemGroupProviderTests
     private readonly BlobClient _blobClient = Substitute.For<BlobClient>();
     private readonly ILogger<HjemGroupProvider> _logger = Substitute.For<ILogger<HjemGroupProvider>>();
 
+    private static readonly JsonSerializerOptions CamelCaseOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
     private static IFusionCache CreateFusionCache() =>
         new FusionCache(new FusionCacheOptions(), new MemoryCache(new MemoryCacheOptions()));
 
@@ -106,7 +108,7 @@ public class HjemGroupProviderTests
                 Type = HjemGroupType.Lokalafdeling,
             }
         };
-        SetupBlobWithContent(JsonSerializer.Serialize(entries, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        SetupBlobWithContent(JsonSerializer.Serialize(entries, CamelCaseOptions));
         var sut = CreateSut();
 
         // Act
@@ -144,7 +146,7 @@ public class HjemGroupProviderTests
                 Type = HjemGroupType.Lokalrepresentant,
             }
         };
-        SetupBlobWithContent(JsonSerializer.Serialize(entries, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        SetupBlobWithContent(JsonSerializer.Serialize(entries, CamelCaseOptions));
         var sut = CreateSut();
 
         // Act
@@ -170,7 +172,7 @@ public class HjemGroupProviderTests
             Longitude = 10.20,
             Type = HjemGroupType.Lokalafdeling,
         };
-        var json = JsonSerializer.Serialize(new[] { entry }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var json = JsonSerializer.Serialize(new[] { entry }, CamelCaseOptions);
 
         // Call GetMarkersAsync twice with two separate provider instances
         SetupBlobWithContent(json);
@@ -204,7 +206,7 @@ public class HjemGroupProviderTests
                 Longitude = 10.38,
                 Type = HjemGroupType.Lokalafdeling,
             }
-        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        }, CamelCaseOptions));
 
         var sut = CreateSut();
 
@@ -251,7 +253,7 @@ public class HjemGroupProviderTests
             Type = i % 2 == 0 ? HjemGroupType.Lokalrepresentant : HjemGroupType.Lokalafdeling,
         }).ToArray();
 
-        SetupBlobWithContent(JsonSerializer.Serialize(entries, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        SetupBlobWithContent(JsonSerializer.Serialize(entries, CamelCaseOptions));
         var sut = CreateSut();
 
         // Act
@@ -272,7 +274,7 @@ public class HjemGroupProviderTests
             new HjemGroupEntry { Name = "A", WebsiteUrl = new Uri("https://www.hjemlo.dk/a"), Latitude = 55, Longitude = 10, Type = HjemGroupType.Lokalafdeling },
             new HjemGroupEntry { Name = "B", WebsiteUrl = new Uri("https://www.hjemlo.dk/b"), Latitude = 56, Longitude = 11, Type = HjemGroupType.Lokalafdeling },
         };
-        SetupBlobWithContent(JsonSerializer.Serialize(entries, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        SetupBlobWithContent(JsonSerializer.Serialize(entries, CamelCaseOptions));
         var sut = CreateSut();
 
         // Act
