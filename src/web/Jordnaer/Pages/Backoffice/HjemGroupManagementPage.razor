@@ -238,7 +238,9 @@ else
             _form.ZipCode = result.ZipCode;
             _form.Latitude = result.Latitude;
             _form.Longitude = result.Longitude;
-            Snackbar.Add($"Fandt {result.City} ({result.ZipCode})", Severity.Success);
+            Snackbar.Add(string.IsNullOrWhiteSpace(result.ZipCode?.ToString())
+                ? $"Fandt {result.City}"
+                : $"Fandt {result.City} ({result.ZipCode})", Severity.Success);
         }
         catch (Exception ex)
         {

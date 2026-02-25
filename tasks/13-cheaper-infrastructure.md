@@ -17,7 +17,7 @@
 
 ## product of task: is it viable?
 
-**Yes, it is viable.** Estimated monthly cost: ~$10-11 (saving ~$14/month, ~56% reduction) with zero code changes required.
+**Yes, it is viable.** Estimated monthly cost: ~$10-11 (saving ~$14/month, ~56% reduction) with zero application code changes required.
 
 ---
 

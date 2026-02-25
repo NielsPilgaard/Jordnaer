@@ -87,6 +87,10 @@ public class HjemGroupProvider(
 
             return entries.Select(MapToMarker).ToList();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to load HJEM group markers from blob storage.");
