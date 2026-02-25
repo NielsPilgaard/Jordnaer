@@ -76,7 +76,8 @@ else
             <MudTd DataLabel="Breddegrad">@context.Latitude.ToString("F5")</MudTd>
             <MudTd DataLabel="Længdegrad">@context.Longitude.ToString("F5")</MudTd>
             <MudTd DataLabel="URL">
-                <MudLink Href="@context.WebsiteUrl.ToString()" Target="_blank">
+                <MudLink Href="@context.WebsiteUrl.ToString()" Target="_blank"
+                         UserAttributes="@(new Dictionary<string, object> { { "rel", "noopener noreferrer" } })">
                     @context.WebsiteUrl.Host
                 </MudLink>
             </MudTd>

@@ -46,6 +46,10 @@ public class HjemGroupProvider(
                 token: cancellationToken);
             return OneOf<IReadOnlyList<GroupMarkerData>, Error>.FromT0(markers);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception)
         {
             return new Error();

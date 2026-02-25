@@ -105,7 +105,7 @@ The app currently uses `openTelemetryBuilder.UseGrafana()` in production. Grafan
 
 | item | new cost |
 |---|---|
-| Hetzner CX22 ARM (app only) | ~$4.20/month |
+| Hetzner CAX11 ARM (app only) | ~$4.20/month |
 | Azure SQL (keep) | ~$5/month |
 | Azure Blob Storage (keep) | ~$1/month |
 | Azure Communication Email (keep) | $0 |
@@ -127,7 +127,7 @@ Current: ~$25/month → New: ~$10-11/month. **Savings: ~$14/month, ~56% reductio
 
 ### step 1: provision the server
 
-1. Create Hetzner CX22 ARM server (Helsinki or Falkenstein) running Ubuntu 24.04
+1. Create Hetzner CAX11 ARM server (Helsinki or Falkenstein) running Ubuntu 24.04
 2. Add firewall rules: allow 22 (SSH), 80 (HTTP), 443 (HTTPS)
 3. Set up unattended-upgrades (security patches only, runs at 3am):
    ```bash
@@ -228,7 +228,7 @@ After 48 hours of stable operation:
 
 | risk | likelihood | mitigation |
 |---|---|---|
-| App memory pressure on VPS | low | CX22 has 4 GB — same as current Azure plan but better CPU. Upgrade to CX32 (8 GB, €6.80/mo) if needed |
+| App memory pressure on VPS | low | CAX11 has 4 GB — same as current Azure plan but better CPU. Upgrade to CX32 (8 GB, €6.80/mo) if needed |
 | SignalR circuit drops during deploy | mitigated | Rolling deploy requires Docker Swarm mode. **Step 2 sub-steps:** (1) On the server run `docker swarm init` to enable Swarm. (2) In Dokploy → Advanced → Cluster Settings → Swarm Settings, paste the following update_config and health-check JSON (adjust port if needed): `{"updateConfig":{"parallelism":1,"delay":"10s","order":"start-first"},"healthCheck":{"test":["CMD","curl","-f","http://localhost:8080/alive"],"interval":"10s","timeout":"5s","retries":3,"startPeriod":"30s"}}`. The new container must pass `/alive` before the old receives SIGTERM. The old container drains existing SignalR circuits for 30 s — this aligns with `HostOptions.ShutdownTimeout = TimeSpan.FromSeconds(30)` already set in `Program.cs`. `boot.js` retries every 5 s; if `Blazor.reconnect()` returns false, the page reloads and the user lands on the new container with the auth cookie intact. |
 | ARM compatibility issue with .NET app | low | .NET 10 has first-class ARM64 support. The existing Dockerfile works as-is |
 | OAuth callback URLs break | low | Domain stays the same (mini-moeder.dk) so OAuth redirect URIs don't change |
