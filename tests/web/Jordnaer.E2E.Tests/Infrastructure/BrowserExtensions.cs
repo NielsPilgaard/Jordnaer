@@ -14,16 +14,21 @@ public static class BrowserExtensions
 	{
 		var page = await browser.NewPageAsync(playwright, loadAuthenticationState: false);
 
-		var loginPage = page.CreateLoginPage();
-		await loginPage.NavigateAsync(baseUrl);
-		await loginPage.LoginAsync(email, password);
-
-		await page.Context.StorageStateAsync(new BrowserContextStorageStateOptions
+		try
 		{
-			Path = storageStatePath
-		});
+			var loginPage = page.CreateLoginPage();
+			await loginPage.NavigateAsync(baseUrl);
+			await loginPage.LoginAsync(email, password);
 
-		await page.CloseAsync();
+			await page.Context.StorageStateAsync(new BrowserContextStorageStateOptions
+			{
+				Path = storageStatePath
+			});
+		}
+		finally
+		{
+			await page.CloseAsync();
+		}
 	}
 
 	public static async Task<IPage> NewPageAsync(

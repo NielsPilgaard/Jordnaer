@@ -11,7 +11,7 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [Category(nameof(TestCategory.Authenticated))]
 public class GroupTests : BrowserTest
 {
-	private static readonly string TestGroupName = $"TestGruppe-{Guid.NewGuid():N[..8]}";
+	private static readonly string TestGroupName = $"TestGruppe-{Guid.NewGuid().ToString("N")[..8]}";
 	private const string TestGroupDescription = "En gruppe til E2E tests";
 
 	[Test]
