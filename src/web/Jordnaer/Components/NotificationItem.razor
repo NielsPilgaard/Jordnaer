@@ -23,9 +23,9 @@
             </MudText>
             @if (!string.IsNullOrEmpty(Notification.Description))
             {
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="notification-description-truncate">
+                <div class="notification-description-truncate mud-secondary-text mud-typography mud-typography-caption">
                     @Notification.Description
-                </MudText>
+                </div>
             }
             <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="font-size: 0.7rem;">
                 @Notification.CreatedUtc.Humanize(utcDate: true, dateToCompareAgainst: DateTime.UtcNow, culture: DanishCulture)

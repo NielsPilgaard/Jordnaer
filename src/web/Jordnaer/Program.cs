@@ -13,6 +13,7 @@ using Jordnaer.Features.DeleteUser;
 using Jordnaer.Features.Email;
 using Jordnaer.Features.Groups;
 using Jordnaer.Features.GroupSearch;
+using Jordnaer.Features.HjemGroups;
 using Jordnaer.Features.Images;
 using Jordnaer.Features.Membership;
 using Jordnaer.Features.GroupPosts;
@@ -105,6 +106,7 @@ builder.AddPostSearchFeature();
 builder.AddSharingFeature();
 builder.AddPartnerServices();
 builder.AddAdServices();
+builder.AddHjemGroupServices();
 
 builder.AddMudBlazor();
 

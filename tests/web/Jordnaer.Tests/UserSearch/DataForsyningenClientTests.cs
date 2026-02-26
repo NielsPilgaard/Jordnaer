@@ -65,4 +65,62 @@ public class DataForsyningenClientTests
 		response.IsSuccessful.Should().BeTrue();
 		response.Content.Should().NotBeNull().And.HaveCount(1);
 	}
+
+	[Fact]
+	public async Task SearchZipCodesAsync_ReturnsResults_ForKnownCity()
+	{
+		// Arrange
+		const string query = "Randers";
+
+		// Act
+		var response = await _dataForsyningenClient.SearchZipCodesAsync(query);
+
+		// Assert
+		response.IsSuccessful.Should().BeTrue();
+		response.Content.Should().NotBeNull().And.HaveCountGreaterThan(0);
+
+		var first = response.Content!.First();
+		first.Navn.Should().NotBeNullOrWhiteSpace();
+		first.Nr.Should().NotBeNullOrWhiteSpace();
+		first.Visueltcenter.Should().NotBeNull().And.HaveCountGreaterOrEqualTo(2,
+			"visueltcenter must contain [longitude, latitude]");
+	}
+
+	[Fact]
+	public async Task SearchZipCodesAsync_ReturnsEmpty_ForGibberishQuery()
+	{
+		// Arrange
+		const string query = "xyzxyzxyz_nonexistent_city_999";
+
+		// Act
+		var response = await _dataForsyningenClient.SearchZipCodesAsync(query);
+
+		// Assert
+		response.IsSuccessful.Should().BeTrue();
+		response.Content.Should().NotBeNull().And.BeEmpty();
+	}
+
+	[Fact]
+	public async Task SearchZipCodesAsync_VisueltcenterIsLngLatOrder()
+	{
+		// Arrange - Aarhus C is at approx lng 10.2, lat 56.15
+		const string query = "Aarhus C";
+
+		// Act
+		var response = await _dataForsyningenClient.SearchZipCodesAsync(query);
+
+		// Assert
+		response.IsSuccessful.Should().BeTrue();
+		response.Content.Should().NotBeNull();
+		response.Content.Should().HaveCountGreaterThan(0);
+		var first = response.Content!.First();
+		first.Visueltcenter.Should().HaveCountGreaterOrEqualTo(2);
+
+		var longitude = (double)first.Visueltcenter![0];
+		var latitude = (double)first.Visueltcenter[1];
+
+		// Denmark: lng ≈ 8–15, lat ≈ 54–58
+		longitude.Should().BeInRange(8, 15, "longitude should be in Danish range");
+		latitude.Should().BeInRange(54, 58, "latitude should be in Danish range");
+	}
 }

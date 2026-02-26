@@ -55,4 +55,14 @@ public interface IDataForsyningenClient
 	[QueryUriFormat(UriFormat.Unescaped)]
 	Task<IApiResponse<IEnumerable<ZipCodeSearchResponse>>>
 		GetZipCodesWithinCircle([AliasAs("cirkel")] string? circle, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Searches for zip codes matching the given query string.
+	/// </summary>
+	/// <param name="query">City or area name to search for.</param>
+	/// <param name="cancellationToken"></param>
+	/// <returns>Matching zip code entries, ordered by relevance.</returns>
+	[Get("/postnumre")]
+	Task<IApiResponse<IEnumerable<ZipCodeSearchResponse>>>
+		SearchZipCodesAsync([AliasAs("q")] string query, CancellationToken cancellationToken = default);
 }
