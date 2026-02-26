@@ -1,36 +1,42 @@
-﻿using Microsoft.Playwright;
+using Microsoft.Playwright;
 
 namespace Jordnaer.E2E.Tests.Infrastructure;
 
 public static class BrowserExtensions
 {
-	private static readonly PageGetByPlaceholderOptions GetByPlaceholderOptions = new PageGetByPlaceholderOptions
-	{ Exact = true };
-	public static async Task Login(this IBrowser browser, IPlaywright playwright)
+	public static async Task Login(
+		this IBrowser browser,
+		IPlaywright playwright,
+		string baseUrl,
+		string email,
+		string password,
+		string storageStatePath)
 	{
-		var page = await browser.NewPageAsync(playwright, false);
+		var page = await browser.NewPageAsync(playwright, loadAuthenticationState: false);
 
-		// Use LoginPage Page Object for maintainability
 		var loginPage = page.CreateLoginPage();
-		await loginPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
-		await loginPage.LoginAsync(TestConfiguration.Values.Username, TestConfiguration.Values.Password);
+		await loginPage.NavigateAsync(baseUrl);
+		await loginPage.LoginAsync(email, password);
 
-		// Save authentication state
 		await page.Context.StorageStateAsync(new BrowserContextStorageStateOptions
 		{
-			Path = "auth.json"
+			Path = storageStatePath
 		});
 
 		await page.CloseAsync();
 	}
 
-	public static async Task<IPage> NewPageAsync(this IBrowser browser, IPlaywright playwright, bool loadAuthenticationState = true)
+	public static async Task<IPage> NewPageAsync(
+		this IBrowser browser,
+		IPlaywright playwright,
+		bool loadAuthenticationState = true,
+		string storageStatePath = "auth.json")
 	{
 		var newPageOptions = new BrowserNewPageOptions();
 
 		if (loadAuthenticationState)
 		{
-			newPageOptions.StorageStatePath = "auth.json";
+			newPageOptions.StorageStatePath = storageStatePath;
 		}
 
 		if (TestConfiguration.Values.Device is null)

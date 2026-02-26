@@ -13,7 +13,12 @@ public class LoginTests : BrowserTest
 {
 	[Test]
 	public async Task When_User_Logs_In_With_Email_And_Password_It_Succeeds()
-		=> await Browser.Login(Playwright);
+		=> await Browser.Login(
+			Playwright,
+			SetUpFixture.BaseUrl,
+			E2eWebApplicationFactory.UserAEmail,
+			E2eWebApplicationFactory.UserAPassword,
+			"auth-verify.json");
 
 	[Test]
 	[TestCase("Facebook")]
@@ -22,7 +27,7 @@ public class LoginTests : BrowserTest
 	public async Task When_User_Goes_To_Login_External_Provider_Login_Is_Visible(string externalProvider)
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		await page.GotoAsync(SetUpFixture.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
 
 		await Expect(page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
@@ -42,7 +47,7 @@ public class LoginTests : BrowserTest
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
 
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		await page.GotoAsync(SetUpFixture.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
 		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
 

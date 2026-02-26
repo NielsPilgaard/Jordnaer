@@ -33,13 +33,28 @@ jobs:
           dotnet-version: "10.x"
 
       - name: Test
-        # Dependabot cannot access secrets, so we disable this step for Dependabot
-        if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot-preview[bot]'
         run: >
           dotnet test "${{ env.TESTS_DIRECTORY }}"
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
           -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
+
+      - name: Build E2E tests
+        run: dotnet build tests/web/Jordnaer.E2E.Tests --configuration Release -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
+
+      - name: Install Playwright browsers
+        run: pwsh tests/web/Jordnaer.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run E2E tests
+        run: >
+          dotnet test tests/web/Jordnaer.E2E.Tests
+          --configuration Release
+          --no-build
+          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
+          --filter Category!=SkipInCi
+          -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
+        env:
+          Playwright__Headless: "true"
 
   build-and-push:
     # Only build and push the image on pushes to main branch, not tags

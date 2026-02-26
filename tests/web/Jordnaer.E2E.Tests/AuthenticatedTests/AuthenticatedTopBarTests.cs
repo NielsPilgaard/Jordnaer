@@ -10,7 +10,6 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
 [Category(nameof(TestCategory.Authenticated))]
-[Category(nameof(TestCategory.SkipInCi))]
 public class TopBarTests : BrowserTest
 {
 	[Test]
@@ -19,7 +18,7 @@ public class TopBarTests : BrowserTest
 	public async Task Links_Should_Be_Visible_In_The_Topbar_And_Redirect_Correctly(string linkName, string redirectUrlRegex)
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		await page.GotoAsync(SetUpFixture.BaseUrl);
 
 		// For links that appear in both desktop and mobile navigation, use First to pick the desktop version
 		var link = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = linkName }).First;
@@ -37,7 +36,7 @@ public class TopBarTests : BrowserTest
 	public async Task Logout_Link_Should_Be_In_Profile_Dropdown()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(TestConfiguration.Values.BaseUrl);
+		await page.GotoAsync(SetUpFixture.BaseUrl);
 
 		// Open the profile dropdown menu by clicking the label (the label intercepts clicks on the checkbox)
 		var profileMenuLabel = page.Locator("label[for='profile-menu-toggle']");
