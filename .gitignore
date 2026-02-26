@@ -354,7 +354,7 @@ MigrationBackup/
 *.db
 *.db-shm
 *.db-wal
-/.claude
+.claude/settings.local.json
 
 # Docker environment files
 .env
