@@ -58,16 +58,18 @@ public class PostPage(IPage page)
 		var moreOptionsButton = postCard.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Flere muligheder" });
 		await moreOptionsButton.ClickAsync();
 
-		// Click "Slet"
-		await page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Slet" }).ClickAsync();
+		// Click "Slet" scoped to the opened menu
+		var menu = page.Locator("[role='menu']");
+		await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Slet" }).ClickAsync();
 
-		// Confirm deletion in dialog
-		await page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Slet" }).Last.ClickAsync();
+		// Confirm deletion scoped to the active dialog
+		var dialog = page.Locator("[role='dialog']");
+		await dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Slet" }).ClickAsync();
 		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 	}
 
 	public ILocator GetPostWithContent(string content) =>
-		page.GetByText(content).First;
+		PostCards.GetByText(content).First;
 
 	public ILocator GetPostCards() => PostCards;
 }

@@ -1,4 +1,5 @@
 using Jordnaer.E2E.Tests.Infrastructure;
+using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 

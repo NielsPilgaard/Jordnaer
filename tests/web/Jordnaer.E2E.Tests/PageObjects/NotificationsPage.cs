@@ -17,7 +17,7 @@ public class NotificationsPage(IPage page)
 	private ILocator NotificationBadge => page.Locator(".notification-bell-container .mud-badge-content");
 	private ILocator NotificationBell => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Notifikationer" });
 	private ILocator NotificationDropdown => page.Locator(".notification-dropdown");
-	private ILocator MarkAllReadInDropdown => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Markér alle som læst" });
+	private ILocator MarkAllReadInDropdown => NotificationDropdown.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Markér alle som læst" });
 
 	public async Task NavigateAsync(string baseUrl)
 	{

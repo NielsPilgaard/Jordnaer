@@ -84,17 +84,29 @@ public class SetUpFixture
 	[OneTimeTearDown]
 	public async Task OneTimeTearDown()
 	{
-		await ContextB.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." });
-		await ContextB.DisposeAsync();
+		if (ContextB is not null)
+		{
+			try { await ContextB.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch { }
+			try { await ContextB.DisposeAsync(); } catch { }
+		}
 
-		await Context.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." });
-		await Context.DisposeAsync();
+		if (Context is not null)
+		{
+			try { await Context.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch { }
+			try { await Context.DisposeAsync(); } catch { }
+		}
 
-		await Browser.CloseAsync(new BrowserCloseOptions { Reason = "Test run finished." });
-		await Browser.DisposeAsync();
+		if (Browser is not null)
+		{
+			try { await Browser.CloseAsync(new BrowserCloseOptions { Reason = "Test run finished." }); } catch { }
+			try { await Browser.DisposeAsync(); } catch { }
+		}
 
-		_playwright.Dispose();
+		try { _playwright?.Dispose(); } catch { }
 
-		await _factory.DisposeAsync();
+		if (_factory is not null)
+		{
+			try { await _factory.DisposeAsync(); } catch { }
+		}
 	}
 }
