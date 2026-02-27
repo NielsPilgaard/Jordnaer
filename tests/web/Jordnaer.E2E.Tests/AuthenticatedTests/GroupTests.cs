@@ -1,5 +1,8 @@
 using System.Text.RegularExpressions;
+using Jordnaer.Database;
 using Jordnaer.E2E.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 
@@ -45,5 +48,20 @@ public class GroupTests : BrowserTest
 		await Expect(page.GetByText(TestGroupName).First).ToBeVisibleAsync();
 
 		await page.CloseAsync();
+	}
+
+	[OneTimeTearDown]
+	public async Task Cleanup()
+	{
+		await using var scope = SetUpFixture.Services.CreateAsyncScope();
+		var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<JordnaerDbContext>>();
+		await using var context = await dbContextFactory.CreateDbContextAsync();
+
+		var group = await context.Groups.FirstOrDefaultAsync(g => g.Name == TestGroupName);
+		if (group is not null)
+		{
+			context.Groups.Remove(group);
+			await context.SaveChangesAsync();
+		}
 	}
 }

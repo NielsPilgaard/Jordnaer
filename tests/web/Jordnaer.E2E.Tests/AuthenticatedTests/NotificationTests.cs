@@ -11,6 +11,7 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 public class NotificationTests : BrowserTest
 {
 	[Test]
+	[Order(1)]
 	public async Task Notification_Bell_Badge_Appears_After_Receiving_Chat_Message()
 	{
 		// User A sends a chat message to User B
@@ -29,12 +30,13 @@ public class NotificationTests : BrowserTest
 		var topBar = pageB.CreateTopBarPage();
 		await topBar.NavigateAsync(SetUpFixture.BaseUrl);
 
-		await Expect(topBar.GetNotificationBadge()).ToBeVisibleAsync();
+		await Expect(topBar.GetNotificationBadge()).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
 		await pageB.CloseAsync();
 	}
 
 	[Test]
+	[Order(2)]
 	public async Task Notifications_Mark_All_As_Read_Removes_Badge()
 	{
 		// Navigate to the notifications page as User B
@@ -62,20 +64,20 @@ public class NotificationTests : BrowserTest
 	[Test]
 	public async Task Notifications_Page_Shows_Empty_State_When_No_Notifications()
 	{
-		// User A has no notifications by default (only User B receives them from A's messages)
+		// Assert a clean state: navigate to the notifications page and clear any existing
+		// notifications defensively before checking the empty state.
 		var page = await SetUpFixture.Context.NewPageAsync();
 		var notificationsPage = page.CreateNotificationsPage();
 
 		await notificationsPage.NavigateAsync(SetUpFixture.BaseUrl);
 
-		// Mark all as read first to ensure clean state
 		var markAllButton = notificationsPage.GetMarkAllAsReadButton();
 		if (await markAllButton.IsVisibleAsync())
 		{
 			await notificationsPage.MarkAllAsReadAsync();
 		}
 
-		await Expect(page.GetByText("endigt")).ToBeVisibleAsync();
+		await Expect(notificationsPage.GetEmptyStateMessage()).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}

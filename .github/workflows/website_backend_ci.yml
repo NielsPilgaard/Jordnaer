@@ -11,8 +11,10 @@ on:
       - "src/web/Jordnaer/**"
       - "src/shared/Jordnaer.Shared/**"
       - "tests/web/Jordnaer.Tests/**"
+      - "tests/web/Jordnaer.E2E.Tests/**"
       - "Dockerfile"
       - ".github/workflows/container_ci.yml"
+      - ".github/workflows/website_backend_ci.yml"
 
 env:
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests

@@ -56,7 +56,7 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		builder.UseSetting("ConnectionStrings:AzureBlobStorage", _azureBlobStorageContainer.GetConnectionString());
 
 		// Fake key - required to satisfy DI registration, but no emails are sent in tests
-		builder.UseSetting("ConnectionStrings:AzureEmailService", "endpoint=https://jordnaer.europe.communication.azure.com/;accesskey=GHrGMddff66e6oVOgjxEytm5B5fwwpJCwRJ223ACUL425AAffdvvvcc32lI");
+		builder.UseSetting("ConnectionStrings:AzureEmailService", "endpoint=https://jordnaer.europe.communication.azure.com/;accesskey=REDACTED");
 
 		builder.ConfigureTestServices(services => services.RemoveAll<IHostedService>());
 

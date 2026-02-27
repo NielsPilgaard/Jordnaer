@@ -11,6 +11,11 @@ public class SetUpFixture
 	private static E2eWebApplicationFactory _factory = null!;
 
 	/// <summary>
+	/// The DI service provider of the in-process test server.
+	/// </summary>
+	public static IServiceProvider Services => _factory.Services;
+
+	/// <summary>
 	/// The base URL of the in-process test server. Set during global setup.
 	/// </summary>
 	public static string BaseUrl { get; private set; } = null!;

@@ -13,7 +13,7 @@ public class NotificationsPage(IPage page)
 	private ILocator MarkAllAsReadButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Markér alle som læst" });
 	private ILocator UnreadItems => page.Locator(".notification-item.unread");
 	private ILocator AllItems => page.Locator(".notification-item");
-	private ILocator EmptyStateMessage => page.GetByText("Du har ingen notifikationer endigt");
+	private ILocator EmptyStateMessage => page.GetByText("Du har ingen notifikationer endnu");
 	private ILocator NotificationBadge => page.Locator(".notification-bell-container .mud-badge-content");
 	private ILocator NotificationBell => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Notifikationer" });
 	private ILocator NotificationDropdown => page.Locator(".notification-dropdown");

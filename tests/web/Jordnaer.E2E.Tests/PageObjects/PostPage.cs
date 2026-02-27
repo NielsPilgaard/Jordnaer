@@ -52,10 +52,7 @@ public class PostPage(IPage page)
 	public async Task DeletePostAsync(string postContent)
 	{
 		// Find the post card containing the content
-		var postCard = page.Locator(".warm-shadow.warm-rounded").Filter(new LocatorFilterOptions
-		{
-			HasText = postContent
-		}).First;
+		var postCard = PostCards.Filter(new LocatorFilterOptions { HasText = postContent }).First;
 
 		// Click the "Flere muligheder" button (three dots)
 		var moreOptionsButton = postCard.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Flere muligheder" });
