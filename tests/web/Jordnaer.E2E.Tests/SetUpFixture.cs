@@ -46,7 +46,11 @@ public class SetUpFixture
 		BaseUrl = _factory.Server.BaseAddress.ToString().TrimEnd('/');
 
 		// Always run Playwright install, it stops if Playwright is already installed
-		Microsoft.Playwright.Program.Main(["install"]);
+		var exitCode = Microsoft.Playwright.Program.Main(["install"]);
+		if (exitCode != 0)
+		{
+			throw new Exception($"Playwright install failed with exit code {exitCode}. Check the output above for details.");
+		}
 
 		_playwright = await Playwright.CreateAsync();
 

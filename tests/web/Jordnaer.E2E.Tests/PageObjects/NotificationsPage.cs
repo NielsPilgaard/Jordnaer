@@ -22,7 +22,8 @@ public class NotificationsPage(IPage page)
 	public async Task NavigateAsync(string baseUrl)
 	{
 		await page.GotoAsync($"{baseUrl}{PageUrl}");
-		await page.GetByRole(AriaRole.Heading).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+		await page.WaitForURLAsync($"**{PageUrl}");
+		await page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Notifikationer" }).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 	}
 
 	public async Task MarkAllAsReadAsync()

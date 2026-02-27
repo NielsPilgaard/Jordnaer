@@ -45,7 +45,7 @@ jobs:
         run: dotnet build tests/web/Jordnaer.E2E.Tests --configuration Release -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
 
       - name: Install Playwright browsers
-        run: pwsh tests/web/Jordnaer.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+        run: pwsh ./tests/web/Jordnaer.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
       - name: Run E2E tests
         run: >
