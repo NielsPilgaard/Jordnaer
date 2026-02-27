@@ -86,3 +86,4 @@ For in-depth guidance on specific topics, see:
 - **Testing guide**: `.claude/docs/testing.md`
 - **Design system** (colors, MudBlazor components): `docs/DESIGN_SYSTEM.md`
 - **Feature-specific docs**: `docs/`
+- **Mission, tone, and reach-out guidance**: `media/AGENTS.md`
