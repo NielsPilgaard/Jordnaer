@@ -14,7 +14,7 @@ public class NotificationsPage(IPage page)
 	private ILocator UnreadItems => page.Locator(".notification-item.unread");
 	private ILocator AllItems => page.Locator(".notification-item");
 	private ILocator EmptyStateMessage => page.GetByText("Du har ingen notifikationer endnu");
-	private ILocator NotificationBadge => page.Locator(".notification-bell-container .mud-badge-content");
+	private ILocator NotificationBadge => page.Locator(".notification-bell-container").GetByText(new System.Text.RegularExpressions.Regex(@"^\d+\+?$"));
 	private ILocator NotificationBell => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Notifikationer" });
 	private ILocator NotificationDropdown => page.Locator(".notification-dropdown");
 	private ILocator MarkAllReadInDropdown => NotificationDropdown.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Markér alle som læst" });
@@ -22,13 +22,13 @@ public class NotificationsPage(IPage page)
 	public async Task NavigateAsync(string baseUrl)
 	{
 		await page.GotoAsync($"{baseUrl}{PageUrl}");
-		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+		await page.GetByRole(AriaRole.Heading).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 	}
 
 	public async Task MarkAllAsReadAsync()
 	{
 		await MarkAllAsReadButton.ClickAsync();
-		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+		await MarkAllAsReadButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 	}
 
 	public async Task OpenNotificationDropdownAsync()
@@ -41,7 +41,8 @@ public class NotificationsPage(IPage page)
 	{
 		await OpenNotificationDropdownAsync();
 		await MarkAllReadInDropdown.ClickAsync();
-		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+		await NotificationDropdown.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Markér alle som læst" })
+			.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 	}
 
 	public ILocator GetMarkAllAsReadButton() => MarkAllAsReadButton;

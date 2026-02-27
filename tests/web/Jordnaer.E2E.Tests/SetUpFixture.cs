@@ -9,6 +9,8 @@ public class SetUpFixture
 {
 	private IPlaywright _playwright = null!;
 	private static E2eWebApplicationFactory _factory = null!;
+	private string _authFilePath = null!;
+	private string _authBFilePath = null!;
 
 	/// <summary>
 	/// The DI service provider of the in-process test server.
@@ -54,11 +56,15 @@ public class SetUpFixture
 			SlowMo = TestConfiguration.Values.SlowMo
 		});
 
-		await Browser.Login(_playwright, BaseUrl, E2eWebApplicationFactory.UserAEmail, E2eWebApplicationFactory.UserAPassword, "auth.json");
-		await Browser.Login(_playwright, BaseUrl, E2eWebApplicationFactory.UserBEmail, E2eWebApplicationFactory.UserBPassword, "auth-b.json");
+		var runId = Guid.NewGuid().ToString("N");
+		_authFilePath = Path.Combine(Path.GetTempPath(), $"auth-{runId}.json");
+		_authBFilePath = Path.Combine(Path.GetTempPath(), $"auth-b-{runId}.json");
 
-		Context = await NewContext("auth.json");
-		ContextB = await NewContext("auth-b.json");
+		await Browser.Login(_playwright, BaseUrl, E2eWebApplicationFactory.UserAEmail, E2eWebApplicationFactory.UserAPassword, _authFilePath);
+		await Browser.Login(_playwright, BaseUrl, E2eWebApplicationFactory.UserBEmail, E2eWebApplicationFactory.UserBPassword, _authBFilePath);
+
+		Context = await NewContext(_authFilePath);
+		ContextB = await NewContext(_authBFilePath);
 	}
 
 	private async Task<IBrowserContext> NewContext(string storageStatePath)
@@ -86,27 +92,37 @@ public class SetUpFixture
 	{
 		if (ContextB is not null)
 		{
-			try { await ContextB.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch { }
-			try { await ContextB.DisposeAsync(); } catch { }
+			try { await ContextB.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch (Exception ex) { Console.Error.WriteLine($"Error closing ContextB: {ex}"); }
+			try { await ContextB.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing ContextB: {ex}"); }
 		}
 
 		if (Context is not null)
 		{
-			try { await Context.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch { }
-			try { await Context.DisposeAsync(); } catch { }
+			try { await Context.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch (Exception ex) { Console.Error.WriteLine($"Error closing Context: {ex}"); }
+			try { await Context.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing Context: {ex}"); }
 		}
 
 		if (Browser is not null)
 		{
-			try { await Browser.CloseAsync(new BrowserCloseOptions { Reason = "Test run finished." }); } catch { }
-			try { await Browser.DisposeAsync(); } catch { }
+			try { await Browser.CloseAsync(new BrowserCloseOptions { Reason = "Test run finished." }); } catch (Exception ex) { Console.Error.WriteLine($"Error closing Browser: {ex}"); }
+			try { await Browser.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing Browser: {ex}"); }
 		}
 
-		try { _playwright?.Dispose(); } catch { }
+		try { _playwright?.Dispose(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing Playwright: {ex}"); }
 
 		if (_factory is not null)
 		{
-			try { await _factory.DisposeAsync(); } catch { }
+			try { await _factory.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing factory: {ex}"); }
+		}
+
+		if (_authFilePath is not null && File.Exists(_authFilePath))
+		{
+			try { File.Delete(_authFilePath); } catch (Exception ex) { Console.Error.WriteLine($"Error deleting auth file '{_authFilePath}': {ex}"); }
+		}
+
+		if (_authBFilePath is not null && File.Exists(_authBFilePath))
+		{
+			try { File.Delete(_authBFilePath); } catch (Exception ex) { Console.Error.WriteLine($"Error deleting auth-b file '{_authBFilePath}': {ex}"); }
 		}
 	}
 }
