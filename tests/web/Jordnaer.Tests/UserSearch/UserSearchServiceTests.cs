@@ -73,6 +73,8 @@ public class UserSearchServiceTests
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
 		users[0].FirstName = firstName;
+		users[0].SearchableName = $"{firstName}{users[0].LastName}{users[0].UserName}";
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -116,6 +118,8 @@ public class UserSearchServiceTests
 		var users = CreateTestUsers(5);
 		// Ensure at least one user has the specified name in their SearchableName
 		users[0].UserName = userName;
+		users[0].SearchableName = $"{users[0].FirstName}{users[0].LastName}{userName}";
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -139,6 +143,8 @@ public class UserSearchServiceTests
 		// Ensure at least one user has the specified name in their SearchableName
 		users[0].FirstName = firstName;
 		users[0].LastName = lastName;
+		users[0].SearchableName = $"{firstName}{lastName}{users[0].UserName}";
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -215,6 +221,7 @@ public class UserSearchServiceTests
 			DateOfBirth = DateTime.UtcNow.AddYears(-filter.MaximumChildAge.Value).AddMinutes(3),
 			FirstName = _faker.Name.FirstName()
 		});
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
@@ -244,6 +251,7 @@ public class UserSearchServiceTests
 
 		users[0].ZipCode = zipCode;
 		users[0].Location = aarhusPoint;
+		_context.UserProfiles.RemoveRange(_context.UserProfiles);
 		_context.UserProfiles.AddRange(users);
 		await _context.SaveChangesAsync();
 
