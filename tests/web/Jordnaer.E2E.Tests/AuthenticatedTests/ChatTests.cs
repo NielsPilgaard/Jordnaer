@@ -9,7 +9,7 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
 [Category(nameof(TestCategory.Authenticated))]
-public class ChatTests : BrowserTest
+public class ChatTests : PlaywrightTest
 {
 	[Test]
 	public async Task Chat_Search_Should_Return_User_B_When_Searching()

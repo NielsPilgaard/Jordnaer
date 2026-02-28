@@ -12,7 +12,7 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
 [Category(nameof(TestCategory.Authenticated))]
-public class GroupTests : BrowserTest
+public class GroupTests : PlaywrightTest
 {
 	private static readonly string TestGroupName = $"TestGruppe-{Guid.NewGuid().ToString("N")[..8]}";
 	private const string TestGroupDescription = "En gruppe til E2E tests";

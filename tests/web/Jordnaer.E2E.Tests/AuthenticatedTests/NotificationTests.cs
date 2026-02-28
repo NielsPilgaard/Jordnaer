@@ -9,7 +9,7 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
 [Category(nameof(TestCategory.Authenticated))]
-public class NotificationTests : BrowserTest
+public class NotificationTests : PlaywrightTest
 {
 	[Test]
 	[Order(1)]

@@ -8,7 +8,7 @@ namespace Jordnaer.E2E.Tests.PageObjects;
 /// </summary>
 public class GroupPage(IPage page)
 {
-	private const string GroupsUrl = "/groups";
+	private const string GroupsUrl = "/groups/discover";
 	private const string CreateGroupUrl = "/groups/create";
 
 	// Create group form

@@ -9,7 +9,7 @@ namespace Jordnaer.E2E.Tests;
 [Parallelizable(ParallelScope.All)]
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
-public class LandingPageTests : BrowserTest
+public class LandingPageTests : PlaywrightTest
 {
 	[Test]
 	public async Task When_User_Clicks_Join_User_Should_Be_Redirected_To_Login()

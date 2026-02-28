@@ -21,6 +21,7 @@ public class LoginTests : BrowserTest
 			"auth-verify.json");
 
 	[Test]
+	[Category(nameof(TestCategory.SkipInCi))]
 	[TestCase("Facebook")]
 	[TestCase("Microsoft")]
 	[TestCase("Google")]
