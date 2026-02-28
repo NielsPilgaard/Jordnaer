@@ -42,8 +42,7 @@ public class NotificationsPage(IPage page)
 	{
 		await OpenNotificationDropdownAsync();
 		await MarkAllReadInDropdown.ClickAsync();
-		await NotificationDropdown.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Markér alle som læst" })
-			.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
+		await MarkAllReadInDropdown.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 	}
 
 	public ILocator GetMarkAllAsReadButton() => MarkAllAsReadButton;

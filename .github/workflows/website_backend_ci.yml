@@ -22,9 +22,10 @@ env:
   IMAGE_NAME: nielspilgaard/minimoeder-website
 
 jobs:
-  test:
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+  unit-tests:
+    if: (github.event_name == 'push' || github.event_name == 'pull_request') && !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -41,17 +42,23 @@ jobs:
           --filter Category!=SkipInCi
           -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
 
-      - name: Build E2E tests
-        run: dotnet build tests/web/Jordnaer.E2E.Tests --configuration Release -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
+  e2e-tests:
+    if: (github.event_name == 'push' || github.event_name == 'pull_request') && !startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Install Playwright browsers
-        run: pwsh ./tests/web/Jordnaer.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+      - name: Set up dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.x"
 
       - name: Run E2E tests
         run: >
           dotnet test tests/web/Jordnaer.E2E.Tests
           --configuration Release
-          --no-build
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
           -p:InformationalVersion=0.0.0-dev+${{ github.sha }}
@@ -61,7 +68,7 @@ jobs:
   build-and-push:
     # Only build and push the image on pushes to main branch, not tags
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')
-    needs: test
+    needs: [unit-tests, e2e-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
