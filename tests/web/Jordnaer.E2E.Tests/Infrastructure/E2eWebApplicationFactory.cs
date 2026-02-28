@@ -23,12 +23,18 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 	/// Available after <see cref="InitializeAsync"/> completes.
 	/// </summary>
 	public string ServerAddress =>
-		Server.Features.Get<IServerAddressesFeature>()!.Addresses.First().TrimEnd('/');
+		_kestrelHost!.Services
+			.GetRequiredService<IServer>()
+			.Features.Get<IServerAddressesFeature>()!
+			.Addresses.First()
+			.TrimEnd('/');
 
 	public const string UserAEmail = "user-a@e2e.test";
 	public const string UserAPassword = "E2eUserA!1";
 	public const string UserBEmail = "user-b@e2e.test";
 	public const string UserBPassword = "E2eUserB!1";
+
+	private IHost? _kestrelHost;
 
 	private readonly MsSqlContainer _msSqlContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
 		.WithName($"SqlServerE2E-{Guid.NewGuid()}")
@@ -45,14 +51,21 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		await _msSqlContainer.StartAsync();
 		await _azureBlobStorageContainer.StartAsync();
 
-		// Boot the app so migrations run and UserManager is available
-		_ = Server;
+		// Boot the app — this triggers CreateHost which starts both the TestServer
+		// and the real Kestrel host.
+		_ = Services;
 
 		await SeedUsersAsync();
 	}
 
 	public new async ValueTask DisposeAsync()
 	{
+		if (_kestrelHost is not null)
+		{
+			await _kestrelHost.StopAsync();
+			_kestrelHost.Dispose();
+		}
+
 		await _msSqlContainer.DisposeAsync();
 		await _azureBlobStorageContainer.DisposeAsync();
 		await base.DisposeAsync();
@@ -60,14 +73,19 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 
 	protected override IHost CreateHost(IHostBuilder builder)
 	{
-		// Replace the in-process TestServer with a real Kestrel server on a random port so that
-		// Playwright (an out-of-process browser) can reach the application over a real TCP socket.
+		// Build the standard TestServer host that WebApplicationFactory expects.
+		// This keeps all WebApplicationFactory internals (Services, Server cast, etc.) happy.
+		var testServerHost = base.CreateHost(builder);
+
+		// Now build a second host with a real Kestrel server on a random loopback port
+		// so that Playwright (an out-of-process browser) can connect via a real TCP socket.
 		builder.ConfigureWebHost(webHostBuilder =>
 			webHostBuilder.UseKestrel(o => o.Listen(System.Net.IPAddress.Loopback, 0)));
 
-		var host = builder.Build();
-		host.Start();
-		return host;
+		_kestrelHost = builder.Build();
+		_kestrelHost.Start();
+
+		return testServerHost;
 	}
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -86,7 +104,8 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 
 	private async Task SeedUsersAsync()
 	{
-		await using var scope = Services.CreateAsyncScope();
+		// Use the Kestrel host's services so we hit the same DB the real server uses.
+		await using var scope = _kestrelHost!.Services.CreateAsyncScope();
 		var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<JordnaerDbContext>>();
 		await using var context = await dbContextFactory.CreateDbContextAsync();
 
