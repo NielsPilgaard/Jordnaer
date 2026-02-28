@@ -11,14 +11,14 @@ namespace Jordnaer.E2E.Tests;
 public class TopBarTests : BrowserTest
 {
 	[Test]
-	public async Task Unauthenticated_Topbar_Shows_Login_Link()
+	public async Task Unauthenticated_Topbar_Shows_Register_Button()
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, loadAuthenticationState: false);
 		var topBar = page.CreateTopBarPage();
 
 		await topBar.NavigateAsync(SetUpFixture.BaseUrl);
 
-		await Expect(topBar.GetLoginLink()).ToBeVisibleAsync();
+		await Expect(topBar.GetRegisterLink()).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}

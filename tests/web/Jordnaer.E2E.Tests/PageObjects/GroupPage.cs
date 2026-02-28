@@ -60,6 +60,8 @@ public class GroupPage(IPage page)
 	public async Task SearchForGroupAsync(string name)
 	{
 		await SearchInput.FillAsync(name);
+		// Wait for the 400ms debounce to fire and results to render
+		await page.WaitForTimeoutAsync(600);
 		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 	}
 

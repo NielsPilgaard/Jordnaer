@@ -12,7 +12,7 @@ public class PostPage(IPage page)
 
 	// Create post
 	private ILocator CreatePostTrigger => page.GetByPlaceholder("Hvad tænker du på?");
-	private ILocator PostTextEditor => page.Locator(".tiptap.ProseMirror").First;
+	private ILocator PostTextEditor => page.GetByPlaceholder("Del dine tanker...");
 	private ILocator SubmitPostButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Slå op" });
 
 	// Post feed

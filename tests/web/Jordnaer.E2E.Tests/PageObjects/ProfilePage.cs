@@ -14,7 +14,7 @@ public class ProfilePage(IPage page)
 	private ILocator FirstNameField => page.GetByLabel("Fornavn");
 	private ILocator LastNameField => page.GetByLabel("Efternavn");
 	private ILocator UsernameField => page.GetByLabel("Brugernavn");
-	private ILocator SaveButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Gem" });
+	private ILocator SaveButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Gem" }).First;
 
 	// Profile picture upload
 	private ILocator ProfilePictureInput => page.Locator("input[type='file']").First;
