@@ -43,7 +43,7 @@ public class SetUpFixture
 		_factory = new E2eWebApplicationFactory();
 		await _factory.InitializeAsync();
 
-		BaseUrl = _factory.Server.BaseAddress.ToString().TrimEnd('/');
+		BaseUrl = _factory.ServerAddress;
 
 		// Always run Playwright install, it stops if Playwright is already installed
 		var exitCode = Microsoft.Playwright.Program.Main(["install"]);

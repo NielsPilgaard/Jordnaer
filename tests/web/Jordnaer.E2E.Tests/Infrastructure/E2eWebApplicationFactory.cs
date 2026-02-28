@@ -1,6 +1,8 @@
 using Jordnaer.Database;
 using Jordnaer.Shared;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -16,6 +18,13 @@ namespace Jordnaer.E2E.Tests.Infrastructure;
 
 public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDisposable
 {
+	/// <summary>
+	/// The actual base URL the Kestrel server is listening on (e.g. http://127.0.0.1:5123).
+	/// Available after <see cref="InitializeAsync"/> completes.
+	/// </summary>
+	public string ServerAddress =>
+		Server.Features.Get<IServerAddressesFeature>()!.Addresses.First().TrimEnd('/');
+
 	public const string UserAEmail = "user-a@e2e.test";
 	public const string UserAPassword = "E2eUserA!1";
 	public const string UserBEmail = "user-b@e2e.test";
@@ -47,6 +56,18 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		await _msSqlContainer.DisposeAsync();
 		await _azureBlobStorageContainer.DisposeAsync();
 		await base.DisposeAsync();
+	}
+
+	protected override IHost CreateHost(IHostBuilder builder)
+	{
+		// Replace the in-process TestServer with a real Kestrel server on a random port so that
+		// Playwright (an out-of-process browser) can reach the application over a real TCP socket.
+		builder.ConfigureWebHost(webHostBuilder =>
+			webHostBuilder.UseKestrel(o => o.Listen(System.Net.IPAddress.Loopback, 0)));
+
+		var host = builder.Build();
+		host.Start();
+		return host;
 	}
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
