@@ -54,8 +54,8 @@ public class PostPage(IPage page)
 		// Find the post card containing the content
 		var postCard = PostCards.Filter(new LocatorFilterOptions { HasText = postContent }).First;
 
-		// Click the "Flere muligheder" button (three dots)
-		var moreOptionsButton = postCard.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Flere muligheder" });
+		// Click the "Flere muligheder" button (three dots) - the MudMenu trigger button inside the aria-label wrapper
+		var moreOptionsButton = postCard.Locator("[aria-label='Flere muligheder'] button");
 		await moreOptionsButton.ClickAsync();
 
 		// Click "Slet" scoped to the opened menu
