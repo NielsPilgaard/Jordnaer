@@ -17,5 +17,3 @@ For frontend/UI changes, also run the Playwright E2E tests. The suite is self-co
 
 - **All E2E tests**: `dotnet test tests/web/Jordnaer.E2E.Tests`
 - **Specific E2E test**: `dotnet test tests/web/Jordnaer.E2E.Tests --filter "FullyQualifiedName~$ARGUMENTS"`
-
-E2E test options are configured via `appsettings.json` or environment variables under the `Playwright` section (headless mode, browser, slow-mo).
