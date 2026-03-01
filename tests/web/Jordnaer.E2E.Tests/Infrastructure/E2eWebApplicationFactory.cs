@@ -99,7 +99,12 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 
 		builder.ConfigureTestServices(services => services.RemoveAll<IHostedService>());
 
-		builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+		builder.ConfigureLogging(loggingBuilder =>
+		{
+			loggingBuilder.ClearProviders();
+			loggingBuilder.SetMinimumLevel(LogLevel.Error);
+			loggingBuilder.AddConsole();
+		});
 	}
 
 	private async Task SeedUsersAsync()

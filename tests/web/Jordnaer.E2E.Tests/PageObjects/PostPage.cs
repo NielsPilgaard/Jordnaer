@@ -55,8 +55,8 @@ public class PostPage(IPage page)
 		var postCard = GetPostWithContent(postContent);
 		await postCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
-		// Click the "Flere muligheder" button (three dots) - MudMenu with Icon renders as a button with aria-label
-		var moreOptionsButton = postCard.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Flere muligheder" });
+		// Click the "Flere muligheder" button (three dots) - MudMenu renders aria-label on wrapper div, button is inside it
+		var moreOptionsButton = postCard.Locator("[aria-label='Flere muligheder'] button");
 		await moreOptionsButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await moreOptionsButton.ClickAsync();
 
