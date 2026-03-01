@@ -45,12 +45,16 @@ public class TopBarTests : PlaywrightTest
 	public Task Profile_Link_In_Dropdown_Redirects_To_Profile() =>
 		WithPageAsync(async page =>
 		{
-			// Open the desktop profile dropdown via the button label (target .profile-menu-button to avoid the backdrop label)
-			var profileMenuButton = page.Locator(".topbar-desktop .profile-menu-button");
+			// Open the desktop profile dropdown via the precise label element
+			var profileMenuButton = page.Locator("label[for='profile-menu-toggle']").Last;
 			await profileMenuButton.ClickAsync();
 
+			// Wait for the dropdown to become visible (CSS transition)
+			var dropdown = page.Locator(".topbar-desktop .profile-menu-dropdown").Last;
+			await dropdown.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+
 			// Click the Profil link inside the dropdown
-			var profileLink = page.Locator(".profile-menu-dropdown").GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Profil" }).First;
+			var profileLink = dropdown.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Profil" }).First;
 			await Expect(profileLink).ToBeVisibleAsync();
 			await profileLink.ClickAsync();
 
@@ -61,12 +65,16 @@ public class TopBarTests : PlaywrightTest
 	public Task Logout_Link_Should_Be_In_Profile_Dropdown() =>
 		WithPageAsync(async page =>
 		{
-			// Open the desktop profile dropdown via the button label (target .profile-menu-button to avoid the backdrop label)
-			var profileMenuButton = page.Locator(".topbar-desktop .profile-menu-button");
+			// Open the desktop profile dropdown via the precise label element
+			var profileMenuButton = page.Locator("label[for='profile-menu-toggle']").Last;
 			await profileMenuButton.ClickAsync();
 
+			// Wait for the dropdown to become visible (CSS transition)
+			var dropdown = page.Locator(".topbar-desktop .profile-menu-dropdown").Last;
+			await dropdown.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+
 			// Find and verify logout link is visible in dropdown
-			var logoutLink = page.Locator(".profile-menu-dropdown").GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Log ud" }).First;
+			var logoutLink = dropdown.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Log ud" }).First;
 			await Expect(logoutLink).ToBeVisibleAsync();
 		});
 }
