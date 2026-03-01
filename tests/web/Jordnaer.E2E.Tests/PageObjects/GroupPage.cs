@@ -8,7 +8,7 @@ namespace Jordnaer.E2E.Tests.PageObjects;
 /// </summary>
 public class GroupPage(IPage page)
 {
-	private const string GroupsUrl = "/groups/discover";
+	private const string MyGroupsUrl = "/groups/my-groups";
 	private const string CreateGroupUrl = "/groups/create";
 
 	// Create group form
@@ -16,15 +16,9 @@ public class GroupPage(IPage page)
 	private ILocator ShortDescriptionField => page.GetByLabel("Kort beskrivelse");
 	private ILocator CreateGroupButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Opret Gruppe" });
 
-	// Search
-	private ILocator SearchInput => page.GetByPlaceholder("Gruppenavn");
-
-	// Group cards in search results
-	private ILocator GroupCards => page.Locator(".group-card");
-
-	public async Task NavigateToGroupsAsync(string baseUrl)
+	public async Task NavigateToMyGroupsAsync(string baseUrl)
 	{
-		await page.GotoAsync($"{baseUrl}{GroupsUrl}");
+		await page.GotoAsync($"{baseUrl}{MyGroupsUrl}");
 		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 	}
 
@@ -57,16 +51,6 @@ public class GroupPage(IPage page)
 		await SubmitCreateGroupAsync();
 	}
 
-	public async Task SearchForGroupAsync(string name)
-	{
-		await SearchInput.FillAsync(name);
-		// Wait for at least one group card to appear (covers the debounce + render)
-		await GroupCards.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-	}
-
-	public ILocator GetGroupCard(string groupName) =>
-		page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = groupName });
-
-	public ILocator GetGroupCards() => GroupCards;
-	public ILocator GetSearchInput() => SearchInput;
+	public ILocator GetGroupByName(string groupName) =>
+		page.GetByText(groupName).First;
 }
