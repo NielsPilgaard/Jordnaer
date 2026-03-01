@@ -58,7 +58,7 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		await SeedUsersAsync();
 	}
 
-	public new async ValueTask DisposeAsync()
+	public override async ValueTask DisposeAsync()
 	{
 		if (_kestrelHost is not null)
 		{
