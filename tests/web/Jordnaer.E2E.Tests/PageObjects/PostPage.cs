@@ -52,7 +52,7 @@ public class PostPage(IPage page)
 	public async Task DeletePostAsync(string postContent)
 	{
 		// Find the post card containing the content
-		var postCard = PostCards.Filter(new LocatorFilterOptions { HasText = postContent }).First;
+		var postCard = GetPostWithContent(postContent);
 
 		// Click the "Flere muligheder" button (three dots) - the MudMenu trigger button inside the aria-label wrapper
 		var moreOptionsButton = postCard.Locator("[aria-label='Flere muligheder'] button");
@@ -65,7 +65,7 @@ public class PostPage(IPage page)
 		// Confirm deletion scoped to the active dialog
 		var dialog = page.Locator("[role='dialog']");
 		await dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Slet" }).ClickAsync();
-		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+		await postCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Detached });
 	}
 
 	public ILocator GetPostWithContent(string content) =>

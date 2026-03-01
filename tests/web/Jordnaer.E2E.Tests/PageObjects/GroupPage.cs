@@ -16,15 +16,15 @@ public class GroupPage(IPage page)
 	private ILocator ShortDescriptionField => page.GetByLabel("Kort beskrivelse");
 	private ILocator CreateGroupButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Opret Gruppe" });
 
-	public async Task NavigateToMyGroupsAsync(string baseUrl)
-	{
-		await page.GotoAsync($"{baseUrl}{MyGroupsUrl}");
-		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-	}
+	public Task NavigateToMyGroupsAsync(string baseUrl) =>
+		NavigateToAsync(baseUrl, MyGroupsUrl);
 
-	public async Task NavigateToCreateGroupAsync(string baseUrl)
+	public Task NavigateToCreateGroupAsync(string baseUrl) =>
+		NavigateToAsync(baseUrl, CreateGroupUrl);
+
+	private async Task NavigateToAsync(string baseUrl, string route)
 	{
-		await page.GotoAsync($"{baseUrl}{CreateGroupUrl}");
+		await page.GotoAsync($"{baseUrl}{route}");
 		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 	}
 
