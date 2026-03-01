@@ -62,7 +62,6 @@ public class GroupPage(IPage page)
 		await SearchInput.FillAsync(name);
 		// Wait for at least one group card to appear (covers the debounce + render)
 		await GroupCards.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 	}
 
 	public ILocator GetGroupCard(string groupName) =>

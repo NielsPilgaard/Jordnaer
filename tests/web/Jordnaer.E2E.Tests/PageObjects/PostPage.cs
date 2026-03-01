@@ -69,7 +69,7 @@ public class PostPage(IPage page)
 	}
 
 	public ILocator GetPostWithContent(string content) =>
-		PostCards.GetByText(content).First;
+		PostCards.Filter(new LocatorFilterOptions { HasText = content }).First;
 
 	public ILocator GetPostCards() => PostCards;
 }
