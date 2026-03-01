@@ -37,15 +37,14 @@ public class GroupTests : PlaywrightTest
 
 	[Test]
 	[Order(2)]
-	public async Task Search_Group_Returns_Created_Group()
+	public async Task Created_Group_Appears_In_My_Groups()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
 		var groupPage = page.CreateGroupPage();
 
-		await groupPage.NavigateToGroupsAsync(SetUpFixture.BaseUrl);
-		await groupPage.SearchForGroupAsync(TestGroupName);
+		await groupPage.NavigateToMyGroupsAsync(SetUpFixture.BaseUrl);
 
-		await Expect(page.GetByText(TestGroupName).First).ToBeVisibleAsync();
+		await Expect(groupPage.GetGroupByName(TestGroupName)).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}
