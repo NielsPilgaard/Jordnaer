@@ -60,8 +60,8 @@ public class GroupPage(IPage page)
 	public async Task SearchForGroupAsync(string name)
 	{
 		await SearchInput.FillAsync(name);
-		// Wait for the 400ms debounce to fire and results to render
-		await page.WaitForTimeoutAsync(600);
+		// Wait for at least one group card to appear (covers the debounce + render)
+		await GroupCards.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 	}
 

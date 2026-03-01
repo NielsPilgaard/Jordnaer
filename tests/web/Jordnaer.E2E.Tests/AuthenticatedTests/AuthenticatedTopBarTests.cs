@@ -17,54 +17,69 @@ public class TopBarTests : PlaywrightTest
 	public async Task Links_Should_Be_Visible_In_The_Topbar_And_Redirect_Correctly(string linkName, string redirectUrlRegex)
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(SetUpFixture.BaseUrl);
+		try
+		{
+			await page.GotoAsync(SetUpFixture.BaseUrl);
 
-		// For links that appear in both desktop and mobile navigation, use First to pick the desktop version
-		var link = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = linkName }).First;
+			// For links that appear in both desktop and mobile navigation, use First to pick the desktop version
+			var link = page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = linkName }).First;
 
-		await Expect(link).ToBeVisibleAsync();
+			await Expect(link).ToBeVisibleAsync();
 
-		await link.ClickAsync();
+			await link.ClickAsync();
 
-		await Expect(page).ToHaveURLAsync(new Regex(redirectUrlRegex));
-
-		await page.CloseAsync();
+			await Expect(page).ToHaveURLAsync(new Regex(redirectUrlRegex));
+		}
+		finally
+		{
+			await page.CloseAsync();
+		}
 	}
 
 	[Test]
 	public async Task Profile_Link_In_Dropdown_Redirects_To_Profile()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(SetUpFixture.BaseUrl);
+		try
+		{
+			await page.GotoAsync(SetUpFixture.BaseUrl);
 
-		// Open the desktop profile dropdown by clicking its button label (use Last to avoid the backdrop)
-		var profileMenuButton = page.Locator("label[for='profile-menu-toggle']").Last;
-		await profileMenuButton.ClickAsync();
+			// Open the desktop profile dropdown via the button label (target .profile-menu-button to avoid the backdrop label)
+			var profileMenuButton = page.Locator(".topbar-desktop .profile-menu-button");
+			await profileMenuButton.ClickAsync();
 
-		// Click the Profil link inside the dropdown
-		var profileLink = page.Locator(".profile-menu-dropdown").GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Profil" }).First;
-		await Expect(profileLink).ToBeVisibleAsync();
-		await profileLink.ClickAsync();
+			// Click the Profil link inside the dropdown
+			var profileLink = page.Locator(".profile-menu-dropdown").GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Profil" }).First;
+			await Expect(profileLink).ToBeVisibleAsync();
+			await profileLink.ClickAsync();
 
-		await Expect(page).ToHaveURLAsync(new Regex(".*/profile"));
-
-		await page.CloseAsync();
+			await Expect(page).ToHaveURLAsync(new Regex(".*/profile"));
+		}
+		finally
+		{
+			await page.CloseAsync();
+		}
 	}
 
 	[Test]
 	public async Task Logout_Link_Should_Be_In_Profile_Dropdown()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
-		await page.GotoAsync(SetUpFixture.BaseUrl);
+		try
+		{
+			await page.GotoAsync(SetUpFixture.BaseUrl);
 
-		// Open the desktop profile dropdown by clicking its button label (use Last to avoid the backdrop)
-		var profileMenuButton = page.Locator("label[for='profile-menu-toggle']").Last;
-		await profileMenuButton.ClickAsync();
+			// Open the desktop profile dropdown via the button label (target .profile-menu-button to avoid the backdrop label)
+			var profileMenuButton = page.Locator(".topbar-desktop .profile-menu-button");
+			await profileMenuButton.ClickAsync();
 
-		// Find and verify logout link is visible in dropdown
-		var logoutLink = page.Locator(".profile-menu-dropdown").GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Log ud" }).First;
-		await Expect(logoutLink).ToBeVisibleAsync();
-
-		await page.CloseAsync();
+			// Find and verify logout link is visible in dropdown
+			var logoutLink = page.Locator(".profile-menu-dropdown").GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Log ud" }).First;
+			await Expect(logoutLink).ToBeVisibleAsync();
+		}
+		finally
+		{
+			await page.CloseAsync();
+		}
 	}
 }

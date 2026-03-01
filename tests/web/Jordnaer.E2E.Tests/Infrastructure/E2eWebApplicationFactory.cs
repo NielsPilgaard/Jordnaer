@@ -128,6 +128,23 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		var existing = await userManager.FindByEmailAsync(email);
 		if (existing is not null)
 		{
+			// User exists — ensure the matching UserProfile also exists
+			var existingProfile = await context.UserProfiles
+				.AsNoTracking()
+				.FirstOrDefaultAsync(p => p.Id == existing.Id);
+
+			if (existingProfile is null)
+			{
+				context.UserProfiles.Add(new UserProfile
+				{
+					Id = existing.Id,
+					UserName = email,
+					FirstName = firstName,
+					LastName = lastName
+				});
+				await context.SaveChangesAsync();
+			}
+
 			return;
 		}
 
@@ -146,15 +163,13 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		}
 
 		// Create a matching UserProfile so the user appears in the app properly
-		var profile = new UserProfile
+		context.UserProfiles.Add(new UserProfile
 		{
 			Id = user.Id,
 			UserName = email,
 			FirstName = firstName,
 			LastName = lastName
-		};
-
-		context.UserProfiles.Add(profile);
+		});
 		await context.SaveChangesAsync();
 	}
 }
