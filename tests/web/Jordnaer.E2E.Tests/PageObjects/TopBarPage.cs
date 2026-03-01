@@ -9,7 +9,6 @@ namespace Jordnaer.E2E.Tests.PageObjects;
 public class TopBarPage(IPage page)
 {
 	// Unauthenticated links
-	private ILocator LoginLink => page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Log ind" }).First;
 	private ILocator RegisterLink => page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).First;
 
 	// Notification bell
@@ -45,7 +44,6 @@ public class TopBarPage(IPage page)
 		await MarkAllAsReadButton.ClickAsync();
 	}
 
-	public ILocator GetLoginLink() => LoginLink;
 	public ILocator GetRegisterLink() => RegisterLink;
 	public ILocator GetNotificationBell() => NotificationBell;
 	public ILocator GetNotificationBadge() => NotificationBadge;

@@ -53,17 +53,21 @@ public class PostPage(IPage page)
 	{
 		// Find the post card containing the content
 		var postCard = GetPostWithContent(postContent);
+		await postCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
 		// Click the "Flere muligheder" button (three dots) - the MudMenu trigger button inside the aria-label wrapper
 		var moreOptionsButton = postCard.Locator("[aria-label='Flere muligheder'] button");
+		await moreOptionsButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await moreOptionsButton.ClickAsync();
 
-		// Click "Slet" scoped to the opened menu
-		var menu = page.Locator("[role='menu']");
-		await menu.GetByRole(AriaRole.Menuitem, new LocatorGetByRoleOptions { Name = "Slet" }).ClickAsync();
+		// Wait for the MudMenu popover/list to appear, then click "Slet"
+		var sletMenuItem = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Slet" });
+		await sletMenuItem.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+		await sletMenuItem.ClickAsync();
 
 		// Confirm deletion scoped to the active dialog
 		var dialog = page.Locator("[role='dialog']");
+		await dialog.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Slet" }).ClickAsync();
 		await postCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Detached });
 	}

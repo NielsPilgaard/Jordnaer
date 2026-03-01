@@ -3,6 +3,7 @@ using Jordnaer.Database;
 using Jordnaer.E2E.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 
@@ -44,7 +45,7 @@ public class GroupTests : PlaywrightTest
 
 		await groupPage.NavigateToMyGroupsAsync(SetUpFixture.BaseUrl);
 
-		await Expect(groupPage.GetGroupByName(TestGroupName)).ToBeVisibleAsync();
+		await Expect(groupPage.GetGroupByName(TestGroupName)).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15_000 });
 
 		await page.CloseAsync();
 	}

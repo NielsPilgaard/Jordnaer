@@ -31,6 +31,7 @@ public class ChatPage
 
 	public async Task SearchForUserAsync(string userName)
 	{
+		await SearchTextbox.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await SearchTextbox.FillAsync(userName);
 	}
 

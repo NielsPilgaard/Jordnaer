@@ -16,8 +16,24 @@ public class GroupPage(IPage page)
 	private ILocator ShortDescriptionField => page.GetByLabel("Kort beskrivelse");
 	private ILocator CreateGroupButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Opret Gruppe" });
 
-	public Task NavigateToMyGroupsAsync(string baseUrl) =>
-		NavigateToAsync(baseUrl, MyGroupsUrl);
+	public async Task NavigateToMyGroupsAsync(string baseUrl)
+	{
+		await NavigateToAsync(baseUrl, MyGroupsUrl);
+		// Wait for the Blazor interactive render to complete loading groups data
+		var loadingOverlay = page.Locator(".mud-overlay");
+		try
+		{
+			await loadingOverlay.WaitForAsync(new LocatorWaitForOptions
+			{
+				State = WaitForSelectorState.Detached,
+				Timeout = 10_000
+			});
+		}
+		catch
+		{
+			// Loading overlay may not appear at all if data loads quickly
+		}
+	}
 
 	public Task NavigateToCreateGroupAsync(string baseUrl) =>
 		NavigateToAsync(baseUrl, CreateGroupUrl);
