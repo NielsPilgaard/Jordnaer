@@ -19,20 +19,36 @@ public class GroupPage(IPage page)
 	public async Task NavigateToMyGroupsAsync(string baseUrl)
 	{
 		await NavigateToAsync(baseUrl, MyGroupsUrl);
-		// Wait for the Blazor interactive render to complete loading groups data
+		// Wait for the Blazor interactive render to complete loading groups data.
+		// The MudLoading overlay appears while data loads; wait for it to show then hide.
+		// If it appears and disappears before we check, or never appears, either is fine.
 		var loadingOverlay = page.Locator(".mud-overlay");
 		try
 		{
 			await loadingOverlay.WaitForAsync(new LocatorWaitForOptions
 			{
-				State = WaitForSelectorState.Detached,
-				Timeout = 10_000
+				State = WaitForSelectorState.Visible,
+				Timeout = 3_000
+			});
+			// Overlay appeared - now wait for it to go away
+			await loadingOverlay.WaitForAsync(new LocatorWaitForOptions
+			{
+				State = WaitForSelectorState.Hidden,
+				Timeout = 15_000
 			});
 		}
 		catch
 		{
-			// Loading overlay may not appear at all if data loads quickly
+			// Loading overlay may not appear at all if data loads fast enough
 		}
+
+		// Wait for the tab panel content to be ready (either groups list or the "no groups" alert)
+		var tabPanel = page.Locator(".mud-tab-panel");
+		await tabPanel.First.WaitForAsync(new LocatorWaitForOptions
+		{
+			State = WaitForSelectorState.Visible,
+			Timeout = 10_000
+		});
 	}
 
 	public Task NavigateToCreateGroupAsync(string baseUrl) =>
