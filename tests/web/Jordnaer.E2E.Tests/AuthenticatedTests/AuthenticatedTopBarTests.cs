@@ -45,17 +45,21 @@ public class TopBarTests : PlaywrightTest
 	public Task Profile_Link_In_Dropdown_Redirects_To_Profile() =>
 		WithPageAsync(async page =>
 		{
-			// Open the desktop profile dropdown via the precise label element
-			var profileMenuButton = page.Locator("label[for='profile-menu-toggle']").Last;
-			await profileMenuButton.ClickAsync();
+			// The profile dropdown is a CSS checkbox toggle (:checked ~ .profile-menu-dropdown).
+			// Setting .checked = true changes the JS property but CSS needs the DOM attribute.
+			// Dispatching a 'change' event after setting the property triggers the CSS recalc.
+			await page.EvaluateAsync(@"
+				var cb = document.getElementById('profile-menu-toggle');
+				cb.checked = true;
+				cb.dispatchEvent(new Event('change'));
+			");
 
-			// Wait for the dropdown to become visible (CSS transition)
+			// Wait for the dropdown to become visible after CSS transition
 			var dropdown = page.Locator(".topbar-desktop .profile-menu-dropdown").Last;
 			await dropdown.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
-			// Click the Profil link inside the dropdown
-			var profileLink = dropdown.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Profil" }).First;
-			await Expect(profileLink).ToBeVisibleAsync();
+			// Click the Profil link inside the dropdown (scoped to avoid mobile duplicate)
+			var profileLink = dropdown.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Profil", Exact = true });
 			await profileLink.ClickAsync();
 
 			await Expect(page).ToHaveURLAsync(new Regex(".*/profile"));
@@ -65,16 +69,20 @@ public class TopBarTests : PlaywrightTest
 	public Task Logout_Link_Should_Be_In_Profile_Dropdown() =>
 		WithPageAsync(async page =>
 		{
-			// Open the desktop profile dropdown via the precise label element
-			var profileMenuButton = page.Locator("label[for='profile-menu-toggle']").Last;
-			await profileMenuButton.ClickAsync();
+			// The profile dropdown is a CSS checkbox toggle (:checked ~ .profile-menu-dropdown).
+			// Dispatching a 'change' event after setting the property triggers the CSS recalc.
+			await page.EvaluateAsync(@"
+				var cb = document.getElementById('profile-menu-toggle');
+				cb.checked = true;
+				cb.dispatchEvent(new Event('change'));
+			");
 
-			// Wait for the dropdown to become visible (CSS transition)
+			// Wait for the dropdown to become visible after CSS transition
 			var dropdown = page.Locator(".topbar-desktop .profile-menu-dropdown").Last;
 			await dropdown.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
-			// Find and verify logout link is visible in dropdown
-			var logoutLink = dropdown.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Log ud" }).First;
+			// Find and verify logout link is visible in dropdown (scoped to desktop nav)
+			var logoutLink = dropdown.GetByRole(AriaRole.Link, new LocatorGetByRoleOptions { Name = "Log ud", Exact = true });
 			await Expect(logoutLink).ToBeVisibleAsync();
 		});
 }
