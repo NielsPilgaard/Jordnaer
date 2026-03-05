@@ -61,7 +61,8 @@ public class PostPage(IPage page)
 		await moreOptionsButton.ClickAsync();
 
 		// Wait for the MudMenu popover/list to appear, then click "Slet"
-		var sletMenuItem = page.GetByRole(AriaRole.Menuitem, new PageGetByRoleOptions { Name = "Slet" });
+		// MudBlazor MudMenuItem renders as a <div class="mud-menu-item"> - no role="menuitem" attribute
+		var sletMenuItem = page.Locator(".mud-menu-item").Filter(new LocatorFilterOptions { HasText = "Slet" });
 		await sletMenuItem.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await sletMenuItem.ClickAsync();
 

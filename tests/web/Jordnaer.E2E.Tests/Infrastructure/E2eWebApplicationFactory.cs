@@ -97,13 +97,28 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 		// Fake key - required to satisfy DI registration, but no emails are sent in tests
 		builder.UseSetting("ConnectionStrings:AzureEmailService", "endpoint=https://jordnaer.europe.communication.azure.com/;accesskey=REDACTED");
 
-		builder.ConfigureTestServices(services => services.RemoveAll<IHostedService>());
+		// TODO: Can we keep all IHostedServices?
+		builder.ConfigureTestServices(services =>
+		{
+			// Remove all non-MassTransit hosted services (background jobs, cleanup tasks, etc.)
+			// but keep MassTransit's bus running so in-memory message consumers work in E2E tests.
+			var hostedServicesToRemove = services
+				.Where(d => d.ServiceType == typeof(IHostedService)
+					&& d.ImplementationType?.Namespace?.StartsWith("MassTransit") is not true
+					&& d.ImplementationFactory is null)
+				.ToList();
+
+			foreach (var descriptor in hostedServicesToRemove)
+			{
+				services.Remove(descriptor);
+			}
+		});
 
 		builder.ConfigureLogging(loggingBuilder =>
 		{
 			loggingBuilder.ClearProviders();
-			loggingBuilder.SetMinimumLevel(LogLevel.Error);
-			loggingBuilder.AddConsole();
+			loggingBuilder.SetMinimumLevel(LogLevel.Information);
+			loggingBuilder.AddProvider(new NUnitLoggerProvider(LogLevel.Information));
 		});
 	}
 
