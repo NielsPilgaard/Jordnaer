@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Testcontainers.Azurite;
@@ -96,23 +95,6 @@ public class E2eWebApplicationFactory : WebApplicationFactory<Program>, IAsyncDi
 
 		// Fake key - required to satisfy DI registration, but no emails are sent in tests
 		builder.UseSetting("ConnectionStrings:AzureEmailService", "endpoint=https://jordnaer.europe.communication.azure.com/;accesskey=REDACTED");
-
-		// TODO: Can we keep all IHostedServices?
-		builder.ConfigureTestServices(services =>
-		{
-			// Remove all non-MassTransit hosted services (background jobs, cleanup tasks, etc.)
-			// but keep MassTransit's bus running so in-memory message consumers work in E2E tests.
-			var hostedServicesToRemove = services
-				.Where(d => d.ServiceType == typeof(IHostedService)
-					&& d.ImplementationType?.Namespace?.StartsWith("MassTransit") is not true
-					&& d.ImplementationFactory is null)
-				.ToList();
-
-			foreach (var descriptor in hostedServicesToRemove)
-			{
-				services.Remove(descriptor);
-			}
-		});
 
 		builder.ConfigureLogging(loggingBuilder =>
 		{
