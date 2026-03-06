@@ -13,6 +13,8 @@ public class TopBarPage(IPage page)
 
 	// Notification bell
 	private ILocator NotificationBell => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Notifikationer" });
+	// Chat badge: MudBadge with BadgeClass="badge-offset" on the Chat nav button in TopBar
+	private ILocator ChatBadge => page.Locator(".topbar-desktop .badge-offset");
 	private ILocator NotificationBadge => page.Locator(".notification-bell-container .mud-badge-content");
 	private ILocator NotificationDropdown => page.Locator(".notification-dropdown");
 	private ILocator MarkAllAsReadButton => page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Markér alle som læst" });
@@ -47,6 +49,7 @@ public class TopBarPage(IPage page)
 	public ILocator GetRegisterLink() => RegisterLink;
 	public ILocator GetNotificationBell() => NotificationBell;
 	public ILocator GetNotificationBadge() => NotificationBadge;
+	public ILocator GetChatBadge() => ChatBadge;
 	public ILocator GetNotificationDropdown() => NotificationDropdown;
 	public ILocator GetMarkAllAsReadButton() => MarkAllAsReadButton;
 	public ILocator GetProfileMenuDropdown() => ProfileMenuDropdown;

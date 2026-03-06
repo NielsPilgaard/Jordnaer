@@ -306,9 +306,8 @@
 		}
 		catch (Exception ex)
 		{
-			// Log and continue without real-time updates; badge will remain at 0
+			// Log but continue — real-time updates won't work, but the initial DB query still loads the count
 			Logger.LogError(ex, "Failed to acquire NotificationSignalRClient for user {UserId}", CurrentUser.Id);
-			return;
 		}
 
 		// Listen for new chat notifications to update badge

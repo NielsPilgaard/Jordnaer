@@ -24,6 +24,12 @@ public class NotificationTests : PlaywrightTest
 		await chatPage.SelectUserFromSearchResultsAsync("User B");
 		await chatPage.SendMessageAsync("Hej fra User A!");
 
+		// Wait for MassTransit to process the message asynchronously.
+		// SendMessageConsumer writes the notification to DB; User B's TopBar initial load query picks it up.
+		// NetworkIdle alone is insufficient as MassTransit consumption is fully async server-side.
+		await pageA.WaitForLoadStateAsync(LoadState.NetworkIdle);
+		await pageA.WaitForTimeoutAsync(3_000);
+
 		await pageA.CloseAsync();
 
 		// User B should see a notification badge
@@ -31,7 +37,8 @@ public class NotificationTests : PlaywrightTest
 		var topBar = pageB.CreateTopBarPage();
 		await topBar.NavigateAsync(SetUpFixture.BaseUrl);
 
-		await Expect(topBar.GetNotificationBadge()).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
+		// Chat messages show on the chat icon badge in the topbar, not the notification bell badge
+		await Expect(topBar.GetChatBadge()).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 30_000 });
 
 		await pageB.CloseAsync();
 	}
