@@ -22,6 +22,7 @@ public class LoginTests : BrowserTest
 
 	[Test]
 	[Category(nameof(TestCategory.SkipInCi))]
+	[Category(nameof(TestCategory.ExternalLogin))]
 	[TestCase("Facebook")]
 	[TestCase("Microsoft")]
 	[TestCase("Google")]
