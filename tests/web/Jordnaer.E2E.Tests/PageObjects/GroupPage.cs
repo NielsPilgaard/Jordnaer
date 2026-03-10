@@ -37,7 +37,7 @@ public class GroupPage(IPage page)
 				Timeout = 15_000
 			});
 		}
-		catch
+		catch (TimeoutException)
 		{
 			// Loading overlay may not appear at all if data loads fast enough
 		}
