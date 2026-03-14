@@ -23,6 +23,12 @@ public class SetUpFixture
 	public static string BaseUrl { get; private set; } = null!;
 
 	/// <summary>
+	/// The IPlaywright instance used by the global setup. Available for tests that need to
+	/// create pages without relying on per-test Playwright NUnit fixtures.
+	/// </summary>
+	public static IPlaywright Playwright { get; private set; } = null!;
+
+	/// <summary>
 	/// Use this when you need to disable loading of authentication state, like when logging in.
 	/// </summary>
 	public static IBrowser Browser = null!;
@@ -52,7 +58,8 @@ public class SetUpFixture
 			throw new Exception($"Playwright install failed with exit code {exitCode}. Check the output above for details.");
 		}
 
-		_playwright = await Playwright.CreateAsync();
+		_playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+		Playwright = _playwright;
 
 		Browser = await _playwright[TestConfiguration.Values.Browser].LaunchAsync(new BrowserTypeLaunchOptions
 		{

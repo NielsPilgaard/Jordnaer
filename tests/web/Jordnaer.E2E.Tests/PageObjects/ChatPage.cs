@@ -65,7 +65,9 @@ public class ChatPage
 
 	public async Task SelectUserFromSearchResultsAsync(string userName)
 	{
-		var searchResult = _page.GetByText(userName).First;
+		// Target the clickable MudListItem that contains the user name, not the inner text node.
+		// The inner <p> element is intercepted by an overlay group div in the MudBlazor autocomplete popover.
+		var searchResult = _page.Locator(".mud-list-item-clickable", new PageLocatorOptions { HasText = userName }).First;
 		await searchResult.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 		await searchResult.ClickAsync();
 

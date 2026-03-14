@@ -6,19 +6,32 @@ using NUnit.Framework;
 
 namespace Jordnaer.E2E.Tests;
 
-[Parallelizable(ParallelScope.All)]
+[Parallelizable(ParallelScope.Self)]
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
-public class LoginTests : BrowserTest
+public class LoginTests : PlaywrightTest
 {
 	[Test]
 	public async Task When_User_Logs_In_With_Email_And_Password_It_Succeeds()
-		=> await Browser.Login(
-			Playwright,
-			SetUpFixture.BaseUrl,
-			E2eWebApplicationFactory.UserAEmail,
-			E2eWebApplicationFactory.UserAPassword,
-			"auth-verify.json");
+	{
+		var authFilePath = Path.Combine(Path.GetTempPath(), $"auth-verify-{Guid.NewGuid():N}.json");
+		try
+		{
+			await SetUpFixture.Browser.Login(
+				SetUpFixture.Playwright,
+				SetUpFixture.BaseUrl,
+				E2eWebApplicationFactory.UserAEmail,
+				E2eWebApplicationFactory.UserAPassword,
+				authFilePath);
+		}
+		finally
+		{
+			if (File.Exists(authFilePath))
+			{
+				File.Delete(authFilePath);
+			}
+		}
+	}
 
 	[Test]
 	[Category(nameof(TestCategory.SkipInCi))]
@@ -28,7 +41,7 @@ public class LoginTests : BrowserTest
 	[TestCase("Google")]
 	public async Task When_User_Goes_To_Login_External_Provider_Login_Is_Visible(string externalProvider)
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
+		var page = await SetUpFixture.Browser.NewPageAsync(SetUpFixture.Playwright, false);
 		await page.GotoAsync(SetUpFixture.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
 
@@ -47,7 +60,7 @@ public class LoginTests : BrowserTest
 	[TestCase("Gensend emailbekr.ftelse")]
 	public async Task When_User_Goes_To_Login_Links_Are_Visible(string linkTextRegex)
 	{
-		var page = await SetUpFixture.Browser.NewPageAsync(Playwright, false);
+		var page = await SetUpFixture.Browser.NewPageAsync(SetUpFixture.Playwright, false);
 
 		await page.GotoAsync(SetUpFixture.BaseUrl);
 		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
@@ -56,7 +69,7 @@ public class LoginTests : BrowserTest
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
 		{
 			NameRegex = new Regex(linkTextRegex)
-		})).ToBeVisibleAsync();
+		}).First).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}
