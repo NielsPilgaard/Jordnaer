@@ -19,7 +19,7 @@ public class LandingPage
 	// Locators - Navigation
 	private ILocator JoinLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "VÆR' MED" }).First;
 	private ILocator GroupsLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "GRUPPER", Exact = true });
-	private ILocator PostsLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "OPSLAG" });
+	private ILocator PostsLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "OPSLAG" }).First;
 	private ILocator PeopleLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Personer" });
 	private ILocator LogoLink => _page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Logo" });
 

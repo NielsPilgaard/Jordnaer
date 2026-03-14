@@ -11,6 +11,7 @@
 @inject CurrentUser CurrentUser
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
+@inject ILogger<ChatPage> logger
 
 @using System.Diagnostics
 @implements IAsyncDisposable
@@ -143,7 +144,14 @@
             }
         }
 
-        await StartSignalR();
+        try
+        {
+            await StartSignalR();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to start SignalR connection on chat page");
+        }
 
         _isLoading = false;
     }

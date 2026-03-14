@@ -1,4 +1,4 @@
-﻿using Jordnaer.E2E.Tests.Infrastructure;
+using Jordnaer.E2E.Tests.Infrastructure;
 using Microsoft.Playwright;
 using NUnit.Framework;
 
@@ -8,6 +8,25 @@ namespace Jordnaer.E2E.Tests;
 public class SetUpFixture
 {
 	private IPlaywright _playwright = null!;
+	private static E2eWebApplicationFactory _factory = null!;
+	private string _authFilePath = null!;
+	private string _authBFilePath = null!;
+
+	/// <summary>
+	/// The DI service provider of the in-process test server.
+	/// </summary>
+	public static IServiceProvider Services => _factory.Services;
+
+	/// <summary>
+	/// The base URL of the in-process test server. Set during global setup.
+	/// </summary>
+	public static string BaseUrl { get; private set; } = null!;
+
+	/// <summary>
+	/// The IPlaywright instance used by the global setup. Available for tests that need to
+	/// create pages without relying on per-test Playwright NUnit fixtures.
+	/// </summary>
+	public static IPlaywright Playwright { get; private set; } = null!;
 
 	/// <summary>
 	/// Use this when you need to disable loading of authentication state, like when logging in.
@@ -15,17 +34,32 @@ public class SetUpFixture
 	public static IBrowser Browser = null!;
 
 	/// <summary>
-	/// Use this for all tests that do not require control of the authentication state.
+	/// Use this for authenticated tests running as User A.
 	/// </summary>
 	public static IBrowserContext Context = null!;
+
+	/// <summary>
+	/// Use this for multi-user tests that need a second authenticated user (User B).
+	/// </summary>
+	public static IBrowserContext ContextB = null!;
 
 	[OneTimeSetUp]
 	public async Task GlobalSetup()
 	{
-		// Always run Playwright install, it stops if Playwright is already installed
-		Program.Main(["install"]);
+		_factory = new E2eWebApplicationFactory();
+		await _factory.InitializeAsync();
 
-		_playwright = await Playwright.CreateAsync();
+		BaseUrl = _factory.ServerAddress;
+
+		// Always run Playwright install, it stops if Playwright is already installed
+		var exitCode = Microsoft.Playwright.Program.Main(["install"]);
+		if (exitCode != 0)
+		{
+			throw new Exception($"Playwright install failed with exit code {exitCode}. Check the output above for details.");
+		}
+
+		_playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+		Playwright = _playwright;
 
 		Browser = await _playwright[TestConfiguration.Values.Browser].LaunchAsync(new BrowserTypeLaunchOptions
 		{
@@ -33,16 +67,22 @@ public class SetUpFixture
 			SlowMo = TestConfiguration.Values.SlowMo
 		});
 
-		await Browser.Login(_playwright);
+		var runId = Guid.NewGuid().ToString("N");
+		_authFilePath = Path.Combine(Path.GetTempPath(), $"auth-{runId}.json");
+		_authBFilePath = Path.Combine(Path.GetTempPath(), $"auth-b-{runId}.json");
 
-		Context = await NewContext();
+		await Browser.Login(_playwright, BaseUrl, E2eWebApplicationFactory.UserAEmail, E2eWebApplicationFactory.UserAPassword, _authFilePath);
+		await Browser.Login(_playwright, BaseUrl, E2eWebApplicationFactory.UserBEmail, E2eWebApplicationFactory.UserBPassword, _authBFilePath);
+
+		Context = await NewContext(_authFilePath);
+		ContextB = await NewContext(_authBFilePath);
 	}
 
-	private async Task<IBrowserContext> NewContext()
+	private async Task<IBrowserContext> NewContext(string storageStatePath)
 	{
 		var newPageOptions = new BrowserNewContextOptions
 		{
-			StorageStatePath = "auth.json"
+			StorageStatePath = storageStatePath
 		};
 
 		if (TestConfiguration.Values.Device is null)
@@ -61,12 +101,39 @@ public class SetUpFixture
 	[OneTimeTearDown]
 	public async Task OneTimeTearDown()
 	{
-		await Context.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." });
-		await Context.DisposeAsync();
+		if (ContextB is not null)
+		{
+			try { await ContextB.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch (Exception ex) { Console.Error.WriteLine($"Error closing ContextB: {ex}"); }
+			try { await ContextB.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing ContextB: {ex}"); }
+		}
 
-		await Browser.CloseAsync(new BrowserCloseOptions { Reason = "Test run finished." });
-		await Browser.DisposeAsync();
+		if (Context is not null)
+		{
+			try { await Context.CloseAsync(new BrowserContextCloseOptions { Reason = "Test run finished." }); } catch (Exception ex) { Console.Error.WriteLine($"Error closing Context: {ex}"); }
+			try { await Context.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing Context: {ex}"); }
+		}
 
-		_playwright.Dispose();
+		if (Browser is not null)
+		{
+			try { await Browser.CloseAsync(new BrowserCloseOptions { Reason = "Test run finished." }); } catch (Exception ex) { Console.Error.WriteLine($"Error closing Browser: {ex}"); }
+			try { await Browser.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing Browser: {ex}"); }
+		}
+
+		try { _playwright?.Dispose(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing Playwright: {ex}"); }
+
+		if (_factory is not null)
+		{
+			try { await _factory.DisposeAsync(); } catch (Exception ex) { Console.Error.WriteLine($"Error disposing factory: {ex}"); }
+		}
+
+		if (_authFilePath is not null && File.Exists(_authFilePath))
+		{
+			try { File.Delete(_authFilePath); } catch (Exception ex) { Console.Error.WriteLine($"Error deleting auth file '{_authFilePath}': {ex}"); }
+		}
+
+		if (_authBFilePath is not null && File.Exists(_authBFilePath))
+		{
+			try { File.Delete(_authBFilePath); } catch (Exception ex) { Console.Error.WriteLine($"Error deleting auth-b file '{_authBFilePath}': {ex}"); }
+		}
 	}
 }

@@ -9,19 +9,18 @@ namespace Jordnaer.E2E.Tests.AuthenticatedTests;
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
 [Category(nameof(TestCategory.Authenticated))]
-[Category(nameof(TestCategory.SkipInCi))]
-public class ChatTests : BrowserTest
+public class ChatTests : PlaywrightTest
 {
 	[Test]
-	public async Task Chat_Search_Should_Return_Niels_When_Searching_For_Niels()
+	public async Task Chat_Search_Should_Return_User_B_When_Searching()
 	{
 		var page = await SetUpFixture.Context.NewPageAsync();
 		var chatPage = page.CreateChatPage();
 
-		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
-		await chatPage.SearchForUserAsync("Niels Pilgaard Grøndahl");
+		await chatPage.NavigateAsync(SetUpFixture.BaseUrl);
+		await chatPage.SearchForUserAsync("User B");
 
-		await Expect(page.GetByText("Niels Pilgaard Grøndahl").First).ToBeVisibleAsync();
+		await Expect(page.GetByText("User B").First).ToBeVisibleAsync();
 
 		await page.CloseAsync();
 	}
@@ -32,9 +31,9 @@ public class ChatTests : BrowserTest
 		var page = await SetUpFixture.Context.NewPageAsync();
 		var chatPage = page.CreateChatPage();
 
-		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
-		await chatPage.SearchForUserAsync("Niels Pilgaard Grøndahl");
-		await chatPage.SelectUserFromSearchResultsAsync("Niels Pilgaard Grøndahl");
+		await chatPage.NavigateAsync(SetUpFixture.BaseUrl);
+		await chatPage.SearchForUserAsync("User B");
+		await chatPage.SelectUserFromSearchResultsAsync("User B");
 
 		await chatPage.SendMessageAsync("Dette er en test meddelelse.");
 
@@ -49,9 +48,9 @@ public class ChatTests : BrowserTest
 		var page = await SetUpFixture.Context.NewPageAsync();
 		var chatPage = page.CreateChatPage();
 
-		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
-		await chatPage.SearchForUserAsync("Niels Pilgaard Grøndahl");
-		await chatPage.SelectUserFromSearchResultsAsync("Niels Pilgaard Grøndahl");
+		await chatPage.NavigateAsync(SetUpFixture.BaseUrl);
+		await chatPage.SearchForUserAsync("User B");
+		await chatPage.SelectUserFromSearchResultsAsync("User B");
 
 		await chatPage.SendMessageAsync("Dette er en test meddelelse.");
 
@@ -66,7 +65,7 @@ public class ChatTests : BrowserTest
 		var page = await SetUpFixture.Context.NewPageAsync();
 		var chatPage = page.CreateChatPage();
 
-		await chatPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await chatPage.NavigateAsync(SetUpFixture.BaseUrl);
 
 		await Expect(chatPage.GetFooterLink("Kontakt")).ToBeHiddenAsync();
 
