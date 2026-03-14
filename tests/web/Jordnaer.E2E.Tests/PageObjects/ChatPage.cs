@@ -66,10 +66,11 @@ public class ChatPage
 	public async Task SelectUserFromSearchResultsAsync(string userName)
 	{
 		// Target the clickable MudListItem that contains the user name, not the inner text node.
-		// The inner <p> element is intercepted by an overlay group div in the MudBlazor autocomplete popover.
+		// The MudBlazor autocomplete popover renders a <div role="group"> overlay that intercepts pointer
+		// events, so ClickAsync() times out. DispatchEventAsync bypasses the interception check.
 		var searchResult = _page.Locator(".mud-list-item-clickable", new PageLocatorOptions { HasText = userName }).First;
 		await searchResult.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-		await searchResult.ClickAsync();
+		await searchResult.DispatchEventAsync("click");
 
 		// Wait for chat conversation to load
 		await MessageInput.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
