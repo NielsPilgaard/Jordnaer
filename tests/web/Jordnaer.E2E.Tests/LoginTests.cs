@@ -23,6 +23,11 @@ public class LoginTests : PlaywrightTest
 				E2eWebApplicationFactory.UserAEmail,
 				E2eWebApplicationFactory.UserAPassword,
 				authFilePath);
+
+			Assert.That(File.Exists(authFilePath), Is.True, "Auth state file should have been created after login.");
+			var authContent = await File.ReadAllTextAsync(authFilePath);
+			Assert.That(authContent, Is.Not.Empty, "Auth state file should not be empty.");
+			Assert.That(authContent, Does.Contain("cookies"), "Auth state file should contain cookie data.");
 		}
 		finally
 		{
@@ -42,15 +47,20 @@ public class LoginTests : PlaywrightTest
 	public async Task When_User_Goes_To_Login_External_Provider_Login_Is_Visible(string externalProvider)
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(SetUpFixture.Playwright, false);
-		await page.GotoAsync(SetUpFixture.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
-
-		await Expect(page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
+		try
 		{
-			Name = $"Log ind med {externalProvider}"
-		})).ToBeVisibleAsync();
+			await page.GotoAsync(SetUpFixture.BaseUrl);
+			await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
 
-		await page.CloseAsync();
+			await Expect(page.GetByRole(AriaRole.Button, new PageGetByRoleOptions
+			{
+				Name = $"Log ind med {externalProvider}"
+			})).ToBeVisibleAsync();
+		}
+		finally
+		{
+			await page.CloseAsync();
+		}
 	}
 
 	[Test]
@@ -61,16 +71,20 @@ public class LoginTests : PlaywrightTest
 	public async Task When_User_Goes_To_Login_Links_Are_Visible(string linkTextRegex)
 	{
 		var page = await SetUpFixture.Browser.NewPageAsync(SetUpFixture.Playwright, false);
-
-		await page.GotoAsync(SetUpFixture.BaseUrl);
-		await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
-		await page.GetByText("Log ind med eksisterende konto").ClickAsync();
-
-		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
+		try
 		{
-			NameRegex = new Regex(linkTextRegex)
-		}).First).ToBeVisibleAsync();
+			await page.GotoAsync(SetUpFixture.BaseUrl);
+			await page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Opret konto" }).ClickAsync();
+			await page.GetByText("Log ind med eksisterende konto").ClickAsync();
 
-		await page.CloseAsync();
+			await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions
+			{
+				NameRegex = new Regex(linkTextRegex)
+			}).First).ToBeVisibleAsync();
+		}
+		finally
+		{
+			await page.CloseAsync();
+		}
 	}
 }

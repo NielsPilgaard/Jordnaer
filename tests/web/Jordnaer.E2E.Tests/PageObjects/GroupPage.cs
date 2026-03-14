@@ -23,6 +23,7 @@ public class GroupPage(IPage page)
 		// The MudLoading overlay appears while data loads; wait for it to show then hide.
 		// If it appears and disappears before we check, or never appears, either is fine.
 		var loadingOverlay = page.Locator(".mud-overlay");
+		var overlayAppeared = false;
 		try
 		{
 			await loadingOverlay.WaitForAsync(new LocatorWaitForOptions
@@ -30,16 +31,21 @@ public class GroupPage(IPage page)
 				State = WaitForSelectorState.Visible,
 				Timeout = 3_000
 			});
+			overlayAppeared = true;
+		}
+		catch (TimeoutException)
+		{
+			// Loading overlay may not appear at all if data loads fast enough
+		}
+
+		if (overlayAppeared)
+		{
 			// Overlay appeared - now wait for it to go away
 			await loadingOverlay.WaitForAsync(new LocatorWaitForOptions
 			{
 				State = WaitForSelectorState.Hidden,
 				Timeout = 15_000
 			});
-		}
-		catch (TimeoutException)
-		{
-			// Loading overlay may not appear at all if data loads fast enough
 		}
 
 		// Wait for the tab panel content to be ready (either groups list or the "no groups" alert)
@@ -84,5 +90,5 @@ public class GroupPage(IPage page)
 	}
 
 	public ILocator GetGroupByName(string groupName) =>
-		page.GetByText(groupName).First;
+		page.GetByText(groupName, new PageGetByTextOptions { Exact = true }).First;
 }

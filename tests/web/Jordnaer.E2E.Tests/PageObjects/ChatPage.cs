@@ -45,7 +45,7 @@ public class ChatPage
 				Timeout = 15_000
 			});
 		}
-		catch
+		catch (TimeoutException)
 		{
 			// Overlay may not appear at all if data loads fast enough
 		}
