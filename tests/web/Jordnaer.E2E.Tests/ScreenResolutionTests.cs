@@ -40,7 +40,7 @@ public class ScreenResolutionTests : BrowserTest
 		});
 
 		var landingPage = page.CreateLandingPage();
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 
 		// Wait for the center image to be visible before taking screenshot
 		await landingPage.GetCenterImage()

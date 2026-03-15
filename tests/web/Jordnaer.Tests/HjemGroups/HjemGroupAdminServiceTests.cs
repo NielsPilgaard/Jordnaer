@@ -180,7 +180,7 @@ public class HjemGroupAdminServiceTests
             MakeEntry("Randers", "https://www.hjemlo.dk/randers", HjemGroupType.Lokalafdeling),
         };
 
-        string uploadedJson = string.Empty;
+        var uploadedJson = string.Empty;
         _blobClient
             .UploadAsync(Arg.Do<Stream>(s =>
             {
@@ -202,7 +202,7 @@ public class HjemGroupAdminServiceTests
     [Fact]
     public async Task SaveAsync_CanRoundtrip_EmptyList()
     {
-        string uploadedJson = string.Empty;
+        var uploadedJson = string.Empty;
         _blobClient
             .UploadAsync(Arg.Do<Stream>(s =>
             {
@@ -347,7 +347,7 @@ public class HjemGroupAdminServiceTests
 
         public void Dispose()
         {
-            apiResponse.Dispose();
+            ApiResponse.Dispose();
             httpResponse.Dispose();
         }
     }

@@ -9,7 +9,7 @@ namespace Jordnaer.E2E.Tests;
 [Parallelizable(ParallelScope.All)]
 [TestFixture]
 [Category(nameof(TestCategory.UI))]
-public class LandingPageTests : BrowserTest
+public class LandingPageTests : PlaywrightTest
 {
 	[Test]
 	public async Task When_User_Clicks_Join_User_Should_Be_Redirected_To_Login()
@@ -18,7 +18,7 @@ public class LandingPageTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 		await landingPage.ClickJoinAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/Account/Register"));
@@ -32,7 +32,7 @@ public class LandingPageTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 		await landingPage.ClickPostsAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/posts"));
@@ -46,7 +46,7 @@ public class LandingPageTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 		await landingPage.ClickGroupsAsync();
 
 		await Expect(page).ToHaveURLAsync(new Regex(".*/groups"));
@@ -60,7 +60,7 @@ public class LandingPageTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 
 		await Expect(landingPage.GetLogoLink()).ToBeHiddenAsync();
 
@@ -73,7 +73,7 @@ public class LandingPageTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 
 		// On unauthenticated landing page, check for visible navigation links
 		await Expect(page.GetByRole(AriaRole.Link, new PageGetByRoleOptions { Name = "Hjem" }).First).ToBeVisibleAsync();
@@ -96,7 +96,7 @@ public class LandingPageTests : BrowserTest
 		var page = await SetUpFixture.Browser.NewPageAsync();
 		var landingPage = page.CreateLandingPage();
 
-		await landingPage.NavigateAsync(TestConfiguration.Values.BaseUrl);
+		await landingPage.NavigateAsync(SetUpFixture.BaseUrl);
 
 		await Expect(landingPage.GetFooterLink(linkText)).ToBeVisibleAsync();
 

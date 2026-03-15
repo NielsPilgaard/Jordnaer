@@ -10,3 +10,10 @@ Otherwise, run all unit tests (excluding tests marked SkipInCi).
    - **Without filter**: `dotnet test tests/web/Jordnaer.Tests --filter Category!=SkipInCi`
 2. Report the results clearly: how many passed, failed, skipped.
 3. If any tests fail, analyze the failure output and suggest fixes.
+
+## E2E Tests
+
+For frontend/UI changes, also run the Playwright E2E tests. The suite is self-contained — it starts the app, SQL Server, and Azurite automatically via Testcontainers and `WebApplicationFactory`. No manual setup required.
+
+- **All E2E tests**: `dotnet test tests/web/Jordnaer.E2E.Tests`
+- **Specific E2E test**: `dotnet test tests/web/Jordnaer.E2E.Tests --filter "FullyQualifiedName~$ARGUMENTS"`
