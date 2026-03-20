@@ -164,7 +164,7 @@ public class DeleteUserService(
 			return tokenIsValid;
 		}
 
-		logger.LogError("Cannot verify user token, the user has no ApplicationUser");
+		logger.LogWarning("Cannot verify user token, the user has no ApplicationUser");
 		return false;
 	}
 

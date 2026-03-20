@@ -43,6 +43,13 @@
             {
                 _logger.LogInformation(exception, "Navigation cancelled (expected during redirects)");
             }
+            else if (exception is ArgumentNullException { ParamName: "context" })
+            {
+                // HttpContext is null — the page requires static SSR but was rendered interactively.
+                // Force a full page reload so ASP.NET Core handles the request properly.
+                _logger.LogWarning("Static SSR page reached via interactive navigation, forcing full reload");
+                _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
+            }
             else
             {
                 _logger.LogError(exception, "Error boundary caught exception during navigation");
@@ -55,6 +62,9 @@
 @code {
     [Inject]
     private ILogger<Routes> _logger { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager _navigationManager { get; set; } = default!;
 
     private ErrorBoundary? _errorBoundary;
 }
