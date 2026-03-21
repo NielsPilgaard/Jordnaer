@@ -33,7 +33,7 @@ public static class JordnaerTheme
 			Info = JordnaerPalette.BlueBody.Value,           // MØDE - informative blue
 			Success = JordnaerPalette.GreenBackground.Value,        // RO - green is perfect for success
 			Warning = JordnaerPalette.YellowBackground.Value,        // GLÆDE - yellow-orange for warnings
-			Error = JordnaerPalette.RedHeader.Value,          // MØDE Red - red-brown for errors
+			Error = JordnaerPalette.ErrorRed.Value,            // Vivid red - clearly readable on white
 			Dark = JordnaerPalette.BlueBody.Value,           // MØDE - body text blue
 			TextPrimary = JordnaerPalette.BlueBody.Value,    // MØDE - main text color
 			TextSecondary = JordnaerPalette.RedHeader.Value,  // MØDE Red - secondary text
@@ -80,6 +80,12 @@ public static class JordnaerPalette
 	/// Dark Red. Used for small texts, payoffs, quotes (MØDE Red)
 	/// </summary>
 	public static readonly MudColor RedHeader = "#673417";
+
+	/// <summary>
+	/// Vivid Red. Used for error states (validation messages, required field markers, destructive actions).
+	/// Provides sufficient contrast on white backgrounds.
+	/// </summary>
+	public static readonly MudColor ErrorRed = "#c0392b";
 
 	/// <summary>
 	/// Beige. Used as background for text where <see cref="YellowBackground"/> and <see cref="GreenBackground"/> are too dark/saturated. (OMSORG)

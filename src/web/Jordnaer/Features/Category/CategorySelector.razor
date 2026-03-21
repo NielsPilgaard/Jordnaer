@@ -2,17 +2,21 @@
 
 <style>
     .category-chip-selected {
-        background-color: var(--mud-palette-success) !important;
-        color: white !important;
+        background-color: #dbab45 !important;
+        color: #2d4456 !important;
+    }
+
+    .category-chip-selected:hover {
+        background-color: #c99a35 !important;
     }
 
     .category-chip-unselected {
-        background-color: #6b7280 !important;
-        color: white !important;
+        background-color: #a9c0cf !important;
+        color: #2d4456 !important;
     }
 
     .category-chip-unselected:hover {
-        background-color: #4b5563 !important;
+        background-color: #93afc0 !important;
     }
 
     .category-chip-set {
@@ -30,7 +34,7 @@
     {
         var isSelected = Categories?.Contains(category) == true;
         <MudChip Text="@category" Value="@category" Variant="Variant.Filled"
-            Color="@(isSelected ? Color.Success : Color.Info)"
+            Color="Color.Default"
             Size="Size.Medium"
             Class="@(isSelected ? "category-chip-selected" : "category-chip-unselected")" />
     }
