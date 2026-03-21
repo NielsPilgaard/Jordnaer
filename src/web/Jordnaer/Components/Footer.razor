@@ -32,6 +32,24 @@
                                Class="social-icon" />
             </div>
         </div>
+        <div class="d-flex flex-column justify-center align-center px-4 px-sm-6 px-md-8">
+            <MudText Typo="Typo.body2" Class="mb-1">Verdensmål</MudText>
+            <div class="d-flex gap-2 align-center">
+                @foreach (var goal in _sdgGoals)
+                {
+                    <div class="sdg-tooltip-wrapper">
+                        <a href="@goal.Url" target="_blank" rel="noopener noreferrer"
+                           aria-label="@goal.AriaLabel">
+                            <img src="@goal.Icon" alt="@goal.Alt" class="sdg-icon" />
+                        </a>
+                        <div class="sdg-tooltip-box" role="tooltip">
+                            <span class="sdg-tooltip-title">@goal.Title</span>
+                            <span class="sdg-tooltip-disclaimer">Indholdet er ikke godkendt af FN og afspejler ikke FN's holdninger. un.org/sustainabledevelopment</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </footer>
 
@@ -43,11 +61,79 @@
     .social-icon:hover {
         transform: scale(1.1);
     }
+
+    .sdg-icon {
+        height: 60px;
+        width: auto;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .sdg-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .sdg-tooltip-wrapper {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .sdg-tooltip-box {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        border-radius: 4px;
+        padding: 8px 10px;
+        max-width: 260px;
+        white-space: normal;
+        z-index: 100;
+        pointer-events: none;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sdg-tooltip-wrapper:hover .sdg-tooltip-box {
+        display: flex;
+    }
+
+    .sdg-tooltip-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .sdg-tooltip-disclaimer {
+        font-size: 0.75rem;
+        opacity: 0.6;
+    }
 </style>
 
 @code {
 
 	[Parameter]
     public string? Class { get; set; }
+
+    private record SdgGoal(string Title, string Alt, string Url, string Icon)
+    {
+        public string AriaLabel => Title;
+    }
+
+    private static readonly SdgGoal[] _sdgGoals =
+    [
+        new("Verdensmål 3: God sundhed og trivsel",
+            "Verdensmål 3",
+            "https://www.verdensmaalene.dk/verdensmaal/maal-3",
+            "/images/sdg/sdg-3.png"),
+        new("Verdensmål 10: Færre uligheder",
+            "Verdensmål 10",
+            "https://www.verdensmaalene.dk/verdensmaal/maal-10",
+            "/images/sdg/sdg-10.png"),
+        new("Verdensmål 11: Bæredygtige byer og lokalsamfund",
+            "Verdensmål 11",
+            "https://www.verdensmaalene.dk/verdensmaal/maal-11",
+            "/images/sdg/sdg-11.png"),
+    ];
 
 }
