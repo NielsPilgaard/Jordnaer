@@ -37,9 +37,7 @@
             <div class="d-flex gap-2 align-center">
                 @foreach (var goal in _sdgGoals)
                 {
-                    <div class="sdg-tooltip-wrapper"
-                         data-title="@goal.Title"
-                         data-disclaimer="Indholdet er ikke godkendt af FN og afspejler ikke FN's holdninger. un.org/sustainabledevelopment">
+                    <div class="sdg-tooltip-wrapper">
                         <a href="@goal.Url" target="_blank" rel="noopener noreferrer"
                            aria-label="@goal.AriaLabel">
                             <img src="@goal.Icon" alt="@goal.Alt" class="sdg-icon" />
@@ -89,7 +87,6 @@
         color: #fff;
         border-radius: 4px;
         padding: 8px 10px;
-        white-space: nowrap;
         max-width: 260px;
         white-space: normal;
         z-index: 100;
@@ -118,22 +115,22 @@
 	[Parameter]
     public string? Class { get; set; }
 
-    private record SdgGoal(string Title, string AriaLabel, string Alt, string Url, string Icon);
+    private record SdgGoal(string Title, string Alt, string Url, string Icon)
+    {
+        public string AriaLabel => Title;
+    }
 
     private static readonly SdgGoal[] _sdgGoals =
     [
         new("Verdensmål 3: God sundhed og trivsel",
-            "Verdensmål 3: God sundhed og trivsel",
             "Verdensmål 3",
             "https://www.verdensmaalene.dk/verdensmaal/maal-3",
             "/images/sdg/sdg-3.png"),
         new("Verdensmål 10: Færre uligheder",
-            "Verdensmål 10: Færre uligheder",
             "Verdensmål 10",
             "https://www.verdensmaalene.dk/verdensmaal/maal-10",
             "/images/sdg/sdg-10.png"),
         new("Verdensmål 11: Bæredygtige byer og lokalsamfund",
-            "Verdensmål 11: Bæredygtige byer og lokalsamfund",
             "Verdensmål 11",
             "https://www.verdensmaalene.dk/verdensmaal/maal-11",
             "/images/sdg/sdg-11.png"),
