@@ -1,4 +1,4 @@
-name: Deploy Container (Azure Web Apps for Containers)
+name: Deploy Container
 
 on:
   push:
@@ -10,8 +10,6 @@ env:
   TESTS_DIRECTORY: tests/web/Jordnaer.Tests
   REGISTRY: ghcr.io
   IMAGE_NAME: nielspilgaard/minimoeder-website
-  AZURE_WEBAPP_NAME: mini-moeder
-  AZURE_RESOURCE_GROUP: Jordnaer
 
 jobs:
   test-build-deploy:
@@ -76,16 +74,13 @@ jobs:
           build-args: |
             VERSION=${{ steps.version.outputs.VERSION }}
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy to Azure Web App for Containers
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:production
+      - name: Deploy via Dokploy
+        run: |
+          curl --fail --show-error --silent \
+            -X POST "https://admin.mini-moeder.dk/api/application.deploy" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"applicationId":"${{ secrets.DOKPLOY_APPLICATION_ID }}"}'
 
       - name: Create Deployment on elmah.io
         uses: elmahio/github-create-deployment-action@v1
