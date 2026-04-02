@@ -76,7 +76,7 @@ internal sealed class UserCircuitHandler(
 
 		currentUser.CookieContainer = new CookieContainer();
 
-		string[] cookieNames = ["ARRAffinity", "ARRAffinitySameSite", AuthenticationConstants.CookieName];
+		string[] cookieNames = [AuthenticationConstants.CookieName];
 
 		foreach (var cookieName in cookieNames)
 		{
