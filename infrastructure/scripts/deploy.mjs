@@ -58,7 +58,7 @@ async function waitForDeployment() {
 		if (Date.now() - start > MAX_WAIT_MS) {
 			throw new Error(`Deployment timed out after ${MAX_WAIT_MS / 1000}s (applicationId: ${DOKPLOY_APPLICATION_ID})`);
 		}
-		const deployments = await get("deployment.allByApplication", { applicationId: DOKPLOY_APPLICATION_ID });
+		const deployments = await get("deployment.all", { applicationId: DOKPLOY_APPLICATION_ID });
 		if (!Array.isArray(deployments) || deployments.length === 0) {
 			console.log(`  no deployments found for applicationId ${DOKPLOY_APPLICATION_ID}, retrying...`);
 			await new Promise(r => setTimeout(r, 5000));
