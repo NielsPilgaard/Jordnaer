@@ -58,9 +58,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ steps.version.outputs.VERSION }}
             type=raw,value=production
 
       - name: Build and push Docker image
@@ -80,7 +78,7 @@ jobs:
           DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
           DOKPLOY_APPLICATION_ID: ${{ secrets.DOKPLOY_APPLICATION_ID }}
           IMAGE_TAG: ${{ steps.version.outputs.VERSION }}
-          IMAGE_NAME: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          IMAGE_NAME: ghcr.io/${{ env.IMAGE_NAME }}
         run: node infrastructure/scripts/deploy.mjs
 
       - name: Create Deployment on elmah.io
