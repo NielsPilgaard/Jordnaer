@@ -67,7 +67,16 @@ async function waitForDeployment() {
 		const latest = deployments[0];
 		console.log(`  status: ${latest.status}`);
 		if (latest.status === "done") return;
-		if (latest.status === "error") throw new Error(`Deployment failed: ${latest.errorMessage}`);
+		if (latest.status === "error") {
+			let logs = "";
+			try {
+				const logData = await get("deployment.readLogs", { deploymentId: latest.deploymentId, tail: 100 });
+				logs = typeof logData === "string" ? logData : JSON.stringify(logData, null, 2);
+			} catch {
+				logs = "(could not fetch logs)";
+			}
+			throw new Error(`Deployment failed.\n--- logs ---\n${logs}`);
+		}
 		if (latest.status === "cancelled") throw new Error("Deployment was cancelled");
 		await new Promise(r => setTimeout(r, 5000));
 	}
