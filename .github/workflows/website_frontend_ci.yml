@@ -1,8 +1,8 @@
-name: Run Playwright Website Tests after deploy
+name: Run Playwright Website Tests after container deploy
 
 on:
   workflow_run:
-    workflows: ["Deploy Website"]
+    workflows: ["Deploy Container"]
     types: [completed]
   workflow_dispatch:
 

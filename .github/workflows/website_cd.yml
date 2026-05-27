@@ -75,12 +75,12 @@ jobs:
             VERSION=${{ steps.version.outputs.VERSION }}
 
       - name: Deploy via Dokploy
-        run: |
-          curl --fail --show-error --silent \
-            -X POST "https://admin.mini-moeder.dk/api/application.deploy" \
-            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{"applicationId":"${{ secrets.DOKPLOY_APPLICATION_ID }}"}'
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_APPLICATION_ID: ${{ secrets.DOKPLOY_APPLICATION_ID }}
+          IMAGE_TAG: ${{ steps.version.outputs.VERSION }}
+        run: node infrastructure/scripts/deploy.mjs
 
       - name: Create Deployment on elmah.io
         uses: elmahio/github-create-deployment-action@v1
