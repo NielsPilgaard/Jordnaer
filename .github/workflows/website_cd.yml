@@ -80,6 +80,7 @@ jobs:
           DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
           DOKPLOY_APPLICATION_ID: ${{ secrets.DOKPLOY_APPLICATION_ID }}
           IMAGE_TAG: ${{ steps.version.outputs.VERSION }}
+          IMAGE_NAME: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         run: node infrastructure/scripts/deploy.mjs
 
       - name: Create Deployment on elmah.io
