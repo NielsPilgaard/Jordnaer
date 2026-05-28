@@ -28,9 +28,6 @@ jobs:
       - name: Build test project
         run: dotnet build "${{ env.WORKING_DIRECTORY }}"
 
-      - name: Install Playwright browsers
-        run: pwsh ${{ env.WORKING_DIRECTORY }}/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
-
       - name: Test
         run: >
           dotnet test "${{ env.WORKING_DIRECTORY }}"
