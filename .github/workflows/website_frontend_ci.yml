@@ -16,9 +16,6 @@ jobs:
     # Only run this if the workflow that triggered it was successful
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright/dotnet:v1.57.0-jammy
-      options: --user 1001
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -28,15 +25,18 @@ jobs:
         with:
           dotnet-version: "10.x"
 
+      - name: Build test project
+        run: dotnet build "${{ env.WORKING_DIRECTORY }}"
+
+      - name: Install Playwright browsers
+        run: pwsh ${{ env.WORKING_DIRECTORY }}/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+
       - name: Test
         run: >
-          dotnet test "${{ env.WORKING_DIRECTORY }}" 
-          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true" 
+          dotnet test "${{ env.WORKING_DIRECTORY }}"
+          --no-build
+          --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --filter Category!=SkipInCi
-        env:
-          Playwright__BaseUrl: "https://mini-moeder.dk"
-          Playwright__Username: ${{ secrets.Playwright_Username }}
-          Playwright__Password: ${{ secrets.Playwright_Password }}
 
       - name: Upload Screenshots
         if: always()
