@@ -79,7 +79,35 @@ public class ChatPage
 	public async Task SendMessageAsync(string message)
 	{
 		await MessageInput.FillAsync(message);
+		await DismissPopoverOverlayAsync();
 		await SendButton.ClickAsync();
+	}
+
+	/// <summary>
+	/// The user search autocomplete can leave its popover overlay open after a result is selected
+	/// (e.g. a debounced search reopening the menu), which intercepts clicks on the send button.
+	/// </summary>
+	private async Task DismissPopoverOverlayAsync()
+	{
+		var popoverOverlay = _page.Locator(".mud-popover-provider .mud-overlay").First;
+		try
+		{
+			await popoverOverlay.WaitForAsync(new LocatorWaitForOptions
+			{
+				State = WaitForSelectorState.Hidden,
+				Timeout = 2_000
+			});
+		}
+		catch (TimeoutException)
+		{
+			// Clicking the overlay closes the popover it belongs to
+			await popoverOverlay.ClickAsync();
+			await popoverOverlay.WaitForAsync(new LocatorWaitForOptions
+			{
+				State = WaitForSelectorState.Hidden,
+				Timeout = 5_000
+			});
+		}
 	}
 
 	public ILocator GetMessage(string messageText)
