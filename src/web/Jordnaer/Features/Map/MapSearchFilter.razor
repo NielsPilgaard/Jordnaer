@@ -1,5 +1,5 @@
 @using JetBrains.Annotations
-@inject IDataForsyningenClient DataForsyningenClient
+@inject IAdressevaelgerClient AdressevaelgerClient
 @inject ILocationService LocationService
 @inject IJSRuntime JsRuntime
 
@@ -165,7 +165,7 @@
     }
 
     /// <summary>
-    /// Searches for Danish addresses using DataForsyningen API
+    /// Searches for Danish addresses using the Adressevælger API
     /// </summary>
     private async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
     {
@@ -174,10 +174,10 @@
             return [];
         }
 
-        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+        var searchResponse = await AdressevaelgerClient.SearchAddressesAsync(value, maximum: 20, cancellationToken);
 
-        return searchResponse is { IsSuccessful: true, Content: not null }
-        ? searchResponse.Content.Select(response => response.ToString())
+        return searchResponse is { IsSuccessful: true, Content.Fund: not null }
+        ? searchResponse.Content.Fund.Select(response => response.ToString())
         : [];
     }
 

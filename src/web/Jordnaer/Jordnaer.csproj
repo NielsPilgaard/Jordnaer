@@ -63,4 +63,9 @@
 		<ProjectReference Include="..\..\shared\Jordnaer.Shared\Jordnaer.Shared.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Remove="Features\Search\Data\postnumre.json" />
+		<EmbeddedResource Include="Features\Search\Data\postnumre.json" LogicalName="Jordnaer.Features.Search.Data.postnumre.json" />
+	</ItemGroup>
+
 </Project>

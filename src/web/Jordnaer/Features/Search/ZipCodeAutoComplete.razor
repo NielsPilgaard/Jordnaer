@@ -1,4 +1,4 @@
-@inject IDataForsyningenClient DataForsyningenClient
+@inject IZipCodeService ZipCodeService
 @inject IJSRuntime JSRuntime
 @inject ILogger<ZipCodeAutoComplete> Logger
 @inject ISnackbar Snackbar
@@ -22,7 +22,6 @@
     [Parameter, EditorRequired]
     public bool DisableSmartCompletion { get; set; } = false;
 
-    private static readonly NumberFormatInfo FloatNumberFormat = new() { CurrencyDecimalSeparator = "." };
     private bool _locationSetOnInitialized = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -48,33 +47,22 @@
 
         var (latitude, longitude) = userCoordinates.Value;
 
-        var response = await DataForsyningenClient.GetZipCodeFromCoordinates(
-        longitude.ToString(FloatNumberFormat),
-        latitude.ToString(FloatNumberFormat));
+        var zipCode = ZipCodeService.FindNearest(latitude, longitude);
 
-        if (response.IsSuccessful)
+        if (zipCode is not null)
         {
-            var location = $"{response.Content.Nr} {response.Content.Navn}";
-            await LocationValueChanged(location);
+            await LocationValueChanged(zipCode.ToString());
         }
         else
         {
             Snackbar.Add("Det lykkedes ikke at finde dit postnummer ud fra din nuværende lokation.", Severity.Info);
-            Logger.LogError(response.Error,
-            "Failed to get zip code from user coordinates. " +
-            "Uri: {Uri} StatusCode: {StatusCode}",
-            response.RequestMessage?.RequestUri,
-            response.StatusCode);
+            Logger.LogInformation("No zip code found near the user's coordinates.");
         }
     }
 
-    public async Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
+    public Task<IEnumerable<string>> SearchForZipCodes(string value, CancellationToken cancellationToken)
     {
-        var searchResponse = await DataForsyningenClient.GetZipCodesWithAutoComplete(value, cancellationToken);
-
-        return searchResponse.IsSuccessful
-        ? searchResponse.Content!.Select(response => response.ToString())
-        : [];
+        return Task.FromResult(ZipCodeService.Search(value).Select(zipCode => zipCode.ToString()));
     }
 
     private async Task LocationValueChanged(string value)

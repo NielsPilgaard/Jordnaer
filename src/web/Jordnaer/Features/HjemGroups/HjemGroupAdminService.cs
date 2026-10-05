@@ -1,5 +1,6 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Jordnaer.Features.Search;
 using Jordnaer.Shared;
 using MassTransit;
 using OneOf;
@@ -11,7 +12,7 @@ namespace Jordnaer.Features.HjemGroups;
 
 public class HjemGroupAdminService(
     BlobServiceClient blobServiceClient,
-    IDataForsyningenClient dataForsyningenClient,
+    IZipCodeService zipCodeService,
     IPublishEndpoint publishEndpoint,
     ILogger<HjemGroupAdminService> logger)
 {
@@ -78,35 +79,16 @@ public class HjemGroupAdminService(
     }
 
     /// <summary>
-    /// Looks up coordinates and city/zip for a Danish city or area name via Dataforsyningen.
+    /// Looks up coordinates and city/zip for a Danish city or area name, using the zip code center.
     /// Returns null if not found.
     /// </summary>
-    public async Task<GeocodeResult?> GeocodeAsync(string locationText, CancellationToken cancellationToken = default)
+    public GeocodeResult? Geocode(string locationText)
     {
-        var response = await dataForsyningenClient.SearchZipCodesAsync(locationText, cancellationToken);
+        var zipCode = zipCodeService.Find(locationText);
 
-        if (!response.IsSuccessStatusCode || response.Content is null)
-        {
-            return null;
-        }
-
-        var first = response.Content.FirstOrDefault();
-        if (first.Navn is null || first.Visueltcenter is not { Length: >= 2 })
-        {
-            return null;
-        }
-
-        // GeoJSON order: [longitude, latitude]
-        var longitude = (double)first.Visueltcenter[0];
-        var latitude = (double)first.Visueltcenter[1];
-
-        int? zipCode = null;
-        if (int.TryParse(first.Nr, out var parsedZip))
-        {
-            zipCode = parsedZip;
-        }
-
-        return new GeocodeResult(first.Navn, zipCode, latitude, longitude);
+        return zipCode is null
+            ? null
+            : new GeocodeResult(zipCode.Name, zipCode.Number, zipCode.Latitude, zipCode.Longitude);
     }
 
     public sealed record GeocodeResult(string City, int? ZipCode, double Latitude, double Longitude);

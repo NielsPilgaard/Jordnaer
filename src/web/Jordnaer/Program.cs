@@ -115,7 +115,7 @@ builder.Services.AddBlazoredSessionStorage();
 
 builder.AddFusionCache();
 
-builder.Services.AddDataForsyningenClient();
+builder.Services.AddAdressevaelgerClient();
 
 builder.Services.AddScoped<ILeafletMapInterop, LeafletMapInterop>();
 

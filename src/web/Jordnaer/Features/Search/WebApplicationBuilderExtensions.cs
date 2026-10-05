@@ -1,10 +1,10 @@
-﻿namespace Jordnaer.Features.Search;
+namespace Jordnaer.Features.Search;
 
 public static class WebApplicationBuilderExtensions
 {
 	public static WebApplicationBuilder AddSearchServices(this WebApplicationBuilder builder)
 	{
-		builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
+		builder.Services.AddSingleton<IZipCodeService, ZipCodeService>();
 
 		return builder;
 	}
