@@ -132,9 +132,8 @@ else
                               Class="flex-grow-1" />
                 <MudButton Variant="Variant.Outlined" Color="Color.Primary"
                            StartIcon="@Icons.Material.Filled.Search"
-                           OnClick="LookupCoordinatesAsync"
-                           Disabled="_isGeocoding">
-                    @(_isGeocoding ? "Søger..." : "Slå op")
+                           OnClick="LookupCoordinates">
+                    Slå op
                 </MudButton>
             </MudStack>
 
@@ -170,7 +169,6 @@ else
     // Dialog state
     private bool _dialogVisible = false;
     private bool _editingNew = false;
-    private bool _isGeocoding = false;
     private HjemGroupEntry? _editingEntry;
     private readonly DialogOptions _dialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 
@@ -218,39 +216,26 @@ else
 
     private void CloseDialog() => _dialogVisible = false;
 
-    private async Task LookupCoordinatesAsync()
+    private void LookupCoordinates()
     {
         var query = _form.GeocodeName?.Trim();
         if (string.IsNullOrEmpty(query))
             return;
 
-        _isGeocoding = true;
-        try
+        var result = AdminService.Geocode(query);
+        if (result is null)
         {
-            var result = await AdminService.GeocodeAsync(query);
-            if (result is null)
-            {
-                Snackbar.Add($"Ingen resultater for \"{query}\".", Severity.Warning);
-                return;
-            }
+            Snackbar.Add($"Ingen resultater for \"{query}\".", Severity.Warning);
+            return;
+        }
 
-            _form.City = result.City;
-            _form.ZipCode = result.ZipCode;
-            _form.Latitude = result.Latitude;
-            _form.Longitude = result.Longitude;
-            Snackbar.Add(string.IsNullOrWhiteSpace(result.ZipCode?.ToString())
-                ? $"Fandt {result.City}"
-                : $"Fandt {result.City} ({result.ZipCode})", Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Geocode lookup failed for {Query}", query);
-            Snackbar.Add("Koordinat-søgning fejlede.", Severity.Error);
-        }
-        finally
-        {
-            _isGeocoding = false;
-        }
+        _form.City = result.City;
+        _form.ZipCode = result.ZipCode;
+        _form.Latitude = result.Latitude;
+        _form.Longitude = result.Longitude;
+        Snackbar.Add(string.IsNullOrWhiteSpace(result.ZipCode?.ToString())
+            ? $"Fandt {result.City}"
+            : $"Fandt {result.City} ({result.ZipCode})", Severity.Success);
     }
 
     private void CommitEdit()

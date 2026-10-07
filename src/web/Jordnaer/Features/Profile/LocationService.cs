@@ -1,3 +1,4 @@
+using Jordnaer.Features.Search;
 using Jordnaer.Shared;
 using NetTopologySuite.Geometries;
 
@@ -29,7 +30,8 @@ public interface ILocationService
 }
 
 public class LocationService(
-	IDataForsyningenClient dataForsyningenClient,
+	IAdressevaelgerClient adressevaelgerClient,
+	IZipCodeService zipCodeService,
 	ILogger<LocationService> logger) : ILocationService
 {
 	private static readonly GeometryFactory GeometryFactory = new(new PrecisionModel(), 4326);
@@ -43,84 +45,78 @@ public class LocationService(
 			return null;
 		}
 
-		// Get address suggestions first
-		var addressResponse = await dataForsyningenClient.GetAddressesWithAutoComplete(addressText, cancellationToken);
+		// The address text usually comes from autocomplete, so the best match is the address itself
+		var searchResponse = await adressevaelgerClient.SearchAddressesAsync(addressText, maximum: 1, cancellationToken);
 
-		if (!addressResponse.IsSuccessful || addressResponse.Content is null)
+		if (!searchResponse.IsSuccessful || searchResponse.Content is null)
 		{
-			logger.LogWarning("Failed to get address autocomplete for: {AddressText}", addressText);
+			logger.LogWarning(searchResponse.Error,
+				"Failed to search for address: {AddressText}. StatusCode: {StatusCode}",
+				addressText, searchResponse.StatusCode);
 			return null;
 		}
 
-		var firstAddress = addressResponse.Content.FirstOrDefault();
-		if (firstAddress.Adresse is null)
+		var firstMatch = searchResponse.Content.Fund?.FirstOrDefault();
+		var husnummerId = firstMatch?.GetHusnummerId();
+		if (husnummerId is null)
 		{
+			// Only a street was matched (e.g. "Ryomgård Midtpunkt 8550 Ryomgård"), fall back to its zip code
+			if (firstMatch?.Type is AdressevaelgerFund.NavngivenVejPostnummerType &&
+				await GetLocationFromZipCodeAsync(firstMatch.Postnr ?? string.Empty, cancellationToken) is { } streetZipCodeResult)
+			{
+				return streetZipCodeResult with { ZipCodeLocation = streetZipCodeResult.Location };
+			}
+
 			logger.LogWarning("No address found for: {AddressText}", addressText);
 			return null;
 		}
 
-		var adresse = firstAddress.Adresse.Value;
-
-		// Extract zip code and city
-		int? zipCode = null;
-		if (!string.IsNullOrEmpty(adresse.Postnr) && int.TryParse(adresse.Postnr, out var parsedZipCode))
+		// Search results contain no coordinates, so we need to look up the house number
+		var husnummerResponse = await adressevaelgerClient.GetHusnummerAsync(husnummerId, cancellationToken);
+		var husnummer = husnummerResponse.Content?.Husnummer;
+		var coordinates = husnummer?.Adgangspunkt?.Koordinater;
+		if (!husnummerResponse.IsSuccessful || coordinates is null)
 		{
-			zipCode = parsedZipCode;
+			logger.LogWarning(husnummerResponse.Error,
+				"Failed to get coordinates for house number {HusnummerId} ({AddressText}). StatusCode: {StatusCode}",
+				husnummerId, addressText, husnummerResponse.StatusCode);
+			return null;
 		}
 
-		// In DataForsyningen, X = longitude, Y = latitude
+		// Adressevælger returns ETRS89 / UTM32 coordinates, while we store WGS84
 		// NetTopologySuite Point uses (longitude, latitude) order
-		var location = GeometryFactory.CreatePoint(new Coordinate(adresse.X, adresse.Y));
+		var (latitude, longitude) = coordinates.ToWgs84();
+		var location = GeometryFactory.CreatePoint(new Coordinate(longitude, latitude));
+
+		var postnummer = husnummer!.Postnummer;
+		int? zipCode = int.TryParse(postnummer?.Postnr, out var parsedZipCode) ? parsedZipCode : null;
 
 		// Also look up the zip code center coordinates for privacy (non-members see this instead of exact address)
-		Point? zipCodeLocation = null;
-		if (!string.IsNullOrEmpty(adresse.Postnr))
-		{
-			var zipCodeResult = await GetLocationFromZipCodeAsync($"{adresse.Postnr} {adresse.Postnrnavn}", cancellationToken);
-			zipCodeLocation = zipCodeResult?.Location;
-		}
+		var zipCodeLocation = zipCode is not null
+			? (await GetLocationFromZipCodeAsync(postnummer!.Postnr!, cancellationToken))?.Location
+			: null;
 
-		return new LocationResult(location, zipCode, adresse.Postnrnavn, zipCodeLocation);
+		return new LocationResult(location, zipCode, postnummer?.Navn, zipCodeLocation);
 	}
 
-	public async Task<LocationResult?> GetLocationFromZipCodeAsync(
+	public Task<LocationResult?> GetLocationFromZipCodeAsync(
 		string zipCodeText,
 		CancellationToken cancellationToken = default)
 	{
-		if (string.IsNullOrWhiteSpace(zipCodeText))
+		var zipCode = zipCodeService.Find(zipCodeText);
+		if (zipCode is null)
 		{
-			return null;
+			if (!string.IsNullOrWhiteSpace(zipCodeText))
+			{
+				logger.LogWarning("No zip code found for: {ZipCodeText}", zipCodeText);
+			}
+
+			return Task.FromResult<LocationResult?>(null);
 		}
 
-		// Get zip code suggestions first
-		var zipCodeResponse = await dataForsyningenClient.GetZipCodesWithAutoComplete(zipCodeText, cancellationToken);
-
-		if (!zipCodeResponse.IsSuccessful || zipCodeResponse.Content is null)
-		{
-			logger.LogWarning("Failed to get zip code autocomplete for: {ZipCodeText}", zipCodeText);
-			return null;
-		}
-
-		var firstZipCode = zipCodeResponse.Content.FirstOrDefault();
-		if (firstZipCode.Postnummer is null)
-		{
-			logger.LogWarning("No zip code found for: {ZipCodeText}", zipCodeText);
-			return null;
-		}
-
-		var postnummer = firstZipCode.Postnummer.Value;
-
-		// Extract zip code
-		int? zipCode = null;
-		if (!string.IsNullOrEmpty(postnummer.Nr) && int.TryParse(postnummer.Nr, out var parsedZipCode))
-		{
-			zipCode = parsedZipCode;
-		}
-
-		// In DataForsyningen, Visueltcenter_x = longitude, Visueltcenter_y = latitude
 		// NetTopologySuite Point uses (longitude, latitude) order
-		var location = GeometryFactory.CreatePoint(new Coordinate(postnummer.Visueltcenter_x, postnummer.Visueltcenter_y));
+		var location = GeometryFactory.CreatePoint(new Coordinate(zipCode.Longitude, zipCode.Latitude));
 
-		return new LocationResult(location, zipCode, postnummer.Navn);
+		return Task.FromResult<LocationResult?>(new LocationResult(location, zipCode.Number, zipCode.Name));
 	}
 }

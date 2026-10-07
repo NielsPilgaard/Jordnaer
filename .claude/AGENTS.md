@@ -19,8 +19,8 @@ dotnet build                                                              # Buil
 dotnet test tests/web/Jordnaer.Tests --filter Category!=SkipInCi          # Unit tests
 dotnet test tests/web/Jordnaer.Tests --filter "FullyQualifiedName~Name"   # Specific test
 dotnet format                                                             # Format code
-dotnet format analyzers --verify-no-changes --diagnostics                 # Lint check
-dotnet format style --verify-no-changes --diagnostics                     # Style check
+dotnet format analyzers --verify-no-changes                               # Lint check
+dotnet format style --verify-no-changes                                   # Style check
 ```
 
 ## Project Structure

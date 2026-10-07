@@ -1,4 +1,4 @@
-@inject IDataForsyningenClient DataForsyningenClient
+@inject IAdressevaelgerClient AdressevaelgerClient
 
 <MudAutocomplete T="string"
                  ValueChanged="AddressValueChanged"
@@ -27,12 +27,14 @@
     [Parameter, EditorRequired]
     public required Expression<Func<string?>> For { get; set; }
 
+    private const int MaxResults = 20;
+
     public async Task<IEnumerable<string>> SearchForAddresses(string value, CancellationToken cancellationToken)
     {
-        var searchResponse = await DataForsyningenClient.GetAddressesWithAutoComplete(value, cancellationToken);
+        var searchResponse = await AdressevaelgerClient.SearchAddressesAsync(value, MaxResults, cancellationToken);
 
-        return searchResponse.IsSuccessful
-          ? searchResponse.Content!.Select(response => response.ToString())
+        return searchResponse is { IsSuccessful: true, Content.Fund: not null }
+          ? searchResponse.Content.Fund.Select(response => response.ToString())
           : [];
     }
 

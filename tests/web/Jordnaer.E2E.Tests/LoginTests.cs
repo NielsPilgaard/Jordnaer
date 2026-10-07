@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using Jordnaer.E2E.Tests.Infrastructure;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
@@ -46,6 +48,13 @@ public class LoginTests : PlaywrightTest
 	[TestCase("Google")]
 	public async Task When_User_Goes_To_Login_External_Provider_Login_Is_Visible(string externalProvider)
 	{
+		// Providers are only registered when their client id/secret are configured
+		var schemeProvider = SetUpFixture.Services.GetRequiredService<IAuthenticationSchemeProvider>();
+		if (await schemeProvider.GetSchemeAsync(externalProvider) is null)
+		{
+			Assert.Ignore($"{externalProvider} authentication is not configured.");
+		}
+
 		var page = await SetUpFixture.Browser.NewPageAsync(SetUpFixture.Playwright, false);
 		try
 		{

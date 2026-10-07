@@ -1,136 +1,60 @@
-# DAWA API Migration Guide
-
-## Overview
-
-DAWA (Danmarks Adressers Web API) is being shut down on **July 1, 2026**. This document outlines the impact on Jordnaer and the migration path to the replacement service.
-
-## Timeline
-
-| Date | Event |
-|------|-------|
-| December 16, 2023 | BBR data stopped updating in DAWA |
-| April 1, 2024 | BBR data fully removed from DAWA |
-| September 2024 | Zone data removed from DAWA |
-| June 30, 2026 | Parallel operation ends |
-| **July 1, 2026** | **DAWA shuts down** |
-
-## Why is DAWA Closing?
-
-- No funding secured for ongoing maintenance
-- Multiple hard-to-fix bugs in recent years
-- Lack of governance for data quality
-- Modernization of Datafordeleren provides opportunity to consolidate
-
-## Current Usage in Jordnaer
-
-Jordnaer uses DAWA through the `IDataForsyningenClient` interface for the following functionality:
-
-### 1. Address Autocomplete
-- **Endpoint**: `GET /adresser/autocomplete?q={query}`
-- **Used in**:
-  - `Features/Profile/AddressAutoComplete.razor` - User profile address input
-  - `Features/Map/MapSearchFilter.razor` - Map search functionality
-  - `Features/Profile/LocationService.cs` - Location resolution
-
-### 2. Zip Code Autocomplete
-- **Endpoint**: `GET /postnumre/autocomplete?q={query}`
-- **Used in**:
-  - `Features/Search/ZipCodeAutoComplete.razor` - Search filter zip code input
-  - `Features/Search/ZipCodeService.cs` - Zip code search service
-
-### 3. Reverse Geocoding (Coordinates to Zip Code)
-- **Endpoint**: `GET /postnumre/reverse?x={longitude}&y={latitude}`
-- **Used in**:
-  - `Features/Search/ZipCodeAutoComplete.razor` - Get zip code from user's location
-
-### 4. Zip Codes Within Radius
-- **Endpoint**: `GET /postnumre?cirkel={x,y,radius}`
-- **Used in**:
-  - `Features/Search/ZipCodeService.cs` - Find zip codes within search radius
-
-## Affected Files
-
-| File | Purpose |
-|------|---------|
-| `src/shared/Jordnaer.Shared/UserSearch/IDataForsyningenClient.cs` | Refit client interface |
-| `src/shared/Jordnaer.Shared/UserSearch/IDataForsyningenPingClient.cs` | Health check client |
-| `src/shared/Jordnaer.Shared/Extensions/ServiceCollectionExtensions.cs` | Client registration |
-| `src/web/Jordnaer/Features/UserSearch/ServiceCollectionExtensions.cs` | Feature registration |
-| `src/web/Jordnaer/Features/Profile/AddressAutoComplete.razor` | Address input component |
-| `src/web/Jordnaer/Features/Profile/LocationService.cs` | Location service |
-| `src/web/Jordnaer/Features/Map/MapSearchFilter.razor` | Map search filter |
-| `src/web/Jordnaer/Features/Search/ZipCodeAutoComplete.razor` | Zip code input component |
-| `src/web/Jordnaer/Features/Search/ZipCodeService.cs` | Zip code service |
-| `src/web/Jordnaer/appsettings.json` | Configuration (BaseUrl) |
-| `tests/web/Jordnaer.Tests/UserSearch/DataForsyningenClientTests.cs` | Integration tests |
-
-## Migration Path: Datafordeleren
-
-The replacement service is **Datafordeleren** with **DAR** (Danmarks Adresseregister).
-
-### New API Details
-
-- **Portal**: https://datafordeler.dk
-- **DAR Documentation**: https://datafordeler.dk/dataoversigt/danmarks-adresseregister-dar/
-- **Base URL**: `https://services.datafordeler.dk/DAR/DAR/3.0.0/rest/`
-
-### Key Differences
-
-| Aspect | DAWA | Datafordeleren |
-|--------|------|----------------|
-| Authentication | None (open) | May require username/password or certificate |
-| Autocomplete | Built-in endpoints | Status uncertain - may need custom implementation |
-| Response format | JSON | JSON/XML |
-| Rate limiting | Unknown | Unknown |
-
-### Autocomplete Uncertainty
-
-From the official announcement:
-> "It can be said with certainty that the autocomplete functionality will continue after DAWA closes, but it remains unclear exactly what it will look like in the future."
-
-This means we should monitor announcements closely and be prepared for potential changes to autocomplete implementation.
-
-## Migration Options
-
-### Option 1: Wait for Datafordeleren Autocomplete (Recommended)
-- Monitor official announcements for autocomplete replacement
-- Migrate when new endpoints are available
-- Lowest effort if functionality is preserved
-
-### Option 2: Build Custom Autocomplete
-- Use Datafordeleren raw data APIs
-- Implement server-side autocomplete logic
-- Cache address data for performance
-- Higher effort but more control
-
-### Option 3: Third-Party Service
-- Evaluate commercial address validation services
-- Consider services like Google Places, HERE, or local alternatives
-- May have cost implications
-
-## Action Items
-
-- [ ] Register at https://datafordeler.dk to test DAR API
-- [ ] Subscribe to Klimadatastyrelsens newsletter for updates
-- [ ] Monitor https://dataforsyningen.dk for migration announcements
-- [ ] Test Datafordeleren API endpoints in development
-- [ ] Plan migration timeline (before June 2026)
-- [ ] Update integration tests for new API
-- [ ] Update health checks for new service
-
-## Resources
-
-- [DAWA Documentation](https://dawadocs.dataforsyningen.dk/)
-- [Datafordeler Portal](https://datafordeler.dk/)
-- [DAR Address API](https://datafordeler.dk/dataoversigt/danmarks-adresseregister-dar/dar-adresse/)
-- [DAWA Autocomplete Demo](https://autocomplete.aws.dk/)
-- [Dataforsyningen](https://dataforsyningen.dk/)
-
-## Contact
-
-For questions about the migration, contact Klimadatastyrelsen through their official channels.
-
+---
+title: 'DAWA Replacement: Adressevælger + Embedded Zip Codes'
+status: 'Done'
+purpose: 'Reference for how Jordnaer looks up Danish addresses and zip codes after DAWA shut down.'
+description: >-
+  DAWA shut down on October 1, 2026. Address autocomplete now uses Klimadatastyrelsen's Adressevælger API;
+  all zip code lookups (autocomplete, zip → coordinates, coordinates → zip, city geocoding) use an embedded
+  snapshot of DAWA's zip code list, with no external calls.
 ---
 
-*Document created: December 2024*
-*Last updated: December 2024*
+# DAWA Replacement: Adressevælger + Embedded Zip Codes
+
+## TL;DR
+
+- DAWA (`api.dataforsyningen.dk`) returns `410 Gone` since **October 1, 2026**.
+- Addresses → **Adressevælger** (`https://adressevaelger.dk`) via `IAdressevaelgerClient`.
+- Zip codes → **`IZipCodeService`**, backed by the embedded `Features/Search/Data/postnumre.json` (1,089 zip codes).
+- Adressevælger returns ETRS89/UTM32 (EPSG:25832) coordinates; `Utm32Converter` converts them to WGS84.
+
+## Addresses: Adressevælger
+
+Docs: <https://confluence.kds.dk/pages/viewpage.action?pageId=234782998>
+
+| What we do | Endpoint |
+|---|---|
+| Autocomplete (`AddressAutoComplete.razor`, `MapSearchFilter.razor`) | `GET /adresser/soeg?tekst=...&maksimum=20` |
+| Coordinates for a selected address (`LocationService.GetLocationFromAddressAsync`) | `GET /adresser/soeg?tekst=...&maksimum=1` → `GET /husnumre/{husnummerId}` |
+
+- **Token**: every request needs `token=`. There is no user management yet (expected late 2026 / early 2027), so KDS recommends the shared token `adressevaelger123`. It is configured as `Adressevaelger:Token` and appended by `AdressevaelgerTokenHandler`. Replace it when KDS introduces user management; sign up for their notification service to get notified.
+- **No coordinates in search results**: search hits only return a title and ids. We look up the house number to get the access point coordinates.
+- **Result types**: `adresse`, `husnummer`, `navngivenvejpostnummer` (street within a zip code) or `vejnavn` (street name only). If the best match is only a street, `LocationService` falls back to the zip code center.
+- **No rate limit**, according to KDS. **No reverse geocoding** and **no zip code search**, which is why zip codes are local.
+
+Known issues (from KDS's "Kendte fejl" page):
+
+- A comma without a following space breaks the search (`"Vestergade 12,8000"`). The titles we pass back always contain `", "`.
+- `o`/`oe` do not match `ø`, and `a`/`ae` do not match `æ`.
+- Occasional `504 Upstream request timeout`; the standard resilience handler retries.
+
+## Zip codes: embedded dataset
+
+`ZipCodeService` (singleton) loads `src/web/Jordnaer/Features/Search/Data/postnumre.json`, an embedded resource with number, name, visual center and bounding box per zip code.
+
+| Use | Method |
+|---|---|
+| Zip code autocomplete (`ZipCodeAutoComplete.razor`) | `Search(query)` |
+| Zip code → coordinates for user/group/post search, profiles, groups (`LocationService.GetLocationFromZipCodeAsync`) | `Find(text)` |
+| "Use my location" (`ZipCodeAutoComplete.razor`) | `FindNearest(lat, lon)`: nearest center among bounding boxes containing the point; `null` if outside Denmark |
+| HJEM group city geocoding (`HjemGroupAdminService.Geocode`) | `Find(text)` |
+
+The data is a snapshot of DAWA's `/postnumre` endpoint from September 16, 2026, recovered from the Internet Archive:
+`https://web.archive.org/web/20260916062034id_/https://api.dataforsyningen.dk/postnumre`.
+
+Danish zip codes rarely change. If new ones appear, regenerate the file from a current source (e.g. DAGI's postnummerinddeling on Datafordeleren) with the same shape: `number`, `name`, `latitude`, `longitude`, `boundingBox` (`[minLon, minLat, maxLon, maxLat]`).
+
+## What was removed
+
+- `IDataForsyningenClient`, `IDataForsyningenPingClient`, `DataForsyningenOptions`, response models
+- `DataForsyningenHealthCheck` (no health check for Adressevælger; failures only degrade address autocomplete)
+- The old `ZipCodeService` and `Circle`, which were dead code (radius search happens in SQL Server with `IsWithinDistance()`)
