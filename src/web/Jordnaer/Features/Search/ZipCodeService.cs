@@ -82,7 +82,7 @@ public class ZipCodeService : IZipCodeService
 
 		var text = zipCodeOrCity.Trim();
 
-		if (text.Length >= 4 && text[..4].All(char.IsAsciiDigit))
+		if (text.Length >= 4 && text[..4].All(char.IsAsciiDigit) && (text.Length == 4 || char.IsWhiteSpace(text[4])))
 		{
 			return ZipCodesByNumber.Value.GetValueOrDefault(int.Parse(text[..4]));
 		}
